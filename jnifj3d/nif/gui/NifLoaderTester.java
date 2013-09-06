@@ -2,6 +2,7 @@ package nif.gui;
 
 import java.io.File;
 import java.util.prefs.Preferences;
+import java3d.nativelinker.Java3dLinker2;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -17,6 +18,7 @@ public class NifLoaderTester
 
 	public static void main(String[] args)
 	{
+		new Java3dLinker2();
 		prefs = Preferences.userNodeForPackage(NifLoaderTester.class);
 		String baseDir = prefs.get("NifToJ3dTester.baseDir", System.getProperty("user.dir"));
 

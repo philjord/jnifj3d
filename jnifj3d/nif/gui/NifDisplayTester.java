@@ -9,6 +9,7 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.Enumeration;
 import java.util.prefs.Preferences;
+import java3d.nativelinker.Java3dLinker2;
 
 import javax.media.j3d.AmbientLight;
 import javax.media.j3d.Behavior;
@@ -356,7 +357,7 @@ public class NifDisplayTester extends SimpleUniverse
 
 	public static void main(String[] args)
 	{
-
+		new Java3dLinker2();
 		prefs = Preferences.userNodeForPackage(NifDisplayTester.class);
 		String baseDir = prefs.get("NifDisplayTester.baseDir", System.getProperty("user.dir"));
 
