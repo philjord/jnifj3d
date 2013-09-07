@@ -4,15 +4,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.media.j3d.Geometry;
+import javax.media.j3d.GeometryArray;
 import javax.media.j3d.GeometryUpdater;
 import javax.media.j3d.Group;
-import javax.media.j3d.IndexedGeometryArray;
 import javax.media.j3d.Transform3D;
 import javax.vecmath.Point3f;
 
-import tools3d.utils.scenegraph.Unsharable;
-
 import nif.compound.NifSkinPartition;
+import tools3d.utils.scenegraph.Unsharable;
 
 public class J3dNifSkinPartition extends Group implements Unsharable
 {
@@ -24,9 +23,9 @@ public class J3dNifSkinPartition extends Group implements Unsharable
 
 	private HashMap<String, J3dNiNode> skeletonBones;
 
-	private IndexedGeometryArray baseIndexedGeometryArray;
+	private GeometryArray baseIndexedGeometryArray;
 
-	private IndexedGeometryArray currentIndexedGeometryArray;
+	private GeometryArray currentIndexedGeometryArray;
 
 	private Transform3D shapeVWTrans = new Transform3D();
 
@@ -59,8 +58,8 @@ public class J3dNifSkinPartition extends Group implements Unsharable
 			skinBonesVWInvTransInOrder.add(skinBoneVWInvTrans);
 		}
 
-		currentIndexedGeometryArray = j3dNiTriShape.getCurrentIndexedGeometryArray();
-		baseIndexedGeometryArray = j3dNiTriShape.getBaseIndexedGeometryArray();
+		currentIndexedGeometryArray = j3dNiTriShape.getCurrentGeometryArray();
+		baseIndexedGeometryArray = j3dNiTriShape.getBaseGeometryArray();
 
 		//prep an accumulation transform set for reuse in the updater
 		for (int spBoneIndex = 0; spBoneIndex < nifSkinPartition.bones.length; spBoneIndex++)

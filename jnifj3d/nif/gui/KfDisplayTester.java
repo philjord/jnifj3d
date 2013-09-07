@@ -9,6 +9,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.prefs.Preferences;
+import java3d.nativelinker.Java3dLinker2;
 
 import javax.media.j3d.AmbientLight;
 import javax.media.j3d.Behavior;
@@ -52,6 +53,7 @@ public class KfDisplayTester
 
 	public static void main(String[] args)
 	{
+		new Java3dLinker2();
 		prefs = Preferences.userNodeForPackage(KfDisplayTester.class);
 
 		setUpUniverseAndCanvas(false);
@@ -279,11 +281,12 @@ public class KfDisplayTester
 
 	private static SimpleUniverse universe;
 
-	private static TransformGroup transformGroup = new TransformGroup();
+	private static TransformGroup transformGroup;
 
 	private static void setUpUniverseAndCanvas(boolean autoSpin)
 	{
 		universe = new SimpleUniverse();
+		transformGroup = new TransformGroup();
 
 		Window win = SwingUtilities.getWindowAncestor(universe.getCanvas());
 		win.setSize(1000, 1000);

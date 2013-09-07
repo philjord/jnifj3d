@@ -48,7 +48,7 @@ import utils.source.file.FileTextureSource;
 
 import com.sun.j3d.utils.universe.SimpleUniverse;
 
-public class NifDisplayTester extends SimpleUniverse
+public class NifDisplayTester
 {
 	private SimpleCameraHandler simpleCameraHandler;
 
@@ -92,9 +92,11 @@ public class NifDisplayTester extends SimpleUniverse
 
 	private NifFileDisplayTree nifFileDisplayTree = new NifFileDisplayTree(niObjectDisplayTable);
 
+	private SimpleUniverse simpleUniverse;
+
 	public NifDisplayTester(GraphicsConfiguration config)
 	{
-		super(new Canvas3D(config));
+		simpleUniverse = new SimpleUniverse(new Canvas3D(config));
 
 		JFrame dataF = new JFrame();
 		dataF.getContentPane().setLayout(new GridLayout(1, 1));
@@ -113,12 +115,12 @@ public class NifDisplayTester extends SimpleUniverse
 
 		spinTransformGroup.addChild(rotateTransformGroup);
 		rotateTransformGroup.addChild(modelGroup);
-		simpleCameraHandler = new SimpleCameraHandler(this.getViewingPlatform(), this.getCanvas(), modelGroup, rotateTransformGroup, false);
+		simpleCameraHandler = new SimpleCameraHandler(simpleUniverse.getViewingPlatform(), simpleUniverse.getCanvas(), modelGroup, rotateTransformGroup, false);
 
 		JFrame f = new JFrame();
 		f.getContentPane().setLayout(new GridLayout(1, 1));
 
-		f.getContentPane().add(getCanvas());
+		f.getContentPane().add(simpleUniverse.getCanvas());
 
 		f.setSize(900, 900);
 		f.setLocation(400, 0);
@@ -157,11 +159,11 @@ public class NifDisplayTester extends SimpleUniverse
 		spinTransform.setEnable(false);
 		bg.addChild(spinTransform);
 
-		addBranchGraph(bg);
+		simpleUniverse.addBranchGraph(bg);
 
-		getViewer().getView().setBackClipDistance(50000);//big cos it's only 1 nif file anyway
+		simpleUniverse.getViewer().getView().setBackClipDistance(50000);//big cos it's only 1 nif file anyway
 
-		getCanvas().addKeyListener(new KeyHandler());
+		simpleUniverse.getCanvas().addKeyListener(new KeyHandler());
 
 	}
 

@@ -24,9 +24,9 @@ import com.sun.j3d.utils.geometry.Stripifier;
  */
 public class J3dNiTriShape extends J3dNiTriBasedGeom
 {
-	private IndexedGeometryArray baseIndexedGeometryArray;
+	private GeometryArray baseGeometryArray;
 
-	private IndexedGeometryArray currentIndexedGeometryArray;
+	private GeometryArray currentGeometryArray;
 
 	private GeometryInfo geometryInfo = null;
 
@@ -43,12 +43,12 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 			//am I a skin shape in which case I need to be uncompacted ready for animation
 			if (niTriShape.skin.ref != -1)
 			{
-				baseIndexedGeometryArray = makeGeometry(geometryInfo, false);
-				 
+				baseGeometryArray = makeGeometry(geometryInfo, false);
+
 				// odd calls because GeometryInfo doesn't want to produce 2 arrays in some cases (TES5), and clones fails
-				GeometryInfo gi2 = new GeometryInfo(baseIndexedGeometryArray);
-				currentIndexedGeometryArray = makeGeometry(gi2, false);
-				getShape().setGeometry(currentIndexedGeometryArray);
+				GeometryInfo gi2 = new GeometryInfo(baseGeometryArray);
+				currentGeometryArray = makeGeometry(gi2, false);
+				getShape().setGeometry(currentGeometryArray);
 			}
 			else
 			{
@@ -57,10 +57,6 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 		}
 
 	}
-
-	 
-		
-	 
 
 	/**
 	 * NOTE ignore skin ref (what would that be?)
@@ -87,17 +83,23 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 
 	}
 
-	public IndexedGeometryArray getBaseIndexedGeometryArray()
+	public GeometryArray getBaseGeometryArray()
 	{
-		return baseIndexedGeometryArray;
+		return baseGeometryArray;
 	}
 
-	public IndexedGeometryArray getCurrentIndexedGeometryArray()
+	public GeometryArray getCurrentGeometryArray()
 	{
-		return currentIndexedGeometryArray;
+		return currentGeometryArray;
 	}
 
-	public static IndexedGeometryArray makeGeometry(GeometryInfo geometryInfo, boolean compact)
+	/** Note if compact the return will be a strips array 
+	 * 
+	 * @param geometryInfo
+	 * @param compact
+	 * @return
+	 */
+	public static GeometryArray makeGeometry(GeometryInfo geometryInfo, boolean compact)
 	{
 		if (compact)
 		{

@@ -3,6 +3,7 @@ package nif.gui;
 import java.io.File;
 import java.util.Enumeration;
 import java.util.prefs.Preferences;
+import java3d.nativelinker.Java3dLinker2;
 
 import javax.media.j3d.AmbientLight;
 import javax.media.j3d.Behavior;
@@ -41,6 +42,7 @@ public class NifModelPerformanceRunner
 
 	public static void main(String[] args)
 	{
+		new Java3dLinker2();
 		setUpUniverseAndCanvas();
 
 		prefs = Preferences.userNodeForPackage(NifModelPerformanceRunner.class);

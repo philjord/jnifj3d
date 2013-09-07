@@ -14,6 +14,11 @@ import utils.source.TextureSource;
 import com.sun.j3d.utils.geometry.GeometryInfo;
 import com.sun.j3d.utils.geometry.NormalGenerator;
 
+/**
+ * NOTE! Skyrim appears to not use these any more! only trishape
+ * @author philip
+ *
+ */
 public class J3dNiTriStrips extends J3dNiTriBasedGeom
 {
 
