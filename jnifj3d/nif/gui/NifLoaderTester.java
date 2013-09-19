@@ -8,7 +8,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 
 import nif.NifToJ3d;
-import tools.texture.DDSToTextureOld;
+import tools.texture.DDSToTexture;
 import utils.source.DummyTextureSource;
 import utils.source.file.FileMeshSource;
 
@@ -66,8 +66,8 @@ public class NifLoaderTester
 			}
 			else if (f.getName().endsWith(".dds"))
 			{
-				DDSToTextureOld.getTexture(f);
-				DDSToTextureOld.clearCache();
+				DDSToTexture.getTexture(f);
+				DDSToTexture.clearCache();
 			}
 			else
 			{
