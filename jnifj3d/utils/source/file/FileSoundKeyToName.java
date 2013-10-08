@@ -100,6 +100,8 @@ public class FileSoundKeyToName implements SoundKeyToName
 					}
 					line = fileReader.readLine();
 				}
+				
+				fileReader.close();
 			}
 			catch (IOException e)
 			{

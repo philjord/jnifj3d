@@ -821,6 +821,8 @@ public abstract class J3dNiGeometry extends J3dNiAVObject
 						fragmentProgram += line + "\n";
 						line = fr.readLine();
 					}
+					
+					fr.close();
 
 					Shader[] shaders = new Shader[1];
 					shaders[0] = new SourceCodeShader(Shader.SHADING_LANGUAGE_CG, Shader.SHADER_TYPE_FRAGMENT, fragmentProgram);
