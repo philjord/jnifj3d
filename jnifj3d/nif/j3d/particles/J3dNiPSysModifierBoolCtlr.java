@@ -6,7 +6,7 @@ import nif.niobject.particle.NiPSysModifierBoolCtlr;
 public abstract class J3dNiPSysModifierBoolCtlr extends J3dNiPSysModifierCtlr
 {
 	/**
-	 * Class simlpy to disallow float interp controll
+	 * Class simply to disallow float interp controll
 	 * @param niPSysModifierBoolCtlr
 	 * @param niToJ3dData
 	 * @param j3dNiPSysModifier

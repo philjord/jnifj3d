@@ -5,13 +5,11 @@ import nif.niobject.particle.NiPSysModifierActiveCtlr;
 
 public class J3dNiPSysModifierActiveCtlr extends J3dNiPSysModifierBoolCtlr
 {
-	private J3dNiPSysModifier j3dNiPSysModifier;
 
 	public J3dNiPSysModifierActiveCtlr(NiPSysModifierActiveCtlr niPSysModifierActiveCtlr, NiToJ3dData niToJ3dData,
 			J3dNiPSysModifier j3dNiPSysModifier)
 	{
 		super(niPSysModifierActiveCtlr, niToJ3dData, j3dNiPSysModifier);
-		this.j3dNiPSysModifier = j3dNiPSysModifier;
 	}
 
 	@Override
