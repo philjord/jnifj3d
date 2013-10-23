@@ -1,12 +1,14 @@
 package utils.source.file;
 
 import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.media.j3d.Texture;
 
+import tools.image.ImageFlip;
 import tools.image.SimpleImageLoader;
 import tools.texture.DDSToTexture;
 import utils.source.TextureSource;
@@ -129,14 +131,18 @@ public class FileTextureSource implements TextureSource
 			}
 
 			String[] parts = FileMediaRoots.splitOffMediaRoot(imageName);
-			Image image = SimpleImageLoader.getImage(parts[0] + parts[1]);
+			BufferedImage image = SimpleImageLoader.getImage(parts[0] + parts[1]);
 
-			if (image == null)
+			if (image != null)
+			{
+				return ImageFlip.verticalflip(image);
+			}
+			else
 			{
 				System.out.println("FileTextureSource.getImage - Problem with loading image: " + imageName + "||" + parts[0] + "|"
 						+ parts[1]);
 			}
-			return image;
+
 		}
 
 		return null;

@@ -11,6 +11,8 @@ public interface TextureSource
 
 	public Texture getTexture(String texName);
 
+	/** Note image fliiped to ydown for regular rendering, as a texture it'l be upside down
+	 */
 	public Image getImage(String imageName);
 
 	public List<String> getFilesInFolder(String folderName);
