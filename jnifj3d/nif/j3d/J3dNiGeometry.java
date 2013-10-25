@@ -578,7 +578,6 @@ public abstract class J3dNiGeometry extends J3dNiAVObject
 						if (tex != null)
 						{
 							app.setTexture(tex);
-
 						}
 
 					}
@@ -606,13 +605,14 @@ public abstract class J3dNiGeometry extends J3dNiAVObject
 				}
 			}
 		}
+
 	}
 
-	public static Texture loadTexture(String texName, TextureSource textureSource)
+	public Texture loadTexture(String texName, TextureSource ts)
 	{
-		if (textureSource != null && texName != null && texName.length() > 0)
+		if (ts != null && texName != null && texName.length() > 0)
 		{
-			return textureSource.getTexture(texName);
+			return ts.getTexture(texName);
 		}
 
 		return null;
@@ -821,7 +821,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject
 						fragmentProgram += line + "\n";
 						line = fr.readLine();
 					}
-					
+
 					fr.close();
 
 					Shader[] shaders = new Shader[1];

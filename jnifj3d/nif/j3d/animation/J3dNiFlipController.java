@@ -4,7 +4,6 @@ import javax.media.j3d.Appearance;
 import javax.media.j3d.Texture;
 
 import utils.source.TextureSource;
-
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiGeometry;
 import nif.j3d.NiToJ3dData;
@@ -26,11 +25,21 @@ public class J3dNiFlipController extends J3dNiTimeController
 		for (int t = 0; t < controller.numSources; t++)
 		{
 			String texName = ((NiSourceTexture) niToJ3dData.get(controller.sources[t])).fileName.string;
-			textures[t] = J3dNiGeometry.loadTexture(texName, textureSource);
+			textures[t] = loadTexture(texName, textureSource);
 		}
 
 		app = ((J3dNiGeometry) nodeTarget).getShape().getAppearance();
 		app.setCapability(Appearance.ALLOW_TEXTURE_WRITE);
+	}
+
+	public Texture loadTexture(String texName, TextureSource textureSource)
+	{
+		if (textureSource != null && texName != null && texName.length() > 0)
+		{
+			return textureSource.getTexture(texName);
+		}
+
+		return null;
 	}
 
 	@Override
