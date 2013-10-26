@@ -37,9 +37,10 @@ public class J3dNiSwitchNode extends J3dNiNode implements Unsharable
 
 	protected Switch switchGroup;
 
-	protected J3dNiSwitchNode(NiSwitchNode niSwitchNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes)
+	protected J3dNiSwitchNode(NiSwitchNode niSwitchNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes,
+			boolean noShares)
 	{
-		super(niSwitchNode, niToJ3dData, textureSource, onlyNiNodes);
+		super(niSwitchNode, niToJ3dData, textureSource, onlyNiNodes, noShares);
 		configureOrderedGroup();
 	}
 

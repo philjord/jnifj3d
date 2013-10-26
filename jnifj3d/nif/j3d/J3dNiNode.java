@@ -40,7 +40,7 @@ import utils.source.TextureSource;
 public class J3dNiNode extends J3dNiAVObject
 {
 
-	protected J3dNiNode(NiNode niNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes)
+	protected J3dNiNode(NiNode niNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes, boolean noShares)
 	{
 		super(niNode, niToJ3dData);
 
@@ -67,14 +67,14 @@ public class J3dNiNode extends J3dNiAVObject
 
 				if (child instanceof NiNode)
 				{
-					J3dNiNode j3dNiNode = createNiNode((NiNode) child, niToJ3dData, textureSource, onlyNiNodes);
+					J3dNiNode j3dNiNode = createNiNode((NiNode) child, niToJ3dData, textureSource, onlyNiNodes, noShares);
 					addChild(j3dNiNode);
 				}
 				else if (!onlyNiNodes)
 				{
 					if (child instanceof NiTriBasedGeom)
 					{
-						addChild(loadSharedNiTriBasedGeomVis((NiTriBasedGeom) child, niToJ3dData, textureSource));
+						addChild(loadSharedNiTriBasedGeomVis((NiTriBasedGeom) child, niToJ3dData, textureSource, noShares));
 					}
 					else if (child instanceof NiParticleSystem)
 					{
@@ -131,9 +131,15 @@ public class J3dNiNode extends J3dNiAVObject
 
 	//private static HashMap<SharedGroup, Integer> counts = new HashMap<SharedGroup, Integer>();
 
-	public static Node loadSharedNiTriBasedGeomVis(NiTriBasedGeom niTriBasedGeom, NiToJ3dData niToJ3dData, TextureSource textureSource)
+	public static Node loadSharedNiTriBasedGeomVis(NiTriBasedGeom niTriBasedGeom, NiToJ3dData niToJ3dData, TextureSource textureSource,
+			boolean noShares)
 	{
-		SharedGroup sg = sharedNiTriBasedGeom.get(niTriBasedGeom);
+
+		SharedGroup sg = null;
+		if (!noShares)
+		{
+			sg = sharedNiTriBasedGeom.get(niTriBasedGeom);
+		}
 
 		if (sg != null)
 		{
@@ -168,7 +174,7 @@ public class J3dNiNode extends J3dNiAVObject
 				ntbg = new J3dNiTriStrips(niTriStrips, niToJ3dData, textureSource);
 			}
 
-			if (SHARE_TRIGEOM && canBeShared(niTriBasedGeom, niToJ3dData))
+			if (!noShares && SHARE_TRIGEOM && canBeShared(niTriBasedGeom, niToJ3dData))
 			{
 				sg = new SharedGroup();
 				sg.addChild(ntbg);
@@ -226,27 +232,28 @@ public class J3dNiNode extends J3dNiAVObject
 	 * @param forPhysics
 	 * @return
 	 */
-	public static J3dNiNode createNiNode(NiNode niNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes)
+	public static J3dNiNode createNiNode(NiNode niNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes,
+			boolean noShares)
 	{
 		if (niNode instanceof NiBillboardNode)
 		{
-			return new J3dNiBillboardNode((NiBillboardNode) niNode, niToJ3dData, textureSource, onlyNiNodes);
+			return new J3dNiBillboardNode((NiBillboardNode) niNode, niToJ3dData, textureSource, onlyNiNodes, noShares);
 		}
 		else if (niNode instanceof BSFadeNode)
 		{
-			return new J3dBSFadeNode((BSFadeNode) niNode, niToJ3dData, textureSource, onlyNiNodes);
+			return new J3dBSFadeNode((BSFadeNode) niNode, niToJ3dData, textureSource, onlyNiNodes, noShares);
 		}
 		else if (niNode instanceof BSOrderedNode)
 		{
-			return new J3dBSOrderedNode((BSOrderedNode) niNode, niToJ3dData, textureSource, onlyNiNodes);
+			return new J3dBSOrderedNode((BSOrderedNode) niNode, niToJ3dData, textureSource, onlyNiNodes, noShares);
 		}
 		else if (niNode instanceof NiLODNode)
 		{
-			return new J3dLODNode((NiLODNode) niNode, niToJ3dData, textureSource, onlyNiNodes);
+			return new J3dLODNode((NiLODNode) niNode, niToJ3dData, textureSource, onlyNiNodes, noShares);
 		}
 		else if (niNode instanceof NiSwitchNode)
 		{
-			return new J3dNiSwitchNode((NiSwitchNode) niNode, niToJ3dData, textureSource, onlyNiNodes);
+			return new J3dNiSwitchNode((NiSwitchNode) niNode, niToJ3dData, textureSource, onlyNiNodes, noShares);
 		}
 		else if (niNode instanceof NiBone)
 		{
@@ -276,7 +283,7 @@ public class J3dNiNode extends J3dNiAVObject
 		}
 
 		// return ordinary ninode
-		return new J3dNiNode(niNode, niToJ3dData, textureSource, onlyNiNodes);
+		return new J3dNiNode(niNode, niToJ3dData, textureSource, onlyNiNodes, noShares);
 
 	}
 

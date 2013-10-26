@@ -76,7 +76,7 @@ public class NifCharacter extends BranchGroup
 
 		for (String skinNifModelFilename : skinNifModelFilenames)
 		{
-			NifJ3dVisRoot skin = NifToJ3d.loadShapes(skinNifModelFilename, meshSource, textureSource);
+			NifJ3dVisRoot skin = NifToJ3d.loadShapes(skinNifModelFilename, meshSource, textureSource, true);
 
 			// create skins from the skeleton and skin nif
 			skins = J3dNiSkinInstance.createSkins(skin.getNiToJ3dData(), blendedSkeletons.getOutputSkeleton());
@@ -87,6 +87,8 @@ public class NifCharacter extends BranchGroup
 				bg.addChild(j3dNiSkinInstance);
 			}
 		}
+
+		//TODO: and add any non skin based gear like hats!!
 
 		addChild(bg);
 		animationBehave.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
@@ -146,7 +148,7 @@ public class NifCharacter extends BranchGroup
 					BranchGroup newKfBg = new BranchGroup();
 					newKfBg.setCapability(BranchGroup.ALLOW_DETACH);
 					newKfBg.setCapability(Group.ALLOW_CHILDREN_WRITE);
-					
+
 					newKfBg.addChild(kfJ3dRoot);
 					// add it on
 					addChild(newKfBg);

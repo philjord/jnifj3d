@@ -21,9 +21,9 @@ public class J3dLODNode extends J3dNiSwitchNode implements Unsharable
 
 	private NiLODData niLODData;
 
-	protected J3dLODNode(NiLODNode niLODNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes)
+	protected J3dLODNode(NiLODNode niLODNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes, boolean noShares)
 	{
-		super(niLODNode, niToJ3dData, textureSource, onlyNiNodes);
+		super(niLODNode, niToJ3dData, textureSource, onlyNiNodes, noShares);
 		System.out.println("NiLODNode detected! " + niLODNode.name);
 		this.niLODData = (NiLODData) niToJ3dData.get(niLODNode.lODLevelData);
 	}
