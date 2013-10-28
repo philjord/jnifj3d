@@ -98,15 +98,12 @@ public class J3dNiSkinInstance extends Group implements Unsharable
 		ArrayList<J3dNiSkinInstance> j3dNiSkinInstances = new ArrayList<J3dNiSkinInstance>();
 		for (J3dNiAVObject j3dNiAVObject : niToJ3dData.j3dNiAVObjectValues())
 		{
-			System.out.println("j3dNiAVObject " +j3dNiAVObject);
 			if (j3dNiAVObject instanceof J3dNiGeometry)
 			{
 				J3dNiGeometry j3dNiGeometry = (J3dNiGeometry) j3dNiAVObject;
 				NiGeometry niGeometry = (NiGeometry) j3dNiGeometry.getNiAVObject();
-				System.out.println("J3dNiGeometry ");
 				if (niGeometry.skin.ref != -1)
 				{
-					System.out.println("and skin");
 					NiSkinInstance niSkinInstance = (NiSkinInstance) niToJ3dData.get(niGeometry.skin);
 
 					if (niGeometry instanceof NiTriShape)

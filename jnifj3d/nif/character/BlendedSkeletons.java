@@ -44,8 +44,9 @@ public class BlendedSkeletons extends Group
 		inputSkeleton = new NifJ3dSkeletonRoot(skeletonNifFilename, meshSource);
 		prevSkeleton = new NifJ3dSkeletonRoot(skeletonNifFilename, meshSource);
 
-		
 		addChild(boneBehave);
+		// for simple hats to be attched to etc
+		addChild(outputSkeleton);
 	}
 
 	/**

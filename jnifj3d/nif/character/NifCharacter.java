@@ -23,8 +23,10 @@ import javax.vecmath.Vector3f;
 
 import nif.NifJ3dVisRoot;
 import nif.NifToJ3d;
+import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiSkinInstance;
 import nif.j3d.animation.J3dNiControllerSequence.SequenceListener;
+import tools3d.utils.scenegraph.EasyTransformGroup;
 import utils.source.MeshSource;
 import utils.source.TextureSource;
 import utils.source.file.FileSoundSource;
@@ -72,23 +74,44 @@ public class NifCharacter extends BranchGroup
 		blendedSkeletons = new BlendedSkeletons(skeletonNifFilename, meshSource);
 
 		// for bone blending updates
-		addChild(blendedSkeletons);
+		bg.addChild(blendedSkeletons);
 
 		for (String skinNifModelFilename : skinNifModelFilenames)
 		{
-			NifJ3dVisRoot skin = NifToJ3d.loadShapes(skinNifModelFilename, meshSource, textureSource, true);
+			NifJ3dVisRoot model = NifToJ3d.loadShapes(skinNifModelFilename, meshSource, textureSource, true);
 
 			// create skins from the skeleton and skin nif
-			skins = J3dNiSkinInstance.createSkins(skin.getNiToJ3dData(), blendedSkeletons.getOutputSkeleton());
+			skins = J3dNiSkinInstance.createSkins(model.getNiToJ3dData(), blendedSkeletons.getOutputSkeleton());
 
-			// add the skins to the scene
-			for (J3dNiSkinInstance j3dNiSkinInstance : skins)
+			if (skins.size() > 0)
 			{
-				bg.addChild(j3dNiSkinInstance);
+				// add the skins to the scene
+				for (J3dNiSkinInstance j3dNiSkinInstance : skins)
+				{
+					bg.addChild(j3dNiSkinInstance);
+				}
 			}
-		}
+			else
+			{
+				//TODO: and add any non skin based gear like hats!!
+				// hat chinesse command does not, nor does eulogy jones				
+				//They have nistringextra data with a single bip01 Head in them
 
-		//TODO: and add any non skin based gear like hats!!
+				// so the attachment for swords and guns and hats must use teh same system
+				// use an nistringextra of weapon
+				// node name of prn for extra data
+
+				J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton().get("Bip01 Head");
+				EasyTransformGroup tg = new EasyTransformGroup();
+				tg.rotZ(-Math.PI / 2d);
+				tg.addChild(model.getVisualRoot());
+				attachnode.addChild(tg);
+				//TODO: why is hat rotated off to side like a yz swap issue?
+				// is there a rotate in the head bone maybe? no R Calf shows issue to
+
+			}
+
+		}
 
 		addChild(bg);
 		animationBehave.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
