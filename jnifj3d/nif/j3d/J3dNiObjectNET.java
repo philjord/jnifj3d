@@ -8,6 +8,7 @@ import nif.j3d.animation.J3dNiTimeController;
 import nif.j3d.animation.interp.J3dNiInterpolator;
 import nif.j3d.animation.interp.J3dNiTransformInterpolatorFactory;
 import nif.niobject.NiAVObject;
+import nif.niobject.NiExtraData;
 import nif.niobject.controller.NiControllerManager;
 import nif.niobject.controller.NiGeomMorpherController;
 import nif.niobject.controller.NiMultiTargetTransformController;
@@ -27,15 +28,28 @@ public abstract class J3dNiObjectNET extends Group
 
 	private Alpha baseAlpha;
 
-	public J3dNiObjectNET(NiObjectNET niObjectNET)
+	private NiExtraData[] extraDataList;
+
+	public J3dNiObjectNET(NiObjectNET niObjectNET, NiToJ3dData niToJ3dData)
 	{
 		this.niObjectNET = niObjectNET;
 		this.setName(niObjectNET.name);
+
+		extraDataList = new NiExtraData[niObjectNET.extraDataList.length];
+		for (int i = 0; i < niObjectNET.extraDataList.length; i++)
+		{
+			extraDataList[i] = (NiExtraData) niToJ3dData.get(niObjectNET.extraDataList[i]);
+		}
 	}
 
 	public J3dNiControllerManager getJ3dNiControllerManager()
 	{
 		return j3dNiControllerManager;
+	}
+
+	public NiExtraData[] getExtraDataList()
+	{
+		return extraDataList;
 	}
 
 	/**

@@ -26,6 +26,8 @@ import nif.NifToJ3d;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiSkinInstance;
 import nif.j3d.animation.J3dNiControllerSequence.SequenceListener;
+import nif.niobject.NiExtraData;
+import nif.niobject.NiStringExtraData;
 import tools3d.utils.scenegraph.EasyTransformGroup;
 import utils.source.MeshSource;
 import utils.source.TextureSource;
@@ -93,21 +95,29 @@ public class NifCharacter extends BranchGroup
 			}
 			else
 			{
-				//TODO: and add any non skin based gear like hats!!
-				// hat chinesse command does not, nor does eulogy jones				
-				//They have nistringextra data with a single bip01 Head in them
+				// add any non skin based gear like hats!!				 
 
-				// so the attachment for swords and guns and hats must use teh same system
-				// use an nistringextra of weapon
-				// node name of prn for extra data
+				// use an nistringextra of weapon and shield, node name of prn for extra data
 
-				J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton().get("Bip01 Head");
-				EasyTransformGroup tg = new EasyTransformGroup();
-				tg.rotZ(-Math.PI / 2d);
-				tg.addChild(model.getVisualRoot());
-				attachnode.addChild(tg);
-				//TODO: why is hat rotated off to side like a yz swap issue?
-				// is there a rotate in the head bone maybe? no R Calf shows issue to
+				for (NiExtraData ned : model.getVisualRoot().getExtraDataList())
+				{
+					if (ned instanceof NiStringExtraData)
+					{
+						NiStringExtraData nsed = (NiStringExtraData) ned;
+						if (nsed.name.equalsIgnoreCase("PRN"))
+						{
+							J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton().get(nsed.stringData);
+							EasyTransformGroup tg = new EasyTransformGroup();
+							tg.rotZ(-Math.PI / 2d);
+							tg.addChild(model.getVisualRoot());
+							attachnode.addChild(tg);
+							//TODO: why is hat rotated off to side like a yz swap issue?
+							// is there a rotate in the head bone maybe? no R Calf shows issue too
+							//TODO: hat has got double animation in it, due to nonaccum thingy 
+							break;
+						}
+					}
+				}
 
 			}
 

@@ -24,7 +24,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 
 	public J3dNiAVObject(NiAVObject niAVObject, NiToJ3dData niToJ3dData)
 	{
-		super(niAVObject);
+		super(niAVObject, niToJ3dData);
 		this.setName(niAVObject.name);
 
 		this.niAVObject = niAVObject;
