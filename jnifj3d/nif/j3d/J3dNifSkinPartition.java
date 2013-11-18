@@ -13,7 +13,7 @@ import javax.vecmath.Point3f;
 import nif.compound.NifSkinPartition;
 import tools3d.utils.scenegraph.Unsharable;
 
-public class J3dNifSkinPartition extends Group implements Unsharable
+public class J3dNifSkinPartition extends Group implements Unsharable, GeometryUpdater
 {
 	private NifSkinPartition nifSkinPartition;
 
@@ -34,8 +34,6 @@ public class J3dNifSkinPartition extends Group implements Unsharable
 	private ArrayList<Transform3D> skinBonesVWInvTransInOrder = new ArrayList<Transform3D>();
 
 	private ArrayList<Transform3D> accumulatedTransByBonesIndex = new ArrayList<Transform3D>();
-
-	private SkinGeomteryUpdater skinGeomteryUpdater = new SkinGeomteryUpdater();
 
 	public J3dNifSkinPartition(NifSkinPartition nifSkinPartition, J3dNiTriShape j3dNiTriShape, J3dNiAVObject skinSkeletonRoot,
 			J3dNiAVObject skeletonNonAccumRoot, ArrayList<J3dNiNode> skinBonesInOrder, HashMap<String, J3dNiNode> skeletonBones)
@@ -71,89 +69,87 @@ public class J3dNifSkinPartition extends Group implements Unsharable
 
 	public void updateSkin()
 	{
-		currentIndexedGeometryArray.updateData(skinGeomteryUpdater);
+		currentIndexedGeometryArray.updateData(this);
 	}
 
-	private class SkinGeomteryUpdater implements GeometryUpdater
+	// for reuse inside loop
+	private Transform3D skeletonBoneVWTrans = new Transform3D();
+
+	private Point3f basePoint = new Point3f();
+
+	private Point3f accumPoint = new Point3f();
+
+	private Point3f transformedPoint = new Point3f();
+
+	@Override
+	public void updateData(Geometry geometry)
 	{
-		// for reuse inside loop
-		private Transform3D skeletonBoneVWTrans = new Transform3D();
+		float[] baseCoordRefFloat = baseIndexedGeometryArray.getCoordRefFloat();
+		float[] currentCoordRefFloat = currentIndexedGeometryArray.getCoordRefFloat();
 
-		private Point3f basePoint = new Point3f();
-
-		private Point3f accumPoint = new Point3f();
-
-		private Point3f transformedPoint = new Point3f();
-
-		public void updateData(Geometry geometry)
+		// pre multiply transforms for repeated use for each vertex
+		for (int spBoneIndex = 0; spBoneIndex < nifSkinPartition.bones.length; spBoneIndex++)
 		{
-			float[] baseCoordRefFloat = baseIndexedGeometryArray.getCoordRefFloat();
-			float[] currentCoordRefFloat = currentIndexedGeometryArray.getCoordRefFloat();
+			int spBoneId = nifSkinPartition.bones[spBoneIndex];
 
-			// pre multiply transforms for repeated use for each vertex
-			for (int spBoneIndex = 0; spBoneIndex < nifSkinPartition.bones.length; spBoneIndex++)
+			J3dNiNode skinBone = skinBonesInOrder.get(spBoneId);
+			Transform3D skinBoneVWInvTrans = skinBonesVWInvTransInOrder.get(spBoneId);
+
+			//TODO: can we not pre look these up to id?
+			//This is where multiple skeletonbone could be used
+			J3dNiNode skeletonBone = skeletonBones.get(skinBone.getName());
+
+			skeletonBone.getTreeTransform(skeletonBoneVWTrans, skeletonNonAccumRoot);
+
+			Transform3D accumulatedTrans = accumulatedTransByBonesIndex.get(spBoneIndex);
+
+			accumulatedTrans.set(shapeVWInvTrans);
+			accumulatedTrans.mul(skeletonBoneVWTrans);
+			accumulatedTrans.mul(skinBoneVWInvTrans);
+			accumulatedTrans.mul(shapeVWTrans);
+
+		}
+
+		// now go through each vertex and find out where it should be
+		for (int vm = 0; vm < nifSkinPartition.vertexMap.length; vm++)
+		{
+			accumPoint.set(0, 0, 0);
+			int vIdx = nifSkinPartition.vertexMap[vm];
+
+			basePoint.x = baseCoordRefFloat[vIdx * 3 + 0];
+			basePoint.y = baseCoordRefFloat[vIdx * 3 + 1];
+			basePoint.z = baseCoordRefFloat[vIdx * 3 + 2];
+
+			// not used currently, but might be needed for a final scaling?
+			//float totalWeight = 0;
+
+			for (int w = 0; w < nifSkinPartition.numWeightsPerVertex; w++)
 			{
-				int spBoneId = nifSkinPartition.bones[spBoneIndex];
+				float weight = nifSkinPartition.vertexWeights[vm][w];
 
-				J3dNiNode skinBone = skinBonesInOrder.get(spBoneId);
-				Transform3D skinBoneVWInvTrans = skinBonesVWInvTransInOrder.get(spBoneId);
-
-				//TODO: can we not pre look these up to id?
-				//This is where multiple skeletonbone could be used
-				J3dNiNode skeletonBone = skeletonBones.get(skinBone.getName());
-
-				skeletonBone.getTreeTransform(skeletonBoneVWTrans, skeletonNonAccumRoot);
-
-				Transform3D accumulatedTrans = accumulatedTransByBonesIndex.get(spBoneIndex);
-
-				accumulatedTrans.set(shapeVWInvTrans);
-				accumulatedTrans.mul(skeletonBoneVWTrans);
-				accumulatedTrans.mul(skinBoneVWInvTrans);
-				accumulatedTrans.mul(shapeVWTrans);
-
-			}
-
-			// now go through each vertex and find out where it should be
-			for (int vm = 0; vm < nifSkinPartition.vertexMap.length; vm++)
-			{
-				accumPoint.set(0, 0, 0);
-				int vIdx = nifSkinPartition.vertexMap[vm];
-
-				basePoint.x = baseCoordRefFloat[vIdx * 3 + 0];
-				basePoint.y = baseCoordRefFloat[vIdx * 3 + 1];
-				basePoint.z = baseCoordRefFloat[vIdx * 3 + 2];
-
-				// not used currently, but might be needed for a final scaling?
-				float totalWeight = 0;
-
-				for (int w = 0; w < nifSkinPartition.numWeightsPerVertex; w++)
+				// If this bone has any effect add it in 
+				if (weight > 0)
 				{
-					float weight = nifSkinPartition.vertexWeights[vm][w];
+					// find the transform for this bone
+					int spBoneIndex = nifSkinPartition.boneIndices[vm][w];
+					Transform3D accumulatedTrans = accumulatedTransByBonesIndex.get(spBoneIndex);
 
-					// If this bone has any effect add it in 
-					if (weight > 0)
-					{
-						// find the transform for this bone
-						int spBoneIndex = nifSkinPartition.boneIndices[vm][w];
-						Transform3D accumulatedTrans = accumulatedTransByBonesIndex.get(spBoneIndex);
-
-						// set the transformed point from base, ready for transformation
-						transformedPoint.set(basePoint);
-						// transform point
-						accumulatedTrans.transform(transformedPoint);
-						//scale by the weight of the bone
-						transformedPoint.scale(weight);
-						// accumulate in the final point
-						accumPoint.add(transformedPoint);
-						// record running total weight
-						totalWeight += weight;
-					}
+					// set the transformed point from base, ready for transformation
+					transformedPoint.set(basePoint);
+					// transform point
+					accumulatedTrans.transform(transformedPoint);
+					//scale by the weight of the bone
+					transformedPoint.scale(weight);
+					// accumulate in the final point
+					accumPoint.add(transformedPoint);
+					// record running total weight
+					//totalWeight += weight;
 				}
-
-				currentCoordRefFloat[vIdx * 3 + 0] = accumPoint.x;
-				currentCoordRefFloat[vIdx * 3 + 1] = accumPoint.y;
-				currentCoordRefFloat[vIdx * 3 + 2] = accumPoint.z;
 			}
+
+			currentCoordRefFloat[vIdx * 3 + 0] = accumPoint.x;
+			currentCoordRefFloat[vIdx * 3 + 1] = accumPoint.y;
+			currentCoordRefFloat[vIdx * 3 + 2] = accumPoint.z;
 		}
 
 	}

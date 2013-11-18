@@ -1,14 +1,9 @@
 package nif.j3d;
 
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.LinkedHashMap;
 
-import javax.media.j3d.Behavior;
-import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.Group;
-import javax.media.j3d.WakeupOnElapsedFrames;
-import javax.vecmath.Point3d;
 
 import nif.basic.NifPtr;
 import nif.character.NifJ3dSkeletonRoot;
@@ -36,11 +31,10 @@ public class J3dNiSkinInstance extends Group implements Unsharable
 
 	private J3dNiAVObject skinSkeletonRoot;
 
-	private UpdateLastPerFrameBehavior behave = new UpdateLastPerFrameBehavior();
-
 	public J3dNiSkinInstance(NiSkinInstance niSkinInstance, J3dNiTriShape j3dNiTriShape, NiToJ3dData niToJ3dData,
 			NifJ3dSkeletonRoot nifJ3dSkeletonRoot)
 	{
+
 		J3dNiDefaultAVObjectPalette allSkeletonBones = nifJ3dSkeletonRoot.getAllBonesInSkeleton();
 		J3dNiAVObject skeletonNonAccumRoot = nifJ3dSkeletonRoot.getNonAccumRoot();
 
@@ -82,10 +76,9 @@ public class J3dNiSkinInstance extends Group implements Unsharable
 			}
 		}
 
-		addChild(behave);
 	}
 
-	private void processSkinPartitions()
+	public void processSkinPartitions()
 	{
 		for (J3dNifSkinPartition j3dNifPartition : j3dNifPartitions)
 		{
@@ -121,41 +114,6 @@ public class J3dNiSkinInstance extends Group implements Unsharable
 		}
 
 		return j3dNiSkinInstances;
-	}
-
-	/**
-	 * This behaviour is simply called last per frame of update. It is last so the bone interpolators have
-	 * finished moving the bones appropriately
-	 * @author Administrator
-	 *
-	 */
-	class UpdateLastPerFrameBehavior extends Behavior
-	{
-		private WakeupOnElapsedFrames passiveWakeupCriterion = new WakeupOnElapsedFrames(0, true);
-
-		public UpdateLastPerFrameBehavior()
-		{
-			//TODO: this is set to 50 meters to try to limits animation at a distance
-			// In fact it should LOD at distance and update after x frames, just like lodbillboard
-			//see also UpdateBonesBehavior
-			setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), 20));
-			//must happen last, so all bones updated by the time we use them
-			this.setSchedulingInterval(Behavior.getNumSchedulingIntervals() - 1);
-		}
-
-		public void initialize()
-		{
-			wakeupOn(passiveWakeupCriterion);
-		}
-
-		@SuppressWarnings(
-		{ "unchecked", "rawtypes" })
-		public void processStimulus(Enumeration critiria)
-		{
-			processSkinPartitions();
-			wakeupOn(passiveWakeupCriterion);
-		}
-
 	}
 
 }

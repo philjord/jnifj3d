@@ -1,21 +1,19 @@
 package nif.character;
 
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 
 import javax.media.j3d.Alpha;
-import javax.media.j3d.Behavior;
 import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.BranchGroup;
 import javax.media.j3d.Group;
 import javax.media.j3d.MediaContainer;
+import javax.media.j3d.Node;
 import javax.media.j3d.PointSound;
 import javax.media.j3d.Sound;
 import javax.media.j3d.SoundException;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
-import javax.media.j3d.WakeupOnElapsedFrames;
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
@@ -28,19 +26,18 @@ import nif.j3d.J3dNiSkinInstance;
 import nif.j3d.animation.J3dNiControllerSequence.SequenceListener;
 import nif.niobject.NiExtraData;
 import nif.niobject.NiStringExtraData;
+import tools3d.utils.Utils3D;
 import tools3d.utils.scenegraph.EasyTransformGroup;
+import tools3d.utils.scenegraph.VaryingLODBehaviour;
 import utils.source.MeshSource;
 import utils.source.TextureSource;
 import utils.source.file.FileSoundSource;
 
 public class NifCharacter extends BranchGroup
 {
-
 	private MeshSource meshSource;
 
 	private ArrayList<J3dNiSkinInstance> skins;
-
-	private UpdateAnimationBehavior animationBehave = new UpdateAnimationBehavior();
 
 	private String currentAnimation = "";
 
@@ -56,9 +53,12 @@ public class NifCharacter extends BranchGroup
 
 	private BranchGroup currentKfBg;
 
+	private NifCharUpdateBehavior updateBehavior;
+
 	public NifCharacter(String skeletonNifFilename, String[] skinNifModelFilenames, MeshSource meshSource, TextureSource textureSource,
 			String idleAnimation)
 	{
+
 		this.meshSource = meshSource;
 		this.idleAnimation = idleAnimation;
 
@@ -66,6 +66,12 @@ public class NifCharacter extends BranchGroup
 		this.setCapability(Group.ALLOW_CHILDREN_EXTEND);
 
 		TransformGroup bg = new TransformGroup();
+
+		//note node must be in scene graph
+		updateBehavior = new NifCharUpdateBehavior(this, new float[]
+		{ 40f, 120f, 280f });
+		addChild(updateBehavior);
+		updateBehavior.setEnable(true);
 
 		// drop by 1 meter cos the nonaccum animations lift use up by 1 meter
 		Vector3f dropDown = new Vector3f(0, -1f, 0);
@@ -124,8 +130,6 @@ public class NifCharacter extends BranchGroup
 		}
 
 		addChild(bg);
-		animationBehave.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
-		addChild(animationBehave);
 
 		//set us up with the idle anim
 		nextAnimation = idleAnimation;
@@ -317,21 +321,29 @@ public class NifCharacter extends BranchGroup
 		}
 	}
 
-	class UpdateAnimationBehavior extends Behavior
+	class NifCharUpdateBehavior extends VaryingLODBehaviour
 	{
-		private WakeupOnElapsedFrames passiveWakeupCriterion = new WakeupOnElapsedFrames(10, true);
+		public NifCharUpdateBehavior(Node node, float[] dists)
+		{
+			super(node, dists);
+			setSchedulingBounds(Utils3D.defaultBounds);
+		}
 
 		public void initialize()
 		{
-			wakeupOn(passiveWakeupCriterion);
+			super.initialize();
 		}
 
-		@SuppressWarnings(
-		{ "unchecked", "rawtypes" })
-		public void processStimulus(Enumeration critiria)
+		public void process()
 		{
+			//TODO: only bits of the char are animating, but the hat is!
 			updateAnimation();
-			wakeupOn(passiveWakeupCriterion);
+			blendedSkeletons.updateOutputBones();
+			for (J3dNiSkinInstance j3dNiSkinInstance : skins)
+			{
+				j3dNiSkinInstance.processSkinPartitions();
+			}
+
 		}
 
 	}

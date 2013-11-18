@@ -1,15 +1,9 @@
 package nif.character;
 
-import java.util.Enumeration;
-
 import javax.media.j3d.Alpha;
-import javax.media.j3d.Behavior;
-import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.Group;
 import javax.media.j3d.Transform3D;
-import javax.media.j3d.WakeupOnElapsedFrames;
 import javax.vecmath.Matrix4d;
-import javax.vecmath.Point3d;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
 
@@ -20,7 +14,6 @@ import utils.source.MeshSource;
 
 public class BlendedSkeletons extends Group
 {
-	private UpdateBonesBehavior boneBehave = new UpdateBonesBehavior();
 
 	// not modified to give base line
 	//private NifJ3dSkeletonRoot baseSkeleton;
@@ -38,13 +31,11 @@ public class BlendedSkeletons extends Group
 
 	public BlendedSkeletons(String skeletonNifFilename, MeshSource meshSource)
 	{
-
 		//baseSkeleton = createSkeleton();
 		outputSkeleton = new NifJ3dSkeletonRoot(skeletonNifFilename, meshSource);
 		inputSkeleton = new NifJ3dSkeletonRoot(skeletonNifFilename, meshSource);
 		prevSkeleton = new NifJ3dSkeletonRoot(skeletonNifFilename, meshSource);
 
-		addChild(boneBehave);
 		// for simple hats to be attched to etc
 		addChild(outputSkeleton);
 	}
@@ -56,8 +47,6 @@ public class BlendedSkeletons extends Group
 	 */
 	public NifJ3dSkeletonRoot startNewInputAnimation(Alpha newAlpha)
 	{
-		boneBehave.setEnable(false);
-
 		currentAlpha = newAlpha;
 
 		Transform3D temp = new Transform3D();
@@ -74,7 +63,6 @@ public class BlendedSkeletons extends Group
 			output.getTransform(temp);
 			prev.setTransform(temp);
 		}
-		boneBehave.setEnable(true);
 
 		return inputSkeleton;
 	}
@@ -200,29 +188,6 @@ public class BlendedSkeletons extends Group
 		//Set scale to 1 always
 
 		return out;
-	}
-
-	class UpdateBonesBehavior extends Behavior
-	{
-		private WakeupOnElapsedFrames passiveWakeupCriterion = new WakeupOnElapsedFrames(0, true);
-
-		public void initialize()
-		{
-			// see also UpdateLastPerFrameBehavior
-			setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), 20));
-			// after bones but before skins, but this may not be useful I suspect
-			this.setSchedulingInterval(Behavior.getNumSchedulingIntervals() - 2);
-			wakeupOn(passiveWakeupCriterion);
-		}
-
-		@SuppressWarnings(
-		{ "unchecked", "rawtypes" })
-		public void processStimulus(Enumeration critiria)
-		{
-			updateOutputBones();
-			wakeupOn(passiveWakeupCriterion);
-		}
-
 	}
 
 }
