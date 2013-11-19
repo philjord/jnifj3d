@@ -9,7 +9,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.prefs.Preferences;
-
 import java3d.nativelinker.Java3dLinker2;
 
 import javax.media.j3d.AmbientLight;
@@ -34,11 +33,13 @@ import javax.vecmath.Vector3f;
 
 import nif.NifJ3dVisRoot;
 import nif.NifToJ3d;
+import nif.character.KfJ3dRoot;
 import nif.character.NifCharacter;
 import nif.character.NifJ3dSkeletonRoot;
 import nif.j3d.J3dNiSkinInstance;
+import nif.j3d.NiToJ3dData;
+import nif.niobject.NiControllerSequence;
 import tools.swing.TitledJFileChooser;
-import utils.ESConfig;
 import utils.source.file.FileMeshSource;
 import utils.source.file.FileSoundSource;
 import utils.source.file.FileTextureSource;
@@ -121,11 +122,7 @@ public class KfDisplayTester
 							try
 							{
 								System.out.println("\tFile: " + kfModelFile);
-
-								while (true)
-								{
-									display(skeletonNifModelFile, skinNifFiles, kfModelFile);
-								}
+								display(skeletonNifModelFile, skinNifFiles, kfModelFile);
 
 							}
 							catch (Exception ex)
@@ -194,7 +191,7 @@ public class KfDisplayTester
 
 		///NOOOOOOOOOOOOOOOOOOOOOOTTTTTTTTTTTTTTTEEEEEEEEEEEEEEEEEEEEEEEEEE
 		////////////////////////
-		/////////////////////// I MUST use NifCharacter now as it ahs the behaviors in it!!!!
+		/////////////////////// I MUST use NifCharacter now as it has the behaviors in it!!!!
 
 		ArrayList<String> idleAnimations = new ArrayList<String>();
 		idleAnimations.add(kff.getAbsolutePath());
@@ -230,16 +227,6 @@ public class KfDisplayTester
 		bg.addChild(nifCharacter);
 
 		transformGroup.addChild(bg);
-
-		/*	kfJ3dRoot.getJ3dNiControllerSequence().fireSequenceOnce();
-			try
-			{
-				Thread.sleep(kfJ3dRoot.getJ3dNiControllerSequence().getLengthMS());
-			}
-			catch (InterruptedException e)
-			{
-				e.printStackTrace();
-			}*/
 
 	}
 
