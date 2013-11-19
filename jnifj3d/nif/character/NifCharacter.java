@@ -2,6 +2,7 @@ package nif.character;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.media.j3d.Alpha;
 import javax.media.j3d.BoundingSphere;
@@ -13,11 +14,9 @@ import javax.media.j3d.PointSound;
 import javax.media.j3d.Sound;
 import javax.media.j3d.SoundException;
 import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
-import javax.vecmath.Vector3f;
 
 import nif.NifJ3dVisRoot;
 import nif.NifToJ3d;
@@ -30,14 +29,16 @@ import tools3d.utils.Utils3D;
 import tools3d.utils.scenegraph.EasyTransformGroup;
 import tools3d.utils.scenegraph.VaryingLODBehaviour;
 import utils.source.MeshSource;
+import utils.source.SoundSource;
 import utils.source.TextureSource;
-import utils.source.file.FileSoundSource;
 
 public class NifCharacter extends BranchGroup
 {
 	private MeshSource meshSource;
 
-	private ArrayList<J3dNiSkinInstance> skins;
+	private SoundSource soundSource;
+
+	private ArrayList<J3dNiSkinInstance> allSkins = new ArrayList<J3dNiSkinInstance>();
 
 	private String currentAnimation = "";
 
@@ -45,7 +46,7 @@ public class NifCharacter extends BranchGroup
 
 	private boolean returnToIdleWhenDone = true;
 
-	private String idleAnimation;
+	private List<String> idleAnimations;
 
 	private KfJ3dRoot currentkfJ3dRoot;
 
@@ -55,29 +56,24 @@ public class NifCharacter extends BranchGroup
 
 	private NifCharUpdateBehavior updateBehavior;
 
-	public NifCharacter(String skeletonNifFilename, String[] skinNifModelFilenames, MeshSource meshSource, TextureSource textureSource,
-			String idleAnimation)
+	public NifCharacter(String skeletonNifFilename, List<String> skinNifModelFilenames, MeshSource meshSource, TextureSource textureSource,
+			SoundSource soundSource, List<String> idleAnimations)
 	{
 
 		this.meshSource = meshSource;
-		this.idleAnimation = idleAnimation;
+		this.soundSource = soundSource;
+		this.idleAnimations = idleAnimations;
 
 		this.setCapability(Group.ALLOW_CHILDREN_WRITE);
 		this.setCapability(Group.ALLOW_CHILDREN_EXTEND);
 
-		TransformGroup bg = new TransformGroup();
+		Group bg = new Group();
 
 		//note node must be in scene graph
 		updateBehavior = new NifCharUpdateBehavior(this, new float[]
-		{ 40f, 120f, 280f });
+		{ 30f, 70f, 120f });
 		addChild(updateBehavior);
 		updateBehavior.setEnable(true);
-
-		// drop by 1 meter cos the nonaccum animations lift use up by 1 meter
-		Vector3f dropDown = new Vector3f(0, -1f, 0);
-		Transform3D t1 = new Transform3D();
-		t1.set(dropDown);
-		bg.setTransform(t1);
 
 		blendedSkeletons = new BlendedSkeletons(skeletonNifFilename, meshSource);
 
@@ -86,53 +82,60 @@ public class NifCharacter extends BranchGroup
 
 		for (String skinNifModelFilename : skinNifModelFilenames)
 		{
-			NifJ3dVisRoot model = NifToJ3d.loadShapes(skinNifModelFilename, meshSource, textureSource, true);
-
-			// create skins from the skeleton and skin nif
-			skins = J3dNiSkinInstance.createSkins(model.getNiToJ3dData(), blendedSkeletons.getOutputSkeleton());
-
-			if (skins.size() > 0)
+			if (skinNifModelFilename != null && skinNifModelFilename.length() > 0)
 			{
-				// add the skins to the scene
-				for (J3dNiSkinInstance j3dNiSkinInstance : skins)
-				{
-					bg.addChild(j3dNiSkinInstance);
-				}
-			}
-			else
-			{
-				// add any non skin based gear like hats!!				 
+				NifJ3dVisRoot model = NifToJ3d.loadShapes(skinNifModelFilename, meshSource, textureSource, true);
 
-				// use an nistringextra of weapon and shield, node name of prn for extra data
+				// create skins from the skeleton and skin nif
+				ArrayList<J3dNiSkinInstance> skins = J3dNiSkinInstance.createSkins(model.getNiToJ3dData(),
+						blendedSkeletons.getOutputSkeleton());
 
-				for (NiExtraData ned : model.getVisualRoot().getExtraDataList())
+				if (skins.size() > 0)
 				{
-					if (ned instanceof NiStringExtraData)
+					// add the skins to the scene
+					for (J3dNiSkinInstance j3dNiSkinInstance : skins)
 					{
-						NiStringExtraData nsed = (NiStringExtraData) ned;
-						if (nsed.name.equalsIgnoreCase("PRN"))
+						bg.addChild(j3dNiSkinInstance);
+					}
+
+					allSkins.addAll(skins);
+				}
+				else
+				{
+					// add any non skin based gear like hats!!				 
+
+					// use an nistringextra of weapon and shield, node name of prn for extra data
+
+					for (NiExtraData ned : model.getVisualRoot().getExtraDataList())
+					{
+						if (ned instanceof NiStringExtraData)
 						{
-							J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton().get(nsed.stringData);
-							EasyTransformGroup tg = new EasyTransformGroup();
-							tg.rotZ(-Math.PI / 2d);
-							tg.addChild(model.getVisualRoot());
-							attachnode.addChild(tg);
-							//TODO: why is hat rotated off to side like a yz swap issue?
-							// is there a rotate in the head bone maybe? no R Calf shows issue too
-							//TODO: hat has got double animation in it, due to nonaccum thingy 
-							break;
+							NiStringExtraData nsed = (NiStringExtraData) ned;
+							if (nsed.name.equalsIgnoreCase("PRN"))
+							{
+								J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton()
+										.get(nsed.stringData);
+								EasyTransformGroup tg = new EasyTransformGroup();
+								//tg.rotZ(-Math.PI / 2d);
+								tg.addChild(model.getVisualRoot());
+								attachnode.addChild(tg);
+								//TODO: why is hat rotated off to side like a yz swap issue?
+								// is there a rotate in the head bone maybe? no R Calf shows issue too
+								//TODO: hat has got double animation in it, due to nonaccum thingy 
+								// Also the antlers of the deer, so I say it need to be attached after bone rotations?
+								// guards helmets wrong??
+								break;
+							}
 						}
 					}
+
 				}
-
 			}
-
 		}
 
 		addChild(bg);
 
 		//set us up with the idle anim
-		nextAnimation = idleAnimation;
 		updateAnimation();
 	}
 
@@ -154,7 +157,7 @@ public class NifCharacter extends BranchGroup
 
 	}
 
-	//TODO: a better cahcing system here, kfJ3dRoot.setAnimatedSkeleton(inputSkeleton.getAllBonesInSkeleton()); is expensive
+	//TODO: a better caching system here, kfJ3dRoot.setAnimatedSkeleton(inputSkeleton.getAllBonesInSkeleton()); is expensive
 	private HashMap<String, KfJ3dRoot> cachedAnimations = new HashMap<String, KfJ3dRoot>();
 
 	private void updateAnimation()
@@ -242,13 +245,15 @@ public class NifCharacter extends BranchGroup
 			}
 
 		}
-
-		//otherwise drop back to idle if the current has finished   
-		if (idleAnimation.length() > 0
+		else if (idleAnimations.size() > 0
 				&& (currentkfJ3dRoot == null || (currentkfJ3dRoot.getJ3dNiControllerSequence().isNotRunning() && returnToIdleWhenDone)))
 		{
-			nextAnimation = idleAnimation;
-			updateAnimation();
+			//TODO: I've a list of idle, measure time in idle and change from time to time
+			//otherwise drop back to idle if the current has finished 
+			int r = (int) (Math.random() * idleAnimations.size() - 1);
+			nextAnimation = idleAnimations.get(r);
+			if (nextAnimation.length() > 0)
+				updateAnimation();
 		}
 
 	}
@@ -271,7 +276,7 @@ public class NifCharacter extends BranchGroup
 	protected void addObjectSound(PointSound sound, String soundKey, float edge)
 	{
 		//Create the media container to load the sound
-		MediaContainer soundContainer = new FileSoundSource().getMediaContainer(soundKey);
+		MediaContainer soundContainer = soundSource.getMediaContainer(soundKey);
 		//Use the loaded data in the sound
 		sound.setSoundData(soundContainer);
 		sound.setInitialGain(1.0f);
@@ -329,17 +334,19 @@ public class NifCharacter extends BranchGroup
 			setSchedulingBounds(Utils3D.defaultBounds);
 		}
 
+		@Override
 		public void initialize()
 		{
 			super.initialize();
 		}
 
+		@Override
 		public void process()
 		{
-			//TODO: only bits of the char are animating, but the hat is!
 			updateAnimation();
 			blendedSkeletons.updateOutputBones();
-			for (J3dNiSkinInstance j3dNiSkinInstance : skins)
+
+			for (J3dNiSkinInstance j3dNiSkinInstance : allSkins)
 			{
 				j3dNiSkinInstance.processSkinPartitions();
 			}

@@ -93,6 +93,7 @@ public class BlendedSkeletons extends Group
 			// combine prev and input for second transform3d
 			prev.getTransform(prevT);
 			input.getTransform(inputT);
+			
 			computeTransform(alphaValue, prevT, inputT, outputT);
 
 			output.setTransform(outputT);
@@ -117,12 +118,15 @@ public class BlendedSkeletons extends Group
 
 	private void computeTransform(float alphaValue, Transform3D t0, Transform3D t1, Transform3D out)
 	{
+		t0.normalizeCP();
+		t1.normalizeCP();
 		NifRotToJava3DRot.safeGetQuat(t0, tempQuat0);
 		t0.get(tempPos0);
 		NifRotToJava3DRot.safeGetQuat(t1, tempQuat1);
 		t1.get(tempPos1);
 
 		out.set(computeTransform(alphaValue, tempQuat0, tempQuat1, tempPos0, tempPos1, tempMat));
+		out.normalizeCP();
 	}
 
 	//deburners

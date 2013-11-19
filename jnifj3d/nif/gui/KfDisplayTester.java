@@ -9,6 +9,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.prefs.Preferences;
+
 import java3d.nativelinker.Java3dLinker2;
 
 import javax.media.j3d.AmbientLight;
@@ -31,17 +32,15 @@ import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
-import nif.NifFile;
-import nif.NifFileReader;
 import nif.NifJ3dVisRoot;
 import nif.NifToJ3d;
-import nif.character.KfJ3dRoot;
+import nif.character.NifCharacter;
 import nif.character.NifJ3dSkeletonRoot;
 import nif.j3d.J3dNiSkinInstance;
-import nif.j3d.NiToJ3dData;
-import nif.niobject.NiControllerSequence;
 import tools.swing.TitledJFileChooser;
+import utils.ESConfig;
 import utils.source.file.FileMeshSource;
+import utils.source.file.FileSoundSource;
 import utils.source.file.FileTextureSource;
 
 import com.sun.j3d.utils.behaviors.mouse.MouseRotate;
@@ -80,7 +79,7 @@ public class KfDisplayTester
 				skinFc.setFileFilter(new FileNameExtensionFilter("nif files", "nif"));
 				skinFc.showOpenDialog(new JFrame());
 
-				String[] skinNifFiles = new String[0];
+				ArrayList<String> skinNifFiles = new ArrayList<String>();
 
 				if (skinFc.getSelectedFile() != null)
 				{
@@ -89,12 +88,11 @@ public class KfDisplayTester
 
 					System.out.println("Selected skin file[0]: " + skinNifModelFiles[0]);
 
-					skinNifFiles = new String[skinNifModelFiles.length];
-					int i = 0;
+					skinNifFiles = new ArrayList<String>();
+
 					for (File skinNifModelFile : skinNifModelFiles)
 					{
-						skinNifFiles[i] = skinNifModelFile.getCanonicalPath();
-						i++;
+						skinNifFiles.add(skinNifModelFile.getCanonicalPath());
 					}
 
 					TitledJFileChooser kfFc = new TitledJFileChooser(prefs.get("kfModelFile", skeletonNifModelFile));
@@ -123,11 +121,10 @@ public class KfDisplayTester
 							try
 							{
 								System.out.println("\tFile: " + kfModelFile);
-								NifFile kfFile = NifFileReader.readNif(kfModelFile);
 
 								while (true)
 								{
-									display(skeletonNifModelFile, skinNifFiles, kfFile);
+									display(skeletonNifModelFile, skinNifFiles, kfModelFile);
 								}
 
 							}
@@ -159,7 +156,7 @@ public class KfDisplayTester
 		}
 	}
 
-	private static void processDir(String skeletonNifFile, String[] skinNifFiles, File dir)
+	private static void processDir(String skeletonNifFile, ArrayList<String> skinNifFiles, File dir)
 	{
 		System.out.println("Processing directory " + dir);
 		File[] fs = dir.listFiles();
@@ -170,8 +167,8 @@ public class KfDisplayTester
 				if (fs[i].isFile() && fs[i].getName().endsWith(".kf"))
 				{
 					System.out.println("\tFile: " + fs[i]);
-					NifFile kfFile = NifFileReader.readNif(fs[i]);
-					display(skeletonNifFile, skinNifFiles, kfFile);
+
+					display(skeletonNifFile, skinNifFiles, fs[i]);
 				}
 				else if (fs[i].isDirectory())
 				{
@@ -186,47 +183,55 @@ public class KfDisplayTester
 		}
 	}
 
-	private static void display(String skeletonNifFile, String[] skinNifFiles, NifFile kfFile)
+	private static void display(String skeletonNifFile, ArrayList<String> skinNifFiles, File kff)
 	{
 		transformGroup.removeAllChildren();
 
-		if (kfFile.blocks.root() instanceof NiControllerSequence)
-		{
-			BranchGroup bg = new BranchGroup();
-			bg.setCapability(BranchGroup.ALLOW_DETACH);
+		BranchGroup bg = new BranchGroup();
+		bg.setCapability(BranchGroup.ALLOW_DETACH);
 
-			NifJ3dSkeletonRoot.showBoneMarkers = true;
+		NifJ3dSkeletonRoot.showBoneMarkers = true;
 
-			// create a skeleton from the nif file
-			NifJ3dSkeletonRoot nifJ3dSkeletonRoot = new NifJ3dSkeletonRoot(skeletonNifFile, new FileMeshSource());
-			// now add the scene root so the bones are live and can move etc
-			bg.addChild(nifJ3dSkeletonRoot);
+		///NOOOOOOOOOOOOOOOOOOOOOOTTTTTTTTTTTTTTTEEEEEEEEEEEEEEEEEEEEEEEEEE
+		////////////////////////
+		/////////////////////// I MUST use NifCharacter now as it ahs the behaviors in it!!!!
 
-			for (String skinNifFile : skinNifFiles)
-			{
-				NifJ3dVisRoot skin = NifToJ3d.loadShapes(skinNifFile, new FileMeshSource(), new FileTextureSource());
+		ArrayList<String> idleAnimations = new ArrayList<String>();
+		idleAnimations.add(kff.getAbsolutePath());
 
-				// create skins form the skeleton and skin nif
-				ArrayList<J3dNiSkinInstance> skins = J3dNiSkinInstance.createSkins(skin.getNiToJ3dData(), nifJ3dSkeletonRoot);
+		NifCharacter nifCharacter = new NifCharacter(skeletonNifFile, skinNifFiles, new FileMeshSource(), new FileTextureSource(),
+				new FileSoundSource(), idleAnimations);
 
-				// add the skins to the scene
-				for (J3dNiSkinInstance j3dNiSkinInstance : skins)
+		/*		// create a skeleton from the nif file
+				NifJ3dSkeletonRoot nifJ3dSkeletonRoot = new NifJ3dSkeletonRoot(skeletonNifFile, new FileMeshSource());
+				// now add the scene root so the bones are live and can move etc
+				bg.addChild(nifJ3dSkeletonRoot);
+
+				for (String skinNifFile : skinNifFiles)
 				{
-					bg.addChild(j3dNiSkinInstance);
+					NifJ3dVisRoot skin = NifToJ3d.loadShapes(skinNifFile, new FileMeshSource(), new FileTextureSource());
+
+					// create skins form the skeleton and skin nif
+					ArrayList<J3dNiSkinInstance> skins = J3dNiSkinInstance.createSkins(skin.getNiToJ3dData(), nifJ3dSkeletonRoot);
+
+					// add the skins to the scene
+					for (J3dNiSkinInstance j3dNiSkinInstance : skins)
+					{
+						bg.addChild(j3dNiSkinInstance);
+					}
 				}
-			}
 
-			// make the kf file root 
-			NiToJ3dData niToJ3dData = new NiToJ3dData(kfFile.blocks);
-			KfJ3dRoot kfJ3dRoot = new KfJ3dRoot((NiControllerSequence) niToJ3dData.root(), niToJ3dData);
-			kfJ3dRoot.setAnimatedSkeleton(nifJ3dSkeletonRoot.getAllBonesInSkeleton());
+				// make the kf file root 
+				NiToJ3dData niToJ3dData = new NiToJ3dData(kff.blocks);
+				KfJ3dRoot kfJ3dRoot = new KfJ3dRoot((NiControllerSequence) niToJ3dData.root(), niToJ3dData);
+				kfJ3dRoot.setAnimatedSkeleton(nifJ3dSkeletonRoot.getAllBonesInSkeleton());
+		*/
+		// now add the root to the scene so the controller sequence is live
+		bg.addChild(nifCharacter);
 
-			// now add the root to the scene so the controller sequence is live
-			bg.addChild(kfJ3dRoot);
+		transformGroup.addChild(bg);
 
-			transformGroup.addChild(bg);
-
-			kfJ3dRoot.getJ3dNiControllerSequence().fireSequenceOnce();
+		/*	kfJ3dRoot.getJ3dNiControllerSequence().fireSequenceOnce();
 			try
 			{
 				Thread.sleep(kfJ3dRoot.getJ3dNiControllerSequence().getLengthMS());
@@ -234,13 +239,7 @@ public class KfDisplayTester
 			catch (InterruptedException e)
 			{
 				e.printStackTrace();
-			}
-
-		}
-		else
-		{
-			System.out.println("if(kfFile.blocks.get(0] instanceof NiControllerSequence) is not true!");
-		}
+			}*/
 
 	}
 
@@ -249,7 +248,7 @@ public class KfDisplayTester
 	 * @param skeletonNifFile
 	 * @param skinNifFiles
 	 */
-	private static void display(String skeletonNifFile, String[] skinNifFiles)
+	private static void display(String skeletonNifFile, ArrayList<String> skinNifFiles)
 	{
 		transformGroup.removeAllChildren();
 

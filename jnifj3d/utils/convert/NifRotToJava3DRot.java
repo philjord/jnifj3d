@@ -97,6 +97,7 @@ public class NifRotToJava3DRot
 	 */
 	public static void safeGetQuat(Transform3D t1, Quat4f q1)
 	{
+		
 		float[] mat = new float[16];
 		t1.get(mat);
 		float[] rot = new float[9];
@@ -111,6 +112,8 @@ public class NifRotToJava3DRot
 		rot[8] = mat[10];
 
 		double ww = 0.25 * (1.0 + rot[0] + rot[4] + rot[8]);
+		
+		 
 		// no negatives or the sqrt below starts baking Nans
 		ww = (ww < 0 ? 0 : ww);
 		if (!(ww < 1.0e-10))

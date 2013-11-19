@@ -518,7 +518,7 @@ public class J3dbhkCollisionObject extends Group
 			for (int i = 0; i < data.numVertices; i++)
 			{
 				// NOTE!!!!! use the nif scale here!!!
-				vertices[i] = ConvertFromHavok.toJ3dP3fNif(data.vertices[i]);
+				vertices[i] = ConvertFromHavok.toJ3dP3fNif(data.vertices[i], 1.0f);
 			}
 			gi.setCoordinates(vertices);
 		}
