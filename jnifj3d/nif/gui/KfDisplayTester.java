@@ -1,44 +1,38 @@
 package nif.gui;
 
-import java.awt.Window;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.GridLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.prefs.Preferences;
 import java3d.nativelinker.Java3dLinker2;
 
 import javax.media.j3d.AmbientLight;
-import javax.media.j3d.Behavior;
 import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.BranchGroup;
+import javax.media.j3d.Canvas3D;
 import javax.media.j3d.DirectionalLight;
+import javax.media.j3d.GraphicsConfigTemplate3D;
 import javax.media.j3d.Group;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
-import javax.media.j3d.WakeupCondition;
-import javax.media.j3d.WakeupOnElapsedFrames;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.vecmath.AxisAngle4d;
 import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
-import nif.NifJ3dVisRoot;
-import nif.NifToJ3d;
-import nif.character.KfJ3dRoot;
 import nif.character.NifCharacter;
 import nif.character.NifJ3dSkeletonRoot;
-import nif.j3d.J3dNiSkinInstance;
-import nif.j3d.NiToJ3dData;
-import nif.niobject.NiControllerSequence;
+import tools.swing.DetailsFileChooser;
 import tools.swing.TitledJFileChooser;
 import utils.source.file.FileMeshSource;
 import utils.source.file.FileSoundSource;
@@ -51,12 +45,25 @@ public class KfDisplayTester
 {
 	private static Preferences prefs;
 
+	private static String skeletonNifModelFile;
+
+	private static ArrayList<String> skinNifFiles = new ArrayList<String>();
+
+	public static KfDisplayTester nifDisplay;
+
 	public static void main(String[] args)
 	{
 		new Java3dLinker2();
 		prefs = Preferences.userNodeForPackage(KfDisplayTester.class);
 
-		setUpUniverseAndCanvas(false);
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		GraphicsDevice gd = ge.getDefaultScreenDevice();
+		GraphicsConfiguration[] gc = gd.getConfigurations();
+		GraphicsConfigTemplate3D template = new GraphicsConfigTemplate3D();
+		template.setStencilSize(8);
+		GraphicsConfiguration config = template.getBestConfiguration(gc);
+
+		nifDisplay = new KfDisplayTester(config);
 		try
 		{
 			// pick the nif model
@@ -69,7 +76,7 @@ public class KfDisplayTester
 
 			if (skeletonFc.getSelectedFile() != null)
 			{
-				String skeletonNifModelFile = skeletonFc.getSelectedFile().getCanonicalPath();
+				skeletonNifModelFile = skeletonFc.getSelectedFile().getCanonicalPath();
 				prefs.put("skeletonNifModelFile", skeletonNifModelFile);
 				System.out.println("Selected skeleton file: " + skeletonNifModelFile);
 
@@ -80,49 +87,30 @@ public class KfDisplayTester
 				skinFc.setFileFilter(new FileNameExtensionFilter("nif files", "nif"));
 				skinFc.showOpenDialog(new JFrame());
 
-				ArrayList<String> skinNifFiles = new ArrayList<String>();
-
 				if (skinFc.getSelectedFile() != null)
 				{
 					File[] skinNifModelFiles = skinFc.getSelectedFiles();
 					prefs.put("skinNifModelFile", skinNifModelFiles[0].getCanonicalPath());
 
-					System.out.println("Selected skin file[0]: " + skinNifModelFiles[0]);
-
-					skinNifFiles = new ArrayList<String>();
-
 					for (File skinNifModelFile : skinNifModelFiles)
 					{
+						System.out.println("Selected skin file : " + skinNifModelFile);
 						skinNifFiles.add(skinNifModelFile.getCanonicalPath());
 					}
 
-					TitledJFileChooser kfFc = new TitledJFileChooser(prefs.get("kfModelFile", skeletonNifModelFile));
-					kfFc.setDialogTitle("Select KF(s)");
-					kfFc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-					kfFc.setMultiSelectionEnabled(false);
-					kfFc.setFileFilter(new FileNameExtensionFilter("kf files", "kf"));
+					String baseDir = prefs.get("KfDisplayTester.baseDir", System.getProperty("user.dir"));
 
-					kfFc.showOpenDialog(new JFrame());
-
-					if (kfFc.getSelectedFile() != null)
+					DetailsFileChooser dfc = new DetailsFileChooser(baseDir, new DetailsFileChooser.Listener()
 					{
-						File kfModelFile = kfFc.getSelectedFile();
-						prefs.put("kfModelFile", kfModelFile.getCanonicalPath());
 
-						if (kfModelFile.isDirectory())
+						@Override
+						public void fileSelected(File file)
 						{
-
-							while (true)
-							{
-								processDir(skeletonNifModelFile, skinNifFiles, kfModelFile);
-							}
-						}
-						else if (kfModelFile.isFile())
-						{
+							prefs.put("KfDisplayTester.baseDir", file.getPath());
 							try
 							{
-								System.out.println("\tFile: " + kfModelFile);
-								display(skeletonNifModelFile, skinNifFiles, kfModelFile);
+								System.out.println("\tFile: " + file);
+								display(skeletonNifModelFile, skinNifFiles, file);
 
 							}
 							catch (Exception ex)
@@ -133,12 +121,16 @@ public class KfDisplayTester
 							System.out.println("done");
 						}
 
-					}
-					else
-					{
-						//no kf picked just display the skin 
-						display(skeletonNifModelFile, skinNifFiles);
-					}
+						@Override
+						public void directorySelected(File dir)
+						{
+							// nothing ignored
+
+						}
+					});
+
+					dfc.setFileFilter(new FileNameExtensionFilter("Kf", "kf"));
+
 				}
 			}
 			else
@@ -153,33 +145,6 @@ public class KfDisplayTester
 		}
 	}
 
-	private static void processDir(String skeletonNifFile, ArrayList<String> skinNifFiles, File dir)
-	{
-		System.out.println("Processing directory " + dir);
-		File[] fs = dir.listFiles();
-		for (int i = 0; i < fs.length; i++)
-		{
-			try
-			{
-				if (fs[i].isFile() && fs[i].getName().endsWith(".kf"))
-				{
-					System.out.println("\tFile: " + fs[i]);
-
-					display(skeletonNifFile, skinNifFiles, fs[i]);
-				}
-				else if (fs[i].isDirectory())
-				{
-					processDir(skeletonNifFile, skinNifFiles, fs[i]);
-				}
-
-			}
-			catch (Exception ex)
-			{
-				ex.printStackTrace();
-			}
-		}
-	}
-
 	private static void display(String skeletonNifFile, ArrayList<String> skinNifFiles, File kff)
 	{
 		transformGroup.removeAllChildren();
@@ -189,40 +154,12 @@ public class KfDisplayTester
 
 		NifJ3dSkeletonRoot.showBoneMarkers = true;
 
-		///NOOOOOOOOOOOOOOOOOOOOOOTTTTTTTTTTTTTTTEEEEEEEEEEEEEEEEEEEEEEEEEE
-		////////////////////////
-		/////////////////////// I MUST use NifCharacter now as it has the behaviors in it!!!!
-
 		ArrayList<String> idleAnimations = new ArrayList<String>();
 		idleAnimations.add(kff.getAbsolutePath());
 
 		NifCharacter nifCharacter = new NifCharacter(skeletonNifFile, skinNifFiles, new FileMeshSource(), new FileTextureSource(),
 				new FileSoundSource(), idleAnimations);
 
-		/*		// create a skeleton from the nif file
-				NifJ3dSkeletonRoot nifJ3dSkeletonRoot = new NifJ3dSkeletonRoot(skeletonNifFile, new FileMeshSource());
-				// now add the scene root so the bones are live and can move etc
-				bg.addChild(nifJ3dSkeletonRoot);
-
-				for (String skinNifFile : skinNifFiles)
-				{
-					NifJ3dVisRoot skin = NifToJ3d.loadShapes(skinNifFile, new FileMeshSource(), new FileTextureSource());
-
-					// create skins form the skeleton and skin nif
-					ArrayList<J3dNiSkinInstance> skins = J3dNiSkinInstance.createSkins(skin.getNiToJ3dData(), nifJ3dSkeletonRoot);
-
-					// add the skins to the scene
-					for (J3dNiSkinInstance j3dNiSkinInstance : skins)
-					{
-						bg.addChild(j3dNiSkinInstance);
-					}
-				}
-
-				// make the kf file root 
-				NiToJ3dData niToJ3dData = new NiToJ3dData(kff.blocks);
-				KfJ3dRoot kfJ3dRoot = new KfJ3dRoot((NiControllerSequence) niToJ3dData.root(), niToJ3dData);
-				kfJ3dRoot.setAnimatedSkeleton(nifJ3dSkeletonRoot.getAllBonesInSkeleton());
-		*/
 		// now add the root to the scene so the controller sequence is live
 		bg.addChild(nifCharacter);
 
@@ -230,53 +167,25 @@ public class KfDisplayTester
 
 	}
 
-	/**
-	 * If no kf needs to be shown then this just sets up the skin and skeleton
-	 * @param skeletonNifFile
-	 * @param skinNifFiles
-	 */
-	private static void display(String skeletonNifFile, ArrayList<String> skinNifFiles)
-	{
-		transformGroup.removeAllChildren();
-
-		BranchGroup bg = new BranchGroup();
-		bg.setCapability(BranchGroup.ALLOW_DETACH);
-
-		NifJ3dSkeletonRoot.showBoneMarkers = true;
-
-		// create a skeleton from the nif file
-		NifJ3dSkeletonRoot nifJ3dSkeletonRoot = new NifJ3dSkeletonRoot(skeletonNifFile, new FileMeshSource());
-		// now add the scene root so the bones are live and can move etc
-		bg.addChild(nifJ3dSkeletonRoot);
-
-		for (String skinNifFile : skinNifFiles)
-		{
-			NifJ3dVisRoot skin = NifToJ3d.loadShapes(skinNifFile, new FileMeshSource(), new FileTextureSource());
-
-			// create skins form the skeleton and skin nif
-			ArrayList<J3dNiSkinInstance> skins = J3dNiSkinInstance.createSkins(skin.getNiToJ3dData(), nifJ3dSkeletonRoot);
-
-			// add the skins to the scene
-			for (J3dNiSkinInstance j3dNiSkinInstance : skins)
-			{
-				bg.addChild(j3dNiSkinInstance);
-			}
-		}
-		transformGroup.addChild(bg);
-	}
-
 	private static SimpleUniverse universe;
 
 	private static TransformGroup transformGroup;
 
-	private static void setUpUniverseAndCanvas(boolean autoSpin)
+	public KfDisplayTester(GraphicsConfiguration config)
 	{
-		universe = new SimpleUniverse();
+		universe = new SimpleUniverse(new Canvas3D(config));
+
 		transformGroup = new TransformGroup();
 
-		Window win = SwingUtilities.getWindowAncestor(universe.getCanvas());
-		win.setSize(1000, 1000);
-		((JFrame) win).setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		JFrame f = new JFrame();
+		f.getContentPane().setLayout(new GridLayout(1, 1));
+
+		f.getContentPane().add(universe.getCanvas());
+
+		f.setSize(900, 900);
+		f.setLocation(400, 0);
+		f.setVisible(true);
+		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		transformGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
 		transformGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
@@ -305,17 +214,10 @@ public class KfDisplayTester
 		BranchGroup bg = new BranchGroup();
 		bg.addChild(transformGroup);
 
-		if (autoSpin)
-		{
-			bg.addChild(new SpinTransform(transformGroup));
-		}
-		else
-		{
-			MouseRotate mr = new MouseRotate(transformGroup);
-			mr.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
-			mr.setEnable(true);
-			bg.addChild(mr);
-		}
+		MouseRotate mr = new MouseRotate(transformGroup);
+		mr.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
+		mr.setEnable(true);
+		bg.addChild(mr);
 
 		universe.addBranchGraph(bg);
 
@@ -407,49 +309,4 @@ public class KfDisplayTester
 		tg.setTransform(t);
 	}
 
-	private static class SpinTransform extends Behavior
-	{
-		private TransformGroup trans;
-
-		//Calculations for frame duration timing, 
-		//used between successive calls to process 
-		private long previousFrameEndTime;
-
-		private double currentRot = 0;
-
-		private WakeupCondition FPSCriterion = new WakeupOnElapsedFrames(0, false);
-
-		public SpinTransform(TransformGroup trans)
-		{
-			this.trans = trans;
-			setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
-			setEnable(true);
-		}
-
-		public void initialize()
-		{
-			wakeupOn(FPSCriterion);
-		}
-
-		@SuppressWarnings(
-		{ "unchecked", "rawtypes" })
-		public void processStimulus(Enumeration criteria)
-		{
-			process();
-			wakeupOn(FPSCriterion);
-		}
-
-		private void process()
-		{
-			long timeNow = System.currentTimeMillis();
-			long frameDuration = timeNow - previousFrameEndTime;
-			currentRot += frameDuration / 1000d;
-			Transform3D t = new Transform3D();
-			t.setRotation(new AxisAngle4d(0, 1, 0, currentRot));
-			trans.setTransform(t);
-			// record when we last thought about movement
-			previousFrameEndTime = timeNow;
-		}
-
-	}
 }

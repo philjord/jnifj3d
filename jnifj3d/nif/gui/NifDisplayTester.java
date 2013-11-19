@@ -111,11 +111,12 @@ public class NifDisplayTester
 
 		dataF.setSize(900, 900);
 		dataF.setLocation(400, 0);
-		dataF.setVisible(true);
+		//dataF.setVisible(true);
 
 		spinTransformGroup.addChild(rotateTransformGroup);
 		rotateTransformGroup.addChild(modelGroup);
-		simpleCameraHandler = new SimpleCameraHandler(simpleUniverse.getViewingPlatform(), simpleUniverse.getCanvas(), modelGroup, rotateTransformGroup, false);
+		simpleCameraHandler = new SimpleCameraHandler(simpleUniverse.getViewingPlatform(), simpleUniverse.getCanvas(), modelGroup,
+				rotateTransformGroup, false);
 
 		JFrame f = new JFrame();
 		f.getContentPane().setLayout(new GridLayout(1, 1));
@@ -125,6 +126,7 @@ public class NifDisplayTester
 		f.setSize(900, 900);
 		f.setLocation(400, 0);
 		f.setVisible(true);
+		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		splitterV.setDividerLocation(0.5d);
 		splitterH.setDividerLocation(0.5d);
