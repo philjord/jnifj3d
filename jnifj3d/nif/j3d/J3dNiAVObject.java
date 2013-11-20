@@ -256,7 +256,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 	}
 
 	/**
-	 * I wish I had record how this works :( I think it need the root of the model (or the non accum node for preference)
+	 * I wish I had recorded how this works :( I think it need the root of the model (or the non accum node for preference)
 	 * @param t
 	 * @param rootJ3dNiAVObject
 	 */
