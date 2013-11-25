@@ -19,7 +19,7 @@ public class J3dBSTreeNode extends J3dNiAVObject
 			{
 				if (child instanceof NiNode)
 				{
-					J3dNiNode j3dNiNode = J3dNiNode.createNiNode((NiNode) child, niToJ3dData, textureSource, onlyNiNodes, false);
+					J3dNiNode j3dNiNode = J3dNiNode.createNiNode((NiNode) child, niToJ3dData, textureSource, onlyNiNodes);
 					addChild(j3dNiNode);
 				}
 				else

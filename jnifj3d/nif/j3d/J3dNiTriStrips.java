@@ -8,6 +8,7 @@ import javax.vecmath.Vector3f;
 
 import nif.niobject.NiTriStrips;
 import nif.niobject.NiTriStripsData;
+import tools.WeakValueHashMap;
 import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
@@ -32,103 +33,117 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 
 	}
 
+	//Note self expunging cache
+	private static WeakValueHashMap<NiTriStripsData, IndexedGeometryArray> sharedNiTriBasedGeom = new WeakValueHashMap<NiTriStripsData, IndexedGeometryArray>();
+
 	private static IndexedGeometryArray makeGeometry(NiTriStripsData data)
 	{
-		GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_STRIP_ARRAY);
+		IndexedGeometryArray iga = sharedNiTriBasedGeom.get(data);
 
-		if (data.hasVertices)
+		if (iga != null)
 		{
-			Point3f[] vertices = new Point3f[data.numVertices];
+			return iga;
+		}
+		else
+		{
+
+			GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_STRIP_ARRAY);
+
+			if (data.hasVertices)
+			{
+				Point3f[] vertices = new Point3f[data.numVertices];
+				for (int i = 0; i < data.numVertices; i++)
+				{
+					vertices[i] = ConvertFromNif.toJ3dP3f(data.vertices[i]);
+				}
+				gi.setCoordinates(vertices);
+
+			}
+
+			if (data.hasNormals)
+			{
+				Vector3f[] normals = new Vector3f[data.numVertices];
+				for (int i = 0; i < data.numVertices; i++)
+				{
+					normals[i] = ConvertFromNif.toJ3dNoScale(data.normals[i]);
+				}
+				gi.setNormals(normals);
+
+			}
+
+			Color4f[] colors = new Color4f[data.numVertices];
 			for (int i = 0; i < data.numVertices; i++)
 			{
-				vertices[i] = ConvertFromNif.toJ3dP3f(data.vertices[i]);
-			}
-			gi.setCoordinates(vertices);
-
-		}
-
-		if (data.hasNormals)
-		{
-			Vector3f[] normals = new Vector3f[data.numVertices];
-			for (int i = 0; i < data.numVertices; i++)
-			{
-				normals[i] = ConvertFromNif.toJ3dNoScale(data.normals[i]);
-			}
-			gi.setNormals(normals);
-
-		}
-
-		Color4f[] colors = new Color4f[data.numVertices];
-		for (int i = 0; i < data.numVertices; i++)
-		{
-			if (data.hasVertexColors)
-			{
-				colors[i] = ConvertFromNif.toJ3d(data.vertexColors[i]);
-			}
-			else
-			{
-				colors[i] = new Color4f(1, 1, 1, 1);
-			}
-		}
-		gi.setColors(colors);
-
-		// process UVsets hasUV or UVset2?? Num UV Sets 2
-		int actNumUVSets = data.actNumUVSets;
-		if (actNumUVSets > 0)
-		{
-			gi.setTextureCoordinateParams(actNumUVSets, 2);
-
-			for (int i = 0; i < actNumUVSets; i++)
-			{
-				TexCoord2f[] texCoords = new TexCoord2f[data.uVSets[i].length];
-				for (int j = 0; j < data.uVSets[i].length; j++)
+				if (data.hasVertexColors)
 				{
-					texCoords[j] = ConvertFromNif.toJ3d(data.uVSets[i][j]);
+					colors[i] = ConvertFromNif.toJ3d(data.vertexColors[i]);
 				}
-				gi.setTextureCoordinates(i, texCoords);
-
-			}
-
-		}
-
-		int numStrips = data.numStrips;
-		int[] stripLengths = data.stripLengths;
-		int[] points = null;
-		if (data.hasPoints)
-		{
-			// get full length
-			int length = 0;
-			for (int i = 0; i < numStrips; i++)
-			{
-				length += data.points[i].length;
-			}
-
-			gi.setStripCounts(stripLengths);
-			points = new int[length];
-			int idx = 0;
-			for (int i = 0; i < numStrips; i++)
-			{
-				for (int j = 0; j < stripLengths[i]; j++)
+				else
 				{
-					points[idx] = data.points[i][j];
-					idx++;
+					colors[i] = new Color4f(1, 1, 1, 1);
 				}
 			}
+			gi.setColors(colors);
 
-			gi.setCoordinateIndices(points);
+			// process UVsets hasUV or UVset2?? Num UV Sets 2
+			int actNumUVSets = data.actNumUVSets;
+			if (actNumUVSets > 0)
+			{
+				gi.setTextureCoordinateParams(actNumUVSets, 2);
 
-			gi.setUseCoordIndexOnly(true);
+				for (int i = 0; i < actNumUVSets; i++)
+				{
+					TexCoord2f[] texCoords = new TexCoord2f[data.uVSets[i].length];
+					for (int j = 0; j < data.uVSets[i].length; j++)
+					{
+						texCoords[j] = ConvertFromNif.toJ3d(data.uVSets[i][j]);
+					}
+					gi.setTextureCoordinates(i, texCoords);
 
+				}
+
+			}
+
+			int numStrips = data.numStrips;
+			int[] stripLengths = data.stripLengths;
+			int[] points = null;
+			if (data.hasPoints)
+			{
+				// get full length
+				int length = 0;
+				for (int i = 0; i < numStrips; i++)
+				{
+					length += data.points[i].length;
+				}
+
+				gi.setStripCounts(stripLengths);
+				points = new int[length];
+				int idx = 0;
+				for (int i = 0; i < numStrips; i++)
+				{
+					for (int j = 0; j < stripLengths[i]; j++)
+					{
+						points[idx] = data.points[i][j];
+						idx++;
+					}
+				}
+
+				gi.setCoordinateIndices(points);
+
+				gi.setUseCoordIndexOnly(true);
+
+			}
+
+			if (!data.hasNormals)
+			{
+				NormalGenerator normalGenerator = new NormalGenerator();
+				normalGenerator.generateNormals(gi);
+			}
+
+			IndexedGeometryArray g = gi.getIndexedGeometryArray(true, false, true, true, false);
+			sharedNiTriBasedGeom.put(data, g);
+
+			return g;
 		}
-
-		if (!data.hasNormals)
-		{
-			NormalGenerator normalGenerator = new NormalGenerator();
-			normalGenerator.generateNormals(gi);
-		}
-
-		IndexedGeometryArray g = gi.getIndexedGeometryArray(true, false, true, true, false);
-		return g;
 	}
-
 }

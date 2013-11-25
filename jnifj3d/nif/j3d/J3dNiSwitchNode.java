@@ -6,7 +6,6 @@ import javax.media.j3d.Node;
 import javax.media.j3d.Switch;
 
 import nif.niobject.NiSwitchNode;
-import tools3d.utils.scenegraph.Unsharable;
 import utils.source.TextureSource;
 
 /**
@@ -28,7 +27,7 @@ import utils.source.TextureSource;
  * @author philip
  *
  */
-public class J3dNiSwitchNode extends J3dNiNode implements Unsharable
+public class J3dNiSwitchNode extends J3dNiNode
 {
 
 	//Note super will call addchild before this node is inited, so must be constructed on first addchild call
@@ -37,10 +36,9 @@ public class J3dNiSwitchNode extends J3dNiNode implements Unsharable
 
 	protected Switch switchGroup;
 
-	protected J3dNiSwitchNode(NiSwitchNode niSwitchNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes,
-			boolean noShares)
+	protected J3dNiSwitchNode(NiSwitchNode niSwitchNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes)
 	{
-		super(niSwitchNode, niToJ3dData, textureSource, onlyNiNodes, noShares);
+		super(niSwitchNode, niToJ3dData, textureSource, onlyNiNodes);
 		configureOrderedGroup();
 	}
 

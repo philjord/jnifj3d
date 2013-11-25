@@ -72,10 +72,11 @@ import nif.niobject.controller.NiMultiTargetTransformController;
 import nif.niobject.controller.NiSingleInterpController;
 import nif.niobject.controller.NiTimeController;
 import nif.niobject.interpolator.NiInterpolator;
+import tools3d.utils.scenegraph.Fadable;
 import utils.convert.NifOpenGLToJava3D;
 import utils.source.TextureSource;
 
-public abstract class J3dNiGeometry extends J3dNiAVObject
+public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 {
 
 	private static HashMap<NiProperty, NodeComponent> propertyLookup = new HashMap<NiProperty, NodeComponent>();
@@ -84,11 +85,15 @@ public abstract class J3dNiGeometry extends J3dNiAVObject
 
 	//private ShaderAppearance app = new ShaderAppearance();
 
-	private Appearance app = new Appearance();
+	private Appearance normalApp = new Appearance();
 
 	private Shape3D shape;
 
 	private TextureSource textureSource;
+
+	private TransparencyAttributes normalTA = null;
+
+	private TransparencyAttributes faderTA = null;
 
 	public J3dNiGeometry(NiGeometry niGeometry, NiToJ3dData niToJ3dData, TextureSource textureSource)
 	{
@@ -120,11 +125,16 @@ public abstract class J3dNiGeometry extends J3dNiAVObject
 		}
 		shape.setName("" + this.getClass().getSimpleName() + ":" + niGeometry.name);
 
-		shape.setAppearance(app);
-		configureAppearance(niGeometry, niToJ3dData);
+		configureAppearance(niGeometry, niToJ3dData, normalApp);
+		shape.setAppearance(normalApp);
 
 		//Some times the nif just has no texture, odd. see BSShaderNoLightingProperty
 
+		// Various parts to allow fading in and out
+		normalTA = normalApp.getTransparencyAttributes();
+		normalApp.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_WRITE);
+		faderTA = new TransparencyAttributes(TransparencyAttributes.BLENDED, 0f);
+		faderTA.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE);
 	}
 
 	public Shape3D getShape()
@@ -132,7 +142,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject
 		return shape;
 	}
 
-	private void configureAppearance(NiGeometry niGeometry, NiToJ3dData niToJ3dData)
+	private void configureAppearance(NiGeometry niGeometry, NiToJ3dData niToJ3dData, Appearance app)
 	{
 		NifRef[] properties = niGeometry.properties;
 
@@ -690,6 +700,31 @@ public abstract class J3dNiGeometry extends J3dNiAVObject
 			{
 				System.out.println("non NiSingleInterpController for j3dgeometry " + controller);
 			}
+		}
+	}
+
+	private float currentTrans = -1f;
+
+	/**
+	 * the appearance's transparency in the range [0.0, 1.0] with 0.0 being fully opaque and 1.0 being fully transparent
+	 * @see tools3d.utils.scenegraph.Fadable#fade(float)
+	 */
+	@Override
+	public void fade(float percent)
+	{
+		//setting transparency is expensive early out it if possible
+		if (currentTrans != percent)
+		{
+			if (percent <= 0 || percent >= 1.0f)
+			{
+				normalApp.setTransparencyAttributes(normalTA);
+			}
+			else
+			{
+				normalApp.setTransparencyAttributes(faderTA);
+				faderTA.setTransparency(percent);
+			}
+			currentTrans = percent;
 		}
 	}
 

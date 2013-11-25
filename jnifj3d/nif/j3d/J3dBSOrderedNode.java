@@ -14,9 +14,9 @@ public class J3dBSOrderedNode extends J3dNiNode
 	private OrderedGroup orderedGroup;
 
 	//NOTE this class must be set uncompactable as this screws with things J3dNiAVObject does
-	protected J3dBSOrderedNode(BSOrderedNode bSOrderedNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes, boolean noShares)
+	protected J3dBSOrderedNode(BSOrderedNode bSOrderedNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes)
 	{
-		super(bSOrderedNode, niToJ3dData, textureSource, onlyNiNodes,   noShares);
+		super(bSOrderedNode, niToJ3dData, textureSource, onlyNiNodes);
 		configureOrderedGroup();
 	}
 

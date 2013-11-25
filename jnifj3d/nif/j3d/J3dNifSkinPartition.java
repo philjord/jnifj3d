@@ -11,9 +11,8 @@ import javax.media.j3d.Transform3D;
 import javax.vecmath.Point3f;
 
 import nif.compound.NifSkinPartition;
-import tools3d.utils.scenegraph.Unsharable;
 
-public class J3dNifSkinPartition extends Group implements Unsharable, GeometryUpdater
+public class J3dNifSkinPartition extends Group implements GeometryUpdater
 {
 	private NifSkinPartition nifSkinPartition;
 

@@ -10,6 +10,7 @@ import javax.vecmath.Vector3f;
 import nif.niobject.NiTriShape;
 import nif.niobject.NiTriShapeData;
 import nif.niobject.bs.BSLODTriShape;
+import tools.WeakValueHashMap;
 import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
@@ -41,16 +42,16 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 			//am I a skin shape in which case I need to be uncompacted ready for animation
 			if (niTriShape.skin.ref != -1)
 			{
-				baseGeometryArray = makeGeometry(geometryInfo, false);
+				baseGeometryArray = makeGeometry(geometryInfo, false, null);
 
 				// odd calls because GeometryInfo doesn't want to produce 2 arrays in some cases (TES5), and clones fails
 				GeometryInfo gi2 = new GeometryInfo(baseGeometryArray);
-				currentGeometryArray = makeGeometry(gi2, false);
+				currentGeometryArray = makeGeometry(gi2, false, null);
 				getShape().setGeometry(currentGeometryArray);
 			}
 			else
 			{
-				getShape().setGeometry(makeGeometry(geometryInfo, true));
+				getShape().setGeometry(makeGeometry(geometryInfo, true, data));
 			}
 		}
 
@@ -72,7 +73,7 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 		GeometryInfo geometryInfo = makeGeometryInfo(data);
 		if (geometryInfo != null)
 		{
-			getShape().setGeometry(makeGeometry(geometryInfo, true));
+			getShape().setGeometry(makeGeometry(geometryInfo, true, data));
 		}
 		if (bsLODTriShape.skin.ref != -1)
 		{
@@ -91,30 +92,42 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 		return currentGeometryArray;
 	}
 
+	//Note self expunging cache
+	private static WeakValueHashMap<NiTriShapeData, IndexedGeometryArray> sharedNiTriBasedGeom = new WeakValueHashMap<NiTriShapeData, IndexedGeometryArray>();
+
 	/** Note if compact the return will be a strips array 
 	 * 
 	 * @param geometryInfo
-	 * @param compact
+	 * @param compact and make sharable
 	 * @return
 	 */
-	public static GeometryArray makeGeometry(GeometryInfo geometryInfo, boolean compact)
+	public static GeometryArray makeGeometry(GeometryInfo geometryInfo, boolean compact, NiTriShapeData cacheKey)
 	{
 		if (compact)
 		{
-			geometryInfo.compact();
-			Stripifier st = new Stripifier();
-			st.stripify(geometryInfo);
+			IndexedGeometryArray iga = sharedNiTriBasedGeom.get(cacheKey);
+
+			if (iga != null)
+			{
+				return iga;
+			}
+			else
+			{
+				geometryInfo.compact();
+				Stripifier st = new Stripifier();
+				st.stripify(geometryInfo);
+				IndexedGeometryArray ita = geometryInfo.getIndexedGeometryArray(compact, !compact, compact, true, false);
+				sharedNiTriBasedGeom.put(cacheKey, ita);
+				return ita;
+			}
 		}
-
-		IndexedGeometryArray ita = geometryInfo.getIndexedGeometryArray(compact, !compact, compact, true, false);
-
-		if (!compact)
+		else
 		{
+			IndexedGeometryArray ita = geometryInfo.getIndexedGeometryArray(compact, !compact, compact, true, false);
 			ita.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
 			ita.setCapability(GeometryArray.ALLOW_REF_DATA_WRITE);
+			return ita;
 		}
-
-		return ita;
 
 	}
 
@@ -202,5 +215,7 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 		}
 
 	}
+
+	
 
 }

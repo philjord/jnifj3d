@@ -1,7 +1,7 @@
 package nif.j3d;
 
 import javax.media.j3d.Alpha;
-import javax.media.j3d.Group;
+import javax.media.j3d.BranchGroup;
 
 import nif.j3d.animation.J3dNiControllerManager;
 import nif.j3d.animation.J3dNiTimeController;
@@ -18,7 +18,7 @@ import nif.niobject.controller.NiTimeController;
 import nif.niobject.controller.NiTransformController;
 import nif.niobject.interpolator.NiInterpolator;
 
-public abstract class J3dNiObjectNET extends Group
+public abstract class J3dNiObjectNET extends BranchGroup
 {
 	private NiObjectNET niObjectNET;
 

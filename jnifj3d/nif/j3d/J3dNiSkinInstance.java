@@ -14,9 +14,8 @@ import nif.niobject.NiNode;
 import nif.niobject.NiSkinInstance;
 import nif.niobject.NiSkinPartition;
 import nif.niobject.NiTriShape;
-import tools3d.utils.scenegraph.Unsharable;
 
-public class J3dNiSkinInstance extends Group implements Unsharable
+public class J3dNiSkinInstance extends Group
 {
 
 	public static boolean showSkinBoneMarkers = false;

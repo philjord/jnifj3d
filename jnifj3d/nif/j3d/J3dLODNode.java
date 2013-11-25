@@ -9,11 +9,10 @@ import nif.compound.NifLODRange;
 import nif.niobject.NiLODData;
 import nif.niobject.NiLODNode;
 import nif.niobject.NiRangeLODData;
-import tools3d.utils.scenegraph.Unsharable;
 import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
-public class J3dLODNode extends J3dNiSwitchNode implements Unsharable
+public class J3dLODNode extends J3dNiSwitchNode
 {
 	//Note super will call addchild before this node is inited, so must be constructed on first addchild call
 
@@ -21,9 +20,9 @@ public class J3dLODNode extends J3dNiSwitchNode implements Unsharable
 
 	private NiLODData niLODData;
 
-	protected J3dLODNode(NiLODNode niLODNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes, boolean noShares)
+	protected J3dLODNode(NiLODNode niLODNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes)
 	{
-		super(niLODNode, niToJ3dData, textureSource, onlyNiNodes, noShares);
+		super(niLODNode, niToJ3dData, textureSource, onlyNiNodes);
 		System.out.println("NiLODNode detected! " + niLODNode.name);
 		this.niLODData = (NiLODData) niToJ3dData.get(niLODNode.lODLevelData);
 	}

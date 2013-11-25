@@ -55,18 +55,14 @@ public class NifToJ3d
 	/** 
 	 * loads both nif vis and nif havok into the root
 	 */
-	public static NifJ3dVisPhysRoot loadNif(String modelFileName, MeshSource meshSource, TextureSource textureSource)
-	{
-		return loadNif(modelFileName, meshSource, textureSource, false);
-	}
 
-	public static NifJ3dVisPhysRoot loadNif(String modelFileName, MeshSource meshSource, TextureSource textureSource, boolean noShares)
+	public static NifJ3dVisPhysRoot loadNif(String modelFileName, MeshSource meshSource, TextureSource textureSource)
 	{
 		NifFile nifFile = loadNiObjects(modelFileName, meshSource);
 		if (nifFile != null)
 		{
-			NifJ3dVisRoot root = extractShapes(nifFile, textureSource, noShares);
-			NifJ3dHavokRoot phys = extractHavok(nifFile, noShares);
+			NifJ3dVisRoot root = extractShapes(nifFile, textureSource);
+			NifJ3dHavokRoot phys = extractHavok(nifFile);
 
 			if (root != null)
 			{
@@ -80,30 +76,20 @@ public class NifToJ3d
 
 	public static NifJ3dVisRoot loadShapes(String filename, MeshSource meshSource, TextureSource textureSource)
 	{
-		return loadShapes(filename, meshSource, textureSource, false);
-	}
-
-	public static NifJ3dVisRoot loadShapes(String filename, MeshSource meshSource, TextureSource textureSource, boolean noShares)
-	{
 		NifFile nifFile = loadNiObjects(filename, meshSource);
 		if (nifFile != null)
 		{
-			return extractShapes(nifFile, textureSource, noShares);
+			return extractShapes(nifFile, textureSource);
 		}
 		return null;
 	}
 
 	public static NifJ3dHavokRoot loadHavok(String filename, MeshSource meshSource)
 	{
-		return loadHavok(filename, meshSource, false);
-	}
-
-	public static NifJ3dHavokRoot loadHavok(String filename, MeshSource meshSource, boolean noShares)
-	{
 		NifFile nifFile = loadNiObjects(filename, meshSource);
 		if (nifFile != null)
 		{
-			return extractHavok(nifFile, noShares);
+			return extractHavok(nifFile);
 		}
 		return null;
 	}
@@ -118,7 +104,7 @@ public class NifToJ3d
 		return null;
 	}
 
-	private static NifJ3dVisRoot extractShapes(NifFile nifFile, TextureSource textureSource, boolean noShares)
+	private static NifJ3dVisRoot extractShapes(NifFile nifFile, TextureSource textureSource)
 	{
 		if (nifFile != null)
 		{
@@ -130,7 +116,7 @@ public class NifToJ3d
 
 				if (root instanceof NiNode)
 				{
-					j3dNiAVObjectRoot = J3dNiNode.createNiNode((NiNode) root, niToJ3dData, textureSource, false, noShares);
+					j3dNiAVObjectRoot = J3dNiNode.createNiNode((NiNode) root, niToJ3dData, textureSource, false);
 				}
 				else if (root instanceof BSTreeNode)
 				{
@@ -169,7 +155,7 @@ public class NifToJ3d
 		return null;
 	}
 
-	private static NifJ3dHavokRoot extractHavok(NifFile nifFile, boolean noShares)
+	private static NifJ3dHavokRoot extractHavok(NifFile nifFile)
 	{
 		if (nifFile != null)
 		{
@@ -183,7 +169,7 @@ public class NifToJ3d
 				if (root instanceof NiNode)
 				{
 					// create only the ninode so we can animate and have a full tree structure to support physics
-					j3dNiAVObjectRoot = J3dNiNode.createNiNode((NiNode) root, niToJ3dData, null, true, noShares);
+					j3dNiAVObjectRoot = J3dNiNode.createNiNode((NiNode) root, niToJ3dData, null, true);
 				}
 				else if (root instanceof BSTreeNode)
 				{

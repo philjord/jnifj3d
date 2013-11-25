@@ -30,9 +30,9 @@ public class J3dNiBillboardNode extends J3dNiNode
 	private TransformGroup uprighterGroup;
 
 	//NOTE uncompactable as this screws with things J3dNiAVObject does
-	protected J3dNiBillboardNode(NiBillboardNode niBillboardNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes, boolean noShares)
+	protected J3dNiBillboardNode(NiBillboardNode niBillboardNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes)
 	{
-		super(niBillboardNode, niToJ3dData, textureSource, onlyNiNodes,   noShares);
+		super(niBillboardNode, niToJ3dData, textureSource, onlyNiNodes);
 
 		// note this may have been configred by an addchild from the super constructor
 		if (billboardGroup == null)

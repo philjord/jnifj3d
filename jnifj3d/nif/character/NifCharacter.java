@@ -84,7 +84,7 @@ public class NifCharacter extends BranchGroup
 		{
 			if (skinNifModelFilename != null && skinNifModelFilename.length() > 0)
 			{
-				NifJ3dVisRoot model = NifToJ3d.loadShapes(skinNifModelFilename, meshSource, textureSource, true);
+				NifJ3dVisRoot model = NifToJ3d.loadShapes(skinNifModelFilename, meshSource, textureSource);
 
 				// create skins from the skeleton and skin nif
 				ArrayList<J3dNiSkinInstance> skins = J3dNiSkinInstance.createSkins(model.getNiToJ3dData(),
