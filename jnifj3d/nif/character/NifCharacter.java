@@ -71,7 +71,7 @@ public class NifCharacter extends BranchGroup
 
 		//note node must be in scene graph
 		updateBehavior = new NifCharUpdateBehavior(this, new float[]
-		{ 30f, 70f, 120f });
+		{ 30f, 90f, 180f });
 		addChild(updateBehavior);
 		updateBehavior.setEnable(true);
 
@@ -312,9 +312,10 @@ public class NifCharacter extends BranchGroup
 			{
 				try
 				{
-					PointSound sound1 = new PointSound();
+					//PointSound sound1 = new PointSound();
 					//TODO: stop previous sound perhaps, walk sounds? use teh animation end event
-					addObjectSound(sound1, params[0], 10.0f);
+					//FIXME: fallout gets major bad wav formats
+					//addObjectSound(sound1, params[0], 10.0f);
 
 				}
 				catch (SoundException e)

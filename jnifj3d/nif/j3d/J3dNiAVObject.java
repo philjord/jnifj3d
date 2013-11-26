@@ -257,6 +257,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 
 	/**
 	 * I wish I had recorded how this works :( I think it need the root of the model (or the non accum node for preference)
+	 * I think it stops when it meets the root object
 	 * @param t
 	 * @param rootJ3dNiAVObject
 	 */
@@ -269,7 +270,8 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 		getTreeTransformImpl(t, rootJ3dNiAVObject);
 	}
 
-	//NOTE not for the use of ANYTHING but the getFulltree rollup system!!!! It can point to madness very easily
+	//NOTE not for the use of ANYTHING but the getTreeTransform rollup system!!!!
+	// It can point to madness very easily!
 	private J3dNiAVObject topOfParent;
 
 	private void getTreeTransformImpl(Transform3D t, J3dNiAVObject rootJ3dNiAVObject)

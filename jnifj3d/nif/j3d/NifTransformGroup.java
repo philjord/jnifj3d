@@ -19,16 +19,22 @@ public class NifTransformGroup extends TransformGroup
 		}
 	}
 
+	private Transform3D temp1;
+
 	public void transformMul(Transform3D t)
 	{
-		Transform3D temp1 = new Transform3D();
+		if (temp1 == null)
+			temp1 = new Transform3D();
 		this.getTransform(temp1);
 		t.mul(temp1);
 	}
 
+	private Transform3D temp2;
+
 	public boolean isNoImpact()
 	{
-		Transform3D temp2 = new Transform3D();
+		if (temp2 == null)
+			temp2 = new Transform3D();
 		this.getTransform(temp2);
 		return temp2.equals(IDENTITY) && !this.getCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 	}
