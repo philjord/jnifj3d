@@ -125,8 +125,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		}
 		shape.setName("" + this.getClass().getSimpleName() + ":" + niGeometry.name);
 
-		configureAppearance(niGeometry, niToJ3dData, normalApp);
-		shape.setAppearance(normalApp);
+		configureAppearance(niGeometry, niToJ3dData, normalApp);		
 
 		//Some times the nif just has no texture, odd. see BSShaderNoLightingProperty
 
@@ -139,6 +138,12 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 
 	public Shape3D getShape()
 	{
+		if( shape.getAppearance()==null)
+		{
+		System.out.println("what?");	
+		}
+		
+		
 		return shape;
 	}
 
@@ -157,6 +162,9 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		//TODO: this might be set by the texturing and the ppshader properties?
 		textureAttributes.setTextureMode(TextureAttributes.MODULATE);
 		app.setTextureAttributes(textureAttributes);
+		
+		// note time controllers below need appearance set on the shape now
+		shape.setAppearance(normalApp);
 
 		//don't set unless needed
 		TransparencyAttributes ta = new TransparencyAttributes(TransparencyAttributes.BLENDED, 0f);

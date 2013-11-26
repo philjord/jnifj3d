@@ -25,6 +25,7 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 		{
 			J3dNiGeometry j3dNiGeometry = (J3dNiGeometry) nodeTarget;
 			operation = controller.operation;
+
 			textureAttributes = j3dNiGeometry.getShape().getAppearance().getTextureAttributes();
 			if (textureAttributes == null)
 			{
