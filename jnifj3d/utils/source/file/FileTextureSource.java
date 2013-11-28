@@ -8,9 +8,9 @@ import java.util.List;
 
 import javax.media.j3d.Texture;
 
+import tools.ddstexture.DDSToTexture;
 import tools.image.ImageFlip;
 import tools.image.SimpleImageLoader;
-import tools.texture.DDSToTexture;
 import utils.source.TextureSource;
 
 import com.sun.j3d.utils.image.ImageException;

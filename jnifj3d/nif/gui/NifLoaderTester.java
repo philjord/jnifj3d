@@ -2,13 +2,14 @@ package nif.gui;
 
 import java.io.File;
 import java.util.prefs.Preferences;
+
 import java3d.nativelinker.Java3dLinker2;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 
 import nif.NifToJ3d;
-import tools.texture.DDSToTexture;
+import tools.ddstexture.DDSToTexture;
 import utils.source.DummyTextureSource;
 import utils.source.file.FileMeshSource;
 
