@@ -8,7 +8,7 @@ import java.util.List;
 
 import javax.media.j3d.Texture;
 
-import tools.ddstexture.DDSToTexture;
+import tools.ddstexture.DDSTextureLoader;
 import tools.image.ImageFlip;
 import tools.image.SimpleImageLoader;
 import utils.source.TextureSource;
@@ -43,7 +43,7 @@ public class FileTextureSource implements TextureSource
 
 			Texture tex = null;
 			//check cache hit
-			tex = DDSToTexture.checkCachedTexture(texName);
+			tex = DDSTextureLoader.checkCachedTexture(texName);
 			if (tex != null)
 				return true;
 
@@ -76,14 +76,14 @@ public class FileTextureSource implements TextureSource
 
 			Texture tex = null;
 			//check cache hit
-			tex = DDSToTexture.checkCachedTexture(texName);
+			tex = DDSTextureLoader.checkCachedTexture(texName);
 			if (tex != null)
 				return tex;
 
 			String[] parts = FileMediaRoots.splitOffMediaRoot(texName);
 			if (texName.endsWith(".dds"))
 			{
-				tex = DDSToTexture.getTexture(new File(parts[0] + parts[1]));
+				tex = DDSTextureLoader.getTexture(new File(parts[0] + parts[1]));
 			}
 			else
 			{
