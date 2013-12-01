@@ -10,15 +10,9 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/jnif"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/ElderScrollsUtils"/>
 	<classpathentry kind="lib" path="/external_jars/external jars/j3d/j3d-org-java3d-all.jar"/>
-	<classpathentry kind="lib" path="/external_jars/external jars/java3d/lib/ext/j3dcore.jar" sourcepath="E:/Java/3rd party jars/java3d/src">
-		<attributes>
-			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="E:/Java/workspace/external_jars/external jars/java3d/bin"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="/external_jars/external jars/java3d/lib/ext/j3dutils.jar" sourcepath="E:/Java/3rd party jars/java3d/src"/>
-	<classpathentry kind="lib" path="/external_jars/external jars/java3d/lib/ext/vecmath.jar" sourcepath="E:/Java/3rd party jars/java3d/src"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/3DTools"/>
 	<classpathentry kind="lib" path="/external_jars/external jars/jbullet-20101010/dist/jbullet.jar" sourcepath="E:/Java/workspace/external_jars/external jars/jbullet-20101010/src"/>
 	<classpathentry kind="lib" path="/external_jars/external jars/j3dnative.jar"/>
+	<classpathentry kind="lib" path="/external_jars/external jars/java3djogl2.jar" sourcepath="E:/Java/3rd party jars/java3d/src"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>
