@@ -3,14 +3,16 @@ package utils.source.file;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.media.j3d.Texture;
 
+import tools.ddstexture.DDSImage;
 import tools.ddstexture.DDSTextureLoader;
+import tools.ddstexture.utils.DDSDecompressor;
 import tools.image.ImageFlip;
-import tools.image.SimpleImageLoader;
 import utils.source.TextureSource;
 
 import com.sun.j3d.utils.image.ImageException;
@@ -131,17 +133,31 @@ public class FileTextureSource implements TextureSource
 			}
 
 			String[] parts = FileMediaRoots.splitOffMediaRoot(imageName);
-			BufferedImage image = SimpleImageLoader.getImage(parts[0] + parts[1]);
 
-			if (image != null)
+			DDSImage ddsImage = null;
+			try
 			{
-				return ImageFlip.verticalflip(image);
+
+				ddsImage = DDSImage.read(new File(parts[0] + parts[1]));
+				BufferedImage image = new DDSDecompressor(ddsImage, 0, imageName).convertImage();
+
+				if (image != null)
+				{
+					return ImageFlip.verticalflip(image);
+				}
+				else
+				{
+					System.out.println("FileTextureSource.getImage - Problem with loading image: " + imageName + "||" + parts[0] + "|"
+							+ parts[1]);
+				}
+
 			}
-			else
+			catch (IOException e)
 			{
-				System.out.println("FileTextureSource.getImage - Problem with loading image: " + imageName + "||" + parts[0] + "|"
-						+ parts[1]);
+				System.out.println("FileTextureSource  " + imageName + " " + e.getMessage());
 			}
+			if (ddsImage != null)
+				ddsImage.close();
 
 		}
 
