@@ -4,7 +4,6 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.prefs.Preferences;
-import java3d.nativelinker.Java3dLinker2;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -27,7 +26,7 @@ public class KfLoaderTester
 
 	public static void main(String[] args)
 	{
-		new Java3dLinker2();
+
 		prefs = Preferences.userNodeForPackage(KfLoaderTester.class);
 		String baseDir = prefs.get("KfLoaderTester.baseDir", System.getProperty("user.dir"));
 

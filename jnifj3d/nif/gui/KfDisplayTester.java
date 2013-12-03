@@ -11,7 +11,6 @@ import java.awt.event.MouseWheelListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.prefs.Preferences;
-import java3d.nativelinker.Java3dLinker2;
 
 import javax.media.j3d.AmbientLight;
 import javax.media.j3d.BoundingSphere;
@@ -52,8 +51,7 @@ public class KfDisplayTester
 	public static KfDisplayTester nifDisplay;
 
 	public static void main(String[] args)
-	{
-		new Java3dLinker2();
+	{		
 		prefs = Preferences.userNodeForPackage(KfDisplayTester.class);
 
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
