@@ -21,7 +21,7 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 
 	private float constantFloat = Float.NEGATIVE_INFINITY;
 
-	public J3dNiFloatInterpolator(NiFloatInterpolator niFloatInterpolator, NiToJ3dData niToJ3dData , float startTimeS, float lengthS,
+	public J3dNiFloatInterpolator(NiFloatInterpolator niFloatInterpolator, NiToJ3dData niToJ3dData, float startTimeS, float lengthS,
 			FloatInterpolator.Listener callBack)
 	{
 		makeKnotsFloats(niFloatInterpolator, niToJ3dData, startTimeS, lengthS);
@@ -33,7 +33,7 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 	{
 		if (knotsFloats != null)
 		{
-			FloatInterpolator interpolator = new FloatInterpolator(null, callBack, knotsFloats.knots, knotsFloats.floats);
+			FloatInterpolator interpolator = new FloatInterpolator(callBack, knotsFloats.knots, knotsFloats.floats);
 			addInterpolator(interpolator);
 		}
 		else if (constantFloat != Float.NEGATIVE_INFINITY)
@@ -43,7 +43,7 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 		}
 	}
 
-	private void makeKnotsFloats(NiFloatInterpolator niFloatInterpolator, NiToJ3dData niToJ3dData , float startTimeS, float lengthS)
+	private void makeKnotsFloats(NiFloatInterpolator niFloatInterpolator, NiToJ3dData niToJ3dData, float startTimeS, float lengthS)
 	{
 		if (niFloatInterpolator.data.ref != -1)
 		{

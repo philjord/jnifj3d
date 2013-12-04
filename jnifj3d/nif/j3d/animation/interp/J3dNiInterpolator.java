@@ -1,15 +1,16 @@
 package nif.j3d.animation.interp;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 
 import javax.media.j3d.Alpha;
-import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.Group;
 import javax.media.j3d.Interpolator;
 import javax.media.j3d.TransformGroup;
-import javax.vecmath.Point3d;
 
+import tools3d.utils.Utils3D;
 import nif.j3d.NifTransformGroup;
+import nif.j3d.interp.Interpolated;
 
 public abstract class J3dNiInterpolator extends Group
 {
@@ -17,36 +18,22 @@ public abstract class J3dNiInterpolator extends Group
 
 	public static final float NIF_FLOAT_MIN = (float) -3.4028235E38;
 
-	public static BoundingSphere defaultBoundingShpere = new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY);
-
-	private ArrayList<Interpolator> interpolators = new ArrayList<Interpolator>();
+	private ArrayList<Interpolated> interpolators = new ArrayList<Interpolated>();
 
 	public J3dNiInterpolator()
 	{
 	}
 
-	public void addInterpolator(Interpolator interpolator)
+	public void addInterpolator(Interpolated interpolator)
 	{
-		interpolator.setEnable(false);
-		interpolator.setSchedulingBounds(defaultBoundingShpere);
-		addChild(interpolator);
 		interpolators.add(interpolator);
 	}
 
-	public void fire(Alpha resetAlpha)
+	public void process(float alphaValue)
 	{
-		setEnable(true);
-		for (Interpolator interpolator : interpolators)
+		for (Interpolated interpolator : interpolators)
 		{
-			interpolator.setAlpha(resetAlpha);
-		}
-	}
-
-	public void setEnable(boolean enable)
-	{
-		for (Interpolator interpolator : interpolators)
-		{
-			interpolator.setEnable(enable);
+			interpolator.process(alphaValue);
 		}
 	}
 
@@ -58,6 +45,30 @@ public abstract class J3dNiInterpolator extends Group
 			return targetTransform;
 		}
 		return null;
+	}
+
+	/**
+	 * If this is called I should really not allow the process above to be called by any other behavior
+	 * @param baseAlpha
+	 */
+	public void fire(Alpha baseAlpha)
+	{
+		Interpolator interp = new Interpolator(baseAlpha)
+		{
+
+			@SuppressWarnings("rawtypes")
+			@Override
+			public void processStimulus(Enumeration criteria)
+			{
+				process(getAlpha().value());
+				wakeupOn(defaultWakeupCriterion);
+			}
+
+		};
+		interp.setEnable(true);
+		interp.setSchedulingBounds(Utils3D.defaultBounds);
+		addChild(interp);
+
 	}
 
 }

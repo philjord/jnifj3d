@@ -44,8 +44,8 @@ public class J3dNiPathInterpolator extends J3dNiInterpolator
 					tempTrans.get(quats[i]);
 				}
 
-				RotPosPathInterpolator interpolator = new RotPosPathInterpolator(null, J3dNiInterpolator.prepTransformGroup(targetTransform), knots,
-						quats, positions);
+				RotPosPathInterpolator interpolator = new RotPosPathInterpolator(J3dNiInterpolator.prepTransformGroup(targetTransform),
+						knots, quats, positions);
 				addInterpolator(interpolator);
 			}
 			else

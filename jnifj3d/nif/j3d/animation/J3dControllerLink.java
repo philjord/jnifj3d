@@ -118,6 +118,15 @@ public class J3dControllerLink extends Group
 		}
 	}
 
+	public void process(float alphaValue)
+	{
+		if (j3dNiInterpolator != null)
+		{
+			j3dNiInterpolator.process(alphaValue);
+		}
+
+	}
+
 	public static String lookUpPaletteString(int offset, NiToJ3dData niToJ3dData, NifRef stringPaletteRef)
 	{
 		if (niToJ3dData.nifVer.LOAD_VER <= NifVer.VER_20_0_0_5)

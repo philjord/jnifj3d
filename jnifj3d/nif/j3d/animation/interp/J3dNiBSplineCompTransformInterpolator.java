@@ -30,8 +30,8 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 
 	private Point3f defaultScale = new Point3f(1, 1, 1);
 
-	public J3dNiBSplineCompTransformInterpolator(NiBSplineCompTransformInterpolator niBSplineCompTransformInterpolator, NiToJ3dData niToJ3dData,
-			NifTransformGroup targetTransform)
+	public J3dNiBSplineCompTransformInterpolator(NiBSplineCompTransformInterpolator niBSplineCompTransformInterpolator,
+			NiToJ3dData niToJ3dData, NifTransformGroup targetTransform)
 	{
 		this.nibs = niBSplineCompTransformInterpolator;
 
@@ -75,8 +75,8 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 					keys[i] = key;
 				}
 
-				RotPosScaleTCBSplinePathInterpolator tCBSplinePathInterpolator = new RotPosScaleTCBSplinePathInterpolator(null, J3dNiInterpolator
-						.prepTransformGroup(targetTransform), keys);
+				RotPosScaleTCBSplinePathInterpolator tCBSplinePathInterpolator = new RotPosScaleTCBSplinePathInterpolator(
+						J3dNiInterpolator.prepTransformGroup(targetTransform), keys);
 				addInterpolator(tCBSplinePathInterpolator);
 			}
 		}

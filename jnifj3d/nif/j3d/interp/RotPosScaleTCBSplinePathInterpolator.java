@@ -1,6 +1,5 @@
 package nif.j3d.interp;
 
-import javax.media.j3d.Alpha;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
 import javax.vecmath.Point3f;
@@ -30,9 +29,9 @@ public class RotPosScaleTCBSplinePathInterpolator extends TCBSplinePathInterpola
 
 	int currentSegmentIndex;
 
-	public RotPosScaleTCBSplinePathInterpolator(Alpha alpha, TransformGroup target, TCBKeyFrame keys[])
+	public RotPosScaleTCBSplinePathInterpolator(TransformGroup target, TCBKeyFrame keys[])
 	{
-		super(alpha, target, keys);
+		super(target, keys);
 		// Create a spline curve using the derived key frames
 		cubicSplineCurve = new CubicSplineCurve(this.keyFrames);
 		numSegments = cubicSplineCurve.numSegments;

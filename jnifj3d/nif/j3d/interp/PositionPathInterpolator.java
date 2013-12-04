@@ -1,6 +1,5 @@
 package nif.j3d.interp;
 
-import javax.media.j3d.Alpha;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
 import javax.vecmath.Point3f;
@@ -17,9 +16,9 @@ public class PositionPathInterpolator extends PathInterpolator
 	// Array of positions at each knot
 	private Point3f positions[];
 
-	public PositionPathInterpolator(Alpha alpha, TransformGroup target, float[] knots, Point3f[] positions)
+	public PositionPathInterpolator(TransformGroup target, float[] knots, Point3f[] positions)
 	{
-		super(alpha, target, knots);
+		super(target, knots);
 
 		if (knots.length != positions.length)
 			throw new IllegalArgumentException("knots.length != positions.length");
@@ -49,14 +48,17 @@ public class PositionPathInterpolator extends PathInterpolator
 		}
 		else
 		{
-			pos.x = positions[currentKnotIndex].x + (positions[currentKnotIndex + 1].x - positions[currentKnotIndex].x) * currentInterpolationValue;
-			pos.y = positions[currentKnotIndex].y + (positions[currentKnotIndex + 1].y - positions[currentKnotIndex].y) * currentInterpolationValue;
-			pos.z = positions[currentKnotIndex].z + (positions[currentKnotIndex + 1].z - positions[currentKnotIndex].z) * currentInterpolationValue;
+			pos.x = positions[currentKnotIndex].x + (positions[currentKnotIndex + 1].x - positions[currentKnotIndex].x)
+					* currentInterpolationValue;
+			pos.y = positions[currentKnotIndex].y + (positions[currentKnotIndex + 1].y - positions[currentKnotIndex].y)
+					* currentInterpolationValue;
+			pos.z = positions[currentKnotIndex].z + (positions[currentKnotIndex + 1].z - positions[currentKnotIndex].z)
+					* currentInterpolationValue;
 		}
 	}
 
 	public void applyTransform(Transform3D targetTransform)
-	{		
+	{
 		targetTransform.setTranslation(pos);
 	}
 }

@@ -26,7 +26,7 @@ public class J3dNiPoint3Interpolator extends J3dNiInterpolator
 
 	private Point3f constantPoint3f = null;
 
-	public J3dNiPoint3Interpolator(NiPoint3Interpolator niPoint3Interp, NiToJ3dData niToJ3dData , float startTimeS, float lengthS,
+	public J3dNiPoint3Interpolator(NiPoint3Interpolator niPoint3Interp, NiToJ3dData niToJ3dData, float startTimeS, float lengthS,
 			Point3Interpolator.Listener callBack)
 	{
 		makeKnotsPoints(niPoint3Interp, niToJ3dData, startTimeS, lengthS);
@@ -38,7 +38,7 @@ public class J3dNiPoint3Interpolator extends J3dNiInterpolator
 	{
 		if (knotsPoints != null)
 		{
-			Point3Interpolator interpolator = new Point3Interpolator(null, callBack, knotsPoints.knots, knotsPoints.points);
+			Point3Interpolator interpolator = new Point3Interpolator(callBack, knotsPoints.knots, knotsPoints.points);
 			addInterpolator(interpolator);
 		}
 		else if (constantPoint3f != null)
@@ -55,7 +55,7 @@ public class J3dNiPoint3Interpolator extends J3dNiInterpolator
 	 * @param startTimeS
 	 * @param lengthS
 	 */
-	private void makeKnotsPoints(NiPoint3Interpolator niPoint3Interp, NiToJ3dData niToJ3dData , float startTimeS, float lengthS)
+	private void makeKnotsPoints(NiPoint3Interpolator niPoint3Interp, NiToJ3dData niToJ3dData, float startTimeS, float lengthS)
 	{
 
 		if (niPoint3Interp.data.ref != -1)

@@ -14,7 +14,7 @@ public class J3dNiBoolInterpolator extends J3dNiInterpolator
 
 	private boolean constantBool = false;
 
-	public J3dNiBoolInterpolator(NiBoolInterpolator niBoolInterpolator, NiToJ3dData niToJ3dData , float startTimeS, float lengthS,
+	public J3dNiBoolInterpolator(NiBoolInterpolator niBoolInterpolator, NiToJ3dData niToJ3dData, float startTimeS, float lengthS,
 			BoolInterpolator.Listener callBack)
 	{
 		if (niBoolInterpolator.data.ref != -1)
@@ -33,7 +33,7 @@ public class J3dNiBoolInterpolator extends J3dNiInterpolator
 	{
 		if (knotsBools != null)
 		{
-			BoolInterpolator interpolator = new BoolInterpolator(null, callBack, knotsBools.knots, knotsBools.bools);
+			BoolInterpolator interpolator = new BoolInterpolator(callBack, knotsBools.knots, knotsBools.bools);
 			addInterpolator(interpolator);
 
 			// also set the first value now 

@@ -1,6 +1,5 @@
 package nif.j3d.interp;
 
-import javax.media.j3d.Alpha;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
 import javax.vecmath.Quat4f;
@@ -23,11 +22,11 @@ public class XYZRotPathInterpolator extends TransformInterpolator
 
 	float[] zRots;
 
-	public XYZRotPathInterpolator(Alpha alpha, TransformGroup target, float[] xKnots, float[] xRots, float[] yKnots, float[] yRots,
-			float[] zKnots, float[] zRots)
+	public XYZRotPathInterpolator(TransformGroup target, float[] xKnots, float[] xRots, float[] yKnots, float[] yRots, float[] zKnots,
+			float[] zRots)
 	{
 		//note dummy knots
-		super(alpha, target);
+		super(target);
 
 		this.xKnots = xKnots;
 		this.xRots = xRots;

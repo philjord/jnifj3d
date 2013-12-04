@@ -6,6 +6,7 @@ import java.util.Enumeration;
 import javax.media.j3d.Behavior;
 import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.Group;
+import javax.media.j3d.Node;
 import javax.media.j3d.WakeupOnElapsedFrames;
 import javax.vecmath.Point3d;
 
@@ -15,10 +16,13 @@ import nif.j3d.J3dNiTextKeyExtraData;
 import nif.j3d.NiToJ3dData;
 import nif.niobject.NiControllerSequence;
 import nif.niobject.NiTextKeyExtraData;
+import tools3d.utils.scenegraph.VaryingLODBehaviour;
 
 public class J3dNiControllerSequence extends Group
-{	
+{
 	private UpdateBehavior behave = new UpdateBehavior();
+
+	private SequenceBehavior sequenceBehavior = new SequenceBehavior(this);
 
 	private ArrayList<SequenceListener> sequenceListeners = new ArrayList<SequenceListener>();
 
@@ -79,6 +83,10 @@ public class J3dNiControllerSequence extends Group
 
 		behave.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
 		addChild(behave);
+
+		sequenceBehavior.setEnable(false);
+		sequenceBehavior.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
+		addChild(sequenceBehavior);
 	}
 
 	public void addSequenceListener(SequenceListener sequenceListener)
@@ -136,10 +144,19 @@ public class J3dNiControllerSequence extends Group
 		fireSequence(false);
 	}
 
+	/*
+	 * TODO:
+	 * I need to have one varying behavior up here, work out the noe dist just once(it's expensive)
+	 * call teh alpha value just once, and then call all the interpolators below here with a process adn a 
+	 * single alpha value given to each
+	 *  
+	 *
+	 */
 	private void fireSequence(boolean forceOnce)
 	{
 		behave.setEnable(false);
-
+		sequenceBehavior.setEnable(false);
+		
 		if (forceOnce)
 		{
 			sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, false);
@@ -164,17 +181,15 @@ public class J3dNiControllerSequence extends Group
 		publishSequenceEvents();
 		behave.setEnable(true);
 
-		for (J3dControllerLink j3dControllerLink : controlledBlocks)
-		{
-			j3dControllerLink.fireController(sequenceAlpha);
-		}
+		sequenceBehavior.setEnable(true);// disbales after loop if required
+
 	}
 
 	public void publishSequenceEvents()
 	{
 		if (sequenceAlpha != null)
 		{
-			float newSequenceAlphaValue = sequenceAlpha.value() * lengthS;			 
+			float newSequenceAlphaValue = sequenceAlpha.value() * lengthS;
 
 			// this || makes it go round one more time at alpha ==lengthS (the end) to fire the "end" key
 			if (newSequenceAlphaValue < lengthS || prevSquenceAlphaValue < lengthS)
@@ -246,6 +261,31 @@ public class J3dNiControllerSequence extends Group
 	public J3dNiTextKeyExtraData getJ3dNiTextKeyExtraData()
 	{
 		return j3dNiTextKeyExtraData;
+	}
+
+	public class SequenceBehavior extends VaryingLODBehaviour
+	{
+
+		public SequenceBehavior(Node node)
+		{
+			super(node, new float[]
+			{ 40, 120, 280 });
+		}
+
+		@Override
+		public void process()
+		{
+			float alphaValue = sequenceAlpha.value();
+			for (J3dControllerLink j3dControllerLink : controlledBlocks)
+			{
+				j3dControllerLink.process(alphaValue);
+			}
+
+			//turn off at the end
+			if (sequenceAlpha.finished())
+				setEnable(false);
+		}
+
 	}
 
 	/**

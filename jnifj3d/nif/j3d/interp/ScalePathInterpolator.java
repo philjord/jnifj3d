@@ -1,6 +1,5 @@
 package nif.j3d.interp;
 
-import javax.media.j3d.Alpha;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
 
@@ -14,9 +13,9 @@ public class ScalePathInterpolator extends PathInterpolator
 	// Array of positions at each knot
 	private float[] scales;
 
-	public ScalePathInterpolator(Alpha alpha, TransformGroup target, float[] knots, float[] scales)
+	public ScalePathInterpolator(TransformGroup target, float[] knots, float[] scales)
 	{
-		super(alpha, target, knots);
+		super(target, knots);
 
 		if (knots.length != scales.length)
 			throw new IllegalArgumentException("knots.length != scales.length");

@@ -1,11 +1,7 @@
 package nif.j3d.interp;
 
-import java.util.Enumeration;
 
-import javax.media.j3d.Alpha;
-import javax.media.j3d.Interpolator;
-
-public class BoolInterpolator extends Interpolator
+public class BoolInterpolator implements Interpolated
 {
 	private Listener listener;
 
@@ -17,52 +13,44 @@ public class BoolInterpolator extends Interpolator
 	 * x,y,z of each point are r, g,b
 	 */
 
-	public BoolInterpolator(Alpha alpha, Listener listener, float[] knots, boolean[] values)
+	public BoolInterpolator(Listener listener, float[] knots, boolean[] values)
 	{
-		super(alpha);
 		this.listener = listener;
 		this.knots = knots;
 		this.values = values;
 
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void processStimulus(Enumeration arg0)
+	@Override
+	public void process(float alphaValue)
 	{
-		if (getAlpha() != null)
+		int currentKnotIndex = 0;
+		if (alphaValue == 1f)
 		{
-			float alphaValue = getAlpha().value();
-
-			int currentKnotIndex = 0;
-			if (alphaValue == 1f)
+			currentKnotIndex = knots.length - 1;
+		}
+		else
+		{
+			for (int i = 0; i < knots.length; i++)
 			{
-				currentKnotIndex = knots.length - 1;
-			}
-			else
-			{
-				for (int i = 0; i < knots.length; i++)
+				if ((i == 0 && alphaValue <= knots[i]) || (i > 0 && alphaValue >= knots[i - 1] && alphaValue <= knots[i]))
 				{
-					if ((i == 0 && alphaValue <= knots[i]) || (i > 0 && alphaValue >= knots[i - 1] && alphaValue <= knots[i]))
+					if (i == 0)
 					{
-						if (i == 0)
-						{
-							currentKnotIndex = 0;
-						}
-						else
-						{
-							currentKnotIndex = i - 1;
-						}
-						break;
+						currentKnotIndex = 0;
 					}
+					else
+					{
+						currentKnotIndex = i - 1;
+					}
+					break;
 				}
 			}
-
-			boolean value = values[currentKnotIndex];
-
-			listener.update(value);
 		}
-		wakeupOn(defaultWakeupCriterion);
 
+		boolean value = values[currentKnotIndex];
+
+		listener.update(value);
 	}
 
 	public static interface Listener

@@ -3,7 +3,6 @@ package nif.j3d.interp;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
-import javax.media.j3d.Alpha;
 import javax.media.j3d.TransformGroup;
 
 /**
@@ -21,9 +20,9 @@ public abstract class PathInterpolator extends TransformInterpolator
 
 	protected int currentKnotIndex;
 
-	public PathInterpolator(Alpha alpha, TransformGroup target, float[] knots)
+	public PathInterpolator(TransformGroup target, float[] knots)
 	{
-		super(alpha, target);
+		super(target);
 		setKnots(knots);
 	}
 

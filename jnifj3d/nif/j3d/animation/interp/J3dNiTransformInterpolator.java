@@ -23,7 +23,6 @@ import utils.convert.ConvertFromNif;
 
 public class J3dNiTransformInterpolator extends J3dNiInterpolator
 {
-
 	private PositionPathInterpolator positionPathInterpolator;
 
 	private ScalePathInterpolator scalePathInterpolator;
@@ -77,8 +76,8 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 							zRots[i] = -((Float) key.value).floatValue();
 						}
 
-						xYZRotPathInterpolator = new XYZRotPathInterpolator(null, J3dNiInterpolator.prepTransformGroup(targetTransform),
-								xKnots, xRots, yKnots, yRots, zKnots, zRots);
+						xYZRotPathInterpolator = new XYZRotPathInterpolator(J3dNiInterpolator.prepTransformGroup(targetTransform), xKnots,
+								xRots, yKnots, yRots, zKnots, zRots);
 						addInterpolator(xYZRotPathInterpolator);
 					}
 				}
@@ -90,8 +89,8 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 					if (quats != null && quats.length > 0)
 					{
 						KnotsQuats kq = makeKnotsQuats(quats, startTimeS, lengthS);
-						quatRotInterpolator = new RotationPathInterpolator(null, J3dNiInterpolator.prepTransformGroup(targetTransform),
-								kq.knots, kq.quats);
+						quatRotInterpolator = new RotationPathInterpolator(J3dNiInterpolator.prepTransformGroup(targetTransform), kq.knots,
+								kq.quats);
 						addInterpolator(quatRotInterpolator);
 					}
 				}
@@ -113,7 +112,7 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 					positions[i] = ConvertFromNif.toJ3dP3f((NifVector3) key.value);
 				}
 
-				positionPathInterpolator = new PositionPathInterpolator(null, J3dNiInterpolator.prepTransformGroup(targetTransform), knots,
+				positionPathInterpolator = new PositionPathInterpolator(J3dNiInterpolator.prepTransformGroup(targetTransform), knots,
 						positions);
 				addInterpolator(positionPathInterpolator);
 			}
@@ -130,7 +129,7 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 					ss[i] = ((Float) key.value).floatValue();
 				}
 
-				scalePathInterpolator = new ScalePathInterpolator(null, J3dNiInterpolator.prepTransformGroup(targetTransform), knots, ss);
+				scalePathInterpolator = new ScalePathInterpolator(J3dNiInterpolator.prepTransformGroup(targetTransform), knots, ss);
 				addInterpolator(scalePathInterpolator);
 			}
 
