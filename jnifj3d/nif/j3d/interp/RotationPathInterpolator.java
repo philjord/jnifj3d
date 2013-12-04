@@ -23,6 +23,27 @@ public class RotationPathInterpolator extends PathInterpolator
 			throw new IllegalArgumentException("knots.length != quats.length");
 
 		setPathArrays(quats);
+
+		fixed = isFixed();
+		if (fixed)
+		{
+			tQuat.x = quats[0].x;
+			tQuat.y = quats[0].y;
+			tQuat.z = quats[0].z;
+			tQuat.w = quats[0].w;
+		}
+	}
+
+	private boolean isFixed()
+	{
+		//check for a fixed value
+		for (int i = 0; i + 1 < quats.length; i++)
+		{
+			if (!quats[i].equals(quats[i + 1]))
+				return false;
+		}
+
+		return true;
 	}
 
 	// Set the specific arrays for this path interpolator
@@ -39,47 +60,50 @@ public class RotationPathInterpolator extends PathInterpolator
 	@Override
 	public void computeTransform(float alphaValue)
 	{
-
-		double quatDot;
-		computePathInterpolation(alphaValue);
-		// For RPATH, take quaternion average and set rotation in TransformGroup
-
-		if (currentKnotIndex == 0 && currentInterpolationValue == 0f)
+		if (!fixed)
 		{
-			tQuat.x = quats[0].x;
-			tQuat.y = quats[0].y;
-			tQuat.z = quats[0].z;
-			tQuat.w = quats[0].w;
-		}
-		else
-		{
-			quatDot = quats[currentKnotIndex].x * quats[currentKnotIndex + 1].x + quats[currentKnotIndex].y * quats[currentKnotIndex + 1].y
-					+ quats[currentKnotIndex].z * quats[currentKnotIndex + 1].z + quats[currentKnotIndex].w * quats[currentKnotIndex + 1].w;
-			if (quatDot < 0)
+			double quatDot;
+			computePathInterpolation(alphaValue);
+			// For RPATH, take quaternion average and set rotation in TransformGroup
+
+			if (currentKnotIndex == 0 && currentInterpolationValue == 0f)
 			{
-				tQuat.x = quats[currentKnotIndex].x + (-quats[currentKnotIndex + 1].x - quats[currentKnotIndex].x)
-						* currentInterpolationValue;
-				tQuat.y = quats[currentKnotIndex].y + (-quats[currentKnotIndex + 1].y - quats[currentKnotIndex].y)
-						* currentInterpolationValue;
-				tQuat.z = quats[currentKnotIndex].z + (-quats[currentKnotIndex + 1].z - quats[currentKnotIndex].z)
-						* currentInterpolationValue;
-				tQuat.w = quats[currentKnotIndex].w + (-quats[currentKnotIndex + 1].w - quats[currentKnotIndex].w)
-						* currentInterpolationValue;
+				tQuat.x = quats[0].x;
+				tQuat.y = quats[0].y;
+				tQuat.z = quats[0].z;
+				tQuat.w = quats[0].w;
 			}
 			else
 			{
-				tQuat.x = quats[currentKnotIndex].x + (quats[currentKnotIndex + 1].x - quats[currentKnotIndex].x)
-						* currentInterpolationValue;
-				tQuat.y = quats[currentKnotIndex].y + (quats[currentKnotIndex + 1].y - quats[currentKnotIndex].y)
-						* currentInterpolationValue;
-				tQuat.z = quats[currentKnotIndex].z + (quats[currentKnotIndex + 1].z - quats[currentKnotIndex].z)
-						* currentInterpolationValue;
-				tQuat.w = quats[currentKnotIndex].w + (quats[currentKnotIndex + 1].w - quats[currentKnotIndex].w)
-						* currentInterpolationValue;
+				quatDot = quats[currentKnotIndex].x * quats[currentKnotIndex + 1].x + quats[currentKnotIndex].y
+						* quats[currentKnotIndex + 1].y + quats[currentKnotIndex].z * quats[currentKnotIndex + 1].z
+						+ quats[currentKnotIndex].w * quats[currentKnotIndex + 1].w;
+				if (quatDot < 0)
+				{
+					tQuat.x = quats[currentKnotIndex].x + (-quats[currentKnotIndex + 1].x - quats[currentKnotIndex].x)
+							* currentInterpolationValue;
+					tQuat.y = quats[currentKnotIndex].y + (-quats[currentKnotIndex + 1].y - quats[currentKnotIndex].y)
+							* currentInterpolationValue;
+					tQuat.z = quats[currentKnotIndex].z + (-quats[currentKnotIndex + 1].z - quats[currentKnotIndex].z)
+							* currentInterpolationValue;
+					tQuat.w = quats[currentKnotIndex].w + (-quats[currentKnotIndex + 1].w - quats[currentKnotIndex].w)
+							* currentInterpolationValue;
+				}
+				else
+				{
+					tQuat.x = quats[currentKnotIndex].x + (quats[currentKnotIndex + 1].x - quats[currentKnotIndex].x)
+							* currentInterpolationValue;
+					tQuat.y = quats[currentKnotIndex].y + (quats[currentKnotIndex + 1].y - quats[currentKnotIndex].y)
+							* currentInterpolationValue;
+					tQuat.z = quats[currentKnotIndex].z + (quats[currentKnotIndex + 1].z - quats[currentKnotIndex].z)
+							* currentInterpolationValue;
+					tQuat.w = quats[currentKnotIndex].w + (quats[currentKnotIndex + 1].w - quats[currentKnotIndex].w)
+							* currentInterpolationValue;
+				}
 			}
-		}
 
-		tQuat.normalize();
+			tQuat.normalize();
+		}
 	}
 
 	public void applyTransform(Transform3D targetTransform)

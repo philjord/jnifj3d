@@ -20,6 +20,23 @@ public class ScalePathInterpolator extends PathInterpolator
 		if (knots.length != scales.length)
 			throw new IllegalArgumentException("knots.length != scales.length");
 		setPathArrays(scales);
+		fixed = isFixed();
+		if (fixed)
+		{
+			tScale = scales[0];
+		}
+	}
+
+	private boolean isFixed()
+	{
+		//check for a fixed value
+		for (int i = 0; i + 1 < scales.length; i++)
+		{
+			if (scales[i] != scales[i + 1])
+				return false;
+		}
+
+		return true;
 	}
 
 	// Set the specific arrays for this path interpolator
@@ -35,17 +52,20 @@ public class ScalePathInterpolator extends PathInterpolator
 
 	public void computeTransform(float alphaValue)
 	{
-		computePathInterpolation(alphaValue);
-
-		tScale = 1.0f;
-		if (currentKnotIndex == 0 && currentInterpolationValue == 0f)
+		if (!fixed)
 		{
-			tScale = scales[0];
-		}
-		else
-		{
-			tScale = scales[currentKnotIndex] + (scales[currentKnotIndex + 1] - scales[currentKnotIndex]) * currentInterpolationValue;
+			computePathInterpolation(alphaValue);
 
+			tScale = 1.0f;
+			if (currentKnotIndex == 0 && currentInterpolationValue == 0f)
+			{
+				tScale = scales[0];
+			}
+			else
+			{
+				tScale = scales[currentKnotIndex] + (scales[currentKnotIndex + 1] - scales[currentKnotIndex]) * currentInterpolationValue;
+
+			}
 		}
 	}
 

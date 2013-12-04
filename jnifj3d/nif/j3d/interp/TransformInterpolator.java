@@ -11,6 +11,8 @@ import javax.media.j3d.TransformGroup;
 
 public abstract class TransformInterpolator implements Interpolated
 {
+	protected boolean fixed = false;
+
 	/**
 	 * The TransformGroup node affected by this transformInterpolator
 	 */

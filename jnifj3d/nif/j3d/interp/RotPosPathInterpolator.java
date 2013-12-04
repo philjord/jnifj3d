@@ -2,7 +2,6 @@ package nif.j3d.interp;
 
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
-import javax.vecmath.Matrix4d;
 import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
@@ -18,7 +17,7 @@ public class RotPosPathInterpolator extends PathInterpolator
 
 	private Quat4f tQuat = new Quat4f();
 
-	private Matrix4d tMat = new Matrix4d();
+	//private Matrix4d tMat = new Matrix4d();
 
 	// Arrays of quaternions and positions at each knot
 	private Quat4f quats[];
@@ -36,6 +35,34 @@ public class RotPosPathInterpolator extends PathInterpolator
 			throw new IllegalArgumentException(J3dI18N.getString("RotPosPathInterpolator0"));
 
 		setPathArrays(quats, positions);
+		fixed = isFixed();
+		if (fixed)
+		{
+			tQuat.x = quats[0].x;
+			tQuat.y = quats[0].y;
+			tQuat.z = quats[0].z;
+			tQuat.w = quats[0].w;
+			pos.x = positions[0].x;
+			pos.y = positions[0].y;
+			pos.z = positions[0].z;
+		}
+	}
+
+	private boolean isFixed()
+	{
+		//check for a fixed value
+		for (int i = 0; i + 1 < quats.length; i++)
+		{
+			if (!quats[i].equals(quats[i + 1]))
+				return false;
+		}
+		for (int i = 0; i + 1 < positions.length; i++)
+		{
+			if (!positions[i].equals(positions[i + 1]))
+				return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -90,62 +117,66 @@ public class RotPosPathInterpolator extends PathInterpolator
 
 	public void computeTransform(float alphaValue)
 	{
-		double quatDot;
-
-		computePathInterpolation(alphaValue);
-
-		if (currentKnotIndex == 0 && currentInterpolationValue == 0f)
+		if (!fixed)
 		{
-			tQuat.x = quats[0].x;
-			tQuat.y = quats[0].y;
-			tQuat.z = quats[0].z;
-			tQuat.w = quats[0].w;
-			pos.x = positions[0].x;
-			pos.y = positions[0].y;
-			pos.z = positions[0].z;
-		}
-		else
-		{
-			quatDot = quats[currentKnotIndex].x * quats[currentKnotIndex + 1].x + quats[currentKnotIndex].y * quats[currentKnotIndex + 1].y
-					+ quats[currentKnotIndex].z * quats[currentKnotIndex + 1].z + quats[currentKnotIndex].w * quats[currentKnotIndex + 1].w;
-			if (quatDot < 0)
+			double quatDot;
+
+			computePathInterpolation(alphaValue);
+
+			if (currentKnotIndex == 0 && currentInterpolationValue == 0f)
 			{
-				tQuat.x = quats[currentKnotIndex].x + (-quats[currentKnotIndex + 1].x - quats[currentKnotIndex].x)
-						* currentInterpolationValue;
-				tQuat.y = quats[currentKnotIndex].y + (-quats[currentKnotIndex + 1].y - quats[currentKnotIndex].y)
-						* currentInterpolationValue;
-				tQuat.z = quats[currentKnotIndex].z + (-quats[currentKnotIndex + 1].z - quats[currentKnotIndex].z)
-						* currentInterpolationValue;
-				tQuat.w = quats[currentKnotIndex].w + (-quats[currentKnotIndex + 1].w - quats[currentKnotIndex].w)
-						* currentInterpolationValue;
+				tQuat.x = quats[0].x;
+				tQuat.y = quats[0].y;
+				tQuat.z = quats[0].z;
+				tQuat.w = quats[0].w;
+				pos.x = positions[0].x;
+				pos.y = positions[0].y;
+				pos.z = positions[0].z;
 			}
 			else
 			{
-				tQuat.x = quats[currentKnotIndex].x + (quats[currentKnotIndex + 1].x - quats[currentKnotIndex].x)
+				quatDot = quats[currentKnotIndex].x * quats[currentKnotIndex + 1].x + quats[currentKnotIndex].y
+						* quats[currentKnotIndex + 1].y + quats[currentKnotIndex].z * quats[currentKnotIndex + 1].z
+						+ quats[currentKnotIndex].w * quats[currentKnotIndex + 1].w;
+				if (quatDot < 0)
+				{
+					tQuat.x = quats[currentKnotIndex].x + (-quats[currentKnotIndex + 1].x - quats[currentKnotIndex].x)
+							* currentInterpolationValue;
+					tQuat.y = quats[currentKnotIndex].y + (-quats[currentKnotIndex + 1].y - quats[currentKnotIndex].y)
+							* currentInterpolationValue;
+					tQuat.z = quats[currentKnotIndex].z + (-quats[currentKnotIndex + 1].z - quats[currentKnotIndex].z)
+							* currentInterpolationValue;
+					tQuat.w = quats[currentKnotIndex].w + (-quats[currentKnotIndex + 1].w - quats[currentKnotIndex].w)
+							* currentInterpolationValue;
+				}
+				else
+				{
+					tQuat.x = quats[currentKnotIndex].x + (quats[currentKnotIndex + 1].x - quats[currentKnotIndex].x)
+							* currentInterpolationValue;
+					tQuat.y = quats[currentKnotIndex].y + (quats[currentKnotIndex + 1].y - quats[currentKnotIndex].y)
+							* currentInterpolationValue;
+					tQuat.z = quats[currentKnotIndex].z + (quats[currentKnotIndex + 1].z - quats[currentKnotIndex].z)
+							* currentInterpolationValue;
+					tQuat.w = quats[currentKnotIndex].w + (quats[currentKnotIndex + 1].w - quats[currentKnotIndex].w)
+							* currentInterpolationValue;
+				}
+				pos.x = positions[currentKnotIndex].x + (positions[currentKnotIndex + 1].x - positions[currentKnotIndex].x)
 						* currentInterpolationValue;
-				tQuat.y = quats[currentKnotIndex].y + (quats[currentKnotIndex + 1].y - quats[currentKnotIndex].y)
+				pos.y = positions[currentKnotIndex].y + (positions[currentKnotIndex + 1].y - positions[currentKnotIndex].y)
 						* currentInterpolationValue;
-				tQuat.z = quats[currentKnotIndex].z + (quats[currentKnotIndex + 1].z - quats[currentKnotIndex].z)
-						* currentInterpolationValue;
-				tQuat.w = quats[currentKnotIndex].w + (quats[currentKnotIndex + 1].w - quats[currentKnotIndex].w)
+				pos.z = positions[currentKnotIndex].z + (positions[currentKnotIndex + 1].z - positions[currentKnotIndex].z)
 						* currentInterpolationValue;
 			}
-			pos.x = positions[currentKnotIndex].x + (positions[currentKnotIndex + 1].x - positions[currentKnotIndex].x)
-					* currentInterpolationValue;
-			pos.y = positions[currentKnotIndex].y + (positions[currentKnotIndex + 1].y - positions[currentKnotIndex].y)
-					* currentInterpolationValue;
-			pos.z = positions[currentKnotIndex].z + (positions[currentKnotIndex + 1].z - positions[currentKnotIndex].z)
-					* currentInterpolationValue;
+			tQuat.normalize();
+
+			// Set the rotation components
+			//		tMat.set(tQuat);
+
+			// Set the translation components.
+			//		tMat.m03 = pos.x;
+			//		tMat.m13 = pos.y;
+			//		tMat.m23 = pos.z;
 		}
-		tQuat.normalize();
-
-		// Set the rotation components
-		tMat.set(tQuat);
-
-		// Set the translation components.
-		tMat.m03 = pos.x;
-		tMat.m13 = pos.y;
-		tMat.m23 = pos.z;
 	}
 
 	@Override

@@ -76,6 +76,7 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 			else if (operation.transform == TexTransform.TT_ROTATE)
 			{
 				//TODO: TT_ROTATE
+				System.out.println("texture rotate spotted");
 			}
 			else
 			{

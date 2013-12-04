@@ -23,6 +23,25 @@ public class PositionPathInterpolator extends PathInterpolator
 		if (knots.length != positions.length)
 			throw new IllegalArgumentException("knots.length != positions.length");
 		setPathArrays(positions);
+		fixed = isFixed();
+		if (fixed)
+		{
+			pos.x = positions[0].x;
+			pos.y = positions[0].y;
+			pos.z = positions[0].z;
+		}
+	}
+
+	private boolean isFixed()
+	{
+		//check for a fixed value
+		for (int i = 0; i + 1 < positions.length; i++)
+		{
+			if (!positions[i].equals(positions[i + 1]))
+				return false;
+		}
+
+		return true;
 	}
 
 	// Set the specific arrays for this path interpolator
@@ -38,22 +57,25 @@ public class PositionPathInterpolator extends PathInterpolator
 
 	public void computeTransform(float alphaValue)
 	{
-		computePathInterpolation(alphaValue);
+		if (!fixed)
+		{
+			computePathInterpolation(alphaValue);
 
-		if (currentKnotIndex == 0 && currentInterpolationValue == 0f)
-		{
-			pos.x = positions[0].x;
-			pos.y = positions[0].y;
-			pos.z = positions[0].z;
-		}
-		else
-		{
-			pos.x = positions[currentKnotIndex].x + (positions[currentKnotIndex + 1].x - positions[currentKnotIndex].x)
-					* currentInterpolationValue;
-			pos.y = positions[currentKnotIndex].y + (positions[currentKnotIndex + 1].y - positions[currentKnotIndex].y)
-					* currentInterpolationValue;
-			pos.z = positions[currentKnotIndex].z + (positions[currentKnotIndex + 1].z - positions[currentKnotIndex].z)
-					* currentInterpolationValue;
+			if (currentKnotIndex == 0 && currentInterpolationValue == 0f)
+			{
+				pos.x = positions[0].x;
+				pos.y = positions[0].y;
+				pos.z = positions[0].z;
+			}
+			else
+			{
+				pos.x = positions[currentKnotIndex].x + (positions[currentKnotIndex + 1].x - positions[currentKnotIndex].x)
+						* currentInterpolationValue;
+				pos.y = positions[currentKnotIndex].y + (positions[currentKnotIndex + 1].y - positions[currentKnotIndex].y)
+						* currentInterpolationValue;
+				pos.z = positions[currentKnotIndex].z + (positions[currentKnotIndex + 1].z - positions[currentKnotIndex].z)
+						* currentInterpolationValue;
+			}
 		}
 	}
 

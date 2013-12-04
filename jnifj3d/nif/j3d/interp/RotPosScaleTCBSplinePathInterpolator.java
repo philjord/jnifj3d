@@ -35,6 +35,7 @@ public class RotPosScaleTCBSplinePathInterpolator extends TCBSplinePathInterpola
 		// Create a spline curve using the derived key frames
 		cubicSplineCurve = new CubicSplineCurve(this.keyFrames);
 		numSegments = cubicSplineCurve.numSegments;
+
 	}
 
 	public void computeTransform(float alphaValue)
