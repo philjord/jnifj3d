@@ -1,6 +1,5 @@
 package nif.j3d.animation;
 
-import javax.media.j3d.Alpha;
 import javax.media.j3d.Group;
 
 import nif.NifVer;
@@ -107,14 +106,6 @@ public class J3dControllerLink extends Group
 			{
 				addChild(j3dNiInterpolator);
 			}
-		}
-	}
-
-	public void fireController(Alpha alpha)
-	{
-		if (j3dNiInterpolator != null)
-		{
-			j3dNiInterpolator.fire(alpha);
 		}
 	}
 

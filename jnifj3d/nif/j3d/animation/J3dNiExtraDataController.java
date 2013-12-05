@@ -6,7 +6,7 @@ import nif.niobject.controller.NiExtraDataController;
 
 public class J3dNiExtraDataController extends J3dNiTimeController implements FloatInterpolator.Listener
 {
-	//This is for teh extra data track in animations (for say doing damage as the animation progresses)
+	//This is for the extra data track in animations (for say doing damage as the animation progresses)
 	public J3dNiExtraDataController(NiExtraDataController controller, J3dNiAVObject nodeTarget)
 	{
 		super(controller);
