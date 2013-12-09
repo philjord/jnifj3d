@@ -45,7 +45,7 @@ public abstract class J3dNiPSysModifier
 		this.j3dNiParticleSystem = (J3dNiParticleSystem) niToJ3dData.get((NiParticleSystem) niToJ3dData.get(niPSysModifier.target));
 	}
 
-	// Called by particle system to get the modifier to apply it's effect, to a newly creted particle
+	// Called by particle system to get the modifier to apply it's effect, to a newly created particle
 	public void particleCreated(int pId)
 	{
 		//default ignore

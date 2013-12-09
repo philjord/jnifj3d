@@ -135,6 +135,7 @@ public abstract class J3dNiObjectNET extends BranchGroup
 				{
 					//TODO: this is used by the particle modifer controller system, see J3dParticleSystem
 					//I've also seen texturetransform controllers U then V use this
+					System.out.println("next controller called in " + this + " shold it be now?");
 					setupController(nextController, niToJ3dData);
 				}
 

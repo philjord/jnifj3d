@@ -60,9 +60,7 @@ public class J3dPSysData
 
 	private float[] gaColors;
 
-	private boolean HasUVQuadrants = false;
-
-	private int NumUVQuadrants = 1;
+	private NiPSysData niPSysData = null;
 
 	/**
 	 * NOTE!!!! all calls to this class must be in a GeomteryUpdater only.
@@ -80,9 +78,10 @@ public class J3dPSysData
 		//niPSysData.hasRotationAxes;
 		//niPSysData.hasSizes;
 		//niPSysData.hasVertexColors;
+		//niPSysData.HasUVQuadrants;
+		// niPSysData.NumUVQuadrants;
 
-		HasUVQuadrants = niPSysData.HasUVQuadrants;
-		NumUVQuadrants = niPSysData.NumUVQuadrants;
+		this.niPSysData = niPSysData;
 
 		maxParticleCount = Math.max(niPSysData.BSMaxVertices, niPSysData.numVertices);
 		gaVertexCount = maxParticleCount * vertsPerFace;
@@ -110,6 +109,7 @@ public class J3dPSysData
 		particleRotationSpeed = new float[maxParticleCount * 1];
 		particleVelocity = new float[maxParticleCount * velocityStride];
 
+		//fixed for all time
 		for (int i = 0; i < maxParticleCount; i++)
 		{
 			gaCoordIndices[i * 4 + 0] = i * 4 + 0;
@@ -238,54 +238,55 @@ public class J3dPSysData
 
 	private void initTexCoords(int indx)
 	{
-		// oddly the texture are sometimes????? divided into 4 parts 2X2 0-0.5 and 0.5-1 
-		// so randomly assign them now
-		// in fact I think one of them has a texture chopped into 4X4 16 parts???
-		//fxshockparticelso1 is divided into 2X1
+
+		// test oblivion/meshes/landscape/miscfirefly01.nif
 		//file:///C:/Emergent/Gamebryo-LightSpeed-Binary/Documentation/HTML/Reference/NiParticle/NiPSAlignedQuadGenerator.htm
-		// the unknown stuff I reckon
-		float uStride = 1f;
-		float vStride = 1f;
-		float uStart = 0;
-		float vStart = 0f;
-		if (HasUVQuadrants)
+		if (niPSysData.HasUVQuadrants)
 		{
-			if (NumUVQuadrants == 2)
+
+			int uCount = 1;
+			int vCount = 1;
+
+			if (niPSysData.NumUVQuadrants > 1)
 			{
-				uStride = 1f;
-				vStride = 0.5f;
+				float sq = (float) Math.sqrt(niPSysData.NumUVQuadrants);
+
+				uCount = (int) Math.pow(2, (Math.floor(Math.log(sq) / Math.log(2))));
+				vCount = (int) Math.pow(2, (Math.ceil(Math.log(sq) / Math.log(2))));
 			}
-			else if (NumUVQuadrants == 4)
-			{
-				uStride = 0.5f;
-				vStride = 0.5f;
-			}
-			else if (NumUVQuadrants == 8)
-			{
-				uStride = 0.5f;
-				vStride = 0.25f;
-			}
-			else if (NumUVQuadrants == 16)
-			{
-				uStride = 0.25f;
-				vStride = 0.25f;
-			}
-			else
-			{
-				System.out.println("Unhandled animationsInTexture " + NumUVQuadrants);
-			}
-			uStart = (float) Math.floor(Math.random() * (1 / uStride)) * uStride;
-			vStart = (float) Math.floor(Math.random() * (1 / vStride)) * vStride;
+
+			float uStride = (1f / uCount);
+			float vStride = (1f / vCount);
+
+			//TODO: randomly picked for now, but needs to be an animations effect I wager
+			float uStart = (float) Math.floor(Math.random() * uCount) * uStride;
+			float vStart = (float) Math.floor(Math.random() * vCount) * vStride;
+
+			gaTexCoords[indx * 4 * 2 + 0] = uStart;
+			gaTexCoords[indx * 4 * 2 + 1] = vStart;
+			gaTexCoords[indx * 4 * 2 + 2] = uStart + uStride;
+			gaTexCoords[indx * 4 * 2 + 3] = vStart;
+			gaTexCoords[indx * 4 * 2 + 4] = uStart + uStride;
+			gaTexCoords[indx * 4 * 2 + 5] = vStart + vStride;
+			gaTexCoords[indx * 4 * 2 + 6] = uStart;
+			gaTexCoords[indx * 4 * 2 + 7] = vStart + vStride;
+		}
+		else if (niPSysData.HasSubtextureOffsetUVs)
+		{
+			// pick one randomly, this is called a texture atlas and is updated by a BSPSysSubTextModifier
+		}
+		else
+		{
+			gaTexCoords[indx * 4 * 2 + 0] = 0;
+			gaTexCoords[indx * 4 * 2 + 1] = 0;
+			gaTexCoords[indx * 4 * 2 + 2] = 1;
+			gaTexCoords[indx * 4 * 2 + 3] = 0;
+			gaTexCoords[indx * 4 * 2 + 4] = 1;
+			gaTexCoords[indx * 4 * 2 + 5] = 1;
+			gaTexCoords[indx * 4 * 2 + 6] = 0;
+			gaTexCoords[indx * 4 * 2 + 7] = 1;
 		}
 
-		gaTexCoords[indx * 4 * 2 + 0] = uStart;
-		gaTexCoords[indx * 4 * 2 + 1] = vStart;
-		gaTexCoords[indx * 4 * 2 + 2] = uStart + uStride;
-		gaTexCoords[indx * 4 * 2 + 3] = vStart;
-		gaTexCoords[indx * 4 * 2 + 4] = uStart + uStride;
-		gaTexCoords[indx * 4 * 2 + 5] = vStart + vStride;
-		gaTexCoords[indx * 4 * 2 + 6] = uStart;
-		gaTexCoords[indx * 4 * 2 + 7] = vStart + vStride;
 	}
 
 	/** if you alter the translation or rotation arrays directly this must be called

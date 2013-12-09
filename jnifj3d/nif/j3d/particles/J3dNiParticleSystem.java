@@ -15,8 +15,6 @@ import nif.basic.NifRef;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiGeometry;
 import nif.j3d.NiToJ3dData;
-import nif.niobject.NiObject;
-import nif.niobject.bs.BSFadeNode;
 import nif.niobject.controller.NiTimeController;
 import nif.niobject.particle.NiPSysData;
 import nif.niobject.particle.NiPSysModifier;
@@ -31,11 +29,13 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 
 	private HashMap<String, J3dNiPSysModifier> modifiersByName = new HashMap<String, J3dNiPSysModifier>();
 
-	private HashMap<NiPSysModifierCtlr, J3dNiPSysModifierCtlr> j3dNiPSysModiferCtlrsByNi = new HashMap<NiPSysModifierCtlr, J3dNiPSysModifierCtlr>();
+	public HashMap<NiPSysModifierCtlr, J3dNiPSysModifierCtlr> j3dNiPSysModiferCtlrsByNi = new HashMap<NiPSysModifierCtlr, J3dNiPSysModifierCtlr>();
 
 	public J3dPSysData j3dPSysData;
 
 	private J3dNiAVObject particleRoot = null;
+
+	private J3dNiPSysModifierCtlr rootJ3dNiPSysModifierCtlr = null;
 
 	private NiParticleSystem niParticleSystem;
 
@@ -55,23 +55,18 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 
 		if (niParticleSystem.worldSpace)
 		{
-			// let's see if we can find the BSFade node at teh top of the model tree? then world space can attach to that.
-			for (NiObject o : niToJ3dData.getNiObjects())
-			{
-				if (o instanceof BSFadeNode)
-				{
-					particleRoot = niToJ3dData.get((BSFadeNode) o);
-				}
-			}
-		}
+			// transformPosition sorts out a decent world space		
+			particleRoot = niToJ3dData.getJ3dRoot();
 
-		if (particleRoot == null)
+		}
+		else
 		{
 			particleRoot = this;
 		}
 
 		// because we handed in a custom shape will not be attached yet
-
+		//TODO: one orients shape will look crazy won't it, rotating around
+		// with dozens of particles stuck on it? each child quad must be oriented surely? or does radius give apparent z depth?
 		particleRoot.addChild(getShape());
 
 		j3dPSysData = new J3dPSysData(niPSysData);
@@ -79,7 +74,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		orientedShape.setGeometry(j3dPSysData.ga);
 
 		// get updated every 50 milliseconds
-		addChild(new PerTimeUpdateBehavior(50L, new PerTimeUpdateBehavior.CallBack()
+		addChild(new PerTimeUpdateBehavior(500L, new PerTimeUpdateBehavior.CallBack()
 		{
 			@Override
 			public void update()
@@ -105,6 +100,11 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 	@Override
 	public void updateData(Geometry geometry)
 	{
+		if (rootJ3dNiPSysModifierCtlr != null)
+		{
+			rootJ3dNiPSysModifierCtlr.process();
+		}
+
 		//System.out.println("frame update");
 		for (J3dNiPSysModifier j3dNiPSysModifier : modifiersInOrder)
 		{
@@ -127,8 +127,8 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		if (niParticleSystem.worldSpace && particleRoot != this)
 		{
 			// now to work out where this particle system is relative to the root of the model tree (if it's world coords)
-			// the PSYS will attch the particles to the root, the emitter just gives x,y,z values but this PSys may have been translated relative to root
-			// so I need to add the trnasform between bsfadenode root and this
+			// the PSYS will attach the particles to the root, the emitter just gives x,y,z values but this PSys may 
+			// have been translated relative to root so I need to add the transform between  root and this
 			this.getTreeTransform(rootToPSysTrans, particleRoot);
 			// I need to go back to root space
 			rootToPSysTrans.invert();
@@ -185,34 +185,22 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		return j3dNiPSysModifier;
 	}
 
-	public J3dNiPSysModifierCtlr getJ3dNiPSysModifierCtlr(NiPSysModifierCtlr niPSysModifierCtlr, NiToJ3dData niToJ3dData)
-	{
-		// I need to ensure all modifers are created as the controllers refer to them only by name
-		setUpModifers(niParticleSystem, niToJ3dData);
-
-		J3dNiPSysModifierCtlr j3dNiPSysModifierCtlr = j3dNiPSysModiferCtlrsByNi.get(niPSysModifierCtlr);
-		if (j3dNiPSysModifierCtlr == null)
-		{
-			j3dNiPSysModifierCtlr = J3dNiPSysModifierCtlr.createJ3dNiPSysModifierCtlr(this, niPSysModifierCtlr, niToJ3dData);
-			if (j3dNiPSysModifierCtlr != null)
-			{
-				j3dNiPSysModiferCtlrsByNi.put(niPSysModifierCtlr, j3dNiPSysModifierCtlr);
-				niToJ3dData.put(niPSysModifierCtlr, j3dNiPSysModifierCtlr);
-			}
-		}
-		return j3dNiPSysModifierCtlr;
-	}
-
 	// create controllers
+	// I need to ensure all modifers are created as the controllers refer to them only by name
+	//call setUpModifers(niParticleSystem, niToJ3dData); before this!
 	private void setupControllers(NiParticleSystem niParticleSystem, NiToJ3dData niToJ3dData)
 	{
-		NiTimeController cont = (NiTimeController) niToJ3dData.get(niParticleSystem.controller);
 
-		while (cont != null && cont instanceof NiPSysModifierCtlr)
+		NiTimeController cont = (NiTimeController) niToJ3dData.get(niParticleSystem.controller);
+		if (cont != null)
 		{
 			NiPSysModifierCtlr niPSysModifierCtlr = (NiPSysModifierCtlr) cont;
-			getJ3dNiPSysModifierCtlr(niPSysModifierCtlr, niToJ3dData);
-			cont = (NiTimeController) niToJ3dData.get(cont.nextController);
+
+			rootJ3dNiPSysModifierCtlr = j3dNiPSysModiferCtlrsByNi.get(niPSysModifierCtlr);
+			if (rootJ3dNiPSysModifierCtlr == null)
+			{
+				rootJ3dNiPSysModifierCtlr = J3dNiPSysModifierCtlr.createJ3dNiPSysModifierCtlr(this, niPSysModifierCtlr, niToJ3dData);
+			}
 		}
 	}
 

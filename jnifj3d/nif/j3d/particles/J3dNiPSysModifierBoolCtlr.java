@@ -1,6 +1,5 @@
 package nif.j3d.particles;
 
-import nif.j3d.NiToJ3dData;
 import nif.niobject.particle.NiPSysModifierBoolCtlr;
 
 public abstract class J3dNiPSysModifierBoolCtlr extends J3dNiPSysModifierCtlr
@@ -11,10 +10,9 @@ public abstract class J3dNiPSysModifierBoolCtlr extends J3dNiPSysModifierCtlr
 	 * @param niToJ3dData
 	 * @param j3dNiPSysModifier
 	 */
-	public J3dNiPSysModifierBoolCtlr(NiPSysModifierBoolCtlr niPSysModifierBoolCtlr, NiToJ3dData niToJ3dData,
-			J3dNiPSysModifier j3dNiPSysModifier)
+	public J3dNiPSysModifierBoolCtlr(NiPSysModifierBoolCtlr niPSysModifierBoolCtlr, J3dNiPSysModifier j3dNiPSysModifier)
 	{
-		super(niPSysModifierBoolCtlr, niToJ3dData, j3dNiPSysModifier);
+		super(niPSysModifierBoolCtlr, j3dNiPSysModifier);
 	}
 
 	@Override

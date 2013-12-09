@@ -55,11 +55,6 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 			NiAVObject child = (NiAVObject) niToJ3dData.get(niNode.children[i]);
 			if (child != null)
 			{
-				if (NifToJ3d.HIDE_EDITORS && isEditorMarker(child.name))
-				{
-					return;
-				}
-
 				if (child instanceof NiNode)
 				{
 					J3dNiNode j3dNiNode = createNiNode((NiNode) child, niToJ3dData, textureSource, onlyNiNodes);

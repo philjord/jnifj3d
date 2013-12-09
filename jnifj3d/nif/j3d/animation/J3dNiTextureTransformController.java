@@ -64,14 +64,16 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 			else if (operation.transform == TexTransform.TT_SCALE_U)
 			{
 				//TODO: this can only do uniform scales for now
-				//TODO: removed as particle animated textures don't like being interpolated by non powers of 2
+				//TODO: removed as particle atlas animated textures don't like being interpolated by non powers of 2
 				//			transform.setScale(value);
+				System.out.println("texture transform.setScale(u) spotted");
 			}
 			else if (operation.transform == TexTransform.TT_SCALE_V)
 			{
 				//TODO: this can only do uniform scales for now
-				//TODO: removed as particle animated textures don't like being interpolated by non powers of 2
+				//TODO: removed as particle atlas animated textures don't like being interpolated by non powers of 2
 				//			transform.setScale(value);
+				System.out.println("texture transform.setScale(v) spotted");
 			}
 			else if (operation.transform == TexTransform.TT_ROTATE)
 			{

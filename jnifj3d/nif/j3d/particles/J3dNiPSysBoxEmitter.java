@@ -24,7 +24,7 @@ public class J3dNiPSysBoxEmitter extends J3dNiPSysEmitter
 		x = ConvertFromNif.toJ3d(x);
 		float y = var(niPSysBoxEmitter.height);
 		y = ConvertFromNif.toJ3d(y);
-		float z = var(niPSysBoxEmitter.width);
+		float z = var(niPSysBoxEmitter.depth);
 		z = ConvertFromNif.toJ3d(z);
 
 		pos.set(x, y, z);

@@ -11,6 +11,7 @@ import java.util.Enumeration;
 import java.util.prefs.Preferences;
 
 import javax.media.j3d.AmbientLight;
+import javax.media.j3d.Background;
 import javax.media.j3d.Behavior;
 import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.BranchGroup;
@@ -39,12 +40,14 @@ import nif.gui.util.SpinTransform;
 import nif.j3d.J3dNiAVObject;
 import tools.swing.DetailsFileChooser;
 import tools3d.camera.simple.SimpleCameraHandler;
+import tools3d.utils.Utils3D;
 import utils.ESConfig;
 import utils.source.MeshSource;
 import utils.source.TextureSource;
 import utils.source.file.FileMeshSource;
 import utils.source.file.FileTextureSource;
 
+import com.sun.j3d.utils.geometry.ColorCube;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 
 public class NifDisplayTester
@@ -92,6 +95,8 @@ public class NifDisplayTester
 	private NifFileDisplayTree nifFileDisplayTree = new NifFileDisplayTree(niObjectDisplayTable);
 
 	private SimpleUniverse simpleUniverse;
+
+	private Background background = new Background();
 
 	public NifDisplayTester(GraphicsConfiguration config)
 	{
@@ -159,6 +164,14 @@ public class NifDisplayTester
 		spinTransform = new SpinTransform(spinTransformGroup);
 		spinTransform.setEnable(false);
 		bg.addChild(spinTransform);
+
+		background.setColor(0.8f, 0.8f, 0.8f);
+		background.setApplicationBounds(null);
+		background.setCapability(Background.ALLOW_APPLICATION_BOUNDS_WRITE);
+		background.setCapability(Background.ALLOW_APPLICATION_BOUNDS_READ);
+		bg.addChild(background);
+
+		bg.addChild(new ColorCube(0.1f));
 
 		simpleUniverse.addBranchGraph(bg);
 
@@ -246,6 +259,19 @@ public class NifDisplayTester
 	{
 		showVisual = !showVisual;
 		update();
+	}
+
+	private void toggleBackground()
+	{
+		if (background.getApplicationBounds() == null)
+		{
+			background.setApplicationBounds(Utils3D.defaultBounds);
+		}
+		else
+		{
+			background.setApplicationBounds(null);
+		}
+
 	}
 
 	private void toggleCycling()
@@ -435,6 +461,7 @@ public class NifDisplayTester
 			System.out.println("L toggle visual display");
 			System.out.println("J toggle spin");
 			System.out.println("K toggle animate model");
+			System.out.println("P toggle background color");
 			System.out.println("Space toggle cycle through files");
 		}
 
@@ -460,6 +487,10 @@ public class NifDisplayTester
 			else if (e.getKeyCode() == KeyEvent.VK_L)
 			{
 				toggleVisual();
+			}
+			else if (e.getKeyCode() == KeyEvent.VK_P)
+			{
+				toggleBackground();
 			}
 		}
 

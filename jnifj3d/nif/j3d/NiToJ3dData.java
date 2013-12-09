@@ -76,6 +76,11 @@ public class NiToJ3dData
 		return niObjects.root();
 	}
 
+	public J3dNiAVObject getJ3dRoot()
+	{
+		return dataJ3dNiAVObject.get(root());
+	}
+
 	public NiObject get(NifRef nr)
 	{
 		return niObjects.get(nr);
@@ -96,4 +101,5 @@ public class NiToJ3dData
 	{
 		return niObjects;
 	}
+
 }

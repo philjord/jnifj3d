@@ -1,10 +1,14 @@
 package nif.j3d.particles;
 
+import javax.media.j3d.Alpha;
 import javax.vecmath.Point3f;
 
 import nif.j3d.NiToJ3dData;
 import nif.j3d.animation.J3dNiTimeController;
+import nif.j3d.animation.interp.J3dNiInterpolator;
 import nif.niobject.bs.BSPSysMultiTargetEmitterCtlr;
+import nif.niobject.controller.NiTimeController;
+import nif.niobject.interpolator.NiInterpolator;
 import nif.niobject.particle.NiPSysEmitterCtlr;
 import nif.niobject.particle.NiPSysEmitterDeclinationCtlr;
 import nif.niobject.particle.NiPSysEmitterDeclinationVarCtlr;
@@ -16,15 +20,48 @@ import nif.niobject.particle.NiPSysFieldMagnitudeCtlr;
 import nif.niobject.particle.NiPSysGravityStrengthCtlr;
 import nif.niobject.particle.NiPSysModifierActiveCtlr;
 import nif.niobject.particle.NiPSysModifierCtlr;
+import nif.niobject.particle.NiPSysUpdateCtlr;
 
 public abstract class J3dNiPSysModifierCtlr extends J3dNiTimeController
 {
 	protected J3dNiPSysModifier j3dNiPSysModifier;
 
-	public J3dNiPSysModifierCtlr(NiPSysModifierCtlr niPSysModifierCtlr, NiToJ3dData niToJ3dData, J3dNiPSysModifier j3dNiPSysModifier)
+	private J3dNiInterpolator j3dNiInterpolator;
+
+	private Alpha baseAlpha;// created as looping, so never needs resetting
+
+	private J3dNiPSysModifierCtlr nextJ3dNiPSysModifierCtlr;
+
+	public J3dNiPSysModifierCtlr(NiPSysModifierCtlr niPSysModifierCtlr, J3dNiPSysModifier j3dNiPSysModifier)
 	{
 		super(niPSysModifierCtlr);
 		this.j3dNiPSysModifier = j3dNiPSysModifier;
+
+	}
+
+	private void setInterpolator(J3dNiInterpolator j3dNiInterpolator2, Alpha baseAlpha2)
+	{
+		j3dNiInterpolator = j3dNiInterpolator2;
+		baseAlpha = baseAlpha2;
+	}
+
+	private void setNextController(J3dNiPSysModifierCtlr nextJ3dNiPSysModifierCtlr2)
+	{
+		nextJ3dNiPSysModifierCtlr = nextJ3dNiPSysModifierCtlr2;
+	}
+
+	public void process()
+	{
+		if (j3dNiInterpolator != null)
+		{
+			j3dNiInterpolator.process(baseAlpha.value());
+		}
+
+		// fire the next controller
+		if (nextJ3dNiPSysModifierCtlr != null)
+		{
+			nextJ3dNiPSysModifierCtlr.process();
+		}
 	}
 
 	@Override
@@ -34,71 +71,114 @@ public abstract class J3dNiPSysModifierCtlr extends J3dNiTimeController
 	}
 
 	public static J3dNiPSysModifierCtlr createJ3dNiPSysModifierCtlr(J3dNiParticleSystem j3dNiParticleSystem,
-			NiPSysModifierCtlr niPSysModifierCtlr, NiToJ3dData niToJ3dData)
+			NiTimeController niTimeController, NiToJ3dData niToJ3dData)
 	{
-		J3dNiPSysModifier j3dNiPSysModifier = j3dNiParticleSystem.getJ3dNiPSysModifier(niPSysModifierCtlr.modifierName);
-		if (j3dNiPSysModifier == null)
+		if (niTimeController instanceof NiPSysModifierCtlr)
+		{
+			NiPSysModifierCtlr niPSysModifierCtlr = (NiPSysModifierCtlr) niTimeController;
+			J3dNiPSysModifier j3dNiPSysModifier = j3dNiParticleSystem.getJ3dNiPSysModifier(niPSysModifierCtlr.modifierName);
+			if (j3dNiPSysModifier == null)
+				return null;
+
+			J3dNiPSysModifierCtlr j3dNiTimeController = null;
+
+			// we must construct then set inperpolator then set next in that order! not as one hit in the constructor
+			if (niPSysModifierCtlr instanceof NiPSysEmitterCtlr)
+			{
+				j3dNiTimeController = new J3dNiPSysEmitterCtlr((NiPSysEmitterCtlr) niPSysModifierCtlr, (J3dNiPSysEmitter) j3dNiPSysModifier);
+			}
+			else if (niPSysModifierCtlr instanceof NiPSysModifierActiveCtlr)
+			{
+				j3dNiTimeController = new J3dNiPSysModifierActiveCtlr((NiPSysModifierActiveCtlr) niPSysModifierCtlr, j3dNiPSysModifier);
+			}
+			else if (niPSysModifierCtlr instanceof NiPSysEmitterLifeSpanCtlr)
+			{
+				j3dNiTimeController = new J3dNiPSysEmitterLifeSpanCtlr((NiPSysEmitterLifeSpanCtlr) niPSysModifierCtlr,
+						(J3dNiPSysEmitter) j3dNiPSysModifier);
+			}
+			else if (niPSysModifierCtlr instanceof NiPSysEmitterSpeedCtlr)
+			{
+				j3dNiTimeController = new J3dNiPSysEmitterSpeedCtlr((NiPSysEmitterSpeedCtlr) niPSysModifierCtlr,
+						(J3dNiPSysEmitter) j3dNiPSysModifier);
+			}
+			else if (niPSysModifierCtlr instanceof NiPSysEmitterDeclinationCtlr)
+			{
+				j3dNiTimeController = new J3dNiPSysEmitterDeclinationCtlr((NiPSysEmitterDeclinationCtlr) niPSysModifierCtlr,
+						(J3dNiPSysEmitter) j3dNiPSysModifier);
+			}
+			else if (niPSysModifierCtlr instanceof NiPSysEmitterDeclinationVarCtlr)
+			{
+				j3dNiTimeController = new J3dNiPSysEmitterDeclinationVarCtlr((NiPSysEmitterDeclinationVarCtlr) niPSysModifierCtlr,
+						(J3dNiPSysEmitter) j3dNiPSysModifier);
+			}
+			else if (niPSysModifierCtlr instanceof NiPSysEmitterInitialRadiusCtlr)
+			{
+				j3dNiTimeController = new J3dNiPSysEmitterInitialRadiusCtlr((NiPSysEmitterInitialRadiusCtlr) niPSysModifierCtlr,
+						(J3dNiPSysEmitter) j3dNiPSysModifier);
+			}
+			else if (niPSysModifierCtlr instanceof NiPSysGravityStrengthCtlr)
+			{
+				j3dNiTimeController = new J3dNiPSysGravityStrengthCtlr((NiPSysGravityStrengthCtlr) niPSysModifierCtlr,
+						(J3dNiPSysGravityModifier) j3dNiPSysModifier);
+			}
+			else if (niPSysModifierCtlr instanceof NiPSysFieldMagnitudeCtlr)
+			{
+				//TODO: System.out.println("J3dNiPSysModifierCtlr NiPSysFieldMagnitudeCtlr " + j3dNiPSysModifier);
+			}
+			else if (niPSysModifierCtlr instanceof BSPSysMultiTargetEmitterCtlr)
+			{
+				//TODO: System.out.println("J3dNiPSysModifierCtlr BSPSysMultiTargetEmitterCtlr " + j3dNiPSysModifier);
+			}
+			else if (niPSysModifierCtlr instanceof NiPSysEmitterPlanarAngleCtlr)
+			{
+				//TODO: NiPSysEmitterPlanarAngleCtlr
+			}
+			else
+			{
+				System.out.println("J3dNiPSysModiferCtlr createJ3dNiPSysModifierCtlr unhandled NiPSysModifierCtlr " + niPSysModifierCtlr);
+			}
+
+			if (j3dNiTimeController != null)
+			{
+
+				j3dNiParticleSystem.j3dNiPSysModiferCtlrsByNi.put(niPSysModifierCtlr, j3dNiTimeController);
+				niToJ3dData.put(niPSysModifierCtlr, j3dNiTimeController);
+
+				NiInterpolator nii = (NiInterpolator) niToJ3dData.get(niPSysModifierCtlr.interpolator);
+				if (nii != null)
+				{
+					J3dNiInterpolator j3dNiInterpolator = J3dNiTimeController.createInterpForController(j3dNiTimeController, nii,
+							niToJ3dData, niPSysModifierCtlr.startTime, niPSysModifierCtlr.stopTime, -1);
+					Alpha baseAlpha = J3dNiTimeController.createAlpha(niPSysModifierCtlr.startTime, niPSysModifierCtlr.stopTime, -1);
+					j3dNiTimeController.setInterpolator(j3dNiInterpolator, baseAlpha);
+				}
+
+				NiTimeController nextController = (NiTimeController) niToJ3dData.get(niPSysModifierCtlr.nextController);
+				if (nextController != null)
+				{
+					J3dNiPSysModifierCtlr nextJ3dNiPSysModifierCtlr = createJ3dNiPSysModifierCtlr(j3dNiParticleSystem, nextController,
+							niToJ3dData);
+					if (nextJ3dNiPSysModifierCtlr != null)
+					{
+						j3dNiTimeController.setNextController(nextJ3dNiPSysModifierCtlr);
+					}
+				}
+			}
+
+			return j3dNiTimeController;
+		}
+		else if (niTimeController instanceof NiPSysUpdateCtlr)
+		{
+			//NiPSysUpdateCtlr niPSysUpdateCtlr = (NiPSysUpdateCtlr) niTimeController;
+
+			System.out.println("niTimeController is NiPSysUpdateCtlr");
 			return null;
 
-		J3dNiPSysModifierCtlr j3dNiTimeController = null;
-
-		if (niPSysModifierCtlr instanceof NiPSysEmitterCtlr)
-		{
-			j3dNiTimeController = new J3dNiPSysEmitterCtlr((NiPSysEmitterCtlr) niPSysModifierCtlr, niToJ3dData,
-					(J3dNiPSysEmitter) j3dNiPSysModifier);
-		}
-		else if (niPSysModifierCtlr instanceof NiPSysModifierActiveCtlr)
-		{
-			j3dNiTimeController = new J3dNiPSysModifierActiveCtlr((NiPSysModifierActiveCtlr) niPSysModifierCtlr, niToJ3dData,
-					j3dNiPSysModifier);
-		}
-		else if (niPSysModifierCtlr instanceof NiPSysEmitterLifeSpanCtlr)
-		{
-			j3dNiTimeController = new J3dNiPSysEmitterLifeSpanCtlr((NiPSysEmitterLifeSpanCtlr) niPSysModifierCtlr, niToJ3dData,
-					(J3dNiPSysEmitter) j3dNiPSysModifier);
-		}
-		else if (niPSysModifierCtlr instanceof NiPSysEmitterSpeedCtlr)
-		{
-			j3dNiTimeController = new J3dNiPSysEmitterSpeedCtlr((NiPSysEmitterSpeedCtlr) niPSysModifierCtlr, niToJ3dData,
-					(J3dNiPSysEmitter) j3dNiPSysModifier);
-		}
-		else if (niPSysModifierCtlr instanceof NiPSysEmitterDeclinationCtlr)
-		{
-			j3dNiTimeController = new J3dNiPSysEmitterDeclinationCtlr((NiPSysEmitterDeclinationCtlr) niPSysModifierCtlr, niToJ3dData,
-					(J3dNiPSysEmitter) j3dNiPSysModifier);
-		}
-		else if (niPSysModifierCtlr instanceof NiPSysEmitterDeclinationVarCtlr)
-		{
-			j3dNiTimeController = new J3dNiPSysEmitterDeclinationVarCtlr((NiPSysEmitterDeclinationVarCtlr) niPSysModifierCtlr, niToJ3dData,
-					(J3dNiPSysEmitter) j3dNiPSysModifier);
-		}
-		else if (niPSysModifierCtlr instanceof NiPSysEmitterInitialRadiusCtlr)
-		{
-			j3dNiTimeController = new J3dNiPSysEmitterInitialRadiusCtlr((NiPSysEmitterInitialRadiusCtlr) niPSysModifierCtlr, niToJ3dData,
-					(J3dNiPSysEmitter) j3dNiPSysModifier);
-		}
-		else if (niPSysModifierCtlr instanceof NiPSysGravityStrengthCtlr)
-		{
-			j3dNiTimeController = new J3dNiPSysGravityStrengthCtlr((NiPSysGravityStrengthCtlr) niPSysModifierCtlr, niToJ3dData,
-					(J3dNiPSysGravityModifier) j3dNiPSysModifier);
-		}
-		else if (niPSysModifierCtlr instanceof NiPSysFieldMagnitudeCtlr)
-		{
-			//TODO: System.out.println("J3dNiPSysModifierCtlr NiPSysFieldMagnitudeCtlr " + j3dNiPSysModifier);
-		}
-		else if (niPSysModifierCtlr instanceof BSPSysMultiTargetEmitterCtlr)
-		{
-			//TODO: System.out.println("J3dNiPSysModifierCtlr BSPSysMultiTargetEmitterCtlr " + j3dNiPSysModifier);
-		}
-		else if (niPSysModifierCtlr instanceof NiPSysEmitterPlanarAngleCtlr)
-		{
-			//TODO: NiPSysEmitterPlanarAngleCtlr
 		}
 		else
 		{
-			System.out.println("J3dNiPSysModiferCtlr createJ3dNiPSysModifierCtlr unhandled NiPSysModifierCtlr " + niPSysModifierCtlr);
+			System.out.println("niTimeController is  " + niTimeController);
+			return null;
 		}
-
-		return j3dNiTimeController;
 	}
 }

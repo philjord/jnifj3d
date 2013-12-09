@@ -108,14 +108,13 @@ public abstract class J3dNiPSysEmitter extends J3dNiPSysModifier
 	@Override
 	public void updatePSys(long elapsedMillisec)
 	{
-
 		// This time controller holds two interpolators: one to control the emission rate (in particles per second) and another to specify when the emitter is active
 		float birthRatePerUpdateTime = (birthRate / 1000f) * elapsedMillisec;
 
 		while (birthRatePerUpdateTime > 1)
 		{
 			addParticle();
-			birthRatePerUpdateTime -= 1;
+			birthRatePerUpdateTime -= 1;			
 		}
 
 		boolean shouldAdd = Math.random() < birthRatePerUpdateTime;

@@ -12,7 +12,6 @@ import nif.j3d.animation.interp.J3dNiPoint3Interpolator;
 import nif.j3d.interp.BoolInterpolator;
 import nif.j3d.interp.FloatInterpolator;
 import nif.j3d.interp.Point3Interpolator;
-import nif.j3d.particles.J3dNiParticleSystem;
 import nif.niobject.bhk.bhkBlendController;
 import nif.niobject.bs.BSEffectShaderPropertyColorController;
 import nif.niobject.bs.BSEffectShaderPropertyFloatController;
@@ -214,9 +213,13 @@ public abstract class J3dNiTimeController implements FloatInterpolator.Listener,
 		}
 		else if (controller instanceof NiPSysModifierCtlr)
 		{
-			NiPSysModifierCtlr niPSysModifierCtlr = (NiPSysModifierCtlr) controller;
-			J3dNiParticleSystem j3dNiParticleSystem = (J3dNiParticleSystem) nodeTarget;
-			j3dNiTimeController = j3dNiParticleSystem.getJ3dNiPSysModifierCtlr(niPSysModifierCtlr, niToJ3dData);
+			//TODO: a controller sequence can have a  NiPSysModifierCtlr in it, which will point at a 
+			// target PArticel system, so presumably the particle system is kicked off
+			// when teh animation fires, which sounds fair enough 
+			//E:\game media\Oblivion\meshes\effects\se09bodypartsdrop.nif is an example
+			//NiPSysModifierCtlr niPSysModifierCtlr = (NiPSysModifierCtlr) controller;
+			//J3dNiParticleSystem j3dNiParticleSystem = (J3dNiParticleSystem) nodeTarget;
+			//j3dNiTimeController = j3dNiParticleSystem.getJ3dNiPSysModifierCtlr(niPSysModifierCtlr, niToJ3dData);
 		}
 		else if (controller instanceof BSLightingShaderPropertyColorController)
 		{
