@@ -13,7 +13,12 @@ public class J3dNiPSysGrowFadeModifier extends J3dNiPSysModifier
 	@Override
 	public void updatePSys(long elapsedMillisec)
 	{
-
+		// growing and shrinking
+		// float growTime;
+		// short growGeneration;
+		// float fadeTime;
+		// short fadeGeneration;
+		// float baseScale;
 	}
 
 	@Override

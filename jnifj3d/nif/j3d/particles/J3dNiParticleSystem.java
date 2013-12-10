@@ -17,6 +17,7 @@ import nif.basic.NifRef;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiGeometry;
 import nif.j3d.NiToJ3dData;
+import nif.j3d.animation.J3dNiTimeController;
 import nif.niobject.bs.BSStripParticleSystem;
 import nif.niobject.controller.NiTimeController;
 import nif.niobject.particle.NiMeshParticleSystem;
@@ -47,39 +48,26 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 	public J3dNiParticleSystem(NiParticleSystem niParticleSystem, NiToJ3dData niToJ3dData, TextureSource textureSource)
 	{
 
-		// note this is an oriented shape super call
-		super(niParticleSystem, niToJ3dData, textureSource, new Shape3D());//new OrientedShape3D());
+		// the shape will not be added so we can choose to add it to a root we like in a moment
+		super(niParticleSystem, niToJ3dData, textureSource, new Shape3D());
 		this.niParticleSystem = niParticleSystem;
 
 		niToJ3dData.put(niParticleSystem, this);
 
 		NiPSysData niPSysData = (NiPSysData) niToJ3dData.get(niParticleSystem.data);
 
-		//	OrientedShape3D orientedShape = (OrientedShape3D) getShape();
-		//orientedShape.setAlignmentMode(OrientedShape3D.ROTATE_ABOUT_POINT);
-
 		if (niParticleSystem.worldSpace)
 		{
 			// transformPosition sorts out a decent world space		
 			particleRoot = niToJ3dData.getJ3dRoot();
-
 		}
 		else
 		{
 			particleRoot = this;
 		}
-
-		// because we handed in a custom shape will not be attached yet
-		// TODO: one oriented shape will look crazy won't it, rotating around, what if I walk past it??
-		// with dozens of particles stuck on it? each child quad must be oriented surely? or does radius give apparent z depth?
-
-		//TODO: RIGHT!
-		// add a billboard behave adn give it the view pointer transform group 
-		// then when ever recalc ga coords is called(once each update maybe?) finish by multiplying 
-		// each little quad to face the camera justto finish
-
 		particleRoot.addChild(getShape());
 
+		// bill board to orient every quad to cameras proper like
 		TransformGroup billTrans = new TransformGroup();
 		billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 		billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
@@ -88,7 +76,6 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		billBehave.setEnable(true);
 		billBehave.setSchedulingBounds(Utils3D.defaultBounds);
 		addChild(billBehave);
-		 
 
 		j3dPSysData = new J3dPSysData(niPSysData, billTrans);
 
@@ -179,27 +166,49 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		}
 	}
 
+	private boolean modifiersSetup = false;
+
 	private void setUpModifers(NiParticleSystem niParticleSystem, NiToJ3dData niToJ3dData)
 	{
-		// for all referenced mods
-		for (NifRef nr : niParticleSystem.modifiers)
+		if (!modifiersSetup)
 		{
-			NiPSysModifier niPSysModifier = (NiPSysModifier) niToJ3dData.get(nr);
-			// ensure it is created
-			getJ3dNiPSysModifier(niPSysModifier, niToJ3dData);
-		}
-
-		// sort by the order number
-		modifiersInOrder.clear();
-		modifiersInOrder.addAll(modifiersByName.values());
-		Collections.sort(modifiersInOrder, new Comparator<J3dNiPSysModifier>()
-		{
-			@Override
-			public int compare(J3dNiPSysModifier o1, J3dNiPSysModifier o2)
+			// for all referenced mods
+			for (NifRef nr : niParticleSystem.modifiers)
 			{
-				return o1.order < o2.order ? -1 : o1.order == o2.order ? 0 : 1;
+				NiPSysModifier niPSysModifier = (NiPSysModifier) niToJ3dData.get(nr);
+				// ensure it is created
+				getJ3dNiPSysModifier(niPSysModifier, niToJ3dData);
 			}
-		});
+
+			// sort by the order number
+			modifiersInOrder.clear();
+			modifiersInOrder.addAll(modifiersByName.values());
+			Collections.sort(modifiersInOrder, new Comparator<J3dNiPSysModifier>()
+			{
+				@Override
+				public int compare(J3dNiPSysModifier o1, J3dNiPSysModifier o2)
+				{
+					return o1.order < o2.order ? -1 : o1.order == o2.order ? 0 : 1;
+				}
+			});
+			modifiersSetup = true;
+		}
+	}
+
+	// create controllers
+	// I need to ensure all modifers are created as the controllers refer to them only by name
+	private void setupControllers(NiParticleSystem niParticleSystem, NiToJ3dData niToJ3dData)
+	{
+		setUpModifers(niParticleSystem, niToJ3dData);
+		NiTimeController cont = (NiTimeController) niToJ3dData.get(niParticleSystem.controller);
+		if (cont != null)
+		{
+			rootJ3dNiPSysModifierCtlr = j3dNiPSysModiferCtlrsByNi.get(cont);
+			if (rootJ3dNiPSysModifierCtlr == null)
+			{
+				rootJ3dNiPSysModifierCtlr = J3dNiPSysModifierCtlr.createJ3dNiPSysModifierCtlr(this, cont, niToJ3dData);
+			}
+		}
 	}
 
 	public J3dNiPSysModifier getJ3dNiPSysModifier(NiPSysModifier niPSysModifier, NiToJ3dData niToJ3dData)
@@ -216,29 +225,27 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		return j3dNiPSysModifier;
 	}
 
-	// create controllers
-	// I need to ensure all modifers are created as the controllers refer to them only by name
-	//call setUpModifers(niParticleSystem, niToJ3dData); before this!
-	private void setupControllers(NiParticleSystem niParticleSystem, NiToJ3dData niToJ3dData)
-	{
-
-		NiTimeController cont = (NiTimeController) niToJ3dData.get(niParticleSystem.controller);
-		if (cont != null)
-		{
-			rootJ3dNiPSysModifierCtlr = j3dNiPSysModiferCtlrsByNi.get(cont);
-			if (rootJ3dNiPSysModifierCtlr == null)
-			{
-				rootJ3dNiPSysModifierCtlr = J3dNiPSysModifierCtlr.createJ3dNiPSysModifierCtlr(this, cont, niToJ3dData);
-			}
-		}
-	}
-
 	public J3dNiPSysModifier getJ3dNiPSysModifier(String modifierName)
 	{
 		J3dNiPSysModifier j3dNiPSysModifier = modifiersByName.get(modifierName);
 		if (j3dNiPSysModifier == null)
 			System.out.println("J3dNiParticleSystem - modifierName " + modifierName + " not found in " + this);
 		return j3dNiPSysModifier;
+	}
+
+	public J3dNiTimeController getJ3dNiPSysModifierCtlr(NiPSysModifierCtlr niPSysModifierCtlr, NiToJ3dData niToJ3dData)
+	{
+		// the controlled modifer will need to be ready
+		setUpModifers(niParticleSystem, niToJ3dData);
+
+		J3dNiTimeController j3dNiTimeController = j3dNiPSysModiferCtlrsByNi.get(niPSysModifierCtlr);
+		// sometimes (always?) it's external to the particle system
+		if (j3dNiTimeController == null)
+		{
+			j3dNiTimeController = J3dNiPSysModifierCtlr.createJ3dNiPSysModifierCtlr(this, niPSysModifierCtlr, niToJ3dData);
+		}
+
+		return j3dNiPSysModiferCtlrsByNi.get(niPSysModifierCtlr);
 	}
 
 }

@@ -17,7 +17,7 @@ public class J3dNiPSysGravityModifier extends J3dNiPSysModifier
 
 	private J3dNiNode gravityJ3dNiNode;
 
-	// we use this so all teh transforms on teh ninode abvoe are taken into account properly
+	// we use this so all the transforms on teh ninode above are taken into account properly
 	private Group gravityNode = new Group();
 
 	private Vector3f gravityAxis;

@@ -53,9 +53,11 @@ public class J3dPSysData
 
 	private int gaVertexCount;
 
-	private float[] gaTexCoords; //fixed at intitialization, DO NOT ALTER
+	private int[] particleImageIds;
 
-	private int[] gaCoordIndices; //fixed at intitialization, DO NOT ALTER
+	private float[] gaTexCoords;
+
+	private int[] gaCoordIndices; //fixed at intitialization, DO NOT ALTER	
 
 	private float[] gaCoords;
 
@@ -64,6 +66,8 @@ public class J3dPSysData
 	private NiPSysData niPSysData = null;
 
 	private TransformGroup billTG;
+
+	private AtlasAnimatedTexture atlasAnimatedTexture;
 
 	/**
 	 * NOTE!!!! all calls to this class must be in a GeomteryUpdater only.
@@ -112,6 +116,7 @@ public class J3dPSysData
 		particleRotationAngle = new float[maxParticleCount * 1];
 		particleRotationSpeed = new float[maxParticleCount * 1];
 		particleVelocity = new float[maxParticleCount * velocityStride];
+		particleImageIds = new int[maxParticleCount * 1];
 
 		//fixed for all time
 		for (int i = 0; i < maxParticleCount; i++)
@@ -169,6 +174,8 @@ public class J3dPSysData
 			shiftArray(particleRotationSpeed, indx, 1, partsToMove);
 
 			shiftArray(particleVelocity, indx, velocityStride, partsToMove);
+
+			shiftArray(particleImageIds, indx, 1, partsToMove);
 
 			activeParticleCount--;
 			ga.setValidIndexCount(activeParticleCount);
@@ -247,33 +254,39 @@ public class J3dPSysData
 		//file:///C:/Emergent/Gamebryo-LightSpeed-Binary/Documentation/HTML/Reference/NiParticle/NiPSAlignedQuadGenerator.htm
 		if (niPSysData.HasUVQuadrants)
 		{
+			//System.out.println("niPSysData.NumUVQuadrants");
+			atlasAnimatedTexture = new AtlasAnimatedTexture(niPSysData.NumUVQuadrants);
 
-			int uCount = 1;
-			int vCount = 1;
+			int subImageId = (int) (Math.random() * atlasAnimatedTexture.getSubImageCount());
+			particleImageIds[indx] = subImageId;
+			atlasAnimatedTexture.getUVCoords(gaTexCoords, indx, subImageId);
 
-			if (niPSysData.NumUVQuadrants > 1)
-			{
-				float sq = (float) Math.sqrt(niPSysData.NumUVQuadrants);
+			/*	int uCount = 1;
+				int vCount = 1;
 
-				uCount = (int) Math.pow(2, (Math.floor(Math.log(sq) / Math.log(2))));
-				vCount = (int) Math.pow(2, (Math.ceil(Math.log(sq) / Math.log(2))));
-			}
+				if (niPSysData.NumUVQuadrants > 1)
+				{
+					float sq = (float) Math.sqrt(niPSysData.NumUVQuadrants);
 
-			float uStride = (1f / uCount);
-			float vStride = (1f / vCount);
+					uCount = (int) Math.pow(2, (Math.floor(Math.log(sq) / Math.log(2))));
+					vCount = (int) Math.pow(2, (Math.ceil(Math.log(sq) / Math.log(2))));
+				}
 
-			//TODO: randomly picked for now, but needs to be an animations effect I wager
-			float uStart = (float) Math.floor(Math.random() * uCount) * uStride;
-			float vStart = (float) Math.floor(Math.random() * vCount) * vStride;
+				float uStride = (1f / uCount);
+				float vStride = (1f / vCount);
 
-			gaTexCoords[indx * 4 * 2 + 0] = uStart;
-			gaTexCoords[indx * 4 * 2 + 1] = vStart;
-			gaTexCoords[indx * 4 * 2 + 2] = uStart + uStride;
-			gaTexCoords[indx * 4 * 2 + 3] = vStart;
-			gaTexCoords[indx * 4 * 2 + 4] = uStart + uStride;
-			gaTexCoords[indx * 4 * 2 + 5] = vStart + vStride;
-			gaTexCoords[indx * 4 * 2 + 6] = uStart;
-			gaTexCoords[indx * 4 * 2 + 7] = vStart + vStride;
+				//TODO: randomly picked for now, but needs to be an animations effect I wager
+				float uStart = (float) Math.floor(Math.random() * uCount) * uStride;
+				float vStart = (float) Math.floor(Math.random() * vCount) * vStride;
+
+				gaTexCoords[indx * 4 * 2 + 0] = uStart;
+				gaTexCoords[indx * 4 * 2 + 1] = vStart;
+				gaTexCoords[indx * 4 * 2 + 2] = uStart + uStride;
+				gaTexCoords[indx * 4 * 2 + 3] = vStart;
+				gaTexCoords[indx * 4 * 2 + 4] = uStart + uStride;
+				gaTexCoords[indx * 4 * 2 + 5] = vStart + vStride;
+				gaTexCoords[indx * 4 * 2 + 6] = uStart;
+				gaTexCoords[indx * 4 * 2 + 7] = vStart + vStride;*/
 		}
 		else if (niPSysData.HasSubtextureOffsetUVs)
 		{
@@ -333,40 +346,38 @@ public class J3dPSysData
 
 		float halfRad = particleRadius[particle] / 2f;
 
-		//NOTE! we rotate halfRad around 0,0,0 the "switched" numbers below are correct, you do the maths
+		//NOTE! we rotate halfRad around 0,0 the - + values going into the face camera trans below are correct, you do the maths
+		// I'm building the 4 corners the transform will contain only a rotate
+		// now make it point at the camera via the billboard behave group
+		// I've got x,y,z of the center added on after teh rotate adn face to camera
 		p.set(halfRad, halfRad, 0);
 		trans.transform(p);
 
-		// now make it point at the camera via the billboard behave group
-		// I've got x,y,z of the center and I'm building the 4 corners
-		// the transform will contain only a rotate
 		billTG.getTransform(trans);
-//TODO: not sure if this is doing the job properly?
 
-		p2.set(x - p.x, y - p.y, z);
-
+		p2.set(-p.x, -p.y, 0);
 		trans.transform(p2);
-		gaCoords[particle * 4 * 3 + 0 + 0] = p2.x;
-		gaCoords[particle * 4 * 3 + 0 + 1] = p2.y;
-		gaCoords[particle * 4 * 3 + 0 + 2] = p2.z;
+		gaCoords[particle * 4 * 3 + 0 + 0] = x + p2.x;
+		gaCoords[particle * 4 * 3 + 0 + 1] = y + p2.y;
+		gaCoords[particle * 4 * 3 + 0 + 2] = z + p2.z;
 
-		p2.set(x + p.x, y - p.y, z);
+		p2.set(p.x, -p.y, 0);
 		trans.transform(p2);
-		gaCoords[particle * 4 * 3 + 3 + 0] = p2.x;
-		gaCoords[particle * 4 * 3 + 3 + 1] = p2.y;
-		gaCoords[particle * 4 * 3 + 3 + 2] = p2.z;
+		gaCoords[particle * 4 * 3 + 3 + 0] = x + p2.x;
+		gaCoords[particle * 4 * 3 + 3 + 1] = y + p2.y;
+		gaCoords[particle * 4 * 3 + 3 + 2] = z + p2.z;
 
-		p2.set(x + p.x, y + p.y, z);
+		p2.set(p.x, p.y, 0);
 		trans.transform(p2);
-		gaCoords[particle * 4 * 3 + 6 + 0] = p2.x;
-		gaCoords[particle * 4 * 3 + 6 + 1] = p2.y;
-		gaCoords[particle * 4 * 3 + 6 + 2] = p2.z;
+		gaCoords[particle * 4 * 3 + 6 + 0] = x + p2.x;
+		gaCoords[particle * 4 * 3 + 6 + 1] = y + p2.y;
+		gaCoords[particle * 4 * 3 + 6 + 2] = z + p2.z;
 
-		p2.set(x - p.x, y + p.y, z);
+		p2.set(-p.x, p.y, 0);
 		trans.transform(p2);
-		gaCoords[particle * 4 * 3 + 9 + 0] = p2.x;
-		gaCoords[particle * 4 * 3 + 9 + 1] = p2.y;
-		gaCoords[particle * 4 * 3 + 9 + 2] = p2.z;
+		gaCoords[particle * 4 * 3 + 9 + 0] = x + p2.x;
+		gaCoords[particle * 4 * 3 + 9 + 1] = y + p2.y;
+		gaCoords[particle * 4 * 3 + 9 + 2] = z + p2.z;
 	}
 
 	/**
