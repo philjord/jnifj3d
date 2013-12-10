@@ -5,10 +5,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 
+import javax.media.j3d.Billboard;
 import javax.media.j3d.Geometry;
 import javax.media.j3d.GeometryUpdater;
-import javax.media.j3d.OrientedShape3D;
+import javax.media.j3d.Shape3D;
 import javax.media.j3d.Transform3D;
+import javax.media.j3d.TransformGroup;
 import javax.vecmath.Point3f;
 
 import nif.basic.NifRef;
@@ -22,6 +24,7 @@ import nif.niobject.particle.NiPSysData;
 import nif.niobject.particle.NiPSysModifier;
 import nif.niobject.particle.NiPSysModifierCtlr;
 import nif.niobject.particle.NiParticleSystem;
+import tools3d.utils.Utils3D;
 import utils.PerTimeUpdateBehavior;
 import utils.source.TextureSource;
 
@@ -45,15 +48,15 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 	{
 
 		// note this is an oriented shape super call
-		super(niParticleSystem, niToJ3dData, textureSource, new OrientedShape3D());
+		super(niParticleSystem, niToJ3dData, textureSource, new Shape3D());//new OrientedShape3D());
 		this.niParticleSystem = niParticleSystem;
 
 		niToJ3dData.put(niParticleSystem, this);
 
 		NiPSysData niPSysData = (NiPSysData) niToJ3dData.get(niParticleSystem.data);
 
-		OrientedShape3D orientedShape = (OrientedShape3D) getShape();
-		orientedShape.setAlignmentMode(OrientedShape3D.ROTATE_ABOUT_POINT);
+		//	OrientedShape3D orientedShape = (OrientedShape3D) getShape();
+		//orientedShape.setAlignmentMode(OrientedShape3D.ROTATE_ABOUT_POINT);
 
 		if (niParticleSystem.worldSpace)
 		{
@@ -69,11 +72,27 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		// because we handed in a custom shape will not be attached yet
 		// TODO: one oriented shape will look crazy won't it, rotating around, what if I walk past it??
 		// with dozens of particles stuck on it? each child quad must be oriented surely? or does radius give apparent z depth?
+
+		//TODO: RIGHT!
+		// add a billboard behave adn give it the view pointer transform group 
+		// then when ever recalc ga coords is called(once each update maybe?) finish by multiplying 
+		// each little quad to face the camera justto finish
+
 		particleRoot.addChild(getShape());
 
-		j3dPSysData = new J3dPSysData(niPSysData);
+		TransformGroup billTrans = new TransformGroup();
+		billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+		billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+		addChild(billTrans);
+		Billboard billBehave = new Billboard(billTrans, Billboard.ROTATE_ABOUT_POINT, new Point3f(0, 0, 0));
+		billBehave.setEnable(true);
+		billBehave.setSchedulingBounds(Utils3D.defaultBounds);
+		addChild(billBehave);
+		 
 
-		orientedShape.setGeometry(j3dPSysData.ga);
+		j3dPSysData = new J3dPSysData(niPSysData, billTrans);
+
+		getShape().setGeometry(j3dPSysData.ga);
 
 		// get updated every 50 milliseconds
 		addChild(new PerTimeUpdateBehavior(50L, new PerTimeUpdateBehavior.CallBack()

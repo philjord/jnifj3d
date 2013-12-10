@@ -3,6 +3,7 @@ package nif.j3d.particles;
 import javax.media.j3d.GeometryArray;
 import javax.media.j3d.IndexedQuadArray;
 import javax.media.j3d.Transform3D;
+import javax.media.j3d.TransformGroup;
 import javax.vecmath.AxisAngle4f;
 import javax.vecmath.Point3f;
 
@@ -62,13 +63,16 @@ public class J3dPSysData
 
 	private NiPSysData niPSysData = null;
 
+	private TransformGroup billTG;
+
 	/**
 	 * NOTE!!!! all calls to this class must be in a GeomteryUpdater only.
 	 * 
 	 * @param niPSysData
 	 */
-	public J3dPSysData(NiPSysData niPSysData)
+	public J3dPSysData(NiPSysData niPSysData, TransformGroup billTG)
 	{
+		this.billTG = billTG;
 		//Particles can consist of screen-facing textured quads //TODO: quads not tris
 
 		//niPSysData.hasVertices;
@@ -316,6 +320,8 @@ public class J3dPSysData
 
 	private Point3f p = new Point3f();
 
+	private Point3f p2 = new Point3f();
+
 	private void recalcGaCoords(int particle)
 	{
 		float x = particleTranslation[particle * 3 + 0];
@@ -327,25 +333,40 @@ public class J3dPSysData
 
 		float halfRad = particleRadius[particle] / 2f;
 
-		//NOTE! we rotate halfRad around 0,0, the "switched" numbers below are correct, you do the maths
+		//NOTE! we rotate halfRad around 0,0,0 the "switched" numbers below are correct, you do the maths
 		p.set(halfRad, halfRad, 0);
 		trans.transform(p);
 
-		gaCoords[particle * 4 * 3 + 0 + 0] = x - p.x;
-		gaCoords[particle * 4 * 3 + 0 + 1] = y - p.y;
-		gaCoords[particle * 4 * 3 + 0 + 2] = z;
+		// now make it point at the camera via the billboard behave group
+		// I've got x,y,z of the center and I'm building the 4 corners
+		// the transform will contain only a rotate
+		billTG.getTransform(trans);
+//TODO: not sure if this is doing the job properly?
 
-		gaCoords[particle * 4 * 3 + 3 + 0] = x + p.y;
-		gaCoords[particle * 4 * 3 + 3 + 1] = y - p.x;
-		gaCoords[particle * 4 * 3 + 3 + 2] = z;
+		p2.set(x - p.x, y - p.y, z);
 
-		gaCoords[particle * 4 * 3 + 6 + 0] = x + p.x;
-		gaCoords[particle * 4 * 3 + 6 + 1] = y + p.y;
-		gaCoords[particle * 4 * 3 + 6 + 2] = z;
+		trans.transform(p2);
+		gaCoords[particle * 4 * 3 + 0 + 0] = p2.x;
+		gaCoords[particle * 4 * 3 + 0 + 1] = p2.y;
+		gaCoords[particle * 4 * 3 + 0 + 2] = p2.z;
 
-		gaCoords[particle * 4 * 3 + 9 + 0] = x - p.y;
-		gaCoords[particle * 4 * 3 + 9 + 1] = y + p.x;
-		gaCoords[particle * 4 * 3 + 9 + 2] = z;
+		p2.set(x + p.x, y - p.y, z);
+		trans.transform(p2);
+		gaCoords[particle * 4 * 3 + 3 + 0] = p2.x;
+		gaCoords[particle * 4 * 3 + 3 + 1] = p2.y;
+		gaCoords[particle * 4 * 3 + 3 + 2] = p2.z;
+
+		p2.set(x + p.x, y + p.y, z);
+		trans.transform(p2);
+		gaCoords[particle * 4 * 3 + 6 + 0] = p2.x;
+		gaCoords[particle * 4 * 3 + 6 + 1] = p2.y;
+		gaCoords[particle * 4 * 3 + 6 + 2] = p2.z;
+
+		p2.set(x - p.x, y + p.y, z);
+		trans.transform(p2);
+		gaCoords[particle * 4 * 3 + 9 + 0] = p2.x;
+		gaCoords[particle * 4 * 3 + 9 + 1] = p2.y;
+		gaCoords[particle * 4 * 3 + 9 + 2] = p2.z;
 	}
 
 	/**
