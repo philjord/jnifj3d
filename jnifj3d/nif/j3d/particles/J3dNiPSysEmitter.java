@@ -80,6 +80,11 @@ public abstract class J3dNiPSysEmitter extends J3dNiPSysModifier
 		declinationVariation = value;
 	}
 
+	public void updatePlanarAngle(float value)
+	{
+		planarAngle = value;
+	}
+
 	public void updateInitialRadius(float value)
 	{
 		initialRadius = value;
@@ -114,7 +119,7 @@ public abstract class J3dNiPSysEmitter extends J3dNiPSysModifier
 		while (birthRatePerUpdateTime > 1)
 		{
 			addParticle();
-			birthRatePerUpdateTime -= 1;			
+			birthRatePerUpdateTime -= 1;
 		}
 
 		boolean shouldAdd = Math.random() < birthRatePerUpdateTime;

@@ -8,7 +8,6 @@ import utils.convert.ConvertFromNif;
 
 public class J3dNiPSysBoxEmitter extends J3dNiPSysEmitter
 {
-
 	private NiPSysBoxEmitter niPSysBoxEmitter;
 
 	public J3dNiPSysBoxEmitter(NiPSysBoxEmitter niPSysBoxEmitter, NiToJ3dData niToJ3dData)

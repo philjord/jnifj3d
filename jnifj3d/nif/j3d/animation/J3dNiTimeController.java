@@ -214,7 +214,7 @@ public abstract class J3dNiTimeController implements FloatInterpolator.Listener,
 		else if (controller instanceof NiPSysModifierCtlr)
 		{
 			//TODO: a controller sequence can have a  NiPSysModifierCtlr in it, which will point at a 
-			// target PArticel system, so presumably the particle system is kicked off
+			// target Particle system, so presumably the particle system is kicked off
 			// when teh animation fires, which sounds fair enough 
 			//E:\game media\Oblivion\meshes\effects\se09bodypartsdrop.nif is an example
 			//NiPSysModifierCtlr niPSysModifierCtlr = (NiPSysModifierCtlr) controller;

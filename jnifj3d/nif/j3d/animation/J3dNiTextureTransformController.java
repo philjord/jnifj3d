@@ -2,6 +2,7 @@ package nif.j3d.animation;
 
 import javax.media.j3d.TextureAttributes;
 import javax.media.j3d.Transform3D;
+import javax.vecmath.AxisAngle4f;
 import javax.vecmath.Vector3f;
 
 import nif.enums.TexTransform;
@@ -77,8 +78,10 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 			}
 			else if (operation.transform == TexTransform.TT_ROTATE)
 			{
-				//TODO: TT_ROTATE
-				System.out.println("texture rotate spotted");
+				//TODO: TT_ROTATE improve this as it's rotating around bottom left corner
+				// see E:\game media\Oblivion\meshes\effects\lichbloodspray.nif
+				AxisAngle4f aa = new AxisAngle4f(0, 0, -1, value);
+				transform.setRotation(aa);
 			}
 			else
 			{

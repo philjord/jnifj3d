@@ -25,8 +25,6 @@ import nif.niobject.bs.BSLeafAnimNode;
 import nif.niobject.bs.BSMasterParticleSystem;
 import nif.niobject.bs.BSMultiBoundNode;
 import nif.niobject.bs.BSOrderedNode;
-import nif.niobject.bs.BSStripParticleSystem;
-import nif.niobject.particle.NiMeshParticleSystem;
 import nif.niobject.particle.NiParticleSystem;
 import tools3d.utils.scenegraph.Fadable;
 import utils.source.TextureSource;
@@ -93,21 +91,9 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 					}
 					else if (child instanceof NiParticleSystem)
 					{
-						if (child instanceof BSStripParticleSystem)
-						{
-							//TODO: this
-						}
-						else if (child instanceof NiMeshParticleSystem)
-						{
-							//TODO: this
-						}
-						else
-						{
-							J3dNiParticleSystem j3dNiParticleSystem = new J3dNiParticleSystem((NiParticleSystem) child, niToJ3dData,
-									textureSource);
-							addChild(j3dNiParticleSystem);
-						}
-
+						J3dNiParticleSystem j3dNiParticleSystem = new J3dNiParticleSystem((NiParticleSystem) child, niToJ3dData,
+								textureSource);
+						addChild(j3dNiParticleSystem);
 					}
 					else if (child instanceof NiCamera)
 					{
@@ -126,11 +112,9 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 					}
 					else if (child instanceof NiDirectionalLight)
 					{
-						//TODO: NiDirectionalLight
-						//J3dNiDirectionalLight j3dNiDirectionalLight = new J3dNiDirectionalLight((NiPointLight) child, niToJ3dData);
-						//addChild(j3dNiDirectionalLight);
+						J3dNiDirectionalLight j3dNiDirectionalLight = new J3dNiDirectionalLight((NiDirectionalLight) child, niToJ3dData);
+						addChild(j3dNiDirectionalLight);
 					}
-
 					else
 					{
 						System.out.println("J3dNiNode - unhandled child NiAVObject " + child);
@@ -185,10 +169,9 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 		{
 			//System.out.println("********************** NiRoomGroup");, drop through
 		}
-
 		else if (niNode instanceof BSMasterParticleSystem)
 		{//TODO: BSMasterParticleSystem
-			//System.out.println("********************** BSMasterParticleSystem");
+			System.out.println("********************** BSMasterParticleSystem");
 		}
 		else if (niNode instanceof BSLeafAnimNode)
 		{

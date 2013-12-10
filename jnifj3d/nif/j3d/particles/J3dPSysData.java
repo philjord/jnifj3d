@@ -274,6 +274,15 @@ public class J3dPSysData
 		else if (niPSysData.HasSubtextureOffsetUVs)
 		{
 			// pick one randomly, this is called a texture atlas and is updated by a BSPSysSubTextModifier
+			//TODO: get me some tex coords! these ones are garbage
+			gaTexCoords[indx * 4 * 2 + 0] = 0;
+			gaTexCoords[indx * 4 * 2 + 1] = 0;
+			gaTexCoords[indx * 4 * 2 + 2] = 1;
+			gaTexCoords[indx * 4 * 2 + 3] = 0;
+			gaTexCoords[indx * 4 * 2 + 4] = 1;
+			gaTexCoords[indx * 4 * 2 + 5] = 1;
+			gaTexCoords[indx * 4 * 2 + 6] = 0;
+			gaTexCoords[indx * 4 * 2 + 7] = 1;
 		}
 		else
 		{

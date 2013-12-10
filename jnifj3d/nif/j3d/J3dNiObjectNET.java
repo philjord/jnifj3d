@@ -127,18 +127,8 @@ public abstract class J3dNiObjectNET extends BranchGroup
 			NiTimeController nextController = (NiTimeController) niToJ3dData.get(controller.nextController);
 			if (nextController != null)
 			{
-				if (nextController instanceof NiMultiTargetTransformController)
-				{
-					//this is an object palette ignore
-				}
-				else
-				{
-					//TODO: this is used by the particle modifer controller system, see J3dParticleSystem
-					//I've also seen texturetransform controllers U then V use this
-					System.out.println("next controller called in " + this + " shold it be now?");
-					setupController(nextController, niToJ3dData);
-				}
-
+				//I've  seen texturetransform controllers U then V use this
+				setupController(nextController, niToJ3dData);
 			}
 		}
 

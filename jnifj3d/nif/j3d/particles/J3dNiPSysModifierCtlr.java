@@ -8,6 +8,7 @@ import nif.j3d.animation.J3dNiTimeController;
 import nif.j3d.animation.interp.J3dNiInterpolator;
 import nif.niobject.bs.BSPSysMultiTargetEmitterCtlr;
 import nif.niobject.controller.NiTimeController;
+import nif.niobject.controller.NiVisController;
 import nif.niobject.interpolator.NiInterpolator;
 import nif.niobject.particle.NiPSysEmitterCtlr;
 import nif.niobject.particle.NiPSysEmitterDeclinationCtlr;
@@ -18,6 +19,7 @@ import nif.niobject.particle.NiPSysEmitterPlanarAngleCtlr;
 import nif.niobject.particle.NiPSysEmitterSpeedCtlr;
 import nif.niobject.particle.NiPSysFieldMagnitudeCtlr;
 import nif.niobject.particle.NiPSysGravityStrengthCtlr;
+import nif.niobject.particle.NiPSysInitialRotSpeedCtlr;
 import nif.niobject.particle.NiPSysModifierActiveCtlr;
 import nif.niobject.particle.NiPSysModifierCtlr;
 import nif.niobject.particle.NiPSysUpdateCtlr;
@@ -121,21 +123,32 @@ public abstract class J3dNiPSysModifierCtlr extends J3dNiTimeController
 				j3dNiTimeController = new J3dNiPSysGravityStrengthCtlr((NiPSysGravityStrengthCtlr) niPSysModifierCtlr,
 						(J3dNiPSysGravityModifier) j3dNiPSysModifier);
 			}
+			else if (niPSysModifierCtlr instanceof NiPSysEmitterPlanarAngleCtlr)
+			{
+				j3dNiTimeController = new J3dNiPSysEmitterPlanarAngleCtlr((NiPSysEmitterPlanarAngleCtlr) niPSysModifierCtlr,
+						(J3dNiPSysEmitter) j3dNiPSysModifier);
+			}
+			else if (niPSysModifierCtlr instanceof NiPSysInitialRotSpeedCtlr)
+			{
+				j3dNiTimeController = new J3dNiPSysInitialRotSpeedCtlr((NiPSysInitialRotSpeedCtlr) niPSysModifierCtlr,
+						(J3dNiPSysRotationModifier) j3dNiPSysModifier);
+			}
 			else if (niPSysModifierCtlr instanceof NiPSysFieldMagnitudeCtlr)
 			{
-				//TODO: System.out.println("J3dNiPSysModifierCtlr NiPSysFieldMagnitudeCtlr " + j3dNiPSysModifier);
+				System.out.println("J3dNiPSysModifierCtlr NiPSysFieldMagnitudeCtlr " + j3dNiPSysModifier);
+				//j3dNiTimeController = new J3dNiPSysFieldMagnitudeCtlr((NiPSysFieldMagnitudeCtlr) niPSysModifierCtlr,
+				//		(J3dNiPSysFieldModifer) j3dNiPSysModifier);
 			}
 			else if (niPSysModifierCtlr instanceof BSPSysMultiTargetEmitterCtlr)
 			{
-				//TODO: System.out.println("J3dNiPSysModifierCtlr BSPSysMultiTargetEmitterCtlr " + j3dNiPSysModifier);
+				// not really understood yet
+				System.out.println("J3dNiPSysModifierCtlr BSPSysMultiTargetEmitterCtlr " + j3dNiPSysModifier);
 			}
-			else if (niPSysModifierCtlr instanceof NiPSysEmitterPlanarAngleCtlr)
-			{
-				//TODO: NiPSysEmitterPlanarAngleCtlr
-			}
+
 			else
 			{
-				System.out.println("J3dNiPSysModiferCtlr createJ3dNiPSysModifierCtlr unhandled NiPSysModifierCtlr " + niPSysModifierCtlr);
+				System.out.println("J3dNiPSysModiferCtlr createJ3dNiPSysModifierCtlr unhandled NiPSysModifierCtlr " + niPSysModifierCtlr
+						+ " " + j3dNiPSysModifier);
 			}
 
 			if (j3dNiTimeController != null)
@@ -170,14 +183,20 @@ public abstract class J3dNiPSysModifierCtlr extends J3dNiTimeController
 		else if (niTimeController instanceof NiPSysUpdateCtlr)
 		{
 			//NiPSysUpdateCtlr niPSysUpdateCtlr = (NiPSysUpdateCtlr) niTimeController;
-
-			System.out.println("niTimeController is NiPSysUpdateCtlr");
+			// no really interesting data, though the flags suggest how the animation loop should work
+			// once all controller run through the update ctlr might say go backwards through them
+			// ignore for now
 			return null;
 
 		}
+		else if (niTimeController instanceof NiVisController)
+		{
+			//TODO: niTimeController is NiVisController");
+			return null;
+		}
 		else
 		{
-			System.out.println("niTimeController is  " + niTimeController);
+			System.out.println("TODO: in createJ3dNiPSysModifierCtlr, niTimeController is not expected: " + niTimeController);
 			return null;
 		}
 	}

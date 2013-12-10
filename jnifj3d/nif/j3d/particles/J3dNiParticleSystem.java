@@ -15,7 +15,9 @@ import nif.basic.NifRef;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiGeometry;
 import nif.j3d.NiToJ3dData;
+import nif.niobject.bs.BSStripParticleSystem;
 import nif.niobject.controller.NiTimeController;
+import nif.niobject.particle.NiMeshParticleSystem;
 import nif.niobject.particle.NiPSysData;
 import nif.niobject.particle.NiPSysModifier;
 import nif.niobject.particle.NiPSysModifierCtlr;
@@ -65,7 +67,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		}
 
 		// because we handed in a custom shape will not be attached yet
-		//TODO: one orients shape will look crazy won't it, rotating around
+		// TODO: one oriented shape will look crazy won't it, rotating around, what if I walk past it??
 		// with dozens of particles stuck on it? each child quad must be oriented surely? or does radius give apparent z depth?
 		particleRoot.addChild(getShape());
 
@@ -74,7 +76,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		orientedShape.setGeometry(j3dPSysData.ga);
 
 		// get updated every 50 milliseconds
-		addChild(new PerTimeUpdateBehavior(500L, new PerTimeUpdateBehavior.CallBack()
+		addChild(new PerTimeUpdateBehavior(50L, new PerTimeUpdateBehavior.CallBack()
 		{
 			@Override
 			public void update()
@@ -83,6 +85,16 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 				j3dPSysData.ga.updateData(J3dNiParticleSystem.this);
 			}
 		}));
+
+		//2 types of sub classes with no extra data
+		if (niParticleSystem instanceof BSStripParticleSystem)
+		{
+			//TODO: do I care?
+		}
+		else if (niParticleSystem instanceof NiMeshParticleSystem)
+		{
+			//TODO: do I care?
+		}
 
 	}
 
@@ -194,12 +206,10 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		NiTimeController cont = (NiTimeController) niToJ3dData.get(niParticleSystem.controller);
 		if (cont != null)
 		{
-			NiPSysModifierCtlr niPSysModifierCtlr = (NiPSysModifierCtlr) cont;
-
-			rootJ3dNiPSysModifierCtlr = j3dNiPSysModiferCtlrsByNi.get(niPSysModifierCtlr);
+			rootJ3dNiPSysModifierCtlr = j3dNiPSysModiferCtlrsByNi.get(cont);
 			if (rootJ3dNiPSysModifierCtlr == null)
 			{
-				rootJ3dNiPSysModifierCtlr = J3dNiPSysModifierCtlr.createJ3dNiPSysModifierCtlr(this, niPSysModifierCtlr, niToJ3dData);
+				rootJ3dNiPSysModifierCtlr = J3dNiPSysModifierCtlr.createJ3dNiPSysModifierCtlr(this, cont, niToJ3dData);
 			}
 		}
 	}

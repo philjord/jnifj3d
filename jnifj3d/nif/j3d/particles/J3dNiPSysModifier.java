@@ -1,6 +1,8 @@
 package nif.j3d.particles;
 
 import nif.j3d.NiToJ3dData;
+import nif.niobject.bs.BSPSysArrayEmitter;
+import nif.niobject.bs.BSPSysHavokUpdateModifier;
 import nif.niobject.bs.BSPSysInheritVelocityModifier;
 import nif.niobject.bs.BSPSysLODModifier;
 import nif.niobject.bs.BSPSysRecycleBoundModifier;
@@ -65,6 +67,28 @@ public abstract class J3dNiPSysModifier
 		{
 			return new J3dNiPSysBoxEmitter((NiPSysBoxEmitter) niPSysModifier, niToJ3dData);
 		}
+		else if (niPSysModifier instanceof BSPSysArrayEmitter)
+		{
+			return new J3dBSPSysArrayEmitter((BSPSysArrayEmitter) niPSysModifier, niToJ3dData);
+		}
+		else if (niPSysModifier instanceof NiPSysCylinderEmitter)
+		{
+			return new J3dNiPSysCylinderEmitter((NiPSysCylinderEmitter) niPSysModifier, niToJ3dData);
+		}
+		else if (niPSysModifier instanceof NiPSysSphereEmitter)
+		{
+			return new J3dNiPSysSphereEmitter((NiPSysSphereEmitter) niPSysModifier, niToJ3dData);
+		}
+		else if (niPSysModifier instanceof NiPSysMeshEmitter)
+		{
+			return new J3dNiPSysMeshEmitter((NiPSysMeshEmitter) niPSysModifier, niToJ3dData);
+		}
+		
+		else if (niPSysModifier instanceof NiPSysColliderManager)
+		{
+			return new J3dNiPSysColliderManager((NiPSysColliderManager) niPSysModifier, niToJ3dData);
+		}
+		
 		else if (niPSysModifier instanceof NiPSysAgeDeathModifier)
 		{
 			return new J3dNiPSysAgeDeathModifier((NiPSysAgeDeathModifier) niPSysModifier, niToJ3dData);
@@ -93,25 +117,9 @@ public abstract class J3dNiPSysModifier
 		{
 			return new J3dBSPSysSimpleColorModifier((BSPSysSimpleColorModifier) niPSysModifier, niToJ3dData);
 		}
-		else if (niPSysModifier instanceof NiPSysCylinderEmitter)
-		{
-			return new J3dNiPSysCylinderEmitter((NiPSysCylinderEmitter) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof NiPSysSphereEmitter)
-		{
-			return new J3dNiPSysSphereEmitter((NiPSysSphereEmitter) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof NiPSysMeshEmitter)
-		{
-			return new J3dNiPSysMeshEmitter((NiPSysMeshEmitter) niPSysModifier, niToJ3dData);
-		}
 		else if (niPSysModifier instanceof NiPSysDragModifier)
 		{
 			return new J3dNiPSysDragModifier((NiPSysDragModifier) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof NiPSysColliderManager)
-		{
-			return new J3dNiPSysColliderManager((NiPSysColliderManager) niPSysModifier, niToJ3dData);
 		}
 		else if (niPSysModifier instanceof NiPSysBombModifier)
 		{
@@ -121,37 +129,41 @@ public abstract class J3dNiPSysModifier
 		{
 			return new J3dBSWindModifier((BSWindModifier) niPSysModifier, niToJ3dData);
 		}
-		else if (niPSysModifier instanceof BSPSysStripUpdateModifier)
-		{
-			//uncommon
-		}
 		else if (niPSysModifier instanceof NiPSysColorModifier)
 		{
-			//uncommon
+			return new J3dNiPSysColorModifier((NiPSysColorModifier) niPSysModifier, niToJ3dData);
 		}
 		else if (niPSysModifier instanceof NiPSysBoundUpdateModifier)
 		{
-			//technical
+			return new J3dNiPSysBoundUpdateModifier((NiPSysBoundUpdateModifier) niPSysModifier, niToJ3dData);
 		}
 		else if (niPSysModifier instanceof BSPSysLODModifier)
 		{
-			//TODO: BSPSysLODModifier
+			return new J3dBSPSysLODModifier((BSPSysLODModifier) niPSysModifier, niToJ3dData);
 		}
 		else if (niPSysModifier instanceof BSPSysInheritVelocityModifier)
 		{
-			//TODO: BSPSysInheritVelocityModifier
+			return new J3dBSPSysInheritVelocityModifier((BSPSysInheritVelocityModifier) niPSysModifier, niToJ3dData);
 		}
 		else if (niPSysModifier instanceof BSPSysSubTexModifier)
 		{
-			//TODO: BSPSysSubTexModifier
+			return new J3dBSPSysSubTexModifier((BSPSysSubTexModifier) niPSysModifier, niToJ3dData);
 		}
 		else if (niPSysModifier instanceof BSPSysScaleModifier)
 		{
-			//TODO: BSPSysScaleModifier
+			return new J3dBSPSysScaleModifier((BSPSysScaleModifier) niPSysModifier, niToJ3dData);
 		}
 		else if (niPSysModifier instanceof BSPSysRecycleBoundModifier)
 		{
-			//TODO: BSPSysRecycleBoundModifier
+			return new J3dBSPSysRecycleBoundModifier((BSPSysRecycleBoundModifier) niPSysModifier, niToJ3dData);
+		}
+		else if (niPSysModifier instanceof BSPSysHavokUpdateModifier)
+		{
+			return new J3dBSPSysHavokUpdateModifier((BSPSysHavokUpdateModifier) niPSysModifier, niToJ3dData);
+		}
+		else if (niPSysModifier instanceof BSPSysStripUpdateModifier)
+		{
+			return new J3dBSPSysStripUpdateModifier((BSPSysStripUpdateModifier) niPSysModifier, niToJ3dData);
 		}
 		else
 		{

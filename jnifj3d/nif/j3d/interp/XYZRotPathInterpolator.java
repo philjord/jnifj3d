@@ -58,7 +58,7 @@ public class XYZRotPathInterpolator extends TransformInterpolator
 			if (yRots[i] != yRots[i + 1])
 				return false;
 		}
-		for (int i = 0; i + 1 < yRots.length; i++)
+		for (int i = 0; i + 1 < zRots.length; i++)
 		{
 			if (zRots[i] != zRots[i + 1])
 				return false;

@@ -7,10 +7,18 @@ public class J3dNiPSysRotationModifier extends J3dNiPSysModifier
 {
 	private NiPSysRotationModifier niPSysRotationModifier;
 
+	private float initialRotSpeed;
+
 	public J3dNiPSysRotationModifier(NiPSysRotationModifier niPSysRotationModifier, NiToJ3dData niToJ3dData)
 	{
 		super(niPSysRotationModifier, niToJ3dData);
 		this.niPSysRotationModifier = niPSysRotationModifier;
+		this.initialRotSpeed = niPSysRotationModifier.initialRotationSpeed;
+	}
+
+	public void updateInitialRotSpeed(float value)
+	{
+		initialRotSpeed = value;
 	}
 
 	@Override
@@ -36,7 +44,7 @@ public class J3dNiPSysRotationModifier extends J3dNiPSysModifier
 	public void particleCreated(int id)
 	{
 
-		float rotSpeed = niPSysRotationModifier.initialRotationSpeed;
+		float rotSpeed = initialRotSpeed;
 		rotSpeed += var(niPSysRotationModifier.initialRotationSpeedVariation * 2);
 		if (niPSysRotationModifier.randomRotSpeedSign && Math.random() > 0.5)
 		{
@@ -56,4 +64,5 @@ public class J3dNiPSysRotationModifier extends J3dNiPSysModifier
 		j3dPSysData.particleRotationAngle[id] = rotAngle;
 
 	}
+
 }

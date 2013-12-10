@@ -29,14 +29,13 @@ public class J3dNiPSysMeshEmitter extends J3dNiPSysEmitter
 			{
 				geoms.add(j3dNiTriBasedGeom);
 			}
-
 		}
 	}
 
 	@Override
 	protected void getCreationPoint(Point3f pos)
 	{
-		//TODO: pre compute teh surface area of each triangle and then use that to randomly pick atn emit poitn
+		//TODO: pre compute the surface area of each triangle and then use that to randomly pick an emit point
 
 		//NOTE it is only from the vertices,edge or faces! not the interior!
 
