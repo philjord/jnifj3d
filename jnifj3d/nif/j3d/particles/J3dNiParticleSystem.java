@@ -133,8 +133,9 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 			}
 		}
 
-		// now we tell teh particles to update the nett effects
+		// now we tell the particles to update the nett effects
 		j3dPSysData.recalcAllGaCoords();
+		
 	}
 
 	//deburner

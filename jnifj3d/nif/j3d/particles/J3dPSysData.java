@@ -49,11 +49,11 @@ public class J3dPSysData
 
 	public float[] particleVelocity;
 
+	public int[] particleImageIds;
+
 	public IndexedQuadArray ga;
 
 	private int gaVertexCount;
-
-	private int[] particleImageIds;
 
 	private float[] gaTexCoords;
 
@@ -67,7 +67,7 @@ public class J3dPSysData
 
 	private TransformGroup billTG;
 
-	private AtlasAnimatedTexture atlasAnimatedTexture;
+	public AtlasAnimatedTexture atlasAnimatedTexture;
 
 	/**
 	 * NOTE!!!! all calls to this class must be in a GeomteryUpdater only.
@@ -249,60 +249,26 @@ public class J3dPSysData
 
 	private void initTexCoords(int indx)
 	{
-
-		// test oblivion/meshes/landscape/miscfirefly01.nif
 		//file:///C:/Emergent/Gamebryo-LightSpeed-Binary/Documentation/HTML/Reference/NiParticle/NiPSAlignedQuadGenerator.htm
 		if (niPSysData.HasUVQuadrants)
 		{
-			//System.out.println("niPSysData.NumUVQuadrants");
 			atlasAnimatedTexture = new AtlasAnimatedTexture(niPSysData.NumUVQuadrants);
 
-			int subImageId = (int) (Math.random() * atlasAnimatedTexture.getSubImageCount());
-			particleImageIds[indx] = subImageId;
-			atlasAnimatedTexture.getUVCoords(gaTexCoords, indx, subImageId);
-
-			/*	int uCount = 1;
-				int vCount = 1;
-
-				if (niPSysData.NumUVQuadrants > 1)
-				{
-					float sq = (float) Math.sqrt(niPSysData.NumUVQuadrants);
-
-					uCount = (int) Math.pow(2, (Math.floor(Math.log(sq) / Math.log(2))));
-					vCount = (int) Math.pow(2, (Math.ceil(Math.log(sq) / Math.log(2))));
-				}
-
-				float uStride = (1f / uCount);
-				float vStride = (1f / vCount);
-
-				//TODO: randomly picked for now, but needs to be an animations effect I wager
-				float uStart = (float) Math.floor(Math.random() * uCount) * uStride;
-				float vStart = (float) Math.floor(Math.random() * vCount) * vStride;
-
-				gaTexCoords[indx * 4 * 2 + 0] = uStart;
-				gaTexCoords[indx * 4 * 2 + 1] = vStart;
-				gaTexCoords[indx * 4 * 2 + 2] = uStart + uStride;
-				gaTexCoords[indx * 4 * 2 + 3] = vStart;
-				gaTexCoords[indx * 4 * 2 + 4] = uStart + uStride;
-				gaTexCoords[indx * 4 * 2 + 5] = vStart + vStride;
-				gaTexCoords[indx * 4 * 2 + 6] = uStart;
-				gaTexCoords[indx * 4 * 2 + 7] = vStart + vStride;*/
+			// default the modifer will set a start point
+			particleImageIds[indx] = 0;
+			atlasAnimatedTexture.getUVCoords(gaTexCoords, indx, particleImageIds[indx]);
 		}
 		else if (niPSysData.HasSubtextureOffsetUVs)
 		{
-			// pick one randomly, this is called a texture atlas and is updated by a BSPSysSubTextModifier
-			//TODO: get me some tex coords! these ones are garbage
-			gaTexCoords[indx * 4 * 2 + 0] = 0;
-			gaTexCoords[indx * 4 * 2 + 1] = 0;
-			gaTexCoords[indx * 4 * 2 + 2] = 1;
-			gaTexCoords[indx * 4 * 2 + 3] = 0;
-			gaTexCoords[indx * 4 * 2 + 4] = 1;
-			gaTexCoords[indx * 4 * 2 + 5] = 1;
-			gaTexCoords[indx * 4 * 2 + 6] = 0;
-			gaTexCoords[indx * 4 * 2 + 7] = 1;
+			atlasAnimatedTexture = new AtlasAnimatedTexture(niPSysData.AspectRatio, niPSysData.SubtextureOffsetUVs);
+
+			// default the modifer will set a start point
+			particleImageIds[indx] = 0;
+			atlasAnimatedTexture.getUVCoords(gaTexCoords, indx, particleImageIds[indx]);
 		}
 		else
 		{
+			// simply fixed
 			gaTexCoords[indx * 4 * 2 + 0] = 0;
 			gaTexCoords[indx * 4 * 2 + 1] = 0;
 			gaTexCoords[indx * 4 * 2 + 2] = 1;
@@ -313,6 +279,17 @@ public class J3dPSysData
 			gaTexCoords[indx * 4 * 2 + 7] = 1;
 		}
 
+	}
+
+	public void updateAllTexCoords()
+	{
+		if (niPSysData.HasUVQuadrants || niPSysData.HasSubtextureOffsetUVs)
+		{
+			for (int indx = 0; indx < activeParticleCount; indx++)
+			{
+				atlasAnimatedTexture.getUVCoords(gaTexCoords, indx, particleImageIds[indx]);
+			}
+		}
 	}
 
 	/** if you alter the translation or rotation arrays directly this must be called
