@@ -70,14 +70,14 @@ public class J3dPSysData
 	public AtlasAnimatedTexture atlasAnimatedTexture;
 
 	/**
-	 * NOTE!!!! all calls to this class must be in a GeomteryUpdater only.
+	 * NOTE!!!! all calls to this class must be in a GeomteryUpdater only. And vilolently single threaded
 	 * 
 	 * @param niPSysData
 	 */
 	public J3dPSysData(NiPSysData niPSysData, TransformGroup billTG)
 	{
 		this.billTG = billTG;
-		//Particles can consist of screen-facing textured quads //TODO: quads not tris
+		//Particles can consist of screen-facing textured quads  
 
 		//niPSysData.hasVertices;
 		//niPSysData.hasNormals;
@@ -147,7 +147,7 @@ public class J3dPSysData
 	{
 		if (indx < activeParticleCount)
 		{
-			int partsToMove = activeParticleCount - indx; //particles After Indx To Move left
+			int partsToMove = (activeParticleCount - indx) - 1; //particles After Indx To Move left
 
 			shiftArray(gaCoords, indx, gaCoordStride, partsToMove);
 
@@ -179,35 +179,32 @@ public class J3dPSysData
 
 			activeParticleCount--;
 			ga.setValidIndexCount(activeParticleCount);
-
 		}
 	}
 
 	private void shiftArray(Object arr, int indx, int stride, int remCount)
 	{
+
 		int srcStart = indx * stride + stride;
 		int destStart = indx * stride;
 		int len = remCount * stride;
 		System.arraycopy(arr, srcStart, arr, destStart, len);
+
 	}
 
 	//TODO: add many more inits and also the COPY from particle id type
 	/**
-	 * Always add to the end, and only adds if there is space (do nothing otherwise)
-	 * @param vx 
-	 * @param vy 
-	 * @param z 
-	 * @return the particle id of the newly created particle id
-	 
-	  
+	 * Always add to the end, and only adds if there is space (do nothing otherwise)	
 	 * @return  the particle id of the newly created particle id
 	 */
 	public int addActive(float radius, long lifeSpan, int generation, float x, float y, float z, float r, float g, float b, float a,
 			float velx, float vely, float velz)
 	{
-		int indx = activeParticleCount;
-		if (indx < maxParticleCount - 1)
+
+		if (activeParticleCount < maxParticleCount)
 		{
+			int indx = activeParticleCount;
+
 			particleSpawnTime[indx] = System.currentTimeMillis();
 
 			particleAge[indx] = 0;
@@ -304,57 +301,61 @@ public class J3dPSysData
 	}
 
 	//deburners
-	private Transform3D trans = new Transform3D();
+	private Transform3D transR = new Transform3D();
+
+	private Transform3D transF = new Transform3D();
 
 	private AxisAngle4f rotAA = new AxisAngle4f(0, 0, 1, 0);
 
 	private Point3f p = new Point3f();
 
-	private Point3f p2 = new Point3f();
-
 	private void recalcGaCoords(int particle)
 	{
+		//NOTE! we rotate halfRad around 0,0 the - + values going into the face camera trans below are correct, you do the maths
+		// I'm building the 4 corners the transform will contain only a rotate
+		// now make it point at the camera via the billboard behave group
+		// I've got x,y,z of the center added on after the rotate and face to camera
+
 		float x = particleTranslation[particle * 3 + 0];
 		float y = particleTranslation[particle * 3 + 1];
 		float z = particleTranslation[particle * 3 + 2];
 
 		rotAA.setAngle(particleRotationAngle[particle]);
-		trans.set(rotAA);
+		transR.set(rotAA);
+		billTG.getTransform(transF);
 
+		// TODO: these are just 2 matrix operations, I could make it simpler no doubt
+
+		//TODO: radius is naturally a half, why half again? Did game bryo say so
 		float halfRad = particleRadius[particle] / 2f;
 
-		//NOTE! we rotate halfRad around 0,0 the - + values going into the face camera trans below are correct, you do the maths
-		// I'm building the 4 corners the transform will contain only a rotate
-		// now make it point at the camera via the billboard behave group
-		// I've got x,y,z of the center added on after teh rotate adn face to camera
+		p.set(-halfRad, -halfRad, 0);
+		transR.transform(p);
+		transF.transform(p);
+		gaCoords[particle * 4 * 3 + 0 + 0] = x + p.x;
+		gaCoords[particle * 4 * 3 + 0 + 1] = y + p.y;
+		gaCoords[particle * 4 * 3 + 0 + 2] = z + p.z;
+
+		p.set(halfRad, -halfRad, 0);
+		transR.transform(p);
+		transF.transform(p);
+		gaCoords[particle * 4 * 3 + 3 + 0] = x + p.x;
+		gaCoords[particle * 4 * 3 + 3 + 1] = y + p.y;
+		gaCoords[particle * 4 * 3 + 3 + 2] = z + p.z;
+
 		p.set(halfRad, halfRad, 0);
-		trans.transform(p);
+		transR.transform(p);
+		transF.transform(p);
+		gaCoords[particle * 4 * 3 + 6 + 0] = x + p.x;
+		gaCoords[particle * 4 * 3 + 6 + 1] = y + p.y;
+		gaCoords[particle * 4 * 3 + 6 + 2] = z + p.z;
 
-		billTG.getTransform(trans);
-
-		p2.set(-p.x, -p.y, 0);
-		trans.transform(p2);
-		gaCoords[particle * 4 * 3 + 0 + 0] = x + p2.x;
-		gaCoords[particle * 4 * 3 + 0 + 1] = y + p2.y;
-		gaCoords[particle * 4 * 3 + 0 + 2] = z + p2.z;
-
-		p2.set(p.x, -p.y, 0);
-		trans.transform(p2);
-		gaCoords[particle * 4 * 3 + 3 + 0] = x + p2.x;
-		gaCoords[particle * 4 * 3 + 3 + 1] = y + p2.y;
-		gaCoords[particle * 4 * 3 + 3 + 2] = z + p2.z;
-
-		p2.set(p.x, p.y, 0);
-		trans.transform(p2);
-		gaCoords[particle * 4 * 3 + 6 + 0] = x + p2.x;
-		gaCoords[particle * 4 * 3 + 6 + 1] = y + p2.y;
-		gaCoords[particle * 4 * 3 + 6 + 2] = z + p2.z;
-
-		p2.set(-p.x, p.y, 0);
-		trans.transform(p2);
-		gaCoords[particle * 4 * 3 + 9 + 0] = x + p2.x;
-		gaCoords[particle * 4 * 3 + 9 + 1] = y + p2.y;
-		gaCoords[particle * 4 * 3 + 9 + 2] = z + p2.z;
+		p.set(-halfRad, halfRad, 0);
+		transR.transform(p);
+		transF.transform(p);
+		gaCoords[particle * 4 * 3 + 9 + 0] = x + p.x;
+		gaCoords[particle * 4 * 3 + 9 + 1] = y + p.y;
+		gaCoords[particle * 4 * 3 + 9 + 2] = z + p.z;
 	}
 
 	/**
@@ -371,6 +372,9 @@ public class J3dPSysData
 
 	private void resetGaColors(int particle)
 	{
+		//TODO: the texture shader has a gradient color texture under grayscale texture holder
+		//textures\effects\gradients\GradFlame01.dds
+
 		float r = particleColors[particle * 4 + 0];
 		float g = particleColors[particle * 4 + 1];
 		float b = particleColors[particle * 4 + 2];

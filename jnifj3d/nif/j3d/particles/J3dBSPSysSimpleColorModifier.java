@@ -15,7 +15,7 @@ public class J3dBSPSysSimpleColorModifier extends J3dNiPSysModifier
 
 	@Override
 	public void updatePSys(long elapsedMillisec)
-	{
+	{ 
 		float fadeInPercent = sysSimpleColorModifier.fadeInPercent;
 		float fadeOutPercent = sysSimpleColorModifier.fadeOutPercent;
 		J3dPSysData j3dPSysData = j3dNiParticleSystem.j3dPSysData;

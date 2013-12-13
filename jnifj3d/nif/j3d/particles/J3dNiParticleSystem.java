@@ -27,6 +27,7 @@ import nif.niobject.particle.NiPSysModifierCtlr;
 import nif.niobject.particle.NiParticleSystem;
 import tools3d.utils.Utils3D;
 import utils.PerTimeUpdateBehavior;
+import utils.PhysAppearance;
 import utils.source.TextureSource;
 
 public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdater
@@ -71,7 +72,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		TransformGroup billTrans = new TransformGroup();
 		billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 		billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-		addChild(billTrans);
+		particleRoot.addChild(billTrans);
 		Billboard billBehave = new Billboard(billTrans, Billboard.ROTATE_ABOUT_POINT, new Point3f(0, 0, 0));
 		billBehave.setEnable(true);
 		billBehave.setSchedulingBounds(Utils3D.defaultBounds);
@@ -81,8 +82,11 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 
 		getShape().setGeometry(j3dPSysData.ga);
 
+		//for debug
+		//getShape().setAppearance(new PhysAppearance());
+
 		// get updated every 50 milliseconds
-		addChild(new PerTimeUpdateBehavior(50L, new PerTimeUpdateBehavior.CallBack()
+		addChild(new PerTimeUpdateBehavior(50, new PerTimeUpdateBehavior.CallBack()
 		{
 			@Override
 			public void update()
@@ -135,7 +139,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 
 		// now we tell the particles to update the nett effects
 		j3dPSysData.recalcAllGaCoords();
-		
+
 	}
 
 	//deburner
