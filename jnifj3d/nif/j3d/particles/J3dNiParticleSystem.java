@@ -8,13 +8,12 @@ import java.util.HashMap;
 import javax.media.j3d.Billboard;
 import javax.media.j3d.Geometry;
 import javax.media.j3d.GeometryUpdater;
+import javax.media.j3d.OrientedShape3D;
 import javax.media.j3d.Shape3D;
-import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
 import javax.vecmath.Point3f;
 
 import nif.basic.NifRef;
-import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiGeometry;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.animation.J3dNiTimeController;
@@ -25,9 +24,9 @@ import nif.niobject.particle.NiPSysData;
 import nif.niobject.particle.NiPSysModifier;
 import nif.niobject.particle.NiPSysModifierCtlr;
 import nif.niobject.particle.NiParticleSystem;
+import tools3d.utils.PhysAppearance;
 import tools3d.utils.Utils3D;
 import utils.PerTimeUpdateBehavior;
-import utils.PhysAppearance;
 import utils.source.TextureSource;
 
 public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdater
@@ -40,11 +39,11 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 
 	public J3dPSysData j3dPSysData;
 
-	private J3dNiAVObject particleRoot = null;
-
 	private J3dNiPSysModifierCtlr rootJ3dNiPSysModifierCtlr = null;
 
 	private NiParticleSystem niParticleSystem;
+
+	private TransformGroup billTrans = new TransformGroup();
 
 	public J3dNiParticleSystem(NiParticleSystem niParticleSystem, NiToJ3dData niToJ3dData, TextureSource textureSource)
 	{
@@ -57,22 +56,13 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 
 		NiPSysData niPSysData = (NiPSysData) niToJ3dData.get(niParticleSystem.data);
 
-		if (niParticleSystem.worldSpace)
-		{
-			// transformPosition sorts out a decent world space		
-			particleRoot = niToJ3dData.getJ3dRoot();
-		}
-		else
-		{
-			particleRoot = this;
-		}
-		particleRoot.addChild(getShape());
+		//TODO: this orients teh trans at the root, but in fact every particle want to be oriented
+		// personally, other wise they don't truely face the camera! pull billboard apart
+		// the further away smoke gets the odder the facing code works OrientedShape3D os3d;
 
 		// bill board to orient every quad to cameras proper like
-		TransformGroup billTrans = new TransformGroup();
 		billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 		billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-		particleRoot.addChild(billTrans);
 		Billboard billBehave = new Billboard(billTrans, Billboard.ROTATE_ABOUT_POINT, new Point3f(0, 0, 0));
 		billBehave.setEnable(true);
 		billBehave.setSchedulingBounds(Utils3D.defaultBounds);
@@ -82,8 +72,19 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 
 		getShape().setGeometry(j3dPSysData.ga);
 
+		if (niParticleSystem.worldSpace)
+		{
+			niToJ3dData.getJ3dRoot().addChildBeforeTrans(getShape());
+			niToJ3dData.getJ3dRoot().addChildBeforeTrans(billTrans);
+		}
+		else
+		{
+			addChild(getShape());
+			addChild(billTrans);
+		}
+
 		//for debug
-		//getShape().setAppearance(new PhysAppearance());
+		getShape().setAppearance(new PhysAppearance());
 
 		// get updated every 50 milliseconds
 		addChild(new PerTimeUpdateBehavior(50, new PerTimeUpdateBehavior.CallBack()
@@ -122,6 +123,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 	@Override
 	public void updateData(Geometry geometry)
 	{
+
 		if (rootJ3dNiPSysModifierCtlr != null)
 		{
 			rootJ3dNiPSysModifierCtlr.process();
@@ -140,23 +142,6 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		// now we tell the particles to update the nett effects
 		j3dPSysData.recalcAllGaCoords();
 
-	}
-
-	//deburner
-	private Transform3D rootToPSysTrans = new Transform3D();
-
-	public void transformPosition(Point3f pos)
-	{
-		if (niParticleSystem.worldSpace && particleRoot != this)
-		{
-			// now to work out where this particle system is relative to the root of the model tree (if it's world coords)
-			// the PSYS will attach the particles to the root, the emitter just gives x,y,z values but this PSys may 
-			// have been translated relative to root so I need to add the transform between  root and this
-			this.getTreeTransform(rootToPSysTrans, particleRoot);
-			// I need to go back to root space
-			rootToPSysTrans.invert();
-			rootToPSysTrans.transform(pos);
-		}
 	}
 
 	public void particleCreated(int newParticleId)

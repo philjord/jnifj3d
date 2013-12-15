@@ -220,7 +220,8 @@ public class J3dPSysData
 			particleTranslation[indx * 3 + 2] = z;
 
 			particleRotationAngle[indx] = 0f;
-
+			
+			billTG.getTransform(transF);
 			recalcGaCoords(indx);
 
 			particleVelocity[indx * 3 + 0] = velx;
@@ -294,6 +295,7 @@ public class J3dPSysData
 	 */
 	public void recalcAllGaCoords()
 	{
+		billTG.getTransform(transF);
 		for (int i = 0; i < activeParticleCount; i++)
 		{
 			recalcGaCoords(i);
@@ -309,6 +311,9 @@ public class J3dPSysData
 
 	private Point3f p = new Point3f();
 
+	/**
+	 * billTG.getTransform(transF); must be called prior
+	 */
 	private void recalcGaCoords(int particle)
 	{
 		//NOTE! we rotate halfRad around 0,0 the - + values going into the face camera trans below are correct, you do the maths
@@ -322,14 +327,12 @@ public class J3dPSysData
 
 		rotAA.setAngle(particleRotationAngle[particle]);
 		transR.set(rotAA);
-		billTG.getTransform(transF);
-
-		// TODO: these are just 2 matrix operations, I could make it simpler no doubt
 
 		//TODO: radius is naturally a half, why half again? Did game bryo say so
 		float halfRad = particleRadius[particle] / 2f;
 
 		p.set(-halfRad, -halfRad, 0);
+		// TODO: these are just 2 matrix operations, I could make it simpler no doubt
 		transR.transform(p);
 		transF.transform(p);
 		gaCoords[particle * 4 * 3 + 0 + 0] = x + p.x;

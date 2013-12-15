@@ -9,12 +9,12 @@ import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
+import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
-
-import utils.source.TextureSource;
 
 import nif.enums.BillboardMode;
 import nif.niobject.NiBillboardNode;
+import utils.source.TextureSource;
 
 /**
  * @author Administrator
@@ -24,7 +24,7 @@ public class J3dNiBillboardNode extends J3dNiNode
 {
 	private static BoundingSphere defaultBounds = new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY);
 
-	//Note super will call addchild before this node is intied, so must be constructed on first addchild call
+	//Note super will call addchild before this node is inited, so must be constructed on first addchild call
 	private TransformGroup billboardGroup;
 
 	private TransformGroup uprighterGroup;
@@ -35,10 +35,8 @@ public class J3dNiBillboardNode extends J3dNiNode
 		super(niBillboardNode, niToJ3dData, textureSource, onlyNiNodes);
 
 		// note this may have been configred by an addchild from the super constructor
-		if (billboardGroup == null)
-		{
-			setupGroups();
-		}
+
+		setupGroups();
 
 		Billboard billBehave = null;
 
@@ -59,19 +57,38 @@ public class J3dNiBillboardNode extends J3dNiNode
 
 	private void setupGroups()
 	{
-		setUncompactable();
-		billboardGroup = new TransformGroup();
+		if (billboardGroup == null)
+		{
+			setUncompactable();
 
-		uprighterGroup = new TransformGroup();
-		// turn z to be our y up (-z to y)  
-		Transform3D rot = new Transform3D();
-		rot.rotX(-Math.PI / 2f);
-		uprighterGroup.setTransform(rot);
+			//TODO: fires in oblivion are still sideways
+			
+			// billboard blanks out the translation , but I really wwant it left
+			// so I'll try clearing out the rotation at the root so there is none, but leave teh trans alone
+			Transform3D rot = new Transform3D();
+			this.getTransformGroup().getTransform(rot);
+			rot.setRotation(new Quat4f(0, 0, 0, 1));
+			this.getTransformGroup().setTransform(rot);
 
-		super.addChild(billboardGroup);
-		billboardGroup.addChild(uprighterGroup);
-		billboardGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+			billboardGroup = new TransformGroup();
+			billboardGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+			billboardGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 
+			// the billboard in the nif files are often (always?) in the xy plane which in j3d is xz plane, 
+			// and we can't rotate an xz plane around y to make it upright, so we finish by flipping up to xy
+
+			uprighterGroup = new TransformGroup();
+			// turn z to be our y up (-z to y)  
+
+			rot.rotX(Math.PI / 2f); // this works for oblivion fires but not in the explorer? sometime - works better
+			// in explorer fires are lying on their sides, like horses
+
+			uprighterGroup.setTransform(rot);
+
+			super.addChild(billboardGroup);
+			billboardGroup.addChild(uprighterGroup);
+
+		}
 	}
 
 	@Override

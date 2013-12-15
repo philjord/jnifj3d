@@ -68,8 +68,6 @@ public class J3dNiPSysSpawnModifier extends J3dNiPSysModifier
 
 				//TODO: do speed and direction chaos now
 
-				j3dNiParticleSystem.transformPosition(pos);
-
 				int newParticleId = j3dNiParticleSystem.j3dPSysData.addActive(particleRadius, (long) lifeSpan, particleGeneration, pos.x,
 						pos.y, pos.z, col.x, col.y, col.z, col.w, vel.x, vel.y, vel.z);
 

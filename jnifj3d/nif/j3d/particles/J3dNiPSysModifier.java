@@ -10,6 +10,7 @@ import nif.niobject.bs.BSPSysScaleModifier;
 import nif.niobject.bs.BSPSysSimpleColorModifier;
 import nif.niobject.bs.BSPSysStripUpdateModifier;
 import nif.niobject.bs.BSPSysSubTexModifier;
+import nif.niobject.bs.BSParentVelocityModifier;
 import nif.niobject.bs.BSWindModifier;
 import nif.niobject.particle.NiPSysAgeDeathModifier;
 import nif.niobject.particle.NiPSysBombModifier;
@@ -83,12 +84,12 @@ public abstract class J3dNiPSysModifier
 		{
 			return new J3dNiPSysMeshEmitter((NiPSysMeshEmitter) niPSysModifier, niToJ3dData);
 		}
-		
+
 		else if (niPSysModifier instanceof NiPSysColliderManager)
 		{
 			return new J3dNiPSysColliderManager((NiPSysColliderManager) niPSysModifier, niToJ3dData);
 		}
-		
+
 		else if (niPSysModifier instanceof NiPSysAgeDeathModifier)
 		{
 			return new J3dNiPSysAgeDeathModifier((NiPSysAgeDeathModifier) niPSysModifier, niToJ3dData);
@@ -164,6 +165,10 @@ public abstract class J3dNiPSysModifier
 		else if (niPSysModifier instanceof BSPSysStripUpdateModifier)
 		{
 			return new J3dBSPSysStripUpdateModifier((BSPSysStripUpdateModifier) niPSysModifier, niToJ3dData);
+		}
+		else if (niPSysModifier instanceof BSParentVelocityModifier)
+		{
+			return new J3dBSParentVelocityModifier((BSParentVelocityModifier) niPSysModifier, niToJ3dData);
 		}
 		else
 		{

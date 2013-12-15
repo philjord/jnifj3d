@@ -116,14 +116,20 @@ public class NifCharacter extends BranchGroup
 								J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton()
 										.get(nsed.stringData);
 								EasyTransformGroup tg = new EasyTransformGroup();
-								//tg.rotZ(-Math.PI / 2d);
+								// TODO: still not right I want heads of humans only!
+								if (attachnode.getName().equalsIgnoreCase("Bip01 head") && skeletonNifFilename.indexOf("haracter") != -1)
+									tg.rotZ(-Math.PI / 2d);
 								tg.addChild(model.getVisualRoot());
 								attachnode.addChild(tg);
 								//TODO: why is hat rotated off to side like a yz swap issue?
 								// is there a rotate in the head bone maybe? no R Calf shows issue too
 								//TODO: hat has got double animation in it, due to nonaccum thingy 
 								// Also the antlers of the deer, so I say it need to be attached after bone rotations?
-								// guards helmets wrong??
+								// crabs and horse both not upright properly, horse skeleton has a rot above the non accum
+								// I see ogre idle kf has a non accum rotation but mudcab doesn't?
+								// am I including that
+								// I also get teh delayed jiggle, I should probably not rigidly attach
+								// but update these thign in the skin update behave
 								break;
 							}
 						}

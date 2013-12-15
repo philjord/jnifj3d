@@ -34,7 +34,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 		transformGroup = new NifTransformGroup();
 
 		Transform3D t1 = new Transform3D();
-		// TODO: for enclavetable01 no rotation, is this the general case? d
+		// TODO: for enclavetable01 no rotation, is this the general case?
 		if (!(niAVObject instanceof BSFadeNode))
 		{
 			t1.setRotation(ConvertFromNif.toJ3d(niAVObject.rotation));
@@ -43,9 +43,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 		}
 
 		transformGroup.setTransform(t1);
-
 		super.addChild(transformGroup);
-
 	}
 
 	public NiAVObject getNiAVObject()
@@ -60,12 +58,11 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 
 	public void setUncompactable()
 	{
+		// make sure the transform group exists
+		recreateTransformGroup();
+
+		transformGroup.makeWritable();
 		this.compactable = false;
-		if (!compactable)
-		{
-			recreateTransformGroup();
-			transformGroup.makeWritable();
-		}
 	}
 
 	public void compact()
@@ -110,6 +107,24 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 		// ensure group exist if it's been removed
 		recreateTransformGroup();
 		return transformGroup;
+	}
+
+	/**
+	 * For use by Particle system mainly to get at the real root
+	 * @param child
+	 */
+	public void addChildBeforeTrans(Node child)
+	{
+		super.addChild(child);
+	}
+
+	/**
+	 * For use by Particle system mainly to get at the real root
+	 * @param child
+	 */
+	public void removeChildBeforeTrans(Node child)
+	{
+		super.removeChild(child);
 	}
 
 	@Override
