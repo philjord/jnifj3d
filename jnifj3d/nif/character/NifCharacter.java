@@ -121,8 +121,7 @@ public class NifCharacter extends BranchGroup
 									tg.rotZ(-Math.PI / 2d);
 								tg.addChild(model.getVisualRoot());
 								attachnode.addChild(tg);
-								//TODO: why is hat rotated off to side like a yz swap issue?
-								// is there a rotate in the head bone maybe? no R Calf shows issue too
+								//TODO: R Calf shows issue too (where?)
 								//TODO: hat has got double animation in it, due to nonaccum thingy 
 								// Also the antlers of the deer, so I say it need to be attached after bone rotations?
 								// crabs and horse both not upright properly, horse skeleton has a rot above the non accum

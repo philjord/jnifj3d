@@ -48,45 +48,24 @@ public class NifJ3dSkeletonRoot extends Group
 				J3dNiNode j3dNiNode = (J3dNiNode) j3dNiAVObject;
 				NiNode niNode = (NiNode) j3dNiNode.getNiAVObject();
 
-				boolean isBone = true;
-
-				//Old fallout system, skyrim doesn't use bip, so all niNodes are bones period
-				/*	boolean isBone = false;
-					
-
-					if (niNode.name.indexOf("Bip") != -1)
-					{
-						isBone = true;
-					}
-					else if (niStringExtraData != null)
-					{
-						if (niStringExtraData.name.equals("UPB") || niStringExtraData.stringData.indexOf("Bone#") != -1)
-						{
-							isBone = true;
-						}
-					}*/
-
 				if (niNode.name.equals("Bip01 Head") || niNode.name.indexOf("[HEAD]") != -1)
 				{
 					headJ3dNiNode = j3dNiNode;
 				}
 
-				if (isBone)
+				j3dNiNode.setUncompactable();
+				j3dNiNode.setVisualMarker(showBoneMarkers);
+
+				// note extra space character
+				if (niNode.name.indexOf("NonAccum") != -1 || niNode.name.indexOf("[COM ]") != -1)
 				{
-					j3dNiNode.setUncompactable();
-					j3dNiNode.setVisualMarker(showBoneMarkers);
+					if (nonAccumRoot != null)
+						System.out.println("setting nonAccumRoot more than once!!");
 
-					// note extra space character
-					if (niNode.name.indexOf("NonAccum") != -1 || niNode.name.indexOf("[COM ]") != -1)
-					{
-						if (nonAccumRoot != null)
-							System.out.println("setting nonAccumRoot more than once!!");
-
-						nonAccumRoot = j3dNiNode;
-					}
-					allBonesInSkeleton.put(j3dNiNode.getName(), j3dNiNode);
-
+					//TODO: if there is trans or rot above tis node I need to accumulate some how
+					nonAccumRoot = j3dNiNode;					 
 				}
+				allBonesInSkeleton.put(j3dNiNode.getName(), j3dNiNode);
 
 				// clear the bone root of it's rot and trans as these are Y trans for height and y rots for yaw
 				// because in the real Gamebryo this is the node that is transformed by movement, where as we simply 
@@ -95,6 +74,8 @@ public class NifJ3dSkeletonRoot extends Group
 				if ((niStringExtraData != null && niStringExtraData.stringData.indexOf("BoneRoot#") != -1)
 						|| niNode.name.indexOf("[Root]") != -1)
 				{
+					//TODO: taking this out make the horses head appear correct (bones must be right)
+					// but the skinned stuff is still on it's side
 					j3dNiNode.getTransformGroup().setTransform(new Transform3D());
 				}
 			}
