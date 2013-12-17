@@ -70,6 +70,8 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 		{
 			J3dNiNode skinBone = skinBonesInOrder.get(spBoneId);
 			J3dNiNode skeletonBone = skeletonBones.get(skinBone.getName());
+			if (skeletonBone == null)
+				System.out.println("Null bone! mixed games? " + skinBone.getName());
 			skeletonBonesInSkinBoneIdOrder[spBoneId] = skeletonBone;
 		}
 
@@ -116,7 +118,7 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 
 		float[] baseCoordRefFloat = baseIndexedGeometryArray.getCoordRefFloat();
 		float[] currentCoordRefFloat = currentIndexedGeometryArray.getCoordRefFloat();
-		
+
 		// now go through each vertex and find out where it should be
 		for (int vm = 0; vm < nifSkinPartition.vertexMap.length; vm++)
 		{

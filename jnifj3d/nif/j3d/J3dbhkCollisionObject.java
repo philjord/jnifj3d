@@ -54,7 +54,6 @@ import com.bulletphysics.collision.shapes.ShapeHull;
 import com.bulletphysics.util.IntArrayList;
 import com.bulletphysics.util.ObjectArrayList;
 import com.sun.j3d.utils.geometry.GeometryInfo;
-import com.sun.j3d.utils.geometry.Stripifier;
 
 public class J3dbhkCollisionObject extends Group
 {
@@ -487,7 +486,7 @@ public class J3dbhkCollisionObject extends Group
 			coords[i] = ConvertFromHavok.toJ3dP3f(data.vertices[i]);
 		}
 
-		GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
+		GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_STRIP_ARRAY);
 		gi.setCoordinateIndices(coordIndices);
 		gi.setCoordinates(coords);
 		if (nifVer.LOAD_VER <= NifVer.VER_20_0_0_5)
@@ -501,8 +500,9 @@ public class J3dbhkCollisionObject extends Group
 		shape.setName("hkPackedNiTriStripsData:");
 		// NOTE we must stripify as the input data may have stitched strips which is bad (points like
 		// 1,2,3,4,4,5,5,6,7,8 etc)
-		Stripifier st = new Stripifier();
-		st.stripify(gi);
+		//tODO: chekc this remove
+		//Stripifier st = new Stripifier();
+		//st.stripify(gi);
 		shape.setGeometry(gi.getIndexedGeometryArray(true, false, true, true, false));
 		shape.setAppearance(new PhysAppearance());
 		return shape;
@@ -567,8 +567,9 @@ public class J3dbhkCollisionObject extends Group
 
 		// NOTE we must stripify as the input data may have stitched strips which is bad (points like
 		// 1,2,3,4,4,5,5,6,7,8 etc) if exported from 3ds max
-		Stripifier st = new Stripifier();
-		st.stripify(gi);
+		//TODO: check this remove
+		//Stripifier st = new Stripifier();
+		//st.stripify(gi);
 		shape.setGeometry(gi.getIndexedGeometryArray(true, false, true, true, false));
 		shape.setAppearance(new PhysAppearance());
 		return shape;

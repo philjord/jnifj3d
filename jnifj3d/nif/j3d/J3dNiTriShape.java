@@ -114,8 +114,9 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 			else
 			{
 				geometryInfo.compact();
-				Stripifier st = new Stripifier();
-				st.stripify(geometryInfo);
+				//TODO: getIndexed already calls this?
+				//Stripifier st = new Stripifier();
+				//st.stripify(geometryInfo);
 				IndexedGeometryArray ita = geometryInfo.getIndexedGeometryArray(compact, !compact, compact, true, false);
 				sharedNiTriBasedGeom.put(cacheKey, ita);
 				return ita;
