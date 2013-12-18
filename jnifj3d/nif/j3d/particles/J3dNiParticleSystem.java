@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 
 import javax.media.j3d.Billboard;
+import javax.media.j3d.BranchGroup;
 import javax.media.j3d.Geometry;
 import javax.media.j3d.GeometryUpdater;
 import javax.media.j3d.OrientedShape3D;
@@ -31,6 +32,8 @@ import utils.source.TextureSource;
 
 public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdater
 {
+	public static boolean SHOW_DEBUG_LINES = true;
+
 	private ArrayList<J3dNiPSysModifier> modifiersInOrder = new ArrayList<J3dNiPSysModifier>();
 
 	private HashMap<String, J3dNiPSysModifier> modifiersByName = new HashMap<String, J3dNiPSysModifier>();
@@ -84,7 +87,17 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		}
 
 		//for debug
-		getShape().setAppearance(new PhysAppearance());
+		if (SHOW_DEBUG_LINES)
+		{
+			//TODO: textures and debug shapes are WAY off from each other
+			BranchGroup debugGroup = new BranchGroup();
+			debugGroup.setCapability(BranchGroup.ALLOW_DETACH);
+			Shape3D debugShape = new Shape3D();
+			debugShape.setGeometry(j3dPSysData.ga);
+			debugShape.setAppearance(new PhysAppearance());
+			debugGroup.addChild(debugShape);
+			addChild(debugGroup);
+		}
 
 		// get updated every 50 milliseconds
 		addChild(new PerTimeUpdateBehavior(50, new PerTimeUpdateBehavior.CallBack()
