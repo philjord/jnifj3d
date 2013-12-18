@@ -101,6 +101,9 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 			int spBoneId = nifSkinPartition.bones[spBoneIndex];
 
 			J3dNiNode skeletonBone = skeletonBonesInSkinBoneIdOrder[spBoneId];
+			//mismatched kf and skin?
+			if (skeletonBone == null)
+				return;
 			skeletonBone.getTreeTransform(skeletonBoneVWTrans, skeletonNonAccumRoot);
 
 			Transform3D skinBoneVWInvTrans = skinBonesVWInvTransInOrder[spBoneId];
