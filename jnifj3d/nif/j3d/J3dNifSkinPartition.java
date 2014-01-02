@@ -71,7 +71,7 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 			J3dNiNode skinBone = skinBonesInOrder.get(spBoneId);
 			J3dNiNode skeletonBone = skeletonBones.get(skinBone.getName());
 			if (skeletonBone == null)
-				System.out.println("Null bone! mixed games? " + skinBone.getName());
+				System.out.println("Null bone! mixed games or creatures? " + skinBone.getName());
 			skeletonBonesInSkinBoneIdOrder[spBoneId] = skeletonBone;
 		}
 

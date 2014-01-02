@@ -129,9 +129,7 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 				}
 
 				gi.setCoordinateIndices(points);
-
 				gi.setUseCoordIndexOnly(true);
-
 			}
 
 			if (!data.hasNormals)

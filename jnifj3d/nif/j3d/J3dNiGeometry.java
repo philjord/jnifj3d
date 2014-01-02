@@ -9,22 +9,27 @@ import java.util.HashMap;
 
 import javax.media.j3d.Alpha;
 import javax.media.j3d.Appearance;
+import javax.media.j3d.GLSLShaderProgram;
 import javax.media.j3d.Material;
 import javax.media.j3d.NodeComponent;
 import javax.media.j3d.PolygonAttributes;
 import javax.media.j3d.RenderingAttributes;
 import javax.media.j3d.Shader;
+import javax.media.j3d.ShaderAppearance;
 import javax.media.j3d.ShaderAttribute;
 import javax.media.j3d.ShaderAttributeSet;
 import javax.media.j3d.ShaderAttributeValue;
+import javax.media.j3d.ShaderProgram;
 import javax.media.j3d.Shape3D;
 import javax.media.j3d.SourceCodeShader;
 import javax.media.j3d.Texture;
 import javax.media.j3d.TextureAttributes;
+import javax.media.j3d.TextureUnitState;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransparencyAttributes;
 import javax.vecmath.Vector3d;
 
+import nif.NifToJ3d;
 import nif.NifVer;
 import nif.basic.NifRef;
 import nif.compound.NifTexDesc;
@@ -77,6 +82,8 @@ import tools3d.utils.scenegraph.Fadable;
 import utils.convert.NifOpenGLToJava3D;
 import utils.source.TextureSource;
 
+import com.sun.j3d.utils.shader.StringIO;
+
 public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 {
 
@@ -84,9 +91,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 
 	private static HashMap<BSLightingShaderProperty, NodeComponent> bsLightingShaderPropertyLookup = new HashMap<BSLightingShaderProperty, NodeComponent>();
 
-	//private ShaderAppearance app = new ShaderAppearance();
-
-	private Appearance normalApp = new Appearance();
+	private Appearance normalApp;
 
 	private Shape3D shape;
 
@@ -126,6 +131,14 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		}
 		shape.setName("" + this.getClass().getSimpleName() + ":" + niGeometry.name);
 
+		if (!NifToJ3d.USE_SHADERS)
+		{
+			normalApp = new Appearance();
+		}
+		else
+		{
+			normalApp = new ShaderAppearance();
+		}
 		configureAppearance(niGeometry, niToJ3dData, normalApp);
 
 		//Some times the nif just has no texture, odd. see BSShaderNoLightingProperty
@@ -135,13 +148,74 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		normalApp.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_WRITE);
 		faderTA = new TransparencyAttributes(TransparencyAttributes.BLENDED, 0f);
 		faderTA.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE);
+
+		if (NifToJ3d.USE_SHADERS)
+		{
+
+			if (shaderProgram == null)
+			{
+				try
+				{
+					vertexProgram = StringIO.readFully("./test.vert");
+					fragmentProgram = StringIO.readFully("./test.frag");
+				}
+				catch (IOException e)
+				{
+					System.err.println(e);
+				}
+
+				Shader[] shaders = new Shader[2];
+				shaders[0] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_VERTEX, vertexProgram);
+				shaders[1] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_FRAGMENT, fragmentProgram);
+				final String[] shaderAttrNames =
+				{ "tex" };
+				final Object[] shaderAttrValues =
+				{ new Integer(0) };
+				shaderProgram = new GLSLShaderProgram();
+				shaderProgram.setShaders(shaders);
+				shaderProgram.setShaderAttrNames(shaderAttrNames);
+
+				// Create the shader attribute set
+				shaderAttributeSet = new ShaderAttributeSet();
+				for (int i = 0; i < shaderAttrNames.length; i++)
+				{
+					ShaderAttribute shaderAttribute = new ShaderAttributeValue(shaderAttrNames[i], shaderAttrValues[i]);
+					shaderAttributeSet.put(shaderAttribute);
+				}
+
+				// Create shader appearance to hold the shader program and
+				// shader attributes
+			}
+			((ShaderAppearance) normalApp).setShaderProgram(shaderProgram);
+			((ShaderAppearance) normalApp).setShaderAttributeSet(shaderAttributeSet);
+
+			//transparency
+			//fog
+			//lights (4?)
+
+			//then bump and glow maps
+
+			//land multi texturing(fixed should work too)
+			//lod why no nigeometry?
+
+		}
+
 	}
+
+	private static ShaderProgram shaderProgram = null;
+
+	private static ShaderAttributeSet shaderAttributeSet = null;
+
+	private static String vertexProgram = null;
+
+	private static String fragmentProgram = null;
 
 	public Shape3D getShape()
 	{
 		if (shape.getAppearance() == null)
 		{
-			System.out.println("what?");
+			new Throwable("what?").printStackTrace();
+			;
 		}
 
 		return shape;
@@ -157,11 +231,16 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		app.setMaterial(mat);
 
 		RenderingAttributes ra = new RenderingAttributes();
+		TextureUnitState[] tus = new TextureUnitState[1];
+		TextureUnitState tus0 = new TextureUnitState();
+		tus[0] = tus0;
 		TextureAttributes textureAttributes = new TextureAttributes();
 
 		//TODO: this might be set by the texturing and the ppshader properties?
 		textureAttributes.setTextureMode(TextureAttributes.MODULATE);
-		app.setTextureAttributes(textureAttributes);
+		tus0.setTextureAttributes(textureAttributes);
+
+		app.setTextureUnitState(tus);
 
 		// note time controllers below need appearance set on the shape now
 		shape.setAppearance(normalApp);
@@ -185,7 +264,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						// have we already constructed it?
 						if (propertyLookup.get(ntp) != null)
 						{
-							app.setTextureAttributes((TextureAttributes) propertyLookup.get(ntp));
+							tus0.setTextureAttributes((TextureAttributes) propertyLookup.get(ntp));
 						}
 						else
 						{
@@ -208,7 +287,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 								Texture tex = loadTexture(nst.fileName.string, textureSource);
 								if (tex != null)
 								{
-									app.setTexture(tex);
+									tus0.setTexture(tex);
 								}
 
 							}
@@ -261,7 +340,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 
 							if (tex != null)
 							{
-								app.setTexture(tex);
+								tus0.setTexture(tex);
 							}
 
 						}
@@ -278,7 +357,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 							Texture tex = loadTexture(bbsts.textures[0], textureSource);
 							if (tex != null)
 							{
-								app.setTexture(tex);
+								tus0.setTexture(tex);
 							}
 						}
 
@@ -317,7 +396,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						if (tex != null)
 						{
 
-							app.setTexture(tex);
+							tus0.setTexture(tex);
 						}
 
 						//configureShader(bssnlp);
@@ -328,7 +407,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						Texture tex = loadTexture(tgsp.fileName, textureSource);
 						if (tex != null)
 						{
-							app.setTexture(tex);
+							tus0.setTexture(tex);
 						}
 
 						//configureShader(tgsp);
@@ -339,7 +418,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						Texture tex = loadTexture(tsp.fileName, textureSource);
 						if (tex != null)
 						{
-							app.setTexture(tex);
+							tus0.setTexture(tex);
 						}
 
 						//configureShader(tsp);
@@ -465,7 +544,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						// have we already constructed the texture attributes and time controller it?
 						if (propertyLookup.get(bsesp) != null)
 						{
-							app.setTextureAttributes((TextureAttributes) propertyLookup.get(bsesp));
+							tus0.setTextureAttributes((TextureAttributes) propertyLookup.get(bsesp));
 						}
 						else
 						{
@@ -490,7 +569,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 							Texture tex = loadTexture(bsesp.SourceTexture, textureSource);
 							if (tex != null)
 							{
-								app.setTexture(tex);
+								tus0.setTexture(tex);
 							}
 						}
 
@@ -546,7 +625,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						Texture tex = loadTexture(bsssp.SourceTexture, textureSource);
 						if (tex != null)
 						{
-							app.setTexture(tex);
+							tus0.setTexture(tex);
 						}
 					}
 					else if (property instanceof WaterShaderProperty)
@@ -570,7 +649,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 					// have we already constructed it?
 					if (bsLightingShaderPropertyLookup.get(bslsp) != null)
 					{
-						app.setTextureAttributes((TextureAttributes) bsLightingShaderPropertyLookup.get(bslsp));
+						tus0.setTextureAttributes((TextureAttributes) bsLightingShaderPropertyLookup.get(bslsp));
 					}
 					else
 					{
@@ -598,7 +677,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						Texture tex = loadTexture(texSet.textures[0], textureSource);
 						if (tex != null)
 						{
-							app.setTexture(tex);
+							tus0.setTexture(tex);
 						}
 
 					}
@@ -739,81 +818,6 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		}
 	}
 
-	//	private void setTexture0Ex(Appearance app, String texName, String bumpName, String imageDir)
-	//	{
-	//		if (texName.length() > 0 && bumpName.length() > 0)
-	//		{
-	//			// remove incorrect file path
-	//			if (texName.startsWith("Data\\"))
-	//			{
-	//				texName = texName.substring(5);
-	//			}
-	//			if (bumpName.startsWith("Data\\"))
-	//			{
-	//				bumpName = bumpName.substring(5);
-	//			}
-	//
-	//			if (texName.endsWith(".dds") && bumpName.endsWith("_n.dds"))
-	//			{
-	//				Texture textureColor = DDSToTexture.getTexture(new File(imageDir + texName));
-	//				Texture textureDOT3NormalMap = DDSToTexture.getTexture(new File(imageDir + bumpName));
-	//
-	//				TextureUnitState[] stateArray = setupTextureUnitState(textureDOT3NormalMap, textureColor);
-	//				//app.setTexture(tex);
-	//				app.setTextureUnitState(stateArray);
-	//			}
-	//
-	//		}
-	//	}
-	//
-	//	// TextureUnitStates used in this application
-	//
-	//	TextureUnitState tuDOT3NormalMap;
-	//
-	//	TextureUnitState tuColor;
-	//
-	//	/** Where the TUs are applied *
-	//	TextureUnitState[] tusArr;
-	//
-	//	*
-	//	* setup TextureUnitStates used in this demo.     *
-	//	* @return
-	//	*/
-	//	private TextureUnitState[] setupTextureUnitState(Texture textureDOT3NormalMap, Texture textureColor)
-	//	{
-	//		//texture Attributes for DOT3 normal map
-	//		TextureAttributes textAttDot3 = new TextureAttributes();
-	//
-	//		TextureAttributes texAttColor = new TextureAttributes();
-	//		texAttColor.setTextureMode(TextureAttributes.COMBINE);
-	//
-	//		//CombineRgbMode could be also COMBINE_ADD or COMBINE_ADD_SIGNED, with
-	//		//different results
-	//		texAttColor.setCombineRgbMode(TextureAttributes.COMBINE_MODULATE);
-	//
-	//		textAttDot3.setTextureMode(TextureAttributes.COMBINE);
-	//		textAttDot3.setCombineRgbMode(TextureAttributes.COMBINE_DOT3);
-	//		textAttDot3.setCombineAlphaMode(TextureAttributes.COMBINE_DOT3);
-	//		//textAttDot3.setTextureBlendColor(1.f, 1.0f, 1.0f, 0.0f);
-	//
-	//		// setup functions
-	//		textAttDot3.setCombineRgbFunction(0, TextureAttributes.COMBINE_SRC_COLOR);
-	//		textAttDot3.setCombineRgbFunction(1, TextureAttributes.COMBINE_SRC_COLOR);
-	//		//combine with previous TUS, lightMap
-	//		textAttDot3.setCombineRgbSource(0, TextureAttributes.COMBINE_TEXTURE_COLOR);
-	//		textAttDot3.setCombineRgbSource(1, TextureAttributes.COMBINE_OBJECT_COLOR);
-	//
-	//		// create TUS
-	//		tuDOT3NormalMap = new TextureUnitState(textureDOT3NormalMap, textAttDot3, null);
-	//		tuColor = new TextureUnitState(textureColor, texAttColor, null);
-	//
-	//		// this TUS array is used by geometry at runtime
-	//		TextureUnitState[] tus = new TextureUnitState[2];
-	//		tus[0] = tuDOT3NormalMap;
-	//		tus[1] = tuColor;
-	//
-	//		return tus;
-	//	}
 	private void configureShader(BSShaderProperty bssp)
 	{
 

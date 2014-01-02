@@ -16,7 +16,6 @@ import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
-import nif.NifVer;
 import nif.compound.NifSphereBV;
 import nif.compound.NifbhkCMSDChunk;
 import nif.compound.NifbhkCMSDTransform;
@@ -55,6 +54,12 @@ import com.bulletphysics.util.IntArrayList;
 import com.bulletphysics.util.ObjectArrayList;
 import com.sun.j3d.utils.geometry.GeometryInfo;
 
+/**
+ * NOTE for trival render only now, bullet does teh hard work!
+ * normals ignored as slow and cause huge indexify operations due to diff indeices counts
+ * @author philip
+ *
+ */
 public class J3dbhkCollisionObject extends Group
 {
 	//TODO: many more JBullet style conversions
@@ -132,13 +137,13 @@ public class J3dbhkCollisionObject extends Group
 			if (bhkPackedNiTriStripsShape.data.ref != -1)
 			{
 				hkPackedNiTriStripsData hkPackedNiTriStripsData = (hkPackedNiTriStripsData) niToJ3dData.get(bhkPackedNiTriStripsShape.data);
-				group.addChild(hkPackedNiTriStripsData(hkPackedNiTriStripsData, niToJ3dData.nifVer));
+				group.addChild(hkPackedNiTriStripsData(hkPackedNiTriStripsData));//, niToJ3dData.nifVer));
 			}
 		}
 		else if (bhkShape instanceof hkPackedNiTriStripsData)
 		{
 			hkPackedNiTriStripsData hkPackedNiTriStripsData = (hkPackedNiTriStripsData) bhkShape;
-			group.addChild(hkPackedNiTriStripsData(hkPackedNiTriStripsData, niToJ3dData.nifVer));
+			group.addChild(hkPackedNiTriStripsData(hkPackedNiTriStripsData));//, niToJ3dData.nifVer));
 		}
 		else if (bhkShape instanceof bhkBoxShape)
 		{
@@ -284,7 +289,6 @@ public class J3dbhkCollisionObject extends Group
 
 	private static Group bhkCapsuleShape(bhkCapsuleShape data)
 	{
-
 		//TODO: try JBullet CapsuleShapeX
 		Group g = new Group();
 
@@ -303,7 +307,6 @@ public class J3dbhkCollisionObject extends Group
 		tsa.setCoordinates(0, gd.coordinates);
 
 		shape.setGeometry(tsa);
-		//		PickTool.setCapabilities(shape, PickTool.INTERSECT_FULL);
 		shape.setAppearance(new PhysAppearance());
 		TransformGroup tg = new TransformGroup();
 		Transform3D t = new Transform3D();
@@ -321,7 +324,6 @@ public class J3dbhkCollisionObject extends Group
 		tsa.setCoordinates(0, gd.coordinates);
 
 		shape.setGeometry(tsa);
-		//		PickTool.setCapabilities(shape, PickTool.INTERSECT_FULL);
 		shape.setAppearance(new PhysAppearance());
 		tg = new TransformGroup();
 		t = new Transform3D();
@@ -340,7 +342,6 @@ public class J3dbhkCollisionObject extends Group
 		tsa.setCoordinates(0, gd.coordinates);
 
 		shape.setGeometry(tsa);
-		//		PickTool.setCapabilities(shape, PickTool.INTERSECT_FULL);
 		shape.setAppearance(new PhysAppearance());
 		tg = new TransformGroup();
 		Transform3D t1 = new Transform3D();
@@ -438,20 +439,12 @@ public class J3dbhkCollisionObject extends Group
 
 			gi.setCoordinates(coords);
 			gi.setCoordinateIndices(coordIndices);
+			gi.setUseCoordIndexOnly(true);
 
 			// Put geometry into Shape3d
 			Shape3D shape = new Shape3D();
 
-			try
-			{
-				shape.setGeometry(gi.getIndexedGeometryArray(true, true, false, true, false));
-			}
-			catch (IllegalArgumentException e)
-			{
-				System.out.println("coordIndices " + coordIndices.length);
-				System.out.println("coordinates.length " + coords.length);
-				e.printStackTrace();
-			}
+			shape.setGeometry(gi.getIndexedGeometryArray(true, true, false, true, false));
 
 			shape.setAppearance(new PhysAppearance());
 			return shape;
@@ -461,24 +454,24 @@ public class J3dbhkCollisionObject extends Group
 		return null;
 	}
 
-	public static Shape3D hkPackedNiTriStripsData(hkPackedNiTriStripsData data, NifVer nifVer)
+	public static Shape3D hkPackedNiTriStripsData(hkPackedNiTriStripsData data)//, NifVer nifVer)
 	{
 		int[] coordIndices = new int[data.numTriangles * 3];
 
-		Vector3f[] normals = new Vector3f[data.numTriangles];
-		int[] normIndices = new int[data.numTriangles * 3];
+		//Vector3f[] normals = new Vector3f[data.numTriangles];
+		//int[] normIndices = new int[data.numTriangles * 3];
 		for (int i = 0; i < data.numTriangles; i++)
 		{
 			coordIndices[i * 3 + 0] = data.triangles[i].triangle.v1;
 			coordIndices[i * 3 + 1] = data.triangles[i].triangle.v2;
 			coordIndices[i * 3 + 2] = data.triangles[i].triangle.v3;
-			if (nifVer.LOAD_VER <= NifVer.VER_20_0_0_5)
-			{
-				normals[i] = ConvertFromHavok.toJ3dNoScale(data.triangles[i].normal);
-				normIndices[i * 3 + 0] = i;
-				normIndices[i * 3 + 1] = i;
-				normIndices[i * 3 + 2] = i;
-			}
+			/*	if (nifVer.LOAD_VER <= NifVer.VER_20_0_0_5)
+				{
+					normals[i] = ConvertFromHavok.toJ3dNoScale(data.triangles[i].normal);
+					normIndices[i * 3 + 0] = i;
+					normIndices[i * 3 + 1] = i;
+					normIndices[i * 3 + 2] = i;
+				}*/
 		}
 		Point3f[] coords = new Point3f[data.numVertices];
 		for (int i = 0; i < data.numVertices; i++)
@@ -486,21 +479,22 @@ public class J3dbhkCollisionObject extends Group
 			coords[i] = ConvertFromHavok.toJ3dP3f(data.vertices[i]);
 		}
 
-		GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_STRIP_ARRAY);
-		gi.setCoordinateIndices(coordIndices);
+		GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
 		gi.setCoordinates(coords);
-		if (nifVer.LOAD_VER <= NifVer.VER_20_0_0_5)
-		{
-			gi.setNormalIndices(normIndices);
-			gi.setNormals(normals);
-		}
+		gi.setCoordinateIndices(coordIndices);
+		gi.setUseCoordIndexOnly(true);
+
+		/*	if (nifVer.LOAD_VER <= NifVer.VER_20_0_0_5)
+			{
+				gi.setNormalIndices(normIndices);
+				gi.setNormals(normals);
+			}*/
 
 		// Put geometry into Shape3d
 		Shape3D shape = new Shape3D();
 		shape.setName("hkPackedNiTriStripsData:");
 		// NOTE we must stripify as the input data may have stitched strips which is bad (points like
 		// 1,2,3,4,4,5,5,6,7,8 etc)
-		//tODO: chekc this remove
 		//Stripifier st = new Stripifier();
 		//st.stripify(gi);
 		shape.setGeometry(gi.getIndexedGeometryArray(true, false, true, true, false));
@@ -523,15 +517,15 @@ public class J3dbhkCollisionObject extends Group
 			gi.setCoordinates(vertices);
 		}
 
-		if (data.hasNormals)
-		{
-			Vector3f[] normals = new Vector3f[data.numVertices];
-			for (int i = 0; i < data.numVertices; i++)
+		/*	if (data.hasNormals)
 			{
-				normals[i] = ConvertFromHavok.toJ3dNoScale(data.normals[i]);
-			}
-			gi.setNormals(normals);
-		}
+				Vector3f[] normals = new Vector3f[data.numVertices];
+				for (int i = 0; i < data.numVertices; i++)
+				{
+					normals[i] = ConvertFromHavok.toJ3dNoScale(data.normals[i]);
+				}
+				gi.setNormals(normals);
+			}*/
 
 		int numStrips = data.numStrips;
 		int[] stripLengths = data.stripLengths;
@@ -684,20 +678,10 @@ public class J3dbhkCollisionObject extends Group
 				gi.setCoordinateIndices(stripPoints);
 				gi.setUseCoordIndexOnly(true);
 
-				try
-				{
-					Shape3D shape = new Shape3D();
-					shape.setGeometry(gi.getIndexedGeometryArray(true, false, true, true, false));
-					shape.setAppearance(new PhysAppearance(new Color3f(0.5f, 1f, 0)));
-					tg.addChild(shape);
-
-				}
-				catch (IllegalArgumentException e)
-				{
-					System.err.println("" + e.getMessage());
-					System.err.println("chunk.Vertices.length " + chunk.Vertices.length);
-					System.err.println("length " + stripsLensIdxCount);
-				}
+				Shape3D shape = new Shape3D();
+				shape.setGeometry(gi.getIndexedGeometryArray(true, false, true, true, false));
+				shape.setAppearance(new PhysAppearance(new Color3f(0.5f, 1f, 0)));
+				tg.addChild(shape);
 
 			}
 
@@ -709,19 +693,10 @@ public class J3dbhkCollisionObject extends Group
 				gi.setCoordinateIndices(listPoints);
 				gi.setUseCoordIndexOnly(true);
 
-				try
-				{
-					Shape3D shape = new Shape3D();
-					shape.setGeometry(gi.getIndexedGeometryArray(true, false, true, true, false));
-					shape.setAppearance(new PhysAppearance(new Color3f(0.75f, 1f, 1f)));
-					tg.addChild(shape);
-				}
-				catch (IllegalArgumentException e)
-				{
-					System.err.println("" + e.getMessage());
-					System.err.println("chunk.Vertices.length " + chunk.Vertices.length);
-					System.err.println("length " + stripsLensIdxCount);
-				}
+				Shape3D shape = new Shape3D();
+				shape.setGeometry(gi.getIndexedGeometryArray(true, false, true, true, false));
+				shape.setAppearance(new PhysAppearance(new Color3f(0.75f, 1f, 1f)));
+				tg.addChild(shape);
 
 			}
 
@@ -822,21 +797,13 @@ public class J3dbhkCollisionObject extends Group
 
 			gi.setCoordinates(coords);
 			gi.setCoordinateIndices(coordIndices);
+			gi.setUseCoordIndexOnly(true);
 
 			// Put geometry into Shape3d
 			Shape3D shape = new Shape3D();
 
-			try
-			{
-				shape.setGeometry(gi.getIndexedGeometryArray(true, true, false, true, false));
-			}
-			catch (IllegalArgumentException e)
-			{
-				System.out.println("coordIndices " + coordIndices.length);
-				System.out.println("coordinates.length " + coords.length);
-				e.printStackTrace();
-			}
-			//			PickTool.setCapabilities(shape, PickTool.INTERSECT_FULL);
+			shape.setGeometry(gi.getIndexedGeometryArray(true, true, false, true, false));
+
 			shape.setAppearance(new PhysAppearance());
 			return shape;
 		}
