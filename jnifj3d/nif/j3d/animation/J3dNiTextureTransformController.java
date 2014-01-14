@@ -1,5 +1,6 @@
 package nif.j3d.animation;
 
+import javax.media.j3d.Appearance;
 import javax.media.j3d.TextureAttributes;
 import javax.media.j3d.Transform3D;
 import javax.vecmath.AxisAngle4f;
@@ -25,16 +26,22 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 		if (nodeTarget instanceof J3dNiGeometry)
 		{
 			J3dNiGeometry j3dNiGeometry = (J3dNiGeometry) nodeTarget;
-			operation = controller.operation;
-
-			textureAttributes = j3dNiGeometry.getShape().getAppearance().getTextureAttributes();
-			if (textureAttributes == null)
+			Appearance app = j3dNiGeometry.getShape().getAppearance();
+			if (app.getTextureUnitCount() > 0)
 			{
-				textureAttributes = new TextureAttributes();
-				j3dNiGeometry.getShape().getAppearance().setTextureAttributes(textureAttributes);
+				operation = controller.operation;
+
+				textureAttributes = app.getTextureUnitState(0).getTextureAttributes();
+				if (textureAttributes == null)
+				{
+					app.getTextureUnitState(0).setTextureAttributes(new TextureAttributes());
+				}
+
+				if (!textureAttributes.getCapability(TextureAttributes.ALLOW_TRANSFORM_WRITE))
+				{
+					textureAttributes.setCapability(TextureAttributes.ALLOW_TRANSFORM_WRITE);
+				}
 			}
-			if (!textureAttributes.getCapability(TextureAttributes.ALLOW_TRANSFORM_WRITE))
-				textureAttributes.setCapability(TextureAttributes.ALLOW_TRANSFORM_WRITE);
 		}
 		else
 		{

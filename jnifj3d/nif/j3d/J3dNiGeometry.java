@@ -145,6 +145,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 
 		// Various parts to allow fading in and out
 		normalTA = normalApp.getTransparencyAttributes();
+		normalApp.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_READ);
 		normalApp.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_WRITE);
 		faderTA = new TransparencyAttributes(TransparencyAttributes.BLENDED, 0f);
 		faderTA.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE);
@@ -156,8 +157,8 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 			{
 				try
 				{
-					vertexProgram = StringIO.readFully("./test.vert");
-					fragmentProgram = StringIO.readFully("./test.frag");
+					vertexProgram = StringIO.readFully("./fixedpipeline.vert");
+					fragmentProgram = StringIO.readFully("./fixedpipeline.frag");
 				}
 				catch (IOException e)
 				{
@@ -805,13 +806,17 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		//setting transparency is expensive early out it if possible
 		if (currentTrans != percent)
 		{
-			if (percent <= 0 || percent >= 1.0f)
+			if (percent <= 0 || percent >= 1.0f && normalApp.getTransparencyAttributes() != normalTA)
 			{
+				//System.out.println("set normal");
 				normalApp.setTransparencyAttributes(normalTA);
 			}
 			else
 			{
-				normalApp.setTransparencyAttributes(faderTA);
+				if (normalApp.getTransparencyAttributes() != faderTA)
+					normalApp.setTransparencyAttributes(faderTA);
+				
+			//	System.out.println("fade set to " + percent);
 				faderTA.setTransparency(percent);
 			}
 			currentTrans = percent;

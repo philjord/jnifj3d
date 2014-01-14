@@ -24,7 +24,7 @@ public class NifToJ3d
 {
 	public static boolean HIDE_EDITORS = true;
 
-	public static boolean USE_SHADERS = true;
+	public static boolean USE_SHADERS = false;
 
 	//Note this is caching the file read operations, not the j3d built object which are not shared
 	//private static SoftValueHashMap<String, NifFile> loadedFiles = new SoftValueHashMap<String, NifFile>();

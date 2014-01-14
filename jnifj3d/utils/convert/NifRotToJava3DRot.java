@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 import javax.media.j3d.Transform3D;
-import javax.vecmath.AxisAngle4f;
 import javax.vecmath.Matrix3f;
 import javax.vecmath.Quat4f;
 
@@ -67,7 +66,7 @@ public class NifRotToJava3DRot
 	{
 		if (Float.isInfinite(in) || Float.isNaN(in))
 			return in;
-		
+
 		return new BigDecimal(in).setScale(scale, RoundingMode.HALF_UP).floatValue();
 
 		//return Math.floor(in*10^scale)/10^scaled;
@@ -79,16 +78,19 @@ public class NifRotToJava3DRot
 
 	private static Quat4f flipAxis(Quat4f q)
 	{
-		AxisAngle4f a = new AxisAngle4f();
-		a.set(q);
+		//TODO: I can do this directly in my quat! test
+		//http://stackoverflow.com/questions/18818102/convert-quaternion-representing-rotation-from-one-coordinate-system-to-another
 
-		a.set(a.x, a.z, -a.y, a.angle);
-		q.set(a);
+		//AxisAngle4f a = new AxisAngle4f();
+		//a.set(q);
+
+		//a.set(a.x, a.z, -a.y, a.angle);
+		//q.set(a);
+		
+		q.set(q.x, q.z, -q.y, q.w);
 		return q;
 	}
-	
-	
-	
+
 	/**
 	 * This exists because if teh ww figure below is actually slightly negative(due to bad interpolated quats)
 	 * Then teh output quat is just NaNs
@@ -97,7 +99,7 @@ public class NifRotToJava3DRot
 	 */
 	public static void safeGetQuat(Transform3D t1, Quat4f q1)
 	{
-		
+
 		float[] mat = new float[16];
 		t1.get(mat);
 		float[] rot = new float[9];
@@ -112,8 +114,7 @@ public class NifRotToJava3DRot
 		rot[8] = mat[10];
 
 		double ww = 0.25 * (1.0 + rot[0] + rot[4] + rot[8]);
-		
-		 
+
 		// no negatives or the sqrt below starts baking Nans
 		ww = (ww < 0 ? 0 : ww);
 		if (!(ww < 1.0e-10))
