@@ -70,7 +70,7 @@ public class J3dPSysData
 	public AtlasAnimatedTexture atlasAnimatedTexture;
 
 	/**
-	 * NOTE!!!! all calls to this class must be in a GeomteryUpdater only. And vilolently single threaded
+	 * NOTE!!!! all calls to this class must be in a GeomteryUpdater only. And violently single threaded
 	 * 
 	 * @param niPSysData
 	 */

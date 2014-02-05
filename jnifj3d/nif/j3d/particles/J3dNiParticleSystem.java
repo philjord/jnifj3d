@@ -9,7 +9,6 @@ import javax.media.j3d.Billboard;
 import javax.media.j3d.BranchGroup;
 import javax.media.j3d.Geometry;
 import javax.media.j3d.GeometryUpdater;
-import javax.media.j3d.OrientedShape3D;
 import javax.media.j3d.Shape3D;
 import javax.media.j3d.TransformGroup;
 import javax.vecmath.Point3f;
@@ -27,6 +26,7 @@ import nif.niobject.particle.NiPSysModifierCtlr;
 import nif.niobject.particle.NiParticleSystem;
 import tools3d.utils.PhysAppearance;
 import tools3d.utils.Utils3D;
+import tools3d.utils.scenegraph.Billboard2;
 import utils.PerTimeUpdateBehavior;
 import utils.source.TextureSource;
 
@@ -66,7 +66,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		// bill board to orient every quad to cameras proper like
 		billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 		billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-		Billboard billBehave = new Billboard(billTrans, Billboard.ROTATE_ABOUT_POINT, new Point3f(0, 0, 0));
+		Billboard2 billBehave = new Billboard2(billTrans, Billboard.ROTATE_ABOUT_POINT, new Point3f(0, 0, 0));
 		billBehave.setEnable(true);
 		billBehave.setSchedulingBounds(Utils3D.defaultBounds);
 		addChild(billBehave);
