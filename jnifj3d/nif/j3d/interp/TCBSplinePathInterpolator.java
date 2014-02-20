@@ -39,7 +39,7 @@ public abstract class TCBSplinePathInterpolator extends TransformInterpolator
 
 	public TCBSplinePathInterpolator(TransformGroup target, TCBKeyFrame keys[])
 	{
-		super(target);
+		super(target, 0, 1f);//normalized knots
 		processKeyFrames(keys);
 	}
 

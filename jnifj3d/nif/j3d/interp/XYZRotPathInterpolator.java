@@ -8,8 +8,6 @@ import javax.vecmath.Vector3d;
 public class XYZRotPathInterpolator extends TransformInterpolator
 {
 
-	
-
 	private Quat4f rot = new Quat4f();
 
 	float[] xKnots;
@@ -25,10 +23,10 @@ public class XYZRotPathInterpolator extends TransformInterpolator
 	float[] zRots;
 
 	public XYZRotPathInterpolator(TransformGroup target, float[] xKnots, float[] xRots, float[] yKnots, float[] yRots, float[] zKnots,
-			float[] zRots)
+			float[] zRots, float startTimeS, float lengthS)
 	{
 		//note dummy knots
-		super(target);
+		super(target, startTimeS, lengthS);
 
 		this.xKnots = xKnots;
 		this.xRots = xRots;
@@ -36,7 +34,7 @@ public class XYZRotPathInterpolator extends TransformInterpolator
 		this.yRots = yRots;
 		this.zKnots = zKnots;
 		this.zRots = zRots;
-		
+
 		fixed = isFixed();
 		if (fixed)
 		{

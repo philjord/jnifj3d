@@ -12,6 +12,7 @@ import tools3d.utils.Utils3D;
 import nif.j3d.NifTransformGroup;
 import nif.j3d.interp.Interpolated;
 
+ 
 public abstract class J3dNiInterpolator extends Group
 {
 	public static final int NIF_USHRT_MAX = 65535;

@@ -13,9 +13,9 @@ public class ScalePathInterpolator extends PathInterpolator
 	// Array of positions at each knot
 	private float[] scales;
 
-	public ScalePathInterpolator(TransformGroup target, float[] knots, float[] scales)
+	public ScalePathInterpolator(TransformGroup target, float[] knots, float[] scales, float startTimeS, float lengthS)
 	{
-		super(target, knots);
+		super(target, knots, startTimeS, lengthS);
 
 		if (knots.length != scales.length)
 			throw new IllegalArgumentException("knots.length != scales.length");

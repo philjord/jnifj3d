@@ -20,9 +20,9 @@ public abstract class PathInterpolator extends TransformInterpolator
 
 	protected int currentKnotIndex;
 
-	public PathInterpolator(TransformGroup target, float[] knots)
+	public PathInterpolator(TransformGroup target, float[] knots, float startTimeS, float lengthS)
 	{
-		super(target);
+		super(target, startTimeS, lengthS);
 		setKnots(knots);
 	}
 

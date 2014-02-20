@@ -1,6 +1,7 @@
 package nif.j3d.animation.interp;
 
 import java.util.ArrayList;
+import java.util.WeakHashMap;
 
 import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
@@ -30,6 +31,8 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 
 	private Point3f defaultScale = new Point3f(1, 1, 1);
 
+	private static WeakHashMap<NiBSplineCompTransformInterpolator, TCBKeyFrame[]> keysMap = new WeakHashMap<NiBSplineCompTransformInterpolator, TCBKeyFrame[]>();
+
 	public J3dNiBSplineCompTransformInterpolator(NiBSplineCompTransformInterpolator niBSplineCompTransformInterpolator,
 			NiToJ3dData niToJ3dData, NifTransformGroup targetTransform)
 	{
@@ -42,37 +45,43 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 			{
 				niBSplineBasisData = (NiBSplineBasisData) niToJ3dData.get(niBSplineCompTransformInterpolator.basisData);
 
-				setDefaultRotPosScale();
-
-				ArrayList<Quat4f> quats = getQuatRotateControlData();
-				ArrayList<Point3f> points = getTranslateControlData();
-				ArrayList<Point3f> scales = getScaleControlData();
-
-				int numberOfControlPoints = niBSplineBasisData.numControlPoints;
-				TCBKeyFrame[] keys = new TCBKeyFrame[numberOfControlPoints];
-				for (int i = 0; i < numberOfControlPoints; i++)
+				TCBKeyFrame[] keys = keysMap.get(nibs);//note key!
+				if (keys == null)
 				{
+					setDefaultRotPosScale();
 
-					/**
-					 * Creates a key frame using the given inputs. 
-					 *
-					 * @param k knot value for this key frame 
-					 * @param l the linear flag (0 - Spline Interp, 1, Linear Interp
-					 * @param pos the position at the key frame
-					 * @param q the rotations at the key frame
-					 * @param s the scales at the key frame
-					 * @param t tension (-1.0 < t < 1.0)
-					 * @param c continuity (-1.0 < c < 1.0)
-					 * @param b bias (-1.0 < b < 1.0)
-					 */
+					ArrayList<Quat4f> quats = getQuatRotateControlData();
+					ArrayList<Point3f> points = getTranslateControlData();
+					ArrayList<Point3f> scales = getScaleControlData();
 
-					float knot = (float) i / (float) (numberOfControlPoints - 1);
-					Point3f p = points == null ? defaultTrans : points.get(i);
-					Quat4f q = quats == null ? defaultRot : quats.get(i);
-					Point3f s = scales == null ? defaultScale : scales.get(i);
+					int numberOfControlPoints = niBSplineBasisData.numControlPoints;
+					keys = new TCBKeyFrame[numberOfControlPoints];
+					for (int i = 0; i < numberOfControlPoints; i++)
+					{
 
-					TCBKeyFrame key = new TCBKeyFrame(knot, 0, p, q, s, 0.0f, 0.0f, 0.0f);
-					keys[i] = key;
+						/**
+						 * Creates a key frame using the given inputs. 
+						 *
+						 * @param k knot value for this key frame 
+						 * @param l the linear flag (0 - Spline Interp, 1, Linear Interp
+						 * @param pos the position at the key frame
+						 * @param q the rotations at the key frame
+						 * @param s the scales at the key frame
+						 * @param t tension (-1.0 < t < 1.0)
+						 * @param c continuity (-1.0 < c < 1.0)
+						 * @param b bias (-1.0 < b < 1.0)
+						 */
+
+						float knot = (float) i / (float) (numberOfControlPoints - 1);
+						Point3f p = points == null ? defaultTrans : points.get(i);
+						Quat4f q = quats == null ? defaultRot : quats.get(i);
+						Point3f s = scales == null ? defaultScale : scales.get(i);
+
+						TCBKeyFrame key = new TCBKeyFrame(knot, 0, p, q, s, 0.0f, 0.0f, 0.0f);
+						keys[i] = key;
+					}
+
+					keysMap.put(nibs, keys);
 				}
 
 				RotPosScaleTCBSplinePathInterpolator tCBSplinePathInterpolator = new RotPosScaleTCBSplinePathInterpolator(

@@ -16,9 +16,9 @@ public class PositionPathInterpolator extends PathInterpolator
 	// Array of positions at each knot
 	private Point3f positions[];
 
-	public PositionPathInterpolator(TransformGroup target, float[] knots, Point3f[] positions)
+	public PositionPathInterpolator(TransformGroup target, float[] knots, Point3f[] positions, float startTimeS, float lengthS)
 	{
-		super(target, knots);
+		super(target, knots, startTimeS, lengthS);
 
 		if (knots.length != positions.length)
 			throw new IllegalArgumentException("knots.length != positions.length");
@@ -30,7 +30,7 @@ public class PositionPathInterpolator extends PathInterpolator
 			pos.y = positions[0].y;
 			pos.z = positions[0].z;
 		}
-	}
+	}	
 
 	private boolean isFixed()
 	{

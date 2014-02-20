@@ -56,7 +56,7 @@ public class ConvertFromNif
 	}
 
 	private static Point3f createScaledPoint(float x, float y, float z)
-	{
+	{		
 		return new Point3f(x * ESConfig.ES_TO_METERS_SCALE, //
 				z * ESConfig.ES_TO_METERS_SCALE, //
 				-y * ESConfig.ES_TO_METERS_SCALE);

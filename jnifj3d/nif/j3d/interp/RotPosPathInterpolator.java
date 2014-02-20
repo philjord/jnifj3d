@@ -26,7 +26,7 @@ public class RotPosPathInterpolator extends PathInterpolator
 
 	public RotPosPathInterpolator(TransformGroup target, float[] knots, Quat4f[] quats, Point3f[] positions)
 	{
-		super(target, knots);
+		super(target, knots, 0, 1f);//normailized knots
 
 		if (knots.length != positions.length)
 			throw new IllegalArgumentException(J3dI18N.getString("RotPosPathInterpolator0"));
@@ -47,7 +47,7 @@ public class RotPosPathInterpolator extends PathInterpolator
 			pos.z = positions[0].z;
 		}
 	}
-
+	
 	private boolean isFixed()
 	{
 		//check for a fixed value

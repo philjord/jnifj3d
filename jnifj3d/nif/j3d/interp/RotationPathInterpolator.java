@@ -15,9 +15,9 @@ public class RotationPathInterpolator extends PathInterpolator
 	// Array of quaternions at each knot
 	private Quat4f quats[];
 
-	public RotationPathInterpolator(TransformGroup target, float[] knots, Quat4f[] quats)
+	public RotationPathInterpolator(TransformGroup target, float[] knots, Quat4f[] quats, float startTimeS, float lengthS)
 	{
-		super(target, knots);
+		super(target, knots, startTimeS, lengthS);
 
 		if (knots.length != quats.length)
 			throw new IllegalArgumentException("knots.length != quats.length");

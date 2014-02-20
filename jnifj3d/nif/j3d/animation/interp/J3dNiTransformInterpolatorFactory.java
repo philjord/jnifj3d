@@ -12,8 +12,8 @@ import nif.niobject.interpolator.NiTransformInterpolator;
 public class J3dNiTransformInterpolatorFactory
 {
 
-	public static J3dNiInterpolator createTransformInterpolator(NiInterpolator niInterpolator, NiToJ3dData niToJ3dData, J3dNiAVObject nodeTarget,
-			float startTimeS, float stopTimeS)
+	public static J3dNiInterpolator createTransformInterpolator(NiInterpolator niInterpolator, NiToJ3dData niToJ3dData,
+			J3dNiAVObject nodeTarget, float startTimeS, float stopTimeS)
 	{
 
 		float lengthS = stopTimeS - startTimeS;
@@ -25,11 +25,13 @@ public class J3dNiTransformInterpolatorFactory
 		}
 		else if (niInterpolator instanceof NiTransformInterpolator)
 		{
-			return new J3dNiTransformInterpolator((NiTransformInterpolator) niInterpolator, niToJ3dData, targetTransform, startTimeS, lengthS);
+			return new J3dNiTransformInterpolator((NiTransformInterpolator) niInterpolator, niToJ3dData, targetTransform, startTimeS,
+					lengthS);
 		}
 		else if (niInterpolator instanceof NiBSplineCompTransformInterpolator)
 		{
-			return new J3dNiBSplineCompTransformInterpolator((NiBSplineCompTransformInterpolator) niInterpolator, niToJ3dData, targetTransform);
+			return new J3dNiBSplineCompTransformInterpolator((NiBSplineCompTransformInterpolator) niInterpolator, niToJ3dData,
+					targetTransform);
 		}
 		else if (niInterpolator instanceof NiLookAtInterpolator)
 		{
