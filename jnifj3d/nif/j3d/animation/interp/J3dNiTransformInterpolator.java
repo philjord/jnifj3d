@@ -29,9 +29,7 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 	private XYZRotPathInterpolator xYZRotPathInterpolator;
 
 	private RotationPathInterpolator quatRotInterpolator;
-
-	//TODO: so I want to share interp data and not create masses
-	// some sort of wek hasmap from niTransformInterp to data?
+ 
 
 	public J3dNiTransformInterpolator(NiTransformInterpolator niTransformInterp, NiToJ3dData niToJ3dData,
 			NifTransformGroup targetTransform, float startTimeS, float lengthS)

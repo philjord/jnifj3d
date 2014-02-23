@@ -107,7 +107,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 	}
 
 	/**
-	 * note a non null customShape will ahve it's name set and be refed by the getShape but will not be added as a child
+	 * note a non null customShape will have it's name set and be refed by the getShape but will not be added as a child
 	 * @param niGeometry
 	 * @param blocks
 	 * @param niToJ3dData
@@ -122,6 +122,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		if (customShape == null)
 		{
 			shape = new Shape3D();
+			
 			addChild(shape);
 		}
 		else

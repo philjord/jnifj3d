@@ -53,7 +53,6 @@ public class BlendedSkeletons extends Group
 
 		for (String boneName : outputSkeleton.getAllBonesInSkeleton().keySet())
 		{
-			// get out 3 transfrom groups
 			J3dNiAVObject outputBone = outputSkeleton.getAllBonesInSkeleton().get(boneName);
 			NifTransformGroup output = outputBone.getTransformGroup();
 
@@ -80,23 +79,41 @@ public class BlendedSkeletons extends Group
 
 		for (String boneName : outputSkeleton.getAllBonesInSkeleton().keySet())
 		{
-			// get out 3 transfrom groups			
-			J3dNiAVObject prevBone = prevSkeleton.getAllBonesInSkeleton().get(boneName);
-			NifTransformGroup prev = prevBone.getTransformGroup();
-
-			J3dNiAVObject inputBone = inputSkeleton.getAllBonesInSkeleton().get(boneName);
-			NifTransformGroup input = inputBone.getTransformGroup();
-
 			J3dNiAVObject outputBone = outputSkeleton.getAllBonesInSkeleton().get(boneName);
 			NifTransformGroup output = outputBone.getTransformGroup();
 
-			// combine prev and input for second transform3d
-			prev.getTransform(prevT);
-			input.getTransform(inputT);
-			
-			computeTransform(alphaValue, prevT, inputT, outputT);
+			if (alphaValue == 0f)
+			{
+				J3dNiAVObject prevBone = prevSkeleton.getAllBonesInSkeleton().get(boneName);
+				NifTransformGroup prev = prevBone.getTransformGroup();
+				prev.getTransform(prevT);
+				output.setTransform(prevT);
+			}
+			else if (alphaValue == 1f)
+			{
+				J3dNiAVObject inputBone = inputSkeleton.getAllBonesInSkeleton().get(boneName);
+				NifTransformGroup input = inputBone.getTransformGroup();
+				input.getTransform(inputT);
+				output.setTransform(inputT);
+				
+			}
+			else
+			{ 
+				// get out 3 transfrom groups			
+				J3dNiAVObject prevBone = prevSkeleton.getAllBonesInSkeleton().get(boneName);
+				NifTransformGroup prev = prevBone.getTransformGroup();
 
-			output.setTransform(outputT);
+				J3dNiAVObject inputBone = inputSkeleton.getAllBonesInSkeleton().get(boneName);
+				NifTransformGroup input = inputBone.getTransformGroup();
+
+				// combine prev and input for second transform3d
+				prev.getTransform(prevT);
+				input.getTransform(inputT);
+
+				computeTransform(alphaValue, prevT, inputT, outputT);
+
+				output.setTransform(outputT);
+			}
 		}
 	}
 
@@ -134,51 +151,39 @@ public class BlendedSkeletons extends Group
 
 	private Quat4f tQuat = new Quat4f();
 
+	/**
+	 * Note do not call with alpha == 0 or alpha ==1!
+	 * @param alphaValue
+	 * @param quat0
+	 * @param quat1
+	 * @param pos0
+	 * @param pos1
+	 * @param out
+	 * @return
+	 */
 	private Matrix4d computeTransform(float alphaValue, Quat4f quat0, Quat4f quat1, Vector3f pos0, Vector3f pos1, Matrix4d out)
 	{
 		double quatDot;
 
-		if (alphaValue == 0f)
+		quatDot = quat0.x * quat1.x + quat0.y * quat1.y + quat0.z * quat1.z + quat0.w * quat1.w;
+		if (quatDot < 0)
 		{
-			tQuat.x = quat0.x;
-			tQuat.y = quat0.y;
-			tQuat.z = quat0.z;
-			tQuat.w = quat0.w;
-			tPos.x = pos0.x;
-			tPos.y = pos0.y;
-			tPos.z = pos0.z;
-		}
-		else if (alphaValue == 1f)
-		{
-			tQuat.x = quat1.x;
-			tQuat.y = quat1.y;
-			tQuat.z = quat1.z;
-			tQuat.w = quat1.w;
-			tPos.x = pos1.x;
-			tPos.y = pos1.y;
-			tPos.z = pos1.z;
+			tQuat.x = quat0.x + (-quat1.x - quat0.x) * alphaValue;
+			tQuat.y = quat0.y + (-quat1.y - quat0.y) * alphaValue;
+			tQuat.z = quat0.z + (-quat1.z - quat0.z) * alphaValue;
+			tQuat.w = quat0.w + (-quat1.w - quat0.w) * alphaValue;
 		}
 		else
 		{
-			quatDot = quat0.x * quat1.x + quat0.y * quat1.y + quat0.z * quat1.z + quat0.w * quat1.w;
-			if (quatDot < 0)
-			{
-				tQuat.x = quat0.x + (-quat1.x - quat0.x) * alphaValue;
-				tQuat.y = quat0.y + (-quat1.y - quat0.y) * alphaValue;
-				tQuat.z = quat0.z + (-quat1.z - quat0.z) * alphaValue;
-				tQuat.w = quat0.w + (-quat1.w - quat0.w) * alphaValue;
-			}
-			else
-			{
-				tQuat.x = quat0.x + (quat1.x - quat0.x) * alphaValue;
-				tQuat.y = quat0.y + (quat1.y - quat0.y) * alphaValue;
-				tQuat.z = quat0.z + (quat1.z - quat0.z) * alphaValue;
-				tQuat.w = quat0.w + (quat1.w - quat0.w) * alphaValue;
-			}
-			tPos.x = pos0.x + (pos1.x - pos0.x) * alphaValue;
-			tPos.y = pos0.y + (pos1.y - pos0.y) * alphaValue;
-			tPos.z = pos0.z + (pos1.z - pos0.z) * alphaValue;
+			tQuat.x = quat0.x + (quat1.x - quat0.x) * alphaValue;
+			tQuat.y = quat0.y + (quat1.y - quat0.y) * alphaValue;
+			tQuat.z = quat0.z + (quat1.z - quat0.z) * alphaValue;
+			tQuat.w = quat0.w + (quat1.w - quat0.w) * alphaValue;
 		}
+		tPos.x = pos0.x + (pos1.x - pos0.x) * alphaValue;
+		tPos.y = pos0.y + (pos1.y - pos0.y) * alphaValue;
+		tPos.z = pos0.z + (pos1.z - pos0.z) * alphaValue;
+
 		tQuat.normalize();
 
 		// Set the rotation components (and zero pos)

@@ -3,11 +3,13 @@ package nif.j3d;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.Geometry;
 import javax.media.j3d.GeometryArray;
 import javax.media.j3d.GeometryUpdater;
 import javax.media.j3d.Group;
 import javax.media.j3d.Transform3D;
+import javax.vecmath.Point3d;
 
 import nif.compound.NifSkinPartition;
 
@@ -40,6 +42,10 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 		this.skeletonNonAccumRoot = skeletonNonAccumRoot;
 		//this.skinBonesInOrder = skinBonesInOrder;
 		//this.skeletonBones = skeletonBones;
+
+		//TODO: is this a good idea? thread show blocked on update bounds
+		j3dNiTriShape.getShape().setBoundsAutoCompute(false);
+		j3dNiTriShape.getShape().setBounds(new BoundingSphere(new Point3d(0, 0, 0), 10));
 
 		j3dNiTriShape.getTreeTransform(shapeVWTrans, skinSkeletonRoot);
 		shapeVWInvTrans.set(shapeVWTrans);
@@ -92,7 +98,6 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 	@Override
 	public void updateData(Geometry geometry)
 	{
-
 		double[][] accTransMats = new double[nifSkinPartition.bones.length][16];
 
 		// pre multiply transforms for repeated use for each vertex

@@ -6,11 +6,13 @@ import java.util.Comparator;
 import java.util.HashMap;
 
 import javax.media.j3d.Billboard;
+import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.BranchGroup;
 import javax.media.j3d.Geometry;
 import javax.media.j3d.GeometryUpdater;
 import javax.media.j3d.Shape3D;
 import javax.media.j3d.TransformGroup;
+import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
 
 import nif.basic.NifRef;
@@ -86,6 +88,11 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 			addChild(billTrans);
 		}
 
+		
+		//TODO: is this a good idea? thread show blocked on update bounds
+		getShape().setBoundsAutoCompute(false);
+		getShape().setBounds(new BoundingSphere(new Point3d(0, 0, 0), 10));
+		
 		//for debug
 		if (SHOW_DEBUG_LINES)
 		{
