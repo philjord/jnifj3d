@@ -26,6 +26,8 @@ public abstract class TransformInterpolator implements Interpolated
 
 	private Transform3D targetTransform = new Transform3D();
 
+	private Transform3D prevTargetTransform = new Transform3D();
+
 	// We can't use a boolean flag since it is possible 
 	// that after alpha change, this procedure only run
 	// once at alpha.finish(). So the best way is to
@@ -49,17 +51,21 @@ public abstract class TransformInterpolator implements Interpolated
 		// convert to an offsetted time in seconds
 		alphaValue *= lengthS;
 		alphaValue += startTimeS;
-		
+
 		if (alphaValue != prevAlphaValue)
 		{
 			computeTransform(alphaValue);
 
 			target.getTransform(targetTransform);
 			applyTransform(targetTransform);
-			target.setTransform(targetTransform);
+			//only set on a change
+			if (!targetTransform.equals(prevTargetTransform))
+			{				
+				target.setTransform(targetTransform);
+				prevTargetTransform.set(targetTransform);
+			}
 
 			prevAlphaValue = alphaValue;
 		}
 	}
-
 }

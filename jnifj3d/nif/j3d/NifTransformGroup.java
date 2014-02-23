@@ -19,14 +19,26 @@ public class NifTransformGroup extends TransformGroup
 		}
 	}
 
-	private Transform3D temp1;
+	// this is turned on if transformMul is called at all ( from the getTreeTransformImpl)
+	private Transform3D transformCache;
+
+	public void setTransform(Transform3D t1)
+	{
+		if (transformCache != null)
+			transformCache.set(t1);
+
+		super.setTransform(t1);
+	}
 
 	public void transformMul(Transform3D t)
 	{
-		if (temp1 == null)
-			temp1 = new Transform3D();
-		this.getTransform(temp1);
-		t.mul(temp1);
+		if (transformCache == null)
+		{
+			transformCache = new Transform3D();
+			this.getTransform(transformCache);
+		}
+
+		t.mul(transformCache);
 	}
 
 	private Transform3D temp2;

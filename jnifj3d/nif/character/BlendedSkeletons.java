@@ -73,6 +73,8 @@ public class BlendedSkeletons extends Group
 
 	private Transform3D outputT = new Transform3D();
 
+	private Transform3D prevOutputT = new Transform3D();
+
 	public void updateOutputBones()
 	{
 		float alphaValue = currentAlpha.value();
@@ -87,18 +89,17 @@ public class BlendedSkeletons extends Group
 				J3dNiAVObject prevBone = prevSkeleton.getAllBonesInSkeleton().get(boneName);
 				NifTransformGroup prev = prevBone.getTransformGroup();
 				prev.getTransform(prevT);
-				output.setTransform(prevT);
+				outputT.set(prevT);
 			}
 			else if (alphaValue == 1f)
 			{
 				J3dNiAVObject inputBone = inputSkeleton.getAllBonesInSkeleton().get(boneName);
 				NifTransformGroup input = inputBone.getTransformGroup();
 				input.getTransform(inputT);
-				output.setTransform(inputT);
-				
+				outputT.set(inputT);
 			}
 			else
-			{ 
+			{
 				// get out 3 transfrom groups			
 				J3dNiAVObject prevBone = prevSkeleton.getAllBonesInSkeleton().get(boneName);
 				NifTransformGroup prev = prevBone.getTransformGroup();
@@ -112,7 +113,12 @@ public class BlendedSkeletons extends Group
 
 				computeTransform(alphaValue, prevT, inputT, outputT);
 
+			}
+			//only set on a change
+			if (!outputT.equals(prevOutputT))
+			{
 				output.setTransform(outputT);
+				prevOutputT.set(outputT);
 			}
 		}
 	}
