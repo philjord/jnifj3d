@@ -5,6 +5,8 @@ import javax.media.j3d.TransformGroup;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3d;
 
+import tools3d.utils.Utils3D;
+
 public class XYZRotPathInterpolator extends TransformInterpolator
 {
 
@@ -39,7 +41,7 @@ public class XYZRotPathInterpolator extends TransformInterpolator
 		if (fixed)
 		{
 			temp.setEuler(new Vector3d(xRots[0], yRots[0], zRots[0]));
-			temp.get(rot);
+			Utils3D.safeGetQuat(temp, rot);
 		}
 	}
 
@@ -163,7 +165,7 @@ public class XYZRotPathInterpolator extends TransformInterpolator
 			}
 
 			temp.setEuler(new Vector3d(xRot, yRot, zRot));
-			temp.get(rot);
+			Utils3D.safeGetQuat(temp, rot);
 		}
 	}
 

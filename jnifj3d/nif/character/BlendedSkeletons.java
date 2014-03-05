@@ -9,7 +9,7 @@ import javax.vecmath.Vector3f;
 
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.NifTransformGroup;
-import utils.convert.NifRotToJava3DRot;
+import tools3d.utils.Utils3D;
 import utils.source.MeshSource;
 
 public class BlendedSkeletons extends Group
@@ -143,9 +143,9 @@ public class BlendedSkeletons extends Group
 	{
 		t0.normalizeCP();
 		t1.normalizeCP();
-		NifRotToJava3DRot.safeGetQuat(t0, tempQuat0);
+		Utils3D.safeGetQuat(t0, tempQuat0);
 		t0.get(tempPos0);
-		NifRotToJava3DRot.safeGetQuat(t1, tempQuat1);
+		Utils3D.safeGetQuat(t1, tempQuat1);
 		t1.get(tempPos1);
 
 		out.set(computeTransform(alphaValue, tempQuat0, tempQuat1, tempPos0, tempPos1, tempMat));

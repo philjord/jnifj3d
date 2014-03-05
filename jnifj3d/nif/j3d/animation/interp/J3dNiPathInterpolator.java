@@ -16,6 +16,7 @@ import nif.j3d.NifTransformGroup;
 import nif.j3d.interp.RotPosPathInterpolator;
 import nif.niobject.NiPosData;
 import nif.niobject.interpolator.NiPathInterpolator;
+import tools3d.utils.Utils3D;
 import utils.convert.ConvertFromNif;
 
 public class J3dNiPathInterpolator extends J3dNiInterpolator
@@ -48,7 +49,7 @@ public class J3dNiPathInterpolator extends J3dNiInterpolator
 						tempTrans.lookAt(new Point3d(0, 0, 0), ConvertFromNif.toJ3dP3d((NifVector3) key.forward), new Vector3d(0, 0, 1));
 
 						quats[i] = new Quat4f();
-						tempTrans.get(quats[i]);
+						Utils3D.safeGetQuat(tempTrans, quats[i]);
 					}
 					data = new PathData(knots, positions, quats);
 					pathDataMap.put(posData, data);
