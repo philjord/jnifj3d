@@ -28,15 +28,11 @@ import nif.niobject.NiStringExtraData;
 import tools3d.utils.Utils3D;
 import tools3d.utils.scenegraph.EasyTransformGroup;
 import tools3d.utils.scenegraph.VaryingLODBehaviour;
-import utils.source.MeshSource;
-import utils.source.SoundSource;
-import utils.source.TextureSource;
+import utils.source.MediaSources;
 
 public class NifCharacter extends BranchGroup
 {
-	private MeshSource meshSource;
-
-	private SoundSource soundSource;
+	private MediaSources mediaSources;
 
 	private ArrayList<J3dNiSkinInstance> allSkins = new ArrayList<J3dNiSkinInstance>();
 
@@ -56,12 +52,11 @@ public class NifCharacter extends BranchGroup
 
 	private NifCharUpdateBehavior updateBehavior;
 
-	public NifCharacter(String skeletonNifFilename, List<String> skinNifModelFilenames, MeshSource meshSource, TextureSource textureSource,
-			SoundSource soundSource, List<String> idleAnimations)
+	public NifCharacter(String skeletonNifFilename, List<String> skinNifModelFilenames, MediaSources mediaSources,
+			List<String> idleAnimations)
 	{
+		this.mediaSources = mediaSources;
 
-		this.meshSource = meshSource;
-		this.soundSource = soundSource;
 		this.idleAnimations = idleAnimations;
 
 		this.setCapability(Group.ALLOW_CHILDREN_WRITE);
@@ -75,7 +70,7 @@ public class NifCharacter extends BranchGroup
 		addChild(updateBehavior);
 		updateBehavior.setEnable(true);
 
-		blendedSkeletons = new BlendedSkeletons(skeletonNifFilename, meshSource);
+		blendedSkeletons = new BlendedSkeletons(skeletonNifFilename, mediaSources.getMeshSource());
 
 		// for bone blending updates
 		bg.addChild(blendedSkeletons);
@@ -84,7 +79,8 @@ public class NifCharacter extends BranchGroup
 		{
 			if (skinNifModelFilename != null && skinNifModelFilename.length() > 0)
 			{
-				NifJ3dVisRoot model = NifToJ3d.loadShapes(skinNifModelFilename, meshSource, textureSource);
+				NifJ3dVisRoot model = NifToJ3d.loadShapes(skinNifModelFilename, mediaSources.getMeshSource(),
+						mediaSources.getTextureSource());
 
 				// create skins from the skeleton and skin nif
 				ArrayList<J3dNiSkinInstance> skins = J3dNiSkinInstance.createSkins(model.getNiToJ3dData(),
@@ -177,7 +173,7 @@ public class NifCharacter extends BranchGroup
 
 			if (kfJ3dRoot == null)
 			{
-				kfJ3dRoot = NifToJ3d.loadKf(currentAnimation, meshSource);
+				kfJ3dRoot = NifToJ3d.loadKf(currentAnimation, mediaSources.getMeshSource());
 				if (kfJ3dRoot != null)
 				{
 					// just default to a 0.3 second blend?
@@ -281,7 +277,7 @@ public class NifCharacter extends BranchGroup
 	protected void addObjectSound(PointSound sound, String soundKey, float edge)
 	{
 		//Create the media container to load the sound
-		MediaContainer soundContainer = soundSource.getMediaContainer(soundKey);
+		MediaContainer soundContainer = mediaSources.getSoundSource().getMediaContainer(soundKey);
 		//Use the loaded data in the sound
 		sound.setSoundData(soundContainer);
 		sound.setInitialGain(1.0f);

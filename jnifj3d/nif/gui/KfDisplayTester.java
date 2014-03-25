@@ -33,6 +33,7 @@ import nif.character.NifCharacter;
 import nif.character.NifJ3dSkeletonRoot;
 import tools.swing.DetailsFileChooser;
 import tools.swing.TitledJFileChooser;
+import utils.source.MediaSources;
 import utils.source.file.FileMeshSource;
 import utils.source.file.FileSoundSource;
 import utils.source.file.FileTextureSource;
@@ -51,7 +52,7 @@ public class KfDisplayTester
 	public static KfDisplayTester nifDisplay;
 
 	public static void main(String[] args)
-	{		
+	{
 		prefs = Preferences.userNodeForPackage(KfDisplayTester.class);
 
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -155,8 +156,8 @@ public class KfDisplayTester
 		ArrayList<String> idleAnimations = new ArrayList<String>();
 		idleAnimations.add(kff.getAbsolutePath());
 
-		NifCharacter nifCharacter = new NifCharacter(skeletonNifFile, skinNifFiles, new FileMeshSource(), new FileTextureSource(),
-				new FileSoundSource(), idleAnimations);
+		MediaSources mediaSources = new MediaSources(new FileMeshSource(), new FileTextureSource(), new FileSoundSource());
+		NifCharacter nifCharacter = new NifCharacter(skeletonNifFile, skinNifFiles, mediaSources, idleAnimations);
 
 		// now add the root to the scene so the controller sequence is live
 		bg.addChild(nifCharacter);
