@@ -1,7 +1,7 @@
 package nif.j3d;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.Geometry;
@@ -17,10 +17,6 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 {
 	private NifSkinPartition nifSkinPartition;
 
-	private J3dNiAVObject skeletonNonAccumRoot;
-
-	//private ArrayList<J3dNiNode> skinBonesInOrder;
-	//private HashMap<String, J3dNiNode> skeletonBones;
 	private J3dNiNode[] skeletonBonesInSkinBoneIdOrder;//prelookups
 
 	private GeometryArray baseIndexedGeometryArray;
@@ -36,12 +32,9 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 	private Transform3D[] accumulatedTransByBonesIndex;
 
 	public J3dNifSkinPartition(NifSkinPartition nifSkinPartition, J3dNiTriShape j3dNiTriShape, J3dNiAVObject skinSkeletonRoot,
-			J3dNiAVObject skeletonNonAccumRoot, ArrayList<J3dNiNode> skinBonesInOrder, HashMap<String, J3dNiNode> skeletonBones)
+			ArrayList<J3dNiNode> skinBonesInOrder, LinkedHashMap<String, J3dNiNode> skeletonBones)
 	{
 		this.nifSkinPartition = nifSkinPartition;
-		this.skeletonNonAccumRoot = skeletonNonAccumRoot;
-		//this.skinBonesInOrder = skinBonesInOrder;
-		//this.skeletonBones = skeletonBones;
 
 		//TODO: is this a good idea? thread show blocked on update bounds
 		j3dNiTriShape.getShape().setBoundsAutoCompute(false);
@@ -105,11 +98,14 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 		{
 			int spBoneId = nifSkinPartition.bones[spBoneIndex];
 
-			J3dNiNode skeletonBone = skeletonBonesInSkinBoneIdOrder[spBoneId];
+			J3dNiNode bone = skeletonBonesInSkinBoneIdOrder[spBoneId];
+
 			//mismatched kf and skin?
-			if (skeletonBone == null)
+			if (bone == null)
 				return;
-			skeletonBone.getTreeTransform(skeletonBoneVWTrans, skeletonNonAccumRoot);
+
+			// this accumed has been just updated in the bone update behavior
+			skeletonBoneVWTrans.set(bone.boneCurrentAccumedTrans);
 
 			Transform3D skinBoneVWInvTrans = skinBonesVWInvTransInOrder[spBoneId];
 

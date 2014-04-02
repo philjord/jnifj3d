@@ -4,7 +4,6 @@ import java.util.Enumeration;
 
 import javax.media.j3d.Node;
 import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
 
 import nif.niobject.NiAVObject;
 import nif.niobject.bs.BSFadeNode;
@@ -271,8 +270,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 	}
 
 	/**
-	 * I wish I had recorded how this works :( I think it need the root of the model (or the non accum node for preference)
-	 * I think it stops when it meets the root object
+	 * It stops multipling when it meets the root object
 	 * @param t
 	 * @param rootJ3dNiAVObject
 	 */
@@ -287,20 +285,31 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 
 	//NOTE not for the use of ANYTHING but the getTreeTransform rollup system!!!!
 	// It can point to madness very easily!
-	private J3dNiAVObject topOfParent;
+	public J3dNiAVObject topOfParent;
 
 	private void getTreeTransformImpl(Transform3D t, J3dNiAVObject rootJ3dNiAVObject)
 	{
 		if (this != rootJ3dNiAVObject)
 		{
-			if (this.getParent() instanceof J3dNiAVObject)
+			if (this.topOfParent != null)
 			{
-				((J3dNiAVObject) getParent()).getTreeTransformImpl(t, rootJ3dNiAVObject);
-			}
-			else if (this.getParent() instanceof TransformGroup && this.topOfParent != null)
-			{
-				// in this case our parent is the bootom of the nif group and so we call the topofparent pointer				
+				// in this case our parent is the bottom of the nif group and so we call the topofparent pointer				
 				this.topOfParent.getTreeTransformImpl(t, rootJ3dNiAVObject);
+			}
+			else
+			{
+				// getParent is an expensive call (mad?) so avoid repeats.
+				Object parent = this.getParent();
+				if (parent instanceof J3dNiAVObject)
+				{
+					((J3dNiAVObject) parent).getTreeTransformImpl(t, rootJ3dNiAVObject);
+				}
+				//moved to the above spot but needs testing
+				/*else if (parent instanceof TransformGroup && this.topOfParent != null)
+				{
+					// in this case our parent is the bottom of the nif group and so we call the topofparent pointer				
+					this.topOfParent.getTreeTransformImpl(t, rootJ3dNiAVObject);
+				}*/
 			}
 		}
 

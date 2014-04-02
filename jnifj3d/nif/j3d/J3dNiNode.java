@@ -2,6 +2,8 @@ package nif.j3d;
 
 import java.util.ArrayList;
 
+import javax.media.j3d.Transform3D;
+
 import nif.NifToJ3d;
 import nif.j3d.particles.J3dNiParticleSystem;
 import nif.niobject.NiAVObject;
@@ -31,6 +33,9 @@ import utils.source.TextureSource;
 
 public class J3dNiNode extends J3dNiAVObject implements Fadable
 {
+	//NOTE do not use for bones only, sorry 
+	public Transform3D boneCurrentAccumedTrans;
+
 	private ArrayList<Fadable> j3dNiNodes = new ArrayList<Fadable>();
 
 	protected J3dNiNode(NiNode niNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes)

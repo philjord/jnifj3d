@@ -35,7 +35,6 @@ public class J3dNiSkinInstance extends Group
 	{
 
 		J3dNiDefaultAVObjectPalette allSkeletonBones = nifJ3dSkeletonRoot.getAllBonesInSkeleton();
-		J3dNiAVObject skeletonNonAccumRoot = nifJ3dSkeletonRoot.getNonAccumRoot();
 
 		if (j3dNiTriShape.getParent() != null)
 		{
@@ -70,8 +69,8 @@ public class J3dNiSkinInstance extends Group
 
 			for (NifSkinPartition nifSkinPartition : niSkinPartition.skinPartitionBlocks)
 			{
-				j3dNifPartitions.add(new J3dNifSkinPartition(nifSkinPartition, j3dNiTriShape, skinSkeletonRoot, skeletonNonAccumRoot,
-						skinBonesInOrder, skeletonBones));
+				j3dNifPartitions.add(new J3dNifSkinPartition(nifSkinPartition, j3dNiTriShape, skinSkeletonRoot, skinBonesInOrder,
+						skeletonBones));
 			}
 		}
 
