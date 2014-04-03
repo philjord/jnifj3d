@@ -105,7 +105,7 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 				return;
 
 			// this accumed has been just updated in the bone update behavior
-			skeletonBoneVWTrans.set(bone.boneCurrentAccumedTrans);
+			skeletonBoneVWTrans.set(bone.getBoneCurrentAccumedTrans());
 
 			Transform3D skinBoneVWInvTrans = skinBonesVWInvTransInOrder[spBoneId];
 

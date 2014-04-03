@@ -33,8 +33,6 @@ import utils.source.TextureSource;
 
 public class J3dNiNode extends J3dNiAVObject implements Fadable
 {
-	//NOTE do not use for bones only, sorry 
-	public Transform3D boneCurrentAccumedTrans;
 
 	private ArrayList<Fadable> j3dNiNodes = new ArrayList<Fadable>();
 
@@ -211,6 +209,23 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 			if (f != null)
 				f.fade(percent);
 		}
+	}
+
+	//NOTE do not use, for bones only, sorry 
+	private Transform3D boneCurrentAccumedTrans;
+
+	/** 
+	 * do not use, for bones only, sorry
+	 * @return
+	 */
+	public Transform3D getBoneCurrentAccumedTrans()
+	{
+		if (boneCurrentAccumedTrans == null)
+		{
+			boneCurrentAccumedTrans = new Transform3D();
+			boneCurrentAccumedTrans.setIdentity();
+		}
+		return boneCurrentAccumedTrans;
 	}
 
 }

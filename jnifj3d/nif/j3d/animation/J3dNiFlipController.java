@@ -20,6 +20,7 @@ public class J3dNiFlipController extends J3dNiTimeController
 	public J3dNiFlipController(NiFlipController controller, J3dNiAVObject nodeTarget, NiToJ3dData niToJ3dData, TextureSource textureSource)
 	{
 		super(controller);
+		app = ((J3dNiGeometry) nodeTarget).getShape().getAppearance();
 		if (app.getTextureUnitCount() > 0)
 		{
 			textures = new Texture[controller.numSources];
@@ -29,9 +30,11 @@ public class J3dNiFlipController extends J3dNiTimeController
 				String texName = ((NiSourceTexture) niToJ3dData.get(controller.sources[t])).fileName.string;
 				textures[t] = loadTexture(texName, textureSource);
 			}
-
-			app = ((J3dNiGeometry) nodeTarget).getShape().getAppearance();
 			app.getTextureUnitState(0).setCapability(TextureUnitState.ALLOW_STATE_WRITE);
+		}
+		else
+		{
+			app.setCapability(Appearance.ALLOW_TEXTURE_WRITE);
 		}
 	}
 
@@ -62,9 +65,13 @@ public class J3dNiFlipController extends J3dNiTimeController
 			System.out.println("textures.length " + textures.length);
 		}*/
 		//I think the floats in the interp are in the correct range, the above was possibly me being keen 
+		int idx = (int) Math.floor(value);
 		if (app.getTextureUnitCount() > 0)
+		{			
+			app.getTextureUnitState(0).setTexture(textures[idx]);
+		}
+		else
 		{
-			int idx = (int) Math.floor(value);
 			app.setTexture(textures[idx]);
 		}
 	}

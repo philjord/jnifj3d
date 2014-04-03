@@ -126,11 +126,8 @@ public class BlendedSkeletons extends Group
 		// set each to zero to indicate not calced yet
 		for (String boneName : outputSkeleton.getAllBonesInSkeleton().keySet())
 		{
-			J3dNiNode outputBone = (J3dNiNode) outputSkeleton.getAllBonesInSkeleton().get(boneName);// wild cast
-			//lazy init
-			if (outputBone.boneCurrentAccumedTrans == null)
-				outputBone.boneCurrentAccumedTrans = new Transform3D();
-			outputBone.boneCurrentAccumedTrans.setZero();//mark as not yet worked out
+			J3dNiNode outputBone = (J3dNiNode) outputSkeleton.getAllBonesInSkeleton().get(boneName);// wild cast			
+			outputBone.getBoneCurrentAccumedTrans().setZero();//mark as not yet worked out
 		}
 
 		// store a accumed boneyTransform into each bone 
@@ -143,47 +140,45 @@ public class BlendedSkeletons extends Group
 	}
 
 	/**
-	 * call that will calc all unclaced parents and cache results
-	 * actual result will be in bonesTransByBonesIndex[spBoneId]
+	 * call that will calc all unclaced parents and cache results in the J3dNiNode
+	 * If the nonAccumRoot is not found it just goes up to the first non nij3dnode
 	 * @param nonAccumRoot 
 	 * @param spBoneId 
 	 */
 	private void calcBoneVWTrans(J3dNiNode skeletonBone, J3dNiAVObject nonAccumRoot)
 	{
 		//stop at accum root too
-		if (skeletonBone.topOfParent != null && skeletonBone.topOfParent != nonAccumRoot && skeletonBone.topOfParent instanceof J3dNiNode)
+		if (skeletonBone.topOfParent != null && skeletonBone.topOfParent instanceof J3dNiNode)
 		{
 			J3dNiNode parentSkeletonBone = (J3dNiNode) skeletonBone.topOfParent;
 
-			// nodes that are not bones will have null boneAccums (e.g. the j3dfadenode root thing)
-			if (parentSkeletonBone.boneCurrentAccumedTrans != null)
+			// non accum root ALWAYS ignores parent
+			if (skeletonBone != nonAccumRoot)
 			{
-
 				// have I not yet worked out the parent mat?
-				if (parentSkeletonBone.boneCurrentAccumedTrans.getType() == Transform3D.ZERO)
+				if (parentSkeletonBone.getBoneCurrentAccumedTrans().getType() == Transform3D.ZERO)
 				{
 					calcBoneVWTrans(parentSkeletonBone, nonAccumRoot);
 				}
 
 				//make  the bone accum trans the bone's parents accum trans (for the bone bit see below)
-				skeletonBone.boneCurrentAccumedTrans.set(parentSkeletonBone.boneCurrentAccumedTrans);
-
+				skeletonBone.getBoneCurrentAccumedTrans().set(parentSkeletonBone.getBoneCurrentAccumedTrans());
 			}
 			else
 			{
 				// make  the bone accum trans ident
-				skeletonBone.boneCurrentAccumedTrans.setIdentity();
+				skeletonBone.getBoneCurrentAccumedTrans().setIdentity();
 			}
 		}
 		else
 		{
 			// make  the bone accum trans ident
-			skeletonBone.boneCurrentAccumedTrans.setIdentity();
+			skeletonBone.getBoneCurrentAccumedTrans().setIdentity();
 		}
 
 		NifTransformGroup boneTrans = skeletonBone.getTransformGroup();
 		//multiply the bone accum trans by the bone current transform
-		boneTrans.transformMul(skeletonBone.boneCurrentAccumedTrans);
+		boneTrans.transformMul(skeletonBone.getBoneCurrentAccumedTrans());
 	}
 
 	public NifJ3dSkeletonRoot getOutputSkeleton()

@@ -284,6 +284,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 	}
 
 	//NOTE not for the use of ANYTHING but the getTreeTransform rollup system!!!!
+	// and the bone top parent system too
 	// It can point to madness very easily!
 	public J3dNiAVObject topOfParent;
 
