@@ -29,7 +29,6 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 	private XYZRotPathInterpolator xYZRotPathInterpolator;
 
 	private RotationPathInterpolator quatRotInterpolator;
- 
 
 	public J3dNiTransformInterpolator(NiTransformInterpolator niTransformInterp, NiToJ3dData niToJ3dData,
 			NifTransformGroup targetTransform, float startTimeS, float lengthS)
@@ -43,14 +42,12 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 			{
 				if (niTransformData.rotationType.type == KeyType.XYZ_ROTATION_KEY)
 				{
-
-					XyzRotationData data = xyzRotationDataMap.get(niTransformData);
-					if (data == null)
+					//	niTransformData.xYZRotations.length is 3 for x rot y rot z rot
+					NifKeyGroup xRotation = niTransformData.xYZRotations[0];
+					if (xRotation.keys != null && xRotation.keys.length > 0)
 					{
-
-						//	niTransformData.xYZRotations.length is 3 for x rot y rot z rot
-						NifKeyGroup xRotation = niTransformData.xYZRotations[0];
-						if (xRotation.keys != null && xRotation.keys.length > 0)
+						XyzRotationData data = xyzRotationDataMap.get(niTransformData);
+						if (data == null)
 						{
 							// all three will be not null and l > 0
 							float[] xKnots = new float[xRotation.keys.length];
@@ -84,6 +81,7 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 							xyzRotationDataMap.put(niTransformData, data);
 
 						}
+
 						xYZRotPathInterpolator = new XYZRotPathInterpolator(J3dNiInterpolator.prepTransformGroup(targetTransform),
 								data.xKnots, data.xRots, data.yKnots, data.yRots, data.zKnots, data.zRots, startTimeS, lengthS);
 						addInterpolator(xYZRotPathInterpolator);

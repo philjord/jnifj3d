@@ -60,7 +60,7 @@ public abstract class TransformInterpolator implements Interpolated
 			applyTransform(targetTransform);
 			//only set on a change
 			if (!targetTransform.equals(prevTargetTransform))
-			{				
+			{
 				target.setTransform(targetTransform);
 				prevTargetTransform.set(targetTransform);
 			}

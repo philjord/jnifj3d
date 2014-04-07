@@ -270,7 +270,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 	}
 
 	/**
-	 * It stops multipling when it meets the root object
+	 * It stops multipling when it meets the root object, it does NOT include thte trasn of the root!
 	 * @param t
 	 * @param rootJ3dNiAVObject
 	 */
@@ -312,11 +312,11 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 					this.topOfParent.getTreeTransformImpl(t, rootJ3dNiAVObject);
 				}*/
 			}
-		}
 
-		if (transformGroup != null)
-		{
-			transformGroup.transformMul(t);
+			if (transformGroup != null)
+			{
+				transformGroup.transformMul(t);
+			}
 		}
 
 	}

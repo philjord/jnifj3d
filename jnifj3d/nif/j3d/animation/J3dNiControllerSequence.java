@@ -20,7 +20,7 @@ import tools3d.utils.scenegraph.VaryingLODBehaviour;
 
 public class J3dNiControllerSequence extends Group
 {
-	private UpdateBehavior behave = new UpdateBehavior();
+	private SequenceEventsBehavior sequenceEventsbehave = new SequenceEventsBehavior();
 
 	private SequenceBehavior sequenceBehavior = new SequenceBehavior(this);
 
@@ -81,8 +81,8 @@ public class J3dNiControllerSequence extends Group
 			System.out.println("What the hell??? niControllerSequence.textKeys2.ref == -1!!");
 		}
 
-		behave.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
-		addChild(behave);
+		sequenceEventsbehave.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
+		addChild(sequenceEventsbehave);
 
 		sequenceBehavior.setEnable(false);
 		sequenceBehavior.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
@@ -93,17 +93,17 @@ public class J3dNiControllerSequence extends Group
 	{
 		if (!sequenceListeners.contains(sequenceListener))
 		{
-			behave.setEnable(false);
+			sequenceEventsbehave.setEnable(false);
 			sequenceListeners.add(sequenceListener);
-			behave.setEnable(true);
+			sequenceEventsbehave.setEnable(true);
 		}
 	}
 
 	public void removeSequenceListener(SequenceListener sequenceListener)
 	{
-		behave.setEnable(false);
+		sequenceEventsbehave.setEnable(false);
 		sequenceListeners.remove(sequenceListener);
-		behave.setEnable(true);
+		sequenceEventsbehave.setEnable(true);
 	}
 
 	public void setAnimatedNodes(J3dNiDefaultAVObjectPalette allBonesInSkeleton)
@@ -144,19 +144,24 @@ public class J3dNiControllerSequence extends Group
 		fireSequence(false);
 	}
 
+	public void rampDown()
+	{
+		sequenceAlpha.beginExit();
+	}
+
 	/*
 	 * TODO:
-	 * I need to have one varying behavior up here, work out the noe dist just once(it's expensive)
-	 * call teh alpha value just once, and then call all the interpolators below here with a process adn a 
+	 * I need to have one varying behavior up here, work out the node dist just once(it's expensive)
+	 * call the alpha value just once, and then call all the interpolators below here with a process and a 
 	 * single alpha value given to each
 	 *  
 	 *
 	 */
 	private void fireSequence(boolean forceOnce)
 	{
-		behave.setEnable(false);
+		sequenceEventsbehave.setEnable(false);
 		sequenceBehavior.setEnable(false);
-		
+
 		if (forceOnce)
 		{
 			sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, false);
@@ -179,7 +184,7 @@ public class J3dNiControllerSequence extends Group
 
 		// fire off any time ==0 events
 		publishSequenceEvents();
-		behave.setEnable(true);
+		sequenceEventsbehave.setEnable(true);
 
 		sequenceBehavior.setEnable(true);// disbales after loop if required
 
@@ -243,11 +248,6 @@ public class J3dNiControllerSequence extends Group
 		}
 	}
 
-	public void rampDown()
-	{
-		sequenceAlpha.beginExit();
-	}
-
 	public String getFireName()
 	{
 		return fireName;
@@ -265,16 +265,17 @@ public class J3dNiControllerSequence extends Group
 
 	public class SequenceBehavior extends VaryingLODBehaviour
 	{
-
 		public SequenceBehavior(Node node)
 		{
+			// NOTE!!!! these MUST be active, otherwise the headless locale that might be running physics doesn't continuously render
 			super(node, new float[]
-			{ 40, 120, 280 });
+			{ 40, 120, 280 }, false);
 		}
 
 		@Override
 		public void process()
 		{
+
 			float alphaValue = sequenceAlpha.value();
 			for (J3dControllerLink j3dControllerLink : controlledBlocks)
 			{
@@ -285,7 +286,6 @@ public class J3dNiControllerSequence extends Group
 			if (sequenceAlpha.finished())
 				setEnable(false);
 		}
-
 	}
 
 	/**
@@ -298,7 +298,7 @@ public class J3dNiControllerSequence extends Group
 		public void sequenceEventFired(String key, String params[], float time);
 	}
 
-	class UpdateBehavior extends Behavior
+	class SequenceEventsBehavior extends Behavior
 	{
 		private WakeupOnElapsedFrames passiveWakeupCriterion = new WakeupOnElapsedFrames(10, true);
 

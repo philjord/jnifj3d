@@ -122,7 +122,6 @@ public class J3dControllerLink extends Group
 	{
 		if (niToJ3dData.nifVer.LOAD_VER <= NifVer.VER_20_0_0_5)
 		{
-
 			NiStringPalette stringPalette = (NiStringPalette) niToJ3dData.get(stringPaletteRef);
 			if (stringPalette != null)
 			{
