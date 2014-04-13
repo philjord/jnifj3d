@@ -54,7 +54,7 @@ public class FileMeshSource implements MeshSource
 			}
 			catch (IOException e)
 			{
-				System.out.println("FileMeshSource:  " + nifName + " " + e.getMessage());
+				System.out.println("FileMeshSource:  " + nifName + " " + e + " " + e.getStackTrace()[0]);
 			}
 			finally
 			{

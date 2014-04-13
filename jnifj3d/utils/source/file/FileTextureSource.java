@@ -96,7 +96,7 @@ public class FileTextureSource implements TextureSource
 				}
 				catch (ImageException e)
 				{
-					System.out.println("FileTextureSource.getTexture  " + texName + " " + e.getMessage());
+					System.out.println("FileTextureSource.getTexture  " + texName + " " + e + " " + e.getStackTrace()[0]);
 				}
 			}
 
@@ -154,7 +154,7 @@ public class FileTextureSource implements TextureSource
 			}
 			catch (IOException e)
 			{
-				System.out.println("FileTextureSource  " + imageName + " " + e.getMessage());
+				System.out.println("FileTextureSource  " + imageName + " " + e + " " + e.getStackTrace()[0]);
 			}
 			if (ddsImage != null)
 				ddsImage.close();
