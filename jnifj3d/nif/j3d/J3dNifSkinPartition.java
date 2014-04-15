@@ -136,7 +136,7 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 			float basePointz = baseCoordRefFloat[vIdx * 3 + 2];
 
 			// not used currently, but might be needed for a final scaling?
-			// float totalWeight = 0;
+			float totalWeight = 0;
 
 			for (int w = 0; w < nifSkinPartition.numWeightsPerVertex; w++)
 			{
@@ -174,8 +174,12 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 					accumPointy += transformedPointy;
 					accumPointz += transformedPointz;
 					// record running total weight
-					//totalWeight += weight;
+					totalWeight += weight;
 				}
+			}
+			if( totalWeight!= 1)
+			{
+				//System.out.println("bad total weight! " +totalWeight );
 			}
 
 			currentCoordRefFloat[vIdx * 3 + 0] = accumPointx;

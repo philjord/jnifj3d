@@ -115,6 +115,7 @@ public class BlendedSkeletons extends Group
 				computeTransform(alphaValue, prevT, inputT, outputT);
 
 			}
+			
 			//only set on a change
 			if (!outputT.equals(prevOutputT))
 			{
@@ -135,6 +136,8 @@ public class BlendedSkeletons extends Group
 		{
 			J3dNiNode outputBone = (J3dNiNode) outputSkeleton.getAllBonesInSkeleton().get(boneName);
 			calcBoneVWTrans(outputBone, outputSkeleton.getNonAccumRoot());
+			
+			 
 		}
 
 	}
@@ -199,15 +202,15 @@ public class BlendedSkeletons extends Group
 
 	private void computeTransform(float alphaValue, Transform3D t0, Transform3D t1, Transform3D out)
 	{
-		t0.normalizeCP();
-		t1.normalizeCP();
+		t0.normalize();
+		t1.normalize();
 		Utils3D.safeGetQuat(t0, tempQuat0);
 		t0.get(tempPos0);
 		Utils3D.safeGetQuat(t1, tempQuat1);
 		t1.get(tempPos1);
 
 		out.set(computeTransform(alphaValue, tempQuat0, tempQuat1, tempPos0, tempPos1, tempMat));
-		out.normalizeCP();
+		out.normalize();
 	}
 
 	//deburners
