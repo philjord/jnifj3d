@@ -23,6 +23,7 @@ import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
@@ -31,6 +32,7 @@ import javax.vecmath.Vector3f;
 
 import nif.character.NifCharacter;
 import nif.character.NifJ3dSkeletonRoot;
+import nif.j3d.J3dNiSkinInstance;
 import tools.swing.DetailsFileChooser;
 import tools.swing.TitledJFileChooser;
 import utils.source.MediaSources;
@@ -66,30 +68,45 @@ public class KfDisplayTester
 		try
 		{
 			// pick the nif model
-			TitledJFileChooser skeletonFc = new TitledJFileChooser(prefs.get("skeletonNifModelFile", System.getProperty("user.dir")));
+			String baseDir = prefs.get("skeletonNifModelFile", System.getProperty("user.dir"));
+			TitledJFileChooser skeletonFc = new TitledJFileChooser(baseDir);
 			skeletonFc.setDialogTitle("Select Skeleton");
 			skeletonFc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 			skeletonFc.setMultiSelectionEnabled(false);
-			skeletonFc.setFileFilter(new FileNameExtensionFilter("nif files", "nif"));
+			skeletonFc.setFileFilter(new FileFilter()
+			{
+				@Override
+				public boolean accept(File f)
+				{
+					return f.isDirectory() || f.getName().toLowerCase().contains("skeleton");
+				}
+
+				@Override
+				public String getDescription()
+				{
+					return "Skeleton Files";
+				}
+			});
+
 			skeletonFc.showOpenDialog(new JFrame());
 
 			if (skeletonFc.getSelectedFile() != null)
 			{
 				skeletonNifModelFile = skeletonFc.getSelectedFile().getCanonicalPath();
 				prefs.put("skeletonNifModelFile", skeletonNifModelFile);
+
 				System.out.println("Selected skeleton file: " + skeletonNifModelFile);
 
-				TitledJFileChooser skinFc = new TitledJFileChooser(prefs.get("skinNifModelFile", skeletonNifModelFile));
+				TitledJFileChooser skinFc = new TitledJFileChooser(skeletonNifModelFile);
 				skinFc.setDialogTitle("Select Skin(s)");
 				skinFc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 				skinFc.setMultiSelectionEnabled(true);
-				skinFc.setFileFilter(new FileNameExtensionFilter("nif files", "nif"));
+				skinFc.setFileFilter(new FileNameExtensionFilter("Nif files", "nif"));
 				skinFc.showOpenDialog(new JFrame());
 
 				if (skinFc.getSelectedFile() != null)
 				{
 					File[] skinNifModelFiles = skinFc.getSelectedFiles();
-					prefs.put("skinNifModelFile", skinNifModelFiles[0].getCanonicalPath());
 
 					for (File skinNifModelFile : skinNifModelFiles)
 					{
@@ -97,15 +114,11 @@ public class KfDisplayTester
 						skinNifFiles.add(skinNifModelFile.getCanonicalPath());
 					}
 
-					String baseDir = prefs.get("KfDisplayTester.baseDir", System.getProperty("user.dir"));
-
-					DetailsFileChooser dfc = new DetailsFileChooser(baseDir, new DetailsFileChooser.Listener()
+					DetailsFileChooser dfc = new DetailsFileChooser(skeletonNifModelFile, new DetailsFileChooser.Listener()
 					{
-
 						@Override
 						public void fileSelected(File file)
 						{
-							prefs.put("KfDisplayTester.baseDir", file.getPath());
 							try
 							{
 								System.out.println("\tFile: " + file);
@@ -123,12 +136,11 @@ public class KfDisplayTester
 						@Override
 						public void directorySelected(File dir)
 						{
-							// nothing ignored
-
+							//  ignored
 						}
 					});
 
-					dfc.setFileFilter(new FileNameExtensionFilter("Kf", "kf"));
+					dfc.setFileFilter(new FileNameExtensionFilter("Kf files", "kf"));
 
 				}
 			}
@@ -144,7 +156,7 @@ public class KfDisplayTester
 		}
 	}
 
-	private static void display(String skeletonNifFile, ArrayList<String> skinNifFiles, File kff)
+	private static void display(String skeletonNifFile, ArrayList<String> skinNifFiles2, File kff)
 	{
 		transformGroup.removeAllChildren();
 
@@ -152,12 +164,15 @@ public class KfDisplayTester
 		bg.setCapability(BranchGroup.ALLOW_DETACH);
 
 		NifJ3dSkeletonRoot.showBoneMarkers = true;
+		J3dNiSkinInstance.showSkinBoneMarkers = false;//TODO: this doesn't show anything?
+		System.out.println("NifJ3dSkeletonRoot.showBoneMarkers " + NifJ3dSkeletonRoot.showBoneMarkers);
+		System.out.println("J3dNiSkinInstance.showSkinBoneMarkers " + J3dNiSkinInstance.showSkinBoneMarkers);
 
 		ArrayList<String> idleAnimations = new ArrayList<String>();
 		idleAnimations.add(kff.getAbsolutePath());
 
 		MediaSources mediaSources = new MediaSources(new FileMeshSource(), new FileTextureSource(), new FileSoundSource());
-		NifCharacter nifCharacter = new NifCharacter(skeletonNifFile, skinNifFiles, mediaSources, idleAnimations);
+		NifCharacter nifCharacter = new NifCharacter(skeletonNifFile, skinNifFiles2, mediaSources, idleAnimations);
 
 		// now add the root to the scene so the controller sequence is live
 		bg.addChild(nifCharacter);

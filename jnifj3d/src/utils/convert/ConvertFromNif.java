@@ -8,7 +8,6 @@ import javax.vecmath.TexCoord2f;
 import javax.vecmath.Vector3f;
 
 import utils.ESConfig;
-
 import nif.compound.NifColor4;
 import nif.compound.NifMatrix33;
 import nif.compound.NifQuaternion;
@@ -17,15 +16,15 @@ import nif.compound.NifVector3;
 
 public class ConvertFromNif
 {
-
-	public static Quat4f toJ3d(NifQuaternion rotation)
-	{
-		return NifRotToJava3DRot.makeJ3dQ4f(rotation.x, rotation.y, rotation.z, rotation.w);
-	}
-
 	public static Quat4f toJ3d(NifMatrix33 rotation)
 	{
 		return NifRotToJava3DRot.makeJ3dQ4f(rotation);
+	}
+
+	public static Quat4f toJ3d(NifQuaternion rotation)
+	{
+		Quat4f q = new Quat4f(rotation.x, rotation.y, rotation.z, rotation.w);
+		return NifRotToJava3DRot.flipAxis(q);
 	}
 
 	public static float toJ3d(float x)
@@ -56,7 +55,7 @@ public class ConvertFromNif
 	}
 
 	private static Point3f createScaledPoint(float x, float y, float z)
-	{		
+	{
 		return new Point3f(x * ESConfig.ES_TO_METERS_SCALE, //
 				z * ESConfig.ES_TO_METERS_SCALE, //
 				-y * ESConfig.ES_TO_METERS_SCALE);

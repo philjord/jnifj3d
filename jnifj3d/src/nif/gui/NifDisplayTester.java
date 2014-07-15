@@ -400,7 +400,6 @@ public class NifDisplayTester
 
 		DetailsFileChooser dfc = new DetailsFileChooser(baseDir, new DetailsFileChooser.Listener()
 		{
-
 			@Override
 			public void directorySelected(File dir)
 			{
@@ -416,7 +415,7 @@ public class NifDisplayTester
 			}
 		});
 
-		dfc.setFileFilter(new FileNameExtensionFilter("Nif or Kf", "nif", "kf"));
+		dfc.setFileFilter(new FileNameExtensionFilter("Nif", "nif"));
 
 	}
 

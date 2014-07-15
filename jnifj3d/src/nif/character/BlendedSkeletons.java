@@ -16,6 +16,12 @@ import utils.source.MeshSource;
 public class BlendedSkeletons extends Group
 {
 
+	private static Transform3D zeroT = new Transform3D();
+	static
+	{
+		zeroT.setZero();
+	}
+
 	// not modified to give base line
 	//private NifJ3dSkeletonRoot baseSkeleton;
 
@@ -115,7 +121,7 @@ public class BlendedSkeletons extends Group
 				computeTransform(alphaValue, prevT, inputT, outputT);
 
 			}
-			
+
 			//only set on a change
 			if (!outputT.equals(prevOutputT))
 			{
@@ -136,14 +142,11 @@ public class BlendedSkeletons extends Group
 		{
 			J3dNiNode outputBone = (J3dNiNode) outputSkeleton.getAllBonesInSkeleton().get(boneName);
 			calcBoneVWTrans(outputBone, outputSkeleton.getNonAccumRoot());
-			
-			 
 		}
-
 	}
 
 	/**
-	 * call that will calc all unclaced parents and cache results in the J3dNiNode
+	 * call that will calc all uncalced parents and cache results in the J3dNiNode
 	 * If the nonAccumRoot is not found it just goes up to the first non nij3dnode
 	 * @param nonAccumRoot 
 	 * @param spBoneId 
@@ -159,7 +162,7 @@ public class BlendedSkeletons extends Group
 			if (skeletonBone != nonAccumRoot)
 			{
 				// have I not yet worked out the parent mat?
-				if (parentSkeletonBone.getBoneCurrentAccumedTrans().getType() == Transform3D.ZERO)
+				if (parentSkeletonBone.getBoneCurrentAccumedTrans().equals(zeroT))
 				{
 					calcBoneVWTrans(parentSkeletonBone, nonAccumRoot);
 				}
@@ -180,8 +183,10 @@ public class BlendedSkeletons extends Group
 		}
 
 		NifTransformGroup boneTrans = skeletonBone.getTransformGroup();
+
 		//multiply the bone accum trans by the bone current transform
 		boneTrans.transformMul(skeletonBone.getBoneCurrentAccumedTrans());
+
 	}
 
 	public NifJ3dSkeletonRoot getOutputSkeleton()
@@ -202,8 +207,8 @@ public class BlendedSkeletons extends Group
 
 	private void computeTransform(float alphaValue, Transform3D t0, Transform3D t1, Transform3D out)
 	{
-		t0.normalize();
-		t1.normalize();
+		//t0.normalize();
+		//t1.normalize();
 		Utils3D.safeGetQuat(t0, tempQuat0);
 		t0.get(tempPos0);
 		Utils3D.safeGetQuat(t1, tempQuat1);

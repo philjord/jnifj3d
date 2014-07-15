@@ -14,19 +14,12 @@ import nif.compound.NifVector4;
 
 public class ConvertFromHavok
 {
-
 	public static Quat4f toJ3d(NifQuaternionXYZW rotation)
 	{
 		return NifRotToJava3DRot.makeJ3dQ4f(rotation.x, rotation.y, rotation.z, rotation.w);
 	}
 
-	public static Quat4f toJ3dQ4f(NifMatrix44 transform)
-	{
-		return NifRotToJava3DRot.makeJ3dQ4f(transform.m11, transform.m12, transform.m13, transform.m21, transform.m22, transform.m23,
-				transform.m31, transform.m32, transform.m33);
-	}
-
-	public static Quat4f toJ3d(NifMatrix33 rotation)
+	public static Quat4f toJ3dQ4f(NifMatrix33 rotation)
 	{
 		return NifRotToJava3DRot.makeJ3dQ4f(rotation);
 	}
