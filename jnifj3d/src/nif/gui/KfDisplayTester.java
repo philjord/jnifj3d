@@ -43,6 +43,14 @@ import utils.source.file.FileTextureSource;
 import com.sun.j3d.utils.behaviors.mouse.MouseRotate;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 
+/**
+ * Usage note
+ * You must select a skeleteon at least
+ * If you cancel on skins it will show only bones
+ * If you cancel on animation select it will show the bind pose with no animations 
+ * @author philip
+ *
+ */
 public class KfDisplayTester
 {
 	private static Preferences prefs;
@@ -113,36 +121,36 @@ public class KfDisplayTester
 						System.out.println("Selected skin file : " + skinNifModelFile);
 						skinNifFiles.add(skinNifModelFile.getCanonicalPath());
 					}
-
-					DetailsFileChooser dfc = new DetailsFileChooser(skeletonNifModelFile, new DetailsFileChooser.Listener()
-					{
-						@Override
-						public void fileSelected(File file)
-						{
-							try
-							{
-								System.out.println("\tFile: " + file);
-								display(skeletonNifModelFile, skinNifFiles, file);
-
-							}
-							catch (Exception ex)
-							{
-								ex.printStackTrace();
-							}
-
-							System.out.println("done");
-						}
-
-						@Override
-						public void directorySelected(File dir)
-						{
-							//  ignored
-						}
-					});
-
-					dfc.setFileFilter(new FileNameExtensionFilter("Kf files", "kf"));
-
 				}
+				else
+				{
+					//This is fine, just animate the bones and show them
+				}
+
+				DetailsFileChooser dfc = new DetailsFileChooser(skeletonNifModelFile, new DetailsFileChooser.Listener()
+				{
+					@Override
+					public void fileSelected(File file)
+					{
+						try
+						{
+							System.out.println("\tFile: " + file);
+							display(skeletonNifModelFile, skinNifFiles, file);
+						}
+						catch (Exception ex)
+						{
+							ex.printStackTrace();
+						}
+					}
+
+					@Override
+					public void directorySelected(File dir)
+					{
+						//  ignored
+					}
+				});
+
+				dfc.setFileFilter(new FileNameExtensionFilter("Kf files", "kf"));
 			}
 			else
 			{
@@ -165,11 +173,13 @@ public class KfDisplayTester
 
 		NifJ3dSkeletonRoot.showBoneMarkers = true;
 		J3dNiSkinInstance.showSkinBoneMarkers = false;//TODO: this doesn't show anything?
-		System.out.println("NifJ3dSkeletonRoot.showBoneMarkers " + NifJ3dSkeletonRoot.showBoneMarkers);
-		System.out.println("J3dNiSkinInstance.showSkinBoneMarkers " + J3dNiSkinInstance.showSkinBoneMarkers);
 
 		ArrayList<String> idleAnimations = new ArrayList<String>();
-		idleAnimations.add(kff.getAbsolutePath());
+
+		if (kff != null)
+		{
+			idleAnimations.add(kff.getAbsolutePath());
+		}
 
 		MediaSources mediaSources = new MediaSources(new FileMeshSource(), new FileTextureSource(), new FileSoundSource());
 		NifCharacter nifCharacter = new NifCharacter(skeletonNifFile, skinNifFiles2, mediaSources, idleAnimations);

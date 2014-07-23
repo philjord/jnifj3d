@@ -169,6 +169,7 @@ public class BlendedSkeletons extends Group
 
 				//make  the bone accum trans the bone's parents accum trans (for the bone bit see below)
 				skeletonBone.getBoneCurrentAccumedTrans().set(parentSkeletonBone.getBoneCurrentAccumedTrans());
+
 			}
 			else
 			{
@@ -215,7 +216,7 @@ public class BlendedSkeletons extends Group
 		t1.get(tempPos1);
 
 		out.set(computeTransform(alphaValue, tempQuat0, tempQuat1, tempPos0, tempPos1, tempMat));
-		out.normalize();
+		//out.normalize();
 	}
 
 	//deburners
