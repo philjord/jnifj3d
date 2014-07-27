@@ -1,7 +1,6 @@
 package nif.j3d;
 
-import javax.media.j3d.IndexedGeometryArray;
-import javax.media.j3d.IndexedTriangleStripArray;
+import javax.media.j3d.GeometryArray;
 import javax.vecmath.Color4f;
 import javax.vecmath.Point3f;
 import javax.vecmath.TexCoord2f;
@@ -9,7 +8,6 @@ import javax.vecmath.Vector3f;
 
 import nif.niobject.NiTriStrips;
 import nif.niobject.NiTriStripsData;
-import tools.WeakValueHashMap;
 import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
@@ -31,54 +29,20 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 		niToJ3dData.put(niTriStrips, this);
 		data = (NiTriStripsData) niToJ3dData.get(niTriStrips.data);
 
-		getShape().setGeometry(makeGeometry(data, false));
+		getShape().setGeometry(makeGeometry(makeGeometryInfo(data), true, data));
 	}
 
-	/** this resets teh geomtery to by ref and non compact etc
-	 * 
-	 * @return the new morphable geometry
+	/**
+	 * Note expensive re-create should be optomised one day
 	 */
-	public IndexedTriangleStripArray makeMorphable()
+	public void makeMorphable()
 	{
-		IndexedGeometryArray newGeom = makeGeometry(data, true);
+		GeometryArray newGeom = makeGeometry(makeGeometryInfo(data), false, null);
 		getShape().setGeometry(newGeom);
-		return (IndexedTriangleStripArray) newGeom;
+		baseGeometryArray = newGeom;
 	}
 
-	//Note self expunging cache
-	private static WeakValueHashMap<NiTriStripsData, IndexedGeometryArray> sharedNiTriBasedGeom = new WeakValueHashMap<NiTriStripsData, IndexedGeometryArray>();
-
-	private static IndexedGeometryArray makeGeometry(NiTriStripsData data, boolean morphable)
-	{
-		if (!morphable)
-		{
-			IndexedGeometryArray iga = sharedNiTriBasedGeom.get(data);
-
-			if (iga != null)
-			{
-				return iga;
-			}
-			else
-			{
-
-				GeometryInfo gi = createGI(data);
-				IndexedGeometryArray g = gi.getIndexedGeometryArray(true, false, true, true, false);
-				sharedNiTriBasedGeom.put(data, g);
-
-				return g;
-			}
-		}
-		else
-		{
-			//morphable are non cached and by ref
-			GeometryInfo gi = createGI(data);
-			IndexedGeometryArray g = gi.getIndexedGeometryArray(false, true, false, true, false);
-			return g;
-		}
-
-	}
-
-	private static GeometryInfo createGI(NiTriStripsData data)
+	private static GeometryInfo makeGeometryInfo(NiTriStripsData data)
 	{
 		GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_STRIP_ARRAY);
 

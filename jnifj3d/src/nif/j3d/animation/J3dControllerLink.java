@@ -74,7 +74,7 @@ public class J3dControllerLink extends Group
 				{
 					if (controller instanceof NiGeomMorpherController)
 					{
-						System.out.println("I just seen a NiGeomMorpherController under a J3dControllerLink!");
+						System.out.println("I just seen a NiGeomMorpherController under a J3dControllerLink! " + controller.nVer);
 						//FIXME: this should use one proper see ObjectNET
 						/*	String morphFrameName = "";
 							if (niToJ3dData.nifVer.LOAD_VER >= NifVer.VER_20_1_0_3)

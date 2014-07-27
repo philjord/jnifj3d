@@ -1,9 +1,6 @@
 package nif.j3d;
 
-import java.util.Arrays;
-
 import javax.media.j3d.GeometryArray;
-import javax.media.j3d.IndexedGeometryArray;
 import javax.vecmath.Color4f;
 import javax.vecmath.Point3f;
 import javax.vecmath.TexCoord2f;
@@ -12,13 +9,11 @@ import javax.vecmath.Vector3f;
 import nif.niobject.NiTriShape;
 import nif.niobject.NiTriShapeData;
 import nif.niobject.bs.BSLODTriShape;
-import tools.WeakValueHashMap;
 import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
 import com.sun.j3d.utils.geometry.GeometryInfo;
 import com.sun.j3d.utils.geometry.NormalGenerator;
-import com.sun.j3d.utils.geometry.Stripifier;
 
 /**
  * This class has a base geometry and a current to allow skin instances to deform the base
@@ -27,31 +22,26 @@ import com.sun.j3d.utils.geometry.Stripifier;
  */
 public class J3dNiTriShape extends J3dNiTriBasedGeom
 {
-	private GeometryArray baseGeometryArray;
-
 	private GeometryArray currentGeometryArray;
+
+	private NiTriShapeData data;
 
 	public J3dNiTriShape(NiTriShape niTriShape, NiToJ3dData niToJ3dData, TextureSource textureSource)
 	{
 		super(niTriShape, niToJ3dData, textureSource);
 
 		niToJ3dData.put(niTriShape, this);
-		NiTriShapeData data = (NiTriShapeData) niToJ3dData.get(niTriShape.data);
+		data = (NiTriShapeData) niToJ3dData.get(niTriShape.data);
 
-		GeometryInfo geometryInfo = makeGeometryInfo(data);
-		if (geometryInfo != null)
+		//am I a skin shape in which case I need to be uncompacted ready for animation
+		if (niTriShape.skin.ref != -1)
 		{
-			//am I a skin shape in which case I need to be uncompacted ready for animation
-			if (niTriShape.skin.ref != -1)
-			{
-				baseGeometryArray = makeGeometry(geometryInfo, false, null);
-
-				// odd calls because GeometryInfo doesn't want to produce 2 arrays in some cases (TES5), and clones fails
-				GeometryInfo gi2 = new GeometryInfo(baseGeometryArray);
-				currentGeometryArray = makeGeometry(gi2, false, null);
-				getShape().setGeometry(currentGeometryArray);
-			}
-			else
+			makeMorphable();
+		}
+		else
+		{
+			GeometryInfo geometryInfo = makeGeometryInfo(data);
+			if (geometryInfo != null)
 			{
 				getShape().setGeometry(makeGeometry(geometryInfo, true, data));
 			}
@@ -70,7 +60,7 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 		super(bsLODTriShape, niToJ3dData, textureSource);
 
 		niToJ3dData.put(bsLODTriShape, this);
-		NiTriShapeData data = (NiTriShapeData) niToJ3dData.get(bsLODTriShape.data);
+		data = (NiTriShapeData) niToJ3dData.get(bsLODTriShape.data);
 
 		GeometryInfo geometryInfo = makeGeometryInfo(data);
 		if (geometryInfo != null)
@@ -84,51 +74,26 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 
 	}
 
-	public GeometryArray getBaseGeometryArray()
+	/**
+	 * Note expensive re-create should be optomised one day
+	 */
+	public void makeMorphable()
 	{
-		return baseGeometryArray;
+		GeometryInfo geometryInfo = makeGeometryInfo(data);
+		if (geometryInfo != null)
+		{
+			baseGeometryArray = makeGeometry(geometryInfo, false, null);
+
+			// odd calls because GeometryInfo doesn't want to produce 2 arrays in some cases (TES5), and clones fails
+			GeometryInfo gi2 = new GeometryInfo(baseGeometryArray);
+			currentGeometryArray = makeGeometry(gi2, false, null);
+			getShape().setGeometry(currentGeometryArray);
+		}
 	}
 
 	public GeometryArray getCurrentGeometryArray()
 	{
 		return currentGeometryArray;
-	}
-
-	//Note self expunging cache
-	private static WeakValueHashMap<NiTriShapeData, IndexedGeometryArray> sharedNiTriBasedGeom = new WeakValueHashMap<NiTriShapeData, IndexedGeometryArray>();
-
-	/** Note if compact the return will be a strips array 
-	 * 
-	 * @param geometryInfo
-	 * @param compact and make sharable
-	 * @return
-	 */
-	public static GeometryArray makeGeometry(GeometryInfo geometryInfo, boolean compact, NiTriShapeData cacheKey)
-	{
-		if (compact)
-		{
-			IndexedGeometryArray iga = sharedNiTriBasedGeom.get(cacheKey);
-
-			if (iga != null)
-			{
-				return iga;
-			}
-			else
-			{
-				geometryInfo.compact();
-				IndexedGeometryArray ita = geometryInfo.getIndexedGeometryArray(compact, !compact, compact, true, false);
-				sharedNiTriBasedGeom.put(cacheKey, ita);
-				return ita;
-			}
-		}
-		else
-		{
-			IndexedGeometryArray ita = geometryInfo.getIndexedGeometryArray(compact, !compact, compact, true, false);
-			ita.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
-			ita.setCapability(GeometryArray.ALLOW_REF_DATA_WRITE);
-			return ita;
-		}
-
 	}
 
 	public static GeometryInfo makeGeometryInfo(NiTriShapeData data)

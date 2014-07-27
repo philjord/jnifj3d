@@ -6,14 +6,15 @@ import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.Geometry;
 import javax.media.j3d.GeometryArray;
 import javax.media.j3d.GeometryUpdater;
-import javax.media.j3d.IndexedTriangleStripArray;
 import javax.media.j3d.Node;
 import javax.vecmath.Point3d;
 
+import nif.NifVer;
 import nif.basic.NifRef;
 import nif.compound.NifMorph;
+import nif.compound.NifMorphWeight;
 import nif.j3d.J3dNiAVObject;
-import nif.j3d.J3dNiTriStrips;
+import nif.j3d.J3dNiTriBasedGeom;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.animation.interp.J3dNiInterpolator;
 import nif.niobject.NiAVObject;
@@ -25,7 +26,7 @@ import utils.ESConfig;
 
 public class J3dNiGeomMorpherController extends J3dNiTimeController
 {
-	private IndexedTriangleStripArray itsa;
+	private GeometryArray itsa;
 
 	private float[] baseCoords;
 
@@ -60,27 +61,34 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 			J3dNiAVObject nodeTarget = niToJ3dData.get(target);
 			if (nodeTarget != null)
 			{
-				for (int i = 0; i < controller.interpolators.length; i++)
+				if (controller.nVer.LOAD_VER <= NifVer.VER_20_0_0_5)
 				{
-					// build and attach intrerps for later use, note index order match morph
-					NifRef nr = controller.interpolators[i];
-					NiInterpolator niInterpolator = (NiInterpolator) niToJ3dData.get(nr);
-					if (niInterpolator != null)
+					for (int i = 0; i < controller.interpolators.length; i++)
 					{
-						J3dNiInterpolator j3dNiInterpolator = J3dNiTimeController.createInterpForController(this, niInterpolator,
-								niToJ3dData, startTimeS, stopTimeS);
-						if (j3dNiInterpolator != null)
-						{
-							j3dNiInterpolators.add(j3dNiInterpolator);
-							addChild(j3dNiInterpolator);
-						}
+						// build and attach intrerps for later use, note index order match morph
+						NifRef nr = controller.interpolators[i];
+						createInterp(nr, niToJ3dData);
+					}
+				}
+				else if (controller.nVer.LOAD_VER >= NifVer.VER_20_1_0_3)
+				{
+					for (int i = 0; i < controller.interpolatorWeights.length; i++)
+					{
+						// build and attach intrerps for later use, note index order match morph
+						NifMorphWeight nmw = controller.interpolatorWeights[i];
+
+						NifRef nr = nmw.interpolator;
+						if (nmw.weight != 0)
+							System.out.println("non 0 nifmorphweight " + nmw.weight + " " + controller.nVer);
+
+						createInterp(nr, niToJ3dData);
 					}
 				}
 
-				if (nodeTarget instanceof J3dNiTriStrips)
+				if (nodeTarget instanceof J3dNiTriBasedGeom)
 				{
-					itsa = ((J3dNiTriStrips) nodeTarget).makeMorphable();
-					itsa.setCapability(GeometryArray.ALLOW_REF_DATA_WRITE);
+					((J3dNiTriBasedGeom) nodeTarget).makeMorphable();
+					itsa = ((J3dNiTriBasedGeom) nodeTarget).getBaseGeometryArray();
 
 					// take a copy of the base vert coords
 					float[] coords = itsa.getCoordRefFloat();
@@ -89,12 +97,27 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 				}
 				else
 				{
-					System.out.println("J3dNiGeomMorpherController target not J3dNiTriStrips but " + nodeTarget);
+					System.out.println("J3dNiGeomMorpherController target not J3dNiTriBasedGeom but " + nodeTarget + " " + controller.nVer);
 				}
 
 				sequenceBehavior.setEnable(false);
 				sequenceBehavior.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
 				addChild(sequenceBehavior);
+			}
+		}
+	}
+
+	private void createInterp(NifRef nr, NiToJ3dData niToJ3dData)
+	{
+		NiInterpolator niInterpolator = (NiInterpolator) niToJ3dData.get(nr);
+		if (niInterpolator != null)
+		{
+			J3dNiInterpolator j3dNiInterpolator = J3dNiTimeController.createInterpForController(this, niInterpolator, niToJ3dData,
+					startTimeS, stopTimeS);
+			if (j3dNiInterpolator != null)
+			{
+				j3dNiInterpolators.add(j3dNiInterpolator);
+				addChild(j3dNiInterpolator);
 			}
 		}
 	}
