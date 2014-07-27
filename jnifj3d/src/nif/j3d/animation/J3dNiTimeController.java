@@ -1,6 +1,7 @@
 package nif.j3d.animation;
 
 import javax.media.j3d.Alpha;
+import javax.media.j3d.Group;
 import javax.vecmath.Point3f;
 
 import nif.j3d.J3dNiAVObject;
@@ -9,9 +10,7 @@ import nif.j3d.animation.interp.J3dNiBoolInterpolator;
 import nif.j3d.animation.interp.J3dNiFloatInterpolator;
 import nif.j3d.animation.interp.J3dNiInterpolator;
 import nif.j3d.animation.interp.J3dNiPoint3Interpolator;
-import nif.j3d.interp.BoolInterpolator;
-import nif.j3d.interp.FloatInterpolator;
-import nif.j3d.interp.Point3Interpolator;
+import nif.j3d.interp.InterpolatorListener;
 import nif.j3d.particles.J3dNiParticleSystem;
 import nif.niobject.bhk.bhkBlendController;
 import nif.niobject.bs.BSEffectShaderPropertyColorController;
@@ -45,14 +44,29 @@ import nif.niobject.interpolator.NiPoint3Interpolator;
 import nif.niobject.particle.NiPSysModifierCtlr;
 import utils.source.TextureSource;
 
-public abstract class J3dNiTimeController implements FloatInterpolator.Listener, BoolInterpolator.Listener, Point3Interpolator.Listener
+public abstract class J3dNiTimeController extends Group implements InterpolatorListener
 {
+
+	private J3dNiTimeController j3dNiTimeController;
+
 	/**
 	 * Just requires sub classes to hand it up for now, no reason
 	 * @param niTimeController
 	 */
 	public J3dNiTimeController(NiTimeController niTimeController)
 	{
+	}
+
+	public J3dNiTimeController getJ3dNiTimeController()
+	{
+		return j3dNiTimeController;
+	}
+
+	public void setJ3dNiTimeController(J3dNiTimeController j3dNiTimeController)
+	{
+		// TODO: there are cases where this should be fired I think
+		this.j3dNiTimeController = j3dNiTimeController;
+		addChild(j3dNiTimeController);
 	}
 
 	@Override
@@ -73,26 +87,32 @@ public abstract class J3dNiTimeController implements FloatInterpolator.Listener,
 		// default to do nothing
 	}
 
-	public static Alpha createAlpha(float startTimeS, float stopTimeS, int loopCount)
+	/**
+	 * @param startTimeS
+	 * @param stopTimeS
+	 * @param loopCount means loop forever
+	 * @return
+	 */
+	public static Alpha createLoopingAlpha(float startTimeS, float stopTimeS)
 	{
 		long startTimeMS = (long) (startTimeS * 1000f);
 		long stopTimeMS = (long) (stopTimeS * 1000f);
 		long lengthMS = stopTimeMS - startTimeMS;
-		return new Alpha(loopCount, 0, startTimeMS, lengthMS, 0, 0);
+
+		// note 0 trigger, see SequenceAlpha for better system
+		return new Alpha(-1, 0, startTimeMS, lengthMS, 0, 0);
 	}
 
 	/**
 	 * NOTE the time controller is NOT used for the alpha creation! It is merely a listener to the 3 types of call back
 	 * @param parent
-	 * @param j3dNiTimeController
+	 * @param callbackListener
 	 * @param niInterpolator
 	 * @param startTimeS
 	 * @param stopTimeS
-	 * @param loopCount
-	 * @param autoFire
 	 */
-	public static J3dNiInterpolator createInterpForController(J3dNiTimeController j3dNiTimeController, NiInterpolator niInterpolator,
-			NiToJ3dData niToJ3dData, float startTimeS, float stopTimeS, int loopCount)
+	public static J3dNiInterpolator createInterpForController(InterpolatorListener callbackListener, NiInterpolator niInterpolator,
+			NiToJ3dData niToJ3dData, float startTimeS, float stopTimeS)
 	{
 		if (niInterpolator == null)
 		{
@@ -110,7 +130,7 @@ public abstract class J3dNiTimeController implements FloatInterpolator.Listener,
 		if (niInterpolator instanceof NiFloatInterpolator)
 		{
 			j3dNiInterpolator = new J3dNiFloatInterpolator((NiFloatInterpolator) niInterpolator, niToJ3dData, startTimeS, lengthS,
-					j3dNiTimeController);
+					callbackListener);
 		}
 		else if (niInterpolator instanceof NiBlendFloatInterpolator)
 		{
@@ -119,7 +139,7 @@ public abstract class J3dNiTimeController implements FloatInterpolator.Listener,
 		else if (niInterpolator instanceof NiBoolInterpolator || niInterpolator instanceof NiBoolTimelineInterpolator)
 		{
 			j3dNiInterpolator = new J3dNiBoolInterpolator((NiBoolInterpolator) niInterpolator, niToJ3dData, startTimeS, lengthS,
-					j3dNiTimeController);
+					callbackListener);
 		}
 		else if (niInterpolator instanceof NiBlendBoolInterpolator)
 		{
@@ -128,7 +148,7 @@ public abstract class J3dNiTimeController implements FloatInterpolator.Listener,
 		else if (niInterpolator instanceof NiPoint3Interpolator)
 		{
 			j3dNiInterpolator = new J3dNiPoint3Interpolator((NiPoint3Interpolator) niInterpolator, niToJ3dData, startTimeS, lengthS,
-					j3dNiTimeController);
+					callbackListener);
 		}
 		else if (niInterpolator instanceof NiBlendPoint3Interpolator)
 		{
@@ -136,7 +156,7 @@ public abstract class J3dNiTimeController implements FloatInterpolator.Listener,
 		}
 		else
 		{
-			System.out.println("Unhandled niInterpolator for NiPSysModifierCtlr " + j3dNiTimeController + " of " + niInterpolator);
+			System.out.println("Unhandled niInterpolator for NiPSysModifierCtlr " + callbackListener + " of " + niInterpolator);
 		}
 
 		if (j3dNiInterpolator != null)

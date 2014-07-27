@@ -20,7 +20,7 @@ public class NifTransformGroup extends TransformGroup
 	}
 
 	// this is turned on if transformMul is called at all ( from the getTreeTransformImpl)
-	private Transform3D transformCache;
+	public Transform3D transformCache;
 
 	public void setTransform(Transform3D t1)
 	{

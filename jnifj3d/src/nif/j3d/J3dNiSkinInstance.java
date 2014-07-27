@@ -7,10 +7,13 @@ import javax.media.j3d.Group;
 
 import nif.basic.NifPtr;
 import nif.character.NifJ3dSkeletonRoot;
+import nif.compound.NifSkinData;
 import nif.compound.NifSkinPartition;
+import nif.compound.NifSkinWeight;
 import nif.niobject.NiAVObject;
 import nif.niobject.NiGeometry;
 import nif.niobject.NiNode;
+import nif.niobject.NiSkinData;
 import nif.niobject.NiSkinInstance;
 import nif.niobject.NiSkinPartition;
 import nif.niobject.NiTriShape;
@@ -42,6 +45,38 @@ public class J3dNiSkinInstance extends Group
 		}
 
 		addChild(j3dNiTriShape);
+
+		if (niSkinInstance.data.ref != -1)
+		{
+			NiSkinData niSkinData = (NiSkinData) niToJ3dData.get(niSkinInstance.data);
+			//TODO: the skin transform probably needs to be used here too
+
+			for (NifSkinData nsd : niSkinData.boneList)
+			{
+				//each vertex weight moves towards the bone I guess 
+				//but how does it keep station with other vextexes?
+
+				// let's just sop out what vetex 2229 does I have 4 bones and a total of 1
+				// another random has 2 0.95 and 0.05
+
+				//I have a skin weight here too?
+				//nsd.rotation;
+				//nsd.translation;
+				//nsd.scale;
+				for (NifSkinWeight vw : nsd.vertexWeights)
+				{
+					if (vw.index == 2228)
+					{
+						System.out.println("weight = " + vw.weight);
+					}
+				}
+			}
+
+		}
+		else
+		{
+			System.out.println("J3dNiSkinInstance niSkinInstance.data == -1");
+		}
 
 		if (niSkinInstance.skinPartition.ref != -1)
 		{

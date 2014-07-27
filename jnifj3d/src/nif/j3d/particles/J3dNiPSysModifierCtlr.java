@@ -161,8 +161,8 @@ public abstract class J3dNiPSysModifierCtlr extends J3dNiTimeController
 				if (nii != null)
 				{
 					J3dNiInterpolator j3dNiInterpolator = J3dNiTimeController.createInterpForController(j3dNiTimeController, nii,
-							niToJ3dData, niPSysModifierCtlr.startTime, niPSysModifierCtlr.stopTime, -1);
-					Alpha baseAlpha = J3dNiTimeController.createAlpha(niPSysModifierCtlr.startTime, niPSysModifierCtlr.stopTime, -1);
+							niToJ3dData, niPSysModifierCtlr.startTime, niPSysModifierCtlr.stopTime);
+					Alpha baseAlpha = J3dNiTimeController.createLoopingAlpha(niPSysModifierCtlr.startTime, niPSysModifierCtlr.stopTime);
 					j3dNiTimeController.setInterpolator(j3dNiInterpolator, baseAlpha);
 				}
 

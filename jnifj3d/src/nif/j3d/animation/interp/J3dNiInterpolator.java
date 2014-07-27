@@ -30,6 +30,10 @@ public abstract class J3dNiInterpolator extends Group
 		interpolators.add(interpolator);
 	}
 
+	/**
+	 * This can be called by any external behavior to progress this interp along
+	 * Or it will be called by the auto behaviour if fire is called below
+	 */
 	public void process(float alphaValue)
 	{
 		for (Interpolated interpolator : interpolators)
@@ -49,14 +53,14 @@ public abstract class J3dNiInterpolator extends Group
 	}
 
 	/**
-	 * If this is called I should really not allow the process above to be called by any other behavior
+	 * This MUST be called before the interpolators is added to the scene graph
+	 * If this is called I should really not allow the process method above to be called by any other behavior
 	 * @param baseAlpha
 	 */
 	public void fire(Alpha baseAlpha)
 	{
 		Interpolator interp = new Interpolator(baseAlpha)
 		{
-
 			@SuppressWarnings("rawtypes")
 			@Override
 			public void processStimulus(Enumeration criteria)
@@ -69,7 +73,6 @@ public abstract class J3dNiInterpolator extends Group
 		interp.setEnable(true);
 		interp.setSchedulingBounds(Utils3D.defaultBounds);
 		addChild(interp);
-
 	}
 
 }

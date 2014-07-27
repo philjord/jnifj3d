@@ -3,6 +3,7 @@ package nif.character;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 import javax.media.j3d.Alpha;
 import javax.media.j3d.BoundingSphere;
@@ -23,6 +24,8 @@ import nif.NifToJ3d;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiSkinInstance;
 import nif.j3d.animation.J3dNiControllerSequence.SequenceListener;
+import nif.j3d.animation.J3dNiGeomMorpherController;
+import nif.j3d.animation.SequenceAlpha;
 import nif.niobject.NiExtraData;
 import nif.niobject.NiStringExtraData;
 import tools3d.utils.Utils3D;
@@ -51,6 +54,8 @@ public class NifCharacter extends BranchGroup
 	private BranchGroup currentKfBg;
 
 	private NifCharUpdateBehavior updateBehavior;
+
+	private ArrayList<J3dNiGeomMorpherController> allMorphs = new ArrayList<J3dNiGeomMorpherController>();
 
 	public NifCharacter(String skeletonNifFilename, List<String> skinNifModelFilenames, MediaSources mediaSources,
 			List<String> idleAnimations)
@@ -128,12 +133,22 @@ public class NifCharacter extends BranchGroup
 									// am I including that
 									// I also get teh delayed jiggle, I should probably not rigidly attach
 									// but update these thign in the skin update behave
+
 									break;
 								}
 							}
 						}
 					}
 
+					//add all morphs into a bunch for fun
+					for (J3dNiAVObject j3dNiAVObject : model.getNiToJ3dData().j3dNiAVObjectValues())
+					{
+						J3dNiGeomMorpherController j3dNiGeomMorpherController = j3dNiAVObject.getJ3dNiGeomMorpherController();
+						if (j3dNiGeomMorpherController != null)
+						{
+							allMorphs.add(j3dNiGeomMorpherController);
+						}
+					}
 				}
 			}
 		}
@@ -169,6 +184,7 @@ public class NifCharacter extends BranchGroup
 	{
 		if (nextAnimation.length() > 0)
 		{
+
 			currentAnimation = nextAnimation;
 			nextAnimation = "";
 
@@ -181,7 +197,7 @@ public class NifCharacter extends BranchGroup
 				if (kfJ3dRoot != null)
 				{
 					// just default to a 0.3 second blend?
-					Alpha defaultAlpha = new Alpha(1, 0, 0, 300, 0, 0);
+					Alpha defaultAlpha = new SequenceAlpha(0, 0.3f, false);
 					defaultAlpha.setStartTime(System.currentTimeMillis());
 
 					NifJ3dSkeletonRoot inputSkeleton = blendedSkeletons.startNewInputAnimation(defaultAlpha);
@@ -220,7 +236,7 @@ public class NifCharacter extends BranchGroup
 			{
 
 				// just default to a 0.3 second blend?
-				Alpha defaultAlpha = new Alpha(1, 0, 0, 300, 0, 0);
+				Alpha defaultAlpha = new SequenceAlpha(0, 0.3f, false);
 				defaultAlpha.setStartTime(System.currentTimeMillis());
 
 				blendedSkeletons.startNewInputAnimation(defaultAlpha);
@@ -259,9 +275,27 @@ public class NifCharacter extends BranchGroup
 			nextAnimation = idleAnimations.get(r);
 			if (nextAnimation.length() > 0)
 				updateAnimation();
+
+		}
+
+		if (System.currentTimeMillis() - prevMorphTime > (3000 + nextFireTime))
+		{
+			for (J3dNiGeomMorpherController j3dNiGeomMorpherController : allMorphs)
+			{
+				String[] morphsFrames = j3dNiGeomMorpherController.getAllMorphFrameNames();
+				int r2 = (int) (Math.random() * morphsFrames.length - 1);
+				String frame = morphsFrames[r2];
+				j3dNiGeomMorpherController.fireFrameName(frame);
+			}
+			prevMorphTime = System.currentTimeMillis();
+			nextFireTime = new Random(prevMorphTime).nextFloat() * 7000f;
 		}
 
 	}
+
+	private long prevMorphTime = 0;
+
+	private float nextFireTime = 0;
 
 	/**
 	 * This only sets teh new animation if it is different from our current, otherwise ignore

@@ -1,13 +1,11 @@
 package nif.j3d;
 
-import javax.media.j3d.Alpha;
 import javax.media.j3d.BranchGroup;
 
 import nif.j3d.animation.J3dNiControllerManager;
+import nif.j3d.animation.J3dNiGeomMorpherController;
+import nif.j3d.animation.J3dNiSingleInterpController;
 import nif.j3d.animation.J3dNiTimeController;
-import nif.j3d.animation.interp.J3dNiInterpolator;
-import nif.j3d.animation.interp.J3dNiTransformInterpolatorFactory;
-import nif.niobject.NiAVObject;
 import nif.niobject.NiExtraData;
 import nif.niobject.controller.NiControllerManager;
 import nif.niobject.controller.NiGeomMorpherController;
@@ -15,18 +13,12 @@ import nif.niobject.controller.NiMultiTargetTransformController;
 import nif.niobject.controller.NiObjectNET;
 import nif.niobject.controller.NiSingleInterpController;
 import nif.niobject.controller.NiTimeController;
-import nif.niobject.controller.NiTransformController;
-import nif.niobject.interpolator.NiInterpolator;
 
 public abstract class J3dNiObjectNET extends BranchGroup
 {
 	private NiObjectNET niObjectNET;
 
-	private J3dNiControllerManager j3dNiControllerManager;
-
-	private J3dNiInterpolator j3dNiInterpolator;
-
-	private Alpha baseAlpha;
+	private J3dNiTimeController j3dNiTimeController;
 
 	private NiExtraData[] extraDataList;
 
@@ -44,7 +36,18 @@ public abstract class J3dNiObjectNET extends BranchGroup
 
 	public J3dNiControllerManager getJ3dNiControllerManager()
 	{
-		return j3dNiControllerManager;
+		if (j3dNiTimeController instanceof J3dNiControllerManager)
+			return (J3dNiControllerManager) j3dNiTimeController;
+		else
+			return null;
+	}
+
+	public J3dNiGeomMorpherController getJ3dNiGeomMorpherController()
+	{
+		if (j3dNiTimeController instanceof J3dNiGeomMorpherController)
+			return (J3dNiGeomMorpherController) j3dNiTimeController;
+		else
+			return null;
 	}
 
 	public NiExtraData[] getExtraDataList()
@@ -59,78 +62,49 @@ public abstract class J3dNiObjectNET extends BranchGroup
 	public void setupController(NiToJ3dData niToJ3dData)
 	{
 		NiTimeController controller = (NiTimeController) niToJ3dData.get(niObjectNET.controller);
-		setupController(controller, niToJ3dData);
+		j3dNiTimeController = setupController(controller, niToJ3dData);
+		if (j3dNiTimeController != null)
+		{
+			addChild(j3dNiTimeController);
+		}
 	}
 
-	private void setupController(NiTimeController controller, NiToJ3dData niToJ3dData)
+	private J3dNiTimeController setupController(NiTimeController controller, NiToJ3dData niToJ3dData)
 	{
-
+		J3dNiTimeController ret = null;
 		if (controller != null)
 		{
-			float startTimeS = controller.startTime;
-			float stopTimeS = controller.stopTime;
-
-			NiAVObject target = (NiAVObject) niToJ3dData.get(controller.target);
-			J3dNiAVObject nodeTarget = niToJ3dData.get(target);
-			if (nodeTarget != null)
+			if (controller instanceof NiControllerManager)
 			{
-				if (controller instanceof NiControllerManager)
-				{
-					j3dNiControllerManager = new J3dNiControllerManager((NiControllerManager) controller, niToJ3dData);
-					addChild(j3dNiControllerManager);
+				ret = new J3dNiControllerManager((NiControllerManager) controller, niToJ3dData);
+			}
+			else if (controller instanceof NiGeomMorpherController)
+			{
+				ret = new J3dNiGeomMorpherController((NiGeomMorpherController) controller, niToJ3dData);
+			}
+			else if (controller instanceof NiSingleInterpController)
+			{
+				ret = new J3dNiSingleInterpController((NiSingleInterpController) controller, niToJ3dData);
+			}
+			else if (controller instanceof NiMultiTargetTransformController)
+			{
+				// this looks like it is just an object palette for optomisation ignore?? controller link uses its single node target
+			}
 
-				}
-				else if (controller instanceof NiGeomMorpherController)
+			if (ret != null)
+			{
+				NiTimeController nextController = (NiTimeController) niToJ3dData.get(controller.nextController);
+				if (nextController != null)
 				{
-					//TODO: NiGeomMorpherController
-				}
-				else if (controller instanceof NiMultiTargetTransformController)
-				{
-					// this looks like it is just an object palette for optomisation ignore?? controller link uses its single node target
-				}
-				else if (controller instanceof NiSingleInterpController)
-				{
-					NiInterpolator niInterpolator = (NiInterpolator) niToJ3dData.get(((NiSingleInterpController) controller).interpolator);
-					if (niInterpolator != null)
+					J3dNiTimeController jtc2 = setupController(nextController, niToJ3dData);
+					if (jtc2 != null)
 					{
-						if (controller instanceof NiTransformController)
-						{
-							//TODO: shouldn't controller be used like the other time interpolators below?
-							// I appear to go straight for the transformgroup, but I should step through the controller to it
-							// controller link makes this hard note
-							j3dNiInterpolator = J3dNiTransformInterpolatorFactory.createTransformInterpolator(niInterpolator, niToJ3dData,
-									nodeTarget, startTimeS, stopTimeS);
-						}
-						else
-						{
-							J3dNiTimeController j3dNiTimeController = J3dNiTimeController.createJ3dNiTimeController(controller,
-									niToJ3dData, nodeTarget, null);
-
-							if (j3dNiTimeController != null)
-							{
-								j3dNiInterpolator = J3dNiTimeController.createInterpForController(j3dNiTimeController, niInterpolator,
-										niToJ3dData, startTimeS, stopTimeS, -1);
-							}
-						}
-
-						if (j3dNiInterpolator != null)
-						{
-							addChild(j3dNiInterpolator);
-
-							baseAlpha = J3dNiTimeController.createAlpha(startTimeS, stopTimeS, -1);
-							j3dNiInterpolator.fire(baseAlpha);
-						}
+						ret.setJ3dNiTimeController(jtc2);
 					}
 				}
 			}
 
-			NiTimeController nextController = (NiTimeController) niToJ3dData.get(controller.nextController);
-			if (nextController != null)
-			{
-				//I've  seen texturetransform controllers U then V use this
-				setupController(nextController, niToJ3dData);
-			}
 		}
-
+		return ret;
 	}
 }

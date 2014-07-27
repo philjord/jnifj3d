@@ -756,14 +756,14 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 				if (j3dNiTimeController != null)
 				{
 					j3dNiInterpolator = J3dNiTimeController.createInterpForController(j3dNiTimeController, niInterpolator, niToJ3dData,
-							startTimeS, stopTimeS, -1);
+							startTimeS, stopTimeS);
 				}
 
 				if (j3dNiInterpolator != null)
 				{
 					addChild(j3dNiInterpolator);
 
-					Alpha baseAlpha = J3dNiTimeController.createAlpha(startTimeS, stopTimeS, -1);
+					Alpha baseAlpha = J3dNiTimeController.createLoopingAlpha(startTimeS, stopTimeS);
 					j3dNiInterpolator.fire(baseAlpha);
 				}
 

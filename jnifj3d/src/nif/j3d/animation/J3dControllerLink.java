@@ -74,6 +74,8 @@ public class J3dControllerLink extends Group
 				{
 					if (controller instanceof NiGeomMorpherController)
 					{
+						System.out.println("I just seen a NiGeomMorpherController under a J3dControllerLink!");
+						//FIXME: this should use one proper see ObjectNET
 						/*	String morphFrameName = "";
 							if (niToJ3dData.nifVer.LOAD_VER >= NifVer.VER_20_1_0_3)
 							{
@@ -86,7 +88,7 @@ public class J3dControllerLink extends Group
 							}
 
 							j3dNiTimeController = new J3dNiGeomMorpherController((NiGeomMorpherController) controller, morphFrameName, nodeTarget, blocks);
-							*/
+						*/
 					}
 					else
 					{
@@ -96,7 +98,7 @@ public class J3dControllerLink extends Group
 						if (j3dNiTimeController != null)
 						{
 							j3dNiInterpolator = J3dNiTimeController.createInterpForController(j3dNiTimeController, niInterpolator,
-									niToJ3dData, startTimeS, stopTimeS, -1);
+									niToJ3dData, startTimeS, stopTimeS);
 						}
 					}
 				}
@@ -115,7 +117,6 @@ public class J3dControllerLink extends Group
 		{
 			j3dNiInterpolator.process(alphaValue);
 		}
-
 	}
 
 	public static String lookUpPaletteString(int offset, NiToJ3dData niToJ3dData, NifRef stringPaletteRef)

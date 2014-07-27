@@ -1,19 +1,20 @@
 package nif.j3d.animation;
 
-import javax.media.j3d.Group;
-
 import nif.j3d.J3dNiDefaultAVObjectPalette;
 import nif.j3d.NiToJ3dData;
 import nif.niobject.NiControllerSequence;
 import nif.niobject.NiDefaultAVObjectPalette;
 import nif.niobject.controller.NiControllerManager;
 
-public class J3dNiControllerManager extends Group
+
+
+public class J3dNiControllerManager extends J3dNiTimeController
 {
 	private J3dNiControllerSequence[] sequences;
 
 	public J3dNiControllerManager(NiControllerManager controllerManager, NiToJ3dData niToJ3dData)
 	{
+		super(controllerManager);
 
 		if (controllerManager.objectPalette.ref == -1 || niToJ3dData.get(controllerManager.objectPalette) == null)
 		{
