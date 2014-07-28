@@ -122,6 +122,10 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 		}
 	}
 
+	/**
+	 * Fires off a single loops of the fire in question
+	 * @param action
+	 */
 	public void fireFrameName(String action)
 	{
 		for (int i = 0; i < niMorphData.numMorphs; i++)
@@ -137,6 +141,30 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 				return;
 			}
 		}
+	}
+
+	/**
+	 *  note process must be called externally from now on, on the return interpolator
+	 *  
+	 *   this just preps up teh morph name
+	 * @param action
+	 * @return 
+	 */
+	public J3dNiInterpolator setFrameName(String action)
+	{
+		for (int i = 0; i < niMorphData.numMorphs; i++)
+		{
+			if (niMorphData.morphs[i].frameName.equalsIgnoreCase(action))
+			{
+
+				sequenceBehavior.setEnable(false);
+
+				currentNifMorph = niMorphData.morphs[i];
+				currentJ3dNiInterpolator = j3dNiInterpolators.get(i);
+				return currentJ3dNiInterpolator;
+			}
+		}
+		return null;
 	}
 
 	public String[] getAllMorphFrameNames()
@@ -207,7 +235,6 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 		@Override
 		public void process()
 		{
-
 			float alphaValue = sequenceAlpha.value();
 
 			currentJ3dNiInterpolator.process(alphaValue);

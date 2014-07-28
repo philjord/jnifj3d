@@ -10,6 +10,7 @@ import javax.media.j3d.Node;
 import javax.media.j3d.WakeupOnElapsedFrames;
 import javax.vecmath.Point3d;
 
+import nif.NifJ3dVisRoot;
 import nif.character.TextKeyExtraDataKey;
 import nif.j3d.J3dNiDefaultAVObjectPalette;
 import nif.j3d.J3dNiTextKeyExtraData;
@@ -108,6 +109,12 @@ public class J3dNiControllerSequence extends Group
 
 	public void setAnimatedNodes(J3dNiDefaultAVObjectPalette allBonesInSkeleton)
 	{
+		setAnimatedNodes(allBonesInSkeleton, null);
+
+	}
+
+	public void setAnimatedNodes(J3dNiDefaultAVObjectPalette allBonesInSkeleton, ArrayList<NifJ3dVisRoot> allOtherModels)
+	{
 		controlledBlocks = new J3dControllerLink[niControllerSequence.numControlledBlocks];
 
 		for (int i = 0; i < niControllerSequence.numControlledBlocks; i++)
@@ -115,7 +122,7 @@ public class J3dNiControllerSequence extends Group
 			if (niControllerSequence.controlledBlocks[i] != null)
 			{
 				J3dControllerLink j3dControllerLink = new J3dControllerLink(niControllerSequence.controlledBlocks[i], niToJ3dData,
-						startTimeS, stopTimeS, allBonesInSkeleton);
+						startTimeS, stopTimeS, allBonesInSkeleton, allOtherModels);
 				controlledBlocks[i] = j3dControllerLink;
 				addChild(j3dControllerLink);
 			}

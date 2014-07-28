@@ -39,6 +39,8 @@ public class NifCharacter extends BranchGroup
 
 	private ArrayList<J3dNiSkinInstance> allSkins = new ArrayList<J3dNiSkinInstance>();
 
+	private ArrayList<NifJ3dVisRoot> allOtherModels = new ArrayList<NifJ3dVisRoot>();
+
 	private String currentAnimation = "";
 
 	private String nextAnimation = "";
@@ -103,7 +105,8 @@ public class NifCharacter extends BranchGroup
 				}
 				else
 				{
-					// add any non skin based gear like hats!!				 
+					// add any non skin based gear like hats!!	
+					allOtherModels.add(model);
 
 					// use an nistringextra of weapon and shield, node name of prn for extra data
 
@@ -201,7 +204,7 @@ public class NifCharacter extends BranchGroup
 					defaultAlpha.setStartTime(System.currentTimeMillis());
 
 					NifJ3dSkeletonRoot inputSkeleton = blendedSkeletons.startNewInputAnimation(defaultAlpha);
-					kfJ3dRoot.setAnimatedSkeleton(inputSkeleton.getAllBonesInSkeleton());
+					kfJ3dRoot.setAnimatedSkeleton(inputSkeleton.getAllBonesInSkeleton(), allOtherModels);
 
 					cachedAnimations.put(currentAnimation, kfJ3dRoot);
 
@@ -388,7 +391,7 @@ public class NifCharacter extends BranchGroup
 
 			for (J3dNiSkinInstance j3dNiSkinInstance : allSkins)
 			{
-				j3dNiSkinInstance.processSkinPartitions();
+				j3dNiSkinInstance.processSkinInstance();
 			}
 
 		}

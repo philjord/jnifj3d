@@ -3,13 +3,13 @@ package nif.j3d;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
+import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.Group;
+import javax.vecmath.Point3d;
 
 import nif.basic.NifPtr;
 import nif.character.NifJ3dSkeletonRoot;
-import nif.compound.NifSkinData;
 import nif.compound.NifSkinPartition;
-import nif.compound.NifSkinWeight;
 import nif.niobject.NiAVObject;
 import nif.niobject.NiGeometry;
 import nif.niobject.NiNode;
@@ -20,14 +20,13 @@ import nif.niobject.NiTriShape;
 
 public class J3dNiSkinInstance extends Group
 {
-
 	public static boolean showSkinBoneMarkers = false;
 
-	//private HashMap<String, J3dNiNode> skinBones = new HashMap<String, J3dNiNode>();
-
-	private ArrayList<J3dNiNode> skinBonesInOrder = new ArrayList<J3dNiNode>();
+	private J3dNiNode[] skinBonesInOrder;
 
 	private ArrayList<J3dNifSkinPartition> j3dNifPartitions = new ArrayList<J3dNifSkinPartition>();
+
+	private J3dNifSkinData j3dNifSkinData;
 
 	private LinkedHashMap<String, J3dNiNode> skeletonBones = new LinkedHashMap<String, J3dNiNode>();
 
@@ -36,7 +35,6 @@ public class J3dNiSkinInstance extends Group
 	public J3dNiSkinInstance(NiSkinInstance niSkinInstance, J3dNiTriShape j3dNiTriShape, NiToJ3dData niToJ3dData,
 			NifJ3dSkeletonRoot nifJ3dSkeletonRoot)
 	{
-
 		J3dNiDefaultAVObjectPalette allSkeletonBones = nifJ3dSkeletonRoot.getAllBonesInSkeleton();
 
 		if (j3dNiTriShape.getParent() != null)
@@ -44,78 +42,66 @@ public class J3dNiSkinInstance extends Group
 			((Group) j3dNiTriShape.getParent()).removeChild(j3dNiTriShape);
 		}
 
+		skinSkeletonRoot = niToJ3dData.get((NiAVObject) niToJ3dData.get(niSkinInstance.skeletonRoot));
+		skinSkeletonRoot.setVisualMarker(showSkinBoneMarkers);
+
+		//TODO: is this a good idea? profiler on thread shows it blocked on update bounds
+		j3dNiTriShape.getShape().setBoundsAutoCompute(false);
+		j3dNiTriShape.getShape().setBounds(new BoundingSphere(new Point3d(0, 0, 0), 10));
+
 		addChild(j3dNiTriShape);
 
-		if (niSkinInstance.data.ref != -1)
+		//add bones to list
+		skinBonesInOrder = new J3dNiNode[niSkinInstance.bones.length];
+		for (int boneIdx = 0; boneIdx < niSkinInstance.bones.length; boneIdx++)
+		{
+			NifPtr p = niSkinInstance.bones[boneIdx];
+			if (p.ptr != -1)
+			{
+				NiNode n = (NiNode) niToJ3dData.get(p);
+				J3dNiNode skinBone = (J3dNiNode) niToJ3dData.get(n);
+				skinBone.setVisualMarker(showSkinBoneMarkers);
+
+				skinBonesInOrder[boneIdx] = skinBone;
+
+				J3dNiNode skeletonBone = (J3dNiNode) allSkeletonBones.get(n.name);
+				skeletonBones.put(n.name, skeletonBone);
+			}
+		}
+
+		if (niSkinInstance.data.ref != -1 && true)
 		{
 			NiSkinData niSkinData = (NiSkinData) niToJ3dData.get(niSkinInstance.data);
-			//TODO: the skin transform probably needs to be used here too
-
-			for (NifSkinData nsd : niSkinData.boneList)
-			{
-				//each vertex weight moves towards the bone I guess 
-				//but how does it keep station with other vextexes?
-
-				// let's just sop out what vetex 2229 does I have 4 bones and a total of 1
-				// another random has 2 0.95 and 0.05
-
-				//I have a skin weight here too?
-				//nsd.rotation;
-				//nsd.translation;
-				//nsd.scale;
-				for (NifSkinWeight vw : nsd.vertexWeights)
-				{
-					if (vw.index == 2228)
-					{
-						System.out.println("weight = " + vw.weight);
-					}
-				}
-			}
-
+			j3dNifSkinData = new J3dNifSkinData(niSkinData, j3dNiTriShape, skinSkeletonRoot, skinBonesInOrder, skeletonBones);
 		}
 		else
 		{
-			System.out.println("J3dNiSkinInstance niSkinInstance.data == -1");
-		}
-
-		if (niSkinInstance.skinPartition.ref != -1)
-		{
-			NiSkinPartition niSkinPartition = (NiSkinPartition) niToJ3dData.get(niSkinInstance.skinPartition);
-
-			skinSkeletonRoot = niToJ3dData.get((NiAVObject) niToJ3dData.get(niSkinInstance.skeletonRoot));
-			skinSkeletonRoot.setVisualMarker(showSkinBoneMarkers);
-
-			//add bones to list
-			for (NifPtr p : niSkinInstance.bones)
+			if (niSkinInstance.skinPartition.ref != -1)
 			{
-				if (p.ptr != -1)
+				NiSkinPartition niSkinPartition = (NiSkinPartition) niToJ3dData.get(niSkinInstance.skinPartition);
+
+				for (NifSkinPartition nifSkinPartition : niSkinPartition.skinPartitionBlocks)
 				{
-					NiNode n = (NiNode) niToJ3dData.get(p);
-					J3dNiNode skinBone = (J3dNiNode) niToJ3dData.get(n);
-					skinBone.setVisualMarker(showSkinBoneMarkers);
-
-					//skinBones.put(n.name, skinBone);
-					skinBonesInOrder.add(skinBone);
-
-					J3dNiNode skeletonBone = (J3dNiNode) allSkeletonBones.get(n.name);
-					skeletonBones.put(n.name, skeletonBone);
+					j3dNifPartitions.add(new J3dNifSkinPartition(nifSkinPartition, j3dNiTriShape, skinSkeletonRoot, skinBonesInOrder,
+							skeletonBones));
 				}
-			}
-
-			for (NifSkinPartition nifSkinPartition : niSkinPartition.skinPartitionBlocks)
-			{
-				j3dNifPartitions.add(new J3dNifSkinPartition(nifSkinPartition, j3dNiTriShape, skinSkeletonRoot, skinBonesInOrder,
-						skeletonBones));
 			}
 		}
 
 	}
 
-	public void processSkinPartitions()
+	public void processSkinInstance()
 	{
-		for (J3dNifSkinPartition j3dNifPartition : j3dNifPartitions)
+		if (j3dNifSkinData != null)
 		{
-			j3dNifPartition.updateSkin();
+			j3dNifSkinData.updateSkin();
+		}
+		else
+		{
+			for (J3dNifSkinPartition j3dNifPartition : j3dNifPartitions)
+			{
+				j3dNifPartition.updateSkin();
+			}
 		}
 	}
 

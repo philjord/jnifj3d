@@ -96,7 +96,7 @@ public class KfLoaderTester
 			// make the kf file root 
 			NiToJ3dData niToJ3dData = new NiToJ3dData(kfFile.blocks);
 			KfJ3dRoot kfJ3dRoot = new KfJ3dRoot((NiControllerSequence) niToJ3dData.root(), niToJ3dData);
-			kfJ3dRoot.setAnimatedSkeleton(nifJ3dSkeletonRoot.getAllBonesInSkeleton());
+			kfJ3dRoot.setAnimatedSkeleton(nifJ3dSkeletonRoot.getAllBonesInSkeleton(), null);
 
 			/*	addChild(kfJ3dRoot);
 

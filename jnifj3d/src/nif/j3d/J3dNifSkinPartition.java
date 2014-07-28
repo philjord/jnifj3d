@@ -1,18 +1,16 @@
 package nif.j3d;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.Geometry;
 import javax.media.j3d.GeometryArray;
 import javax.media.j3d.GeometryUpdater;
 import javax.media.j3d.Group;
 import javax.media.j3d.Transform3D;
-import javax.vecmath.Point3d;
 
 import nif.compound.NifSkinPartition;
 
+@Deprecated
 public class J3dNifSkinPartition extends Group implements GeometryUpdater
 {
 	private NifSkinPartition nifSkinPartition;
@@ -31,23 +29,28 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 
 	private Transform3D[] accumulatedTransByBonesIndex;
 
+	/**
+	 * superceeded by teh skindata version, this is an extra on top f that, whihc I don't need
+	 * this does not have enough info in it to work alone
+	 * @param nifSkinPartition
+	 * @param j3dNiTriShape
+	 * @param skinSkeletonRoot
+	 * @param skinBonesInOrder
+	 * @param skeletonBones
+	 */	
 	public J3dNifSkinPartition(NifSkinPartition nifSkinPartition, J3dNiTriShape j3dNiTriShape, J3dNiAVObject skinSkeletonRoot,
-			ArrayList<J3dNiNode> skinBonesInOrder, LinkedHashMap<String, J3dNiNode> skeletonBones)
+			J3dNiNode[] skinBonesInOrder, LinkedHashMap<String, J3dNiNode> skeletonBones)
 	{
 		this.nifSkinPartition = nifSkinPartition;
-
-		//TODO: is this a good idea? thread show blocked on update bounds
-		j3dNiTriShape.getShape().setBoundsAutoCompute(false);
-		j3dNiTriShape.getShape().setBounds(new BoundingSphere(new Point3d(0, 0, 0), 10));
 
 		j3dNiTriShape.getTreeTransform(shapeVWTrans, skinSkeletonRoot);
 		shapeVWInvTrans.set(shapeVWTrans);
 		shapeVWInvTrans.invert();
 
-		skinBonesVWInvTransInOrder = new Transform3D[skinBonesInOrder.size()];
-		for (int spBoneId = 0; spBoneId < skinBonesInOrder.size(); spBoneId++)
+		skinBonesVWInvTransInOrder = new Transform3D[skinBonesInOrder.length];
+		for (int spBoneId = 0; spBoneId < skinBonesInOrder.length; spBoneId++)
 		{
-			J3dNiNode skinBone = skinBonesInOrder.get(spBoneId);
+			J3dNiNode skinBone = skinBonesInOrder[spBoneId];
 			Transform3D skinBoneVWInvTrans = new Transform3D();
 			skinBone.getTreeTransform(skinBoneVWInvTrans, skinSkeletonRoot);
 
@@ -66,10 +69,10 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 			accumulatedTransByBonesIndex[spBoneIndex] = new Transform3D();
 		}
 
-		skeletonBonesInSkinBoneIdOrder = new J3dNiNode[skinBonesInOrder.size()];
-		for (int spBoneId = 0; spBoneId < skinBonesInOrder.size(); spBoneId++)
+		skeletonBonesInSkinBoneIdOrder = new J3dNiNode[skinBonesInOrder.length];
+		for (int spBoneId = 0; spBoneId < skinBonesInOrder.length; spBoneId++)
 		{
-			J3dNiNode skinBone = skinBonesInOrder.get(spBoneId);
+			J3dNiNode skinBone = skinBonesInOrder[spBoneId];
 			J3dNiNode skeletonBone = skeletonBones.get(skinBone.getName());
 			if (skeletonBone == null)
 				System.out.println("Null bone! mixed games or creatures? " + skinBone.getName());
@@ -96,11 +99,10 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 		double[][] accTransMats = new double[nifSkinPartition.bones.length][16];
 
 		// pre multiply transforms for repeated use for each vertex
-		
+
 		//TODO: note I repate the exact same bones in different partitions on a given model
 		//see oblivion dogbody.nif 34/35/36 are done twice
 		// my new higherlevel start pose at skin instance may force this issue anyway
-		
 
 		for (int spBoneIndex = 0; spBoneIndex < nifSkinPartition.bones.length; spBoneIndex++)
 		{
@@ -127,24 +129,20 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 
 			accumulatedTrans.get(accTransMats[spBoneIndex]);
 
-		
-
 			//spider daedra bones
-		/*	if (bone.getName().equals("Bip01 jaw") //
-					|| bone.getName().equals("Bip01 Head") //
-					|| bone.getName().equals("Bip01 Spine2")//
-					|| bone.getName().equals("Bip01 L Breast")//
-					|| bone.getName().equals("Bip01 R Breast"))
-			
-			// ok so dog and wolf have exact same issue, but the tail bones appear perfectly placed?
-			if (bone.getName().equals("Bip01 NonAccum")
-					|| bone.getName().equals("Bip01 Spine0")
-					|| bone.getName().equals("Bip01 Pelvis")
-					|| bone.getName().equals("Bip01 Tail")
-					|| bone.getName().equals("Bip01 Tail1")
-					|| bone.getName().equals("Bip01 Tail2"))*/
-			
+			/*	if (bone.getName().equals("Bip01 jaw") //
+						|| bone.getName().equals("Bip01 Head") //
+						|| bone.getName().equals("Bip01 Spine2")//
+						|| bone.getName().equals("Bip01 L Breast")//
+						|| bone.getName().equals("Bip01 R Breast"))
 				
+				// ok so dog and wolf have exact same issue, but the tail bones appear perfectly placed?
+				if (bone.getName().equals("Bip01 NonAccum")
+						|| bone.getName().equals("Bip01 Spine0")
+						|| bone.getName().equals("Bip01 Pelvis")
+						|| bone.getName().equals("Bip01 Tail")
+						|| bone.getName().equals("Bip01 Tail1")
+						|| bone.getName().equals("Bip01 Tail2"))*/
 
 			//I think this jaw bone inverstion may NOT be related to eh bound rest pose
 			if (bone.getName().equals("Bip01 jaw"))
@@ -193,7 +191,7 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 					//This show jaw bone is just flipped over simple x rotate of 180?
 					//	if( nifSkinPartition.numTriangles == 4310 &&spBoneIndex == 0 )
 					//	spBoneIndex = 15;
-					
+
 					// one of dog tail
 					//if( nifSkinPartition.numTriangles == 1487 && spBoneIndex == 11 )
 					//	spBoneIndex = 3;
@@ -242,9 +240,7 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 			currentCoordRefFloat[vIdx * 3 + 0] = accumPointx;
 			currentCoordRefFloat[vIdx * 3 + 1] = accumPointy;
 			currentCoordRefFloat[vIdx * 3 + 2] = accumPointz;
-			
-			
-			
+
 		}
 
 	}

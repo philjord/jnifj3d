@@ -102,4 +102,15 @@ public class NiToJ3dData
 		return niObjects;
 	}
 
+	public J3dNiAVObject get(String nodeName)
+	{
+		for (NiObject no : niObjects.getNiObjects())
+		{
+			if (no instanceof NiAVObject && ((NiAVObject) no).name.equals(nodeName))
+				return get((NiAVObject) no);
+		}
+
+		return null;
+	}
+
 }
