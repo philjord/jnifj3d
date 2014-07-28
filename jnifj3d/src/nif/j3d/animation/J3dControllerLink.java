@@ -104,17 +104,19 @@ public class J3dControllerLink extends Group
 				//NiMultiTargetTransformController
 				j3dNiInterpolator = J3dNiTransformInterpolatorFactory.createTransformInterpolator(niInterpolator, targetNiToJ3dData,
 						nodeTarget, startTimeS, lengthS);
+				addChild(j3dNiInterpolator);
 			}
 			else if (controllerType.equals("NiGeomMorpherController"))
 			{
 				
-				J3dNiAVObject targetParent  = targetNiToJ3dData.get(controllerLink.nodeName);
+				J3dNiAVObject targetParent  = targetNiToJ3dData.get(nodeName);
 				
 				j3dNiGeomMorpherController = targetParent.getJ3dNiGeomMorpherController();
 				System.out.println("I just seen a NiGeomMorpherController under a J3dControllerLink!  I should link them together "
 						+ controllerLink.nodeName + " " + niToJ3dData.nifVer);
 				
 				j3dNiInterpolator = j3dNiGeomMorpherController.setFrameName(variable2);
+				//not added as child
 			}
 			else
 			{
@@ -128,14 +130,12 @@ public class J3dControllerLink extends Group
 					{
 						j3dNiInterpolator = J3dNiTimeController.createInterpForController(j3dNiTimeController, niInterpolator,
 								targetNiToJ3dData, startTimeS, stopTimeS);
+						addChild(j3dNiInterpolator);
 					}
 				}
 
 			}
-			if (j3dNiInterpolator != null)
-			{
-				addChild(j3dNiInterpolator);
-			}
+			 
 		}
 	}
 
