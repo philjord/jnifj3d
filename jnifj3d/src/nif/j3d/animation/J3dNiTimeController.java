@@ -6,6 +6,7 @@ import javax.vecmath.Point3f;
 
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.NiToJ3dData;
+import nif.j3d.animation.interp.J3dNiBSplineCompFloatInterpolator;
 import nif.j3d.animation.interp.J3dNiBoolInterpolator;
 import nif.j3d.animation.interp.J3dNiFloatInterpolator;
 import nif.j3d.animation.interp.J3dNiInterpolator;
@@ -33,6 +34,7 @@ import nif.niobject.controller.NiMultiTargetTransformController;
 import nif.niobject.controller.NiTextureTransformController;
 import nif.niobject.controller.NiTimeController;
 import nif.niobject.controller.NiVisController;
+import nif.niobject.interpolator.NiBSplineCompFloatInterpolator;
 import nif.niobject.interpolator.NiBlendBoolInterpolator;
 import nif.niobject.interpolator.NiBlendFloatInterpolator;
 import nif.niobject.interpolator.NiBlendPoint3Interpolator;
@@ -154,9 +156,14 @@ public abstract class J3dNiTimeController extends Group implements InterpolatorL
 		{
 			// don't create indicates that a controller link will create a real one
 		}
+		else if (niInterpolator instanceof NiBSplineCompFloatInterpolator)
+		{
+			j3dNiInterpolator = new J3dNiBSplineCompFloatInterpolator((NiBSplineCompFloatInterpolator) niInterpolator, niToJ3dData,
+					callbackListener);
+		}
 		else
 		{
-			System.out.println("Unhandled niInterpolator for NiPSysModifierCtlr " + callbackListener + " of " + niInterpolator);
+			System.out.println("Unhandled niInterpolator for J3dNiTimeController " + callbackListener + " of " + niInterpolator);
 		}
 
 		if (j3dNiInterpolator != null)

@@ -9,13 +9,11 @@ import javax.vecmath.Point3d;
 
 import nif.basic.NifPtr;
 import nif.character.NifJ3dSkeletonRoot;
-import nif.compound.NifSkinPartition;
 import nif.niobject.NiAVObject;
 import nif.niobject.NiGeometry;
 import nif.niobject.NiNode;
 import nif.niobject.NiSkinData;
 import nif.niobject.NiSkinInstance;
-import nif.niobject.NiSkinPartition;
 import nif.niobject.NiTriShape;
 
 public class J3dNiSkinInstance extends Group
@@ -23,8 +21,6 @@ public class J3dNiSkinInstance extends Group
 	public static boolean showSkinBoneMarkers = false;
 
 	private J3dNiNode[] skinBonesInOrder;
-
-	private ArrayList<J3dNifSkinPartition> j3dNifPartitions = new ArrayList<J3dNifSkinPartition>();
 
 	private J3dNifSkinData j3dNifSkinData;
 
@@ -74,19 +70,6 @@ public class J3dNiSkinInstance extends Group
 			NiSkinData niSkinData = (NiSkinData) niToJ3dData.get(niSkinInstance.data);
 			j3dNifSkinData = new J3dNifSkinData(niSkinData, j3dNiTriShape, skinSkeletonRoot, skinBonesInOrder, skeletonBones);
 		}
-		else
-		{
-			if (niSkinInstance.skinPartition.ref != -1)
-			{
-				NiSkinPartition niSkinPartition = (NiSkinPartition) niToJ3dData.get(niSkinInstance.skinPartition);
-
-				for (NifSkinPartition nifSkinPartition : niSkinPartition.skinPartitionBlocks)
-				{
-					j3dNifPartitions.add(new J3dNifSkinPartition(nifSkinPartition, j3dNiTriShape, skinSkeletonRoot, skinBonesInOrder,
-							skeletonBones));
-				}
-			}
-		}
 
 	}
 
@@ -95,13 +78,6 @@ public class J3dNiSkinInstance extends Group
 		if (j3dNifSkinData != null)
 		{
 			j3dNifSkinData.updateSkin();
-		}
-		else
-		{
-			for (J3dNifSkinPartition j3dNifPartition : j3dNifPartitions)
-			{
-				j3dNifPartition.updateSkin();
-			}
 		}
 	}
 

@@ -76,7 +76,7 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 						Point3f p = points == null ? defaultTrans : points.get(i);
 						Quat4f q = quats == null ? defaultRot : quats.get(i);
 						Point3f s = scales == null ? defaultScale : scales.get(i);
-
+						
 						TCBKeyFrame key = new TCBKeyFrame(knot, 0, p, q, s, 0.0f, 0.0f, 0.0f);
 						keys[i] = key;
 					}
@@ -111,10 +111,10 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 
 	}
 
-	private short[] getShortControlPointRange(short[] allControlPoints, int rotationOffset, int numberOfControlPoints)
+	private short[] getShortControlPointRange(short[] allControlPoints, int offset, int numberOfControlPoints)
 	{
 		short[] ret = new short[numberOfControlPoints];
-		System.arraycopy(allControlPoints, rotationOffset, ret, 0, numberOfControlPoints);
+		System.arraycopy(allControlPoints, offset, ret, 0, numberOfControlPoints);
 		return ret;
 	}
 

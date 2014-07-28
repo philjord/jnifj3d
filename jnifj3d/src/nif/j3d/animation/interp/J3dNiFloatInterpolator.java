@@ -73,15 +73,11 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 				// if it's a single value (or 2 the same) then make a constant out of it
 				NifKey key = floatData.keys[0];
 				constantFloat = (Float) key.value;
-
 			}
-
 		}
 		else
 		{
 			constantFloat = niFloatInterpolator.floatValue;
-
 		}
-
 	}
 }

@@ -79,10 +79,6 @@ public class J3dNifSkinData extends Group implements GeometryUpdater
 	//reused in loop
 	private Transform3D accumulatorTrans = new Transform3D();
 
-	/**
-	 * Mega optomised, natural copy below
-	 * @see javax.media.j3d.GeometryUpdater#updateData(javax.media.j3d.Geometry)
-	 */
 	@Override
 	public void updateData(Geometry geometry)
 	{

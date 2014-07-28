@@ -123,7 +123,7 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 	}
 
 	/**
-	 * Fires off a single loops of the fire in question
+	 * Fires off in a single loop of the fire in question
 	 * @param action
 	 */
 	public void fireFrameName(String action)
@@ -137,34 +137,36 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 				currentJ3dNiInterpolator = j3dNiInterpolators.get(i);
 				sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, false);
 
-				sequenceBehavior.setEnable(true);// disbales after loop if required
+				sequenceBehavior.setEnable(true);// disables after loop if required
 				return;
 			}
 		}
 	}
 
 	/**
-	 *  note process must be called externally from now on, on the return interpolator
-	 *  
+	 *  note process must be called externally from now on,  
 	 *   this just preps up teh morph name
+	 *   Using an external interp handing updates to this
 	 * @param action
 	 * @return 
 	 */
-	public J3dNiInterpolator setFrameName(String action)
+	public void setFrameName(String action)
 	{
-		for (int i = 0; i < niMorphData.numMorphs; i++)
+		//only set if different
+		if (currentNifMorph == null || !currentNifMorph.frameName.equals(action))
 		{
-			if (niMorphData.morphs[i].frameName.equalsIgnoreCase(action))
+			for (int i = 0; i < niMorphData.numMorphs; i++)
 			{
+				if (niMorphData.morphs[i].frameName.equals(action))
+				{
+					sequenceBehavior.setEnable(false);
+					currentNifMorph = niMorphData.morphs[i];
+					sequenceAlpha = null;
+					currentJ3dNiInterpolator = null;
 
-				sequenceBehavior.setEnable(false);
-
-				currentNifMorph = niMorphData.morphs[i];
-				currentJ3dNiInterpolator = j3dNiInterpolators.get(i);
-				return currentJ3dNiInterpolator;
+				}
 			}
 		}
-		return null;
 	}
 
 	public String[] getAllMorphFrameNames()
@@ -207,10 +209,6 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 						coordRefFloat[(i * 3) + 0] = x1 + (x2 * (interpValue));
 						coordRefFloat[(i * 3) + 1] = y1 + (y2 * (interpValue));
 						coordRefFloat[(i * 3) + 2] = z1 + (z2 * (interpValue));
-
-						//System.out.println("setting values " + interpValue + " " + baseCoords[(i * 3) + 0] + " to "
-						//		+ coordRefFloat[(i * 3) + 0]);
-
 					}
 				}
 			});
@@ -235,13 +233,21 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 		@Override
 		public void process()
 		{
-			float alphaValue = sequenceAlpha.value();
+			// will be null when another interp is running this
+			if (sequenceAlpha != null)
+			{
+				float alphaValue = sequenceAlpha.value();
 
-			currentJ3dNiInterpolator.process(alphaValue);
+				currentJ3dNiInterpolator.process(alphaValue);
 
-			//turn off at the end
-			if (sequenceAlpha.finished())
+				//turn off at the end
+				if (sequenceAlpha.finished())
+					setEnable(false);
+			}
+			else
+			{
 				setEnable(false);
+			}
 		}
 	}
 }
