@@ -107,11 +107,13 @@ public class J3dControllerLink extends Group
 			}
 			else if (controllerType.equals("NiGeomMorpherController"))
 			{
-				NiTimeController controller = (NiTimeController) targetNiToJ3dData.get(controllerLink.nodeName);
+				
+				J3dNiAVObject targetParent  = targetNiToJ3dData.get(controllerLink.nodeName);
+				
+				j3dNiGeomMorpherController = targetParent.getJ3dNiGeomMorpherController();
 				System.out.println("I just seen a NiGeomMorpherController under a J3dControllerLink!  I should link them together "
 						+ controllerLink.nodeName + " " + niToJ3dData.nifVer);
-
-				j3dNiGeomMorpherController = new J3dNiGeomMorpherController((NiGeomMorpherController) controller, targetNiToJ3dData);
+				
 				j3dNiInterpolator = j3dNiGeomMorpherController.setFrameName(variable2);
 			}
 			else
