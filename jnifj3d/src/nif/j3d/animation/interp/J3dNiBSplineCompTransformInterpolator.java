@@ -58,26 +58,13 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 					keys = new TCBKeyFrame[numberOfControlPoints];
 					for (int i = 0; i < numberOfControlPoints; i++)
 					{
-
-						/**
-						 * Creates a key frame using the given inputs. 
-						 *
-						 * @param k knot value for this key frame 
-						 * @param l the linear flag (0 - Spline Interp, 1, Linear Interp
-						 * @param pos the position at the key frame
-						 * @param q the rotations at the key frame
-						 * @param s the scales at the key frame
-						 * @param t tension (-1.0 < t < 1.0)
-						 * @param c continuity (-1.0 < c < 1.0)
-						 * @param b bias (-1.0 < b < 1.0)
-						 */
-
 						float knot = (float) i / (float) (numberOfControlPoints - 1);
 						Point3f p = points == null ? defaultTrans : points.get(i);
 						Quat4f q = quats == null ? defaultRot : quats.get(i);
 						Point3f s = scales == null ? defaultScale : scales.get(i);
-						
-						TCBKeyFrame key = new TCBKeyFrame(knot, 0, p, q, s, 0.0f, 0.0f, 0.0f);
+
+						//NOTE no TCB because this is not a TCB interpolator so linear=1 (faster?)
+						TCBKeyFrame key = new TCBKeyFrame(knot, 1, p, q, s, 0.0f, 0.0f, 0.0f);
 						keys[i] = key;
 					}
 

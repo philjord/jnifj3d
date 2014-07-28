@@ -47,7 +47,7 @@ public class J3dNiBSplineCompFloatInterpolator extends J3dNiInterpolator
 					values[i] = fs == null ? defaultF : fs[i];
 				}
 
-				//TODO: we are using a vahnilla interp so there's no TCB invloved at all so nibs.bias ignored
+				
 				FloatInterpolator interpolator = new FloatInterpolator(callBack, knots, values);
 				addInterpolator(interpolator);
 
@@ -72,7 +72,7 @@ public class J3dNiBSplineCompFloatInterpolator extends J3dNiInterpolator
 
 			for (int i = 0; i < numberOfControlPoints; i++)
 			{
-				ret[i] = (((points[i] + UPLIFT) / SHORT_RANGE) * nibs.multiplier);
+				ret[i] = (((points[i] + UPLIFT) / SHORT_RANGE) * nibs.multiplier) + nibs.bias;
 			}
 			return ret;
 		}
