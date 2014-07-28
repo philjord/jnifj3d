@@ -43,7 +43,7 @@ public class J3dNiSkinInstance extends Group
 
 		//TODO: is this a good idea? profiler on thread shows it blocked on update bounds
 		j3dNiTriShape.getShape().setBoundsAutoCompute(false);
-		j3dNiTriShape.getShape().setBounds(new BoundingSphere(new Point3d(0, 0, 0), 10));
+		j3dNiTriShape.getShape().setBounds(new BoundingSphere(new Point3d(0, 0, 0), 20));
 
 		addChild(j3dNiTriShape);
 
@@ -68,7 +68,7 @@ public class J3dNiSkinInstance extends Group
 		if (niSkinInstance.data.ref != -1 && true)
 		{
 			NiSkinData niSkinData = (NiSkinData) niToJ3dData.get(niSkinInstance.data);
-			j3dNifSkinData = new J3dNifSkinData(niSkinData, j3dNiTriShape, skinSkeletonRoot, skinBonesInOrder, skeletonBones);
+			j3dNifSkinData = new J3dNifSkinData(niSkinData, j3dNiTriShape, skinBonesInOrder, skeletonBones);
 		}
 
 	}

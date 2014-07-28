@@ -28,14 +28,15 @@ public class J3dNifSkinData extends Group implements GeometryUpdater
 
 	private Transform3D[] skinBonesSkinOffsetInOrder;
 
-	public J3dNifSkinData(NiSkinData niSkinData, J3dNiTriShape j3dNiTriShape, J3dNiAVObject skinSkeletonRoot, J3dNiNode[] skinBonesInOrder,
+	public J3dNifSkinData(NiSkinData niSkinData, J3dNiTriShape j3dNiTriShape, J3dNiNode[] skinBonesInOrder,
 			LinkedHashMap<String, J3dNiNode> skeletonBones)
 	{
 		//http://sourceforge.net/p/niftools/niflib/ci/0b2d0541c5a17af892ab2f416acbbfd2fdc369b2/tree/src/obj/NiSkinData.cpp
 
 		// TODO: I note the skyrim madness looks like just bad bone mapping note Skyrim kf files are my derived ones, so perhaps??
-		// TODO: spider daedra jaw not better
+		// TODO: spider daedra jaw not better, troll jaw also bad
 		// TODO: head of dog needs attachign proper to blended output, in the correct update frame
+		// TODO: possibly also proper undertand of non accum etc
 
 		this.niSkinData = niSkinData;
 

@@ -340,4 +340,10 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 		}
 	}
 
+	public Node getShape()
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

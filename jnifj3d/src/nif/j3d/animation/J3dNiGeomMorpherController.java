@@ -87,7 +87,12 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 
 				if (nodeTarget instanceof J3dNiTriBasedGeom)
 				{
-					((J3dNiTriBasedGeom) nodeTarget).makeMorphable();
+					J3dNiTriBasedGeom j3dNiTriBasedGeom = (J3dNiTriBasedGeom) nodeTarget;
+					j3dNiTriBasedGeom.makeMorphable();
+					// make it so auto bounds doesn't update all the time
+					j3dNiTriBasedGeom.getShape().setBoundsAutoCompute(false);
+					j3dNiTriBasedGeom.getShape().setBounds(new BoundingSphere(new Point3d(0, 0, 0), 20));
+
 					itsa = ((J3dNiTriBasedGeom) nodeTarget).getBaseGeometryArray();
 
 					// take a copy of the base vert coords
