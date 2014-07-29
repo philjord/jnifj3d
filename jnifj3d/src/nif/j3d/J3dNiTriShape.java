@@ -1,19 +1,15 @@
 package nif.j3d;
 
 import javax.media.j3d.GeometryArray;
-import javax.vecmath.Color4f;
-import javax.vecmath.Point3f;
-import javax.vecmath.TexCoord2f;
-import javax.vecmath.Vector3f;
+import javax.media.j3d.IndexedGeometryArray;
+import javax.media.j3d.IndexedTriangleArray;
 
 import nif.niobject.NiTriShape;
 import nif.niobject.NiTriShapeData;
 import nif.niobject.bs.BSLODTriShape;
-import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
 import com.sun.j3d.utils.geometry.GeometryInfo;
-import com.sun.j3d.utils.geometry.NormalGenerator;
 
 /**
  * This class has a base geometry and a current to allow skin instances to deform the base
@@ -40,11 +36,13 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 		}
 		else
 		{
-			GeometryInfo geometryInfo = makeGeometryInfo(data);
-			if (geometryInfo != null)
-			{
-				getShape().setGeometry(makeGeometry(geometryInfo, true, data));
-			}
+			//GeometryInfo geometryInfo = makeGeometryInfo(data);
+			//if (geometryInfo != null)
+			//{
+			//	getShape().setGeometry(makeGeometry(geometryInfo, true, data));
+			//}
+
+			experimentalShape(false);
 		}
 
 	}
@@ -62,11 +60,13 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 		niToJ3dData.put(bsLODTriShape, this);
 		data = (NiTriShapeData) niToJ3dData.get(bsLODTriShape.data);
 
-		GeometryInfo geometryInfo = makeGeometryInfo(data);
-		if (geometryInfo != null)
-		{
-			getShape().setGeometry(makeGeometry(geometryInfo, true, data));
-		}
+		//GeometryInfo geometryInfo = makeGeometryInfo(data);
+		//if (geometryInfo != null)
+		//{
+		//	getShape().setGeometry(makeGeometry(geometryInfo, true, data));
+		//}
+		experimentalShape(false);
+
 		if (bsLODTriShape.skin.ref != -1)
 		{
 			System.err.println("BSLODTriShape has a skin reference!");
@@ -98,58 +98,44 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 
 	public static GeometryInfo makeGeometryInfo(NiTriShapeData data)
 	{
-		GeometryInfo geometryInfo = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
+		GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
 
-		if (data.hasVertices)
+		loadGIBaseData(gi, data);
+
+		if (data.hasVertices && data.hasTriangles)
 		{
-			Point3f[] vertices = new Point3f[data.numVertices];
-			for (int i = 0; i < data.numVertices; i++)
+			int[] triangles = new int[data.numTrianglePoints];
+			for (int i = 0; i < data.numTriangles; i++)
 			{
-				vertices[i] = ConvertFromNif.toJ3dP3f(data.vertices[i]);
+				triangles[i * 3 + 0] = data.triangles[i].v1;
+				triangles[i * 3 + 1] = data.triangles[i].v2;
+				triangles[i * 3 + 2] = data.triangles[i].v3;
 			}
-			geometryInfo.setCoordinates(vertices);
+
+			gi.setCoordinateIndices(triangles);
+			gi.setUseCoordIndexOnly(true);
+
+			return gi;
+		}
+		else
+		{
+			//TODO: some trishapes with skin data nearby have no tris (it's in skin data)
+			return null;
 		}
 
-		if (data.hasNormals)
+	}
+
+	private void experimentalShape(boolean morphable)
+	{
+		if (!morphable)
 		{
-			Vector3f[] normals = new Vector3f[data.numVertices];
-			for (int i = 0; i < data.numVertices; i++)
-			{
-				normals[i] = ConvertFromNif.toJ3dNoScale(data.normals[i]);
-			}
-			geometryInfo.setNormals(normals);
-		}
+			IndexedGeometryArray iga = sharedIGAs.get(data);
 
-		Color4f[] colors = new Color4f[data.numVertices];
-		for (int i = 0; i < data.numVertices; i++)
-		{
-			if (data.hasVertexColors)
+			if (iga != null)
 			{
-				colors[i] = ConvertFromNif.toJ3d(data.vertexColors[i]);
+				getShape().setGeometry(iga);
+				return;
 			}
-			else
-			{
-				colors[i] = new Color4f(1, 1, 1, 1);
-			}
-		}
-		geometryInfo.setColors(colors);
-
-		// process UVsets hasUV or UVset2?? Num UV Sets 2
-		int actNumUVSets = data.actNumUVSets;
-		if (actNumUVSets > 0)
-		{
-			geometryInfo.setTextureCoordinateParams(actNumUVSets, 2);
-
-			for (int i = 0; i < actNumUVSets; i++)
-			{
-				TexCoord2f[] texCoords = new TexCoord2f[data.uVSets[i].length];
-				for (int j = 0; j < data.uVSets[i].length; j++)
-				{
-					texCoords[j] = ConvertFromNif.toJ3d(data.uVSets[i][j]);
-				}
-				geometryInfo.setTextureCoordinates(i, texCoords);
-			}
-
 		}
 
 		if (data.hasVertices && data.hasTriangles)
@@ -162,23 +148,15 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 				triangles[i * 3 + 2] = data.triangles[i].v3;
 			}
 
-			geometryInfo.setCoordinateIndices(triangles);
-			geometryInfo.setUseCoordIndexOnly(true);
-
-			if (!data.hasNormals)
+			IndexedGeometryArray ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable), data.numTrianglePoints);
+			ita.setCoordIndicesRef(triangles);
+			fillIn(ita, data, morphable);
+			getShape().setGeometry(ita);
+			if (!morphable)
 			{
-				NormalGenerator normalGenerator = new NormalGenerator();
-				normalGenerator.generateNormals(geometryInfo);
+				sharedIGAs.put(data, ita);
 			}
-
-			return geometryInfo;
 		}
-		else
-		{
-			//TODO: some trishapes with skin data nearby have no tris (it's in skin data)
-			return null;
-		}
-
 	}
 
 }

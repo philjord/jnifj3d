@@ -506,26 +506,11 @@ public class J3dbhkCollisionObject extends Group
 	{
 		GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_STRIP_ARRAY);
 
-		if (data.hasVertices)
-		{
-			Point3f[] vertices = new Point3f[data.numVertices];
-			for (int i = 0; i < data.numVertices; i++)
-			{
-				// NOTE!!!!! use the nif scale here!!!
-				vertices[i] = ConvertFromHavok.toJ3dP3fNif(data.vertices[i], 1.0f);
-			}
-			gi.setCoordinates(vertices);
-		}
+		J3dNiTriBasedGeom.loadGIBaseData(gi, data);
 
-		/*	if (data.hasNormals)
-			{
-				Vector3f[] normals = new Vector3f[data.numVertices];
-				for (int i = 0; i < data.numVertices; i++)
-				{
-					normals[i] = ConvertFromHavok.toJ3dNoScale(data.normals[i]);
-				}
-				gi.setNormals(normals);
-			}*/
+		// undo a bit of the usual stuff
+		gi.setNormals((float[]) null);
+		gi.setColors((Color3f[]) null);
 
 		int numStrips = data.numStrips;
 		int[] stripLengths = data.stripLengths;

@@ -1,18 +1,14 @@
 package nif.j3d;
 
 import javax.media.j3d.GeometryArray;
-import javax.vecmath.Color4f;
-import javax.vecmath.Point3f;
-import javax.vecmath.TexCoord2f;
-import javax.vecmath.Vector3f;
+import javax.media.j3d.IndexedGeometryArray;
+import javax.media.j3d.IndexedTriangleStripArray;
 
 import nif.niobject.NiTriStrips;
 import nif.niobject.NiTriStripsData;
-import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
 import com.sun.j3d.utils.geometry.GeometryInfo;
-import com.sun.j3d.utils.geometry.NormalGenerator;
 
 /**
  * NOTE! Skyrim appears to not use these any more! only trishape
@@ -29,7 +25,9 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 		niToJ3dData.put(niTriStrips, this);
 		data = (NiTriStripsData) niToJ3dData.get(niTriStrips.data);
 
-		getShape().setGeometry(makeGeometry(makeGeometryInfo(data), true, data));
+		//getShape().setGeometry(makeGeometry(makeGeometryInfo(data), true, data));
+		experimentalShape(false);
+
 	}
 
 	/**
@@ -46,60 +44,7 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 	{
 		GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_STRIP_ARRAY);
 
-		if (data.hasVertices)
-		{
-			Point3f[] vertices = new Point3f[data.numVertices];
-			for (int i = 0; i < data.numVertices; i++)
-			{
-				vertices[i] = ConvertFromNif.toJ3dP3f(data.vertices[i]);
-			}
-			gi.setCoordinates(vertices);
-
-		}
-
-		if (data.hasNormals)
-		{
-			Vector3f[] normals = new Vector3f[data.numVertices];
-			for (int i = 0; i < data.numVertices; i++)
-			{
-				normals[i] = ConvertFromNif.toJ3dNoScale(data.normals[i]);
-			}
-			gi.setNormals(normals);
-
-		}
-
-		Color4f[] colors = new Color4f[data.numVertices];
-		for (int i = 0; i < data.numVertices; i++)
-		{
-			if (data.hasVertexColors)
-			{
-				colors[i] = ConvertFromNif.toJ3d(data.vertexColors[i]);
-			}
-			else
-			{
-				colors[i] = new Color4f(1, 1, 1, 1);
-			}
-		}
-		gi.setColors(colors);
-
-		// process UVsets hasUV or UVset2?? Num UV Sets 2
-		int actNumUVSets = data.actNumUVSets;
-		if (actNumUVSets > 0)
-		{
-			gi.setTextureCoordinateParams(actNumUVSets, 2);
-
-			for (int i = 0; i < actNumUVSets; i++)
-			{
-				TexCoord2f[] texCoords = new TexCoord2f[data.uVSets[i].length];
-				for (int j = 0; j < data.uVSets[i].length; j++)
-				{
-					texCoords[j] = ConvertFromNif.toJ3d(data.uVSets[i][j]);
-				}
-				gi.setTextureCoordinates(i, texCoords);
-
-			}
-
-		}
+		loadGIBaseData(gi, data);
 
 		int numStrips = data.numStrips;
 		int[] stripLengths = data.stripLengths;
@@ -129,13 +74,58 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 			gi.setUseCoordIndexOnly(true);
 		}
 
-		if (!data.hasNormals)
-		{
-			NormalGenerator normalGenerator = new NormalGenerator();
-			normalGenerator.generateNormals(gi);
-		}
-
 		return gi;
 
 	}
+
+	private void experimentalShape(boolean morphable)
+	{
+
+		if (!morphable)
+		{
+			IndexedGeometryArray iga = sharedIGAs.get(data);
+
+			if (iga != null)
+			{
+				getShape().setGeometry(iga);
+				return;
+			}
+		}
+
+		if (data.hasVertices && data.hasPoints)
+		{
+			int numStrips = data.numStrips;
+			int[] stripLengths = data.stripLengths;
+			int[] points = null;
+
+			// get full length
+			int length = 0;
+			for (int i = 0; i < numStrips; i++)
+			{
+				length += data.points[i].length;
+			}
+
+			points = new int[length];
+			int idx = 0;
+			for (int i = 0; i < numStrips; i++)
+			{
+				for (int j = 0; j < stripLengths[i]; j++)
+				{
+					points[idx] = data.points[i][j];
+					idx++;
+				}
+			}
+
+			IndexedGeometryArray ita = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable), length, stripLengths);
+			ita.setCoordIndicesRef(points);
+			fillIn(ita, data, morphable);
+			getShape().setGeometry(ita);
+
+			if (!morphable)
+			{
+				sharedIGAs.put(data, ita);
+			}
+		}
+	}
+
 }
