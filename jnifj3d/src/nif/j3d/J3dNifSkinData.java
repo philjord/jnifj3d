@@ -33,10 +33,10 @@ public class J3dNifSkinData extends Group implements GeometryUpdater
 	{
 		//http://sourceforge.net/p/niftools/niflib/ci/0b2d0541c5a17af892ab2f416acbbfd2fdc369b2/tree/src/obj/NiSkinData.cpp
 
-		// TODO: I note the skyrim madness looks like just bad bone mapping note Skyrim kf files are my derived ones, so perhaps??
 		// TODO: spider daedra jaw not better, troll jaw also bad
 		// TODO: head of dog needs attachign proper to blended output, in the correct update frame
 		// TODO: possibly also proper undertand of non accum etc
+		// Horses and dogs in skyrim have back legs that flick like a null rotate, (like jaw?)
 
 		this.niSkinData = niSkinData;
 

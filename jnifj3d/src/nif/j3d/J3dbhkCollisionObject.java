@@ -493,10 +493,6 @@ public class J3dbhkCollisionObject extends Group
 		// Put geometry into Shape3d
 		Shape3D shape = new Shape3D();
 		shape.setName("hkPackedNiTriStripsData:");
-		// NOTE we must stripify as the input data may have stitched strips which is bad (points like
-		// 1,2,3,4,4,5,5,6,7,8 etc)
-		//Stripifier st = new Stripifier();
-		//st.stripify(gi);
 		shape.setGeometry(gi.getIndexedGeometryArray(true, false, true, true, false));
 		shape.setAppearance(new PhysAppearance());
 		return shape;
@@ -506,11 +502,18 @@ public class J3dbhkCollisionObject extends Group
 	{
 		GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_STRIP_ARRAY);
 
-		J3dNiTriBasedGeom.loadGIBaseData(gi, data);
-
-		// undo a bit of the usual stuff
-		gi.setNormals((float[]) null);
-		gi.setColors((Color3f[]) null);
+		if (data.hasVertices)
+		{
+			//OPTOMIZATION
+			/*
+			Point3f[] vertices = new Point3f[data.numVertices];
+			for (int i = 0; i < data.numVertices; i++)
+			{
+				vertices[i] = ConvertFromNif.toJ3dP3f(data.vertices[i]);
+			}
+			gi.setCoordinates(vertices);*/
+			gi.setCoordinates(data.verticesOpt);
+		}
 
 		int numStrips = data.numStrips;
 		int[] stripLengths = data.stripLengths;
@@ -543,12 +546,6 @@ public class J3dbhkCollisionObject extends Group
 
 		// Put geometry into Shape3d
 		Shape3D shape = new Shape3D();
-
-		// NOTE we must stripify as the input data may have stitched strips which is bad (points like
-		// 1,2,3,4,4,5,5,6,7,8 etc) if exported from 3ds max
-		//TODO: check this remove
-		//Stripifier st = new Stripifier();
-		//st.stripify(gi);
 		shape.setGeometry(gi.getIndexedGeometryArray(true, false, true, true, false));
 		shape.setAppearance(new PhysAppearance());
 		return shape;
@@ -695,6 +692,7 @@ public class J3dbhkCollisionObject extends Group
 	 * @param data
 	 * @return
 	 */
+	@Deprecated
 	public static Shape3D bhkConvexVerticesShapePreBullet(bhkConvexVerticesShape data)
 	{
 		// It appears that a convex shape has no triangles to it. It is simply

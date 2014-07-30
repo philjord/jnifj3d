@@ -10,5 +10,10 @@ public interface MeshSource
 
 	public NifFile getNifFile(String nifName);
 
+	/**
+	 * Do NOT include the final \
+	 * @param folderName
+	 * @return
+	 */
 	public List<String> getFilesInFolder(String folderName);
 }

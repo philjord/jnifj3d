@@ -3,15 +3,14 @@ package nif.niobject;
 import java.io.IOException;
 import java.io.InputStream;
 
-import utils.ESConfig;
 import nif.ByteConvert;
 import nif.NifVer;
 import nif.basic.NifRef;
-import nif.compound.NifColor4;
 import nif.compound.NifTexCoord;
 import nif.compound.NifVector3;
 import nif.enums.ConsistencyType;
 import nif.niobject.particle.NiPSysData;
+import utils.ESConfig;
 
 /** Optomised version of NiGeometryData in jnif
  * Always alter jnif version FIRST, then optomize here
@@ -49,7 +48,9 @@ public abstract class NiGeometryData extends NiObject
 
 	public boolean hasNormals;
 
-	public NifVector3[] normals;
+	//OPTOMISATION
+	//public NifVector3[] normals;
+	public float[] normalsOpt;
 
 	//OPTOMISATION
 	//public NifVector3[] binormals;
@@ -63,7 +64,9 @@ public abstract class NiGeometryData extends NiObject
 
 	public boolean hasVertexColors;
 
-	public NifColor4[] vertexColors;
+	//OPTOMISATION
+	//public NifColor4[] vertexColors;
+	public float[] vertexColorsOpt;
 
 	public NifTexCoord[][] uVSets;
 
@@ -128,11 +131,22 @@ public abstract class NiGeometryData extends NiObject
 		hasNormals = ByteConvert.readBool(stream, nifVer);
 		if (hasNormals)
 		{
+			//OPTOMIZATION
+			/*
 			normals = new NifVector3[numVertices];
 			for (int i = 0; i < numVertices; i++)
 			{
 				normals[i] = new NifVector3(stream);
+			}*/
+
+			normalsOpt = new float[numVertices * 3];
+			for (int i = 0; i < numVertices; i++)
+			{
+				normalsOpt[i * 3 + 0] = ByteConvert.readFloat(stream);
+				normalsOpt[i * 3 + 2] = -ByteConvert.readFloat(stream);
+				normalsOpt[i * 3 + 1] = ByteConvert.readFloat(stream);
 			}
+
 			if ((numUVSets & 61440) != 0)
 			{
 				//OPTOMISATION
@@ -162,10 +176,21 @@ public abstract class NiGeometryData extends NiObject
 		hasVertexColors = ByteConvert.readBool(stream, nifVer);
 		if (hasVertexColors)
 		{
+			//OPTOMISATION
+			/*
 			vertexColors = new NifColor4[numVertices];
 			for (int i = 0; i < numVertices; i++)
 			{
 				vertexColors[i] = new NifColor4(stream);
+			}*/
+
+			vertexColorsOpt = new float[numVertices * 4];
+			for (int i = 0; i < numVertices; i++)
+			{
+				vertexColorsOpt[i * 4 + 0] = ByteConvert.readFloat(stream);
+				vertexColorsOpt[i * 4 + 1] = ByteConvert.readFloat(stream);
+				vertexColorsOpt[i * 4 + 2] = ByteConvert.readFloat(stream);
+				vertexColorsOpt[i * 4 + 3] = ByteConvert.readFloat(stream);
 			}
 		}
 

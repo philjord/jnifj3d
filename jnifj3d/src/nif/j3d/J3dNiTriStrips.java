@@ -8,8 +8,6 @@ import nif.niobject.NiTriStrips;
 import nif.niobject.NiTriStripsData;
 import utils.source.TextureSource;
 
-import com.sun.j3d.utils.geometry.GeometryInfo;
-
 /**
  * NOTE! Skyrim appears to not use these any more! only trishape
  * @author philip
@@ -24,9 +22,8 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 		super(niTriStrips, niToJ3dData, textureSource);
 		niToJ3dData.put(niTriStrips, this);
 		data = (NiTriStripsData) niToJ3dData.get(niTriStrips.data);
-
-		//getShape().setGeometry(makeGeometry(makeGeometryInfo(data), true, data));
-		experimentalShape(false);
+		
+		getShape().setGeometry(createGeometry(data, false));
 
 	}
 
@@ -35,60 +32,22 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 	 */
 	public void makeMorphable()
 	{
-		GeometryArray newGeom = makeGeometry(makeGeometryInfo(data), false, null);
+		GeometryArray newGeom = createGeometry(data, true);
 		getShape().setGeometry(newGeom);
 		baseGeometryArray = newGeom;
 	}
 
-	private static GeometryInfo makeGeometryInfo(NiTriStripsData data)
+	
+	public static IndexedGeometryArray createGeometry(NiTriStripsData data, boolean morphable)
 	{
-		GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_STRIP_ARRAY);
-
-		loadGIBaseData(gi, data);
-
-		int numStrips = data.numStrips;
-		int[] stripLengths = data.stripLengths;
-		int[] points = null;
-		if (data.hasPoints)
-		{
-			// get full length
-			int length = 0;
-			for (int i = 0; i < numStrips; i++)
-			{
-				length += data.points[i].length;
-			}
-
-			gi.setStripCounts(stripLengths);
-			points = new int[length];
-			int idx = 0;
-			for (int i = 0; i < numStrips; i++)
-			{
-				for (int j = 0; j < stripLengths[i]; j++)
-				{
-					points[idx] = data.points[i][j];
-					idx++;
-				}
-			}
-
-			gi.setCoordinateIndices(points);
-			gi.setUseCoordIndexOnly(true);
-		}
-
-		return gi;
-
-	}
-
-	private void experimentalShape(boolean morphable)
-	{
-
+		// if not morphable check cache
 		if (!morphable)
 		{
 			IndexedGeometryArray iga = sharedIGAs.get(data);
 
 			if (iga != null)
 			{
-				getShape().setGeometry(iga);
-				return;
+				return iga;
 			}
 		}
 
@@ -119,13 +78,16 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 			IndexedGeometryArray ita = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable), length, stripLengths);
 			ita.setCoordIndicesRef(points);
 			fillIn(ita, data, morphable);
-			getShape().setGeometry(ita);
 
+			// if not morphable cache
 			if (!morphable)
 			{
 				sharedIGAs.put(data, ita);
 			}
+			return ita;
 		}
-	}
 
+		new Throwable("Null IGA!").printStackTrace();
+		return null;
+	}
 }

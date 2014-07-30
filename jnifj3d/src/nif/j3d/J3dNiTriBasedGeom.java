@@ -2,19 +2,12 @@ package nif.j3d;
 
 import javax.media.j3d.GeometryArray;
 import javax.media.j3d.IndexedGeometryArray;
-import javax.vecmath.Color4f;
-import javax.vecmath.TexCoord2f;
-import javax.vecmath.Vector3f;
 
 import nif.niobject.NiTriBasedGeom;
 import nif.niobject.NiTriBasedGeomData;
 import tools.WeakValueHashMap;
-import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
-import com.sun.j3d.utils.geometry.GeometryInfo;
-
-//public abstract class J3dNiTriBasedGeom extends J3dNiGeometryShader
 public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 {
 	protected GeometryArray baseGeometryArray;
@@ -34,97 +27,6 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 	//Note self expunging cache
 	protected static WeakValueHashMap<Object, IndexedGeometryArray> sharedIGAs = new WeakValueHashMap<Object, IndexedGeometryArray>();
 
-	/** Note if compact the return will be a strips array 
-	 * 
-	 * @param geometryInfo
-	 * @param compact and make sharable
-	 * @return
-	 */
-	public static GeometryArray makeGeometry(GeometryInfo geometryInfo, boolean notMorphable, Object cacheKey)
-	{
-		if (notMorphable)
-		{
-			IndexedGeometryArray iga = sharedIGAs.get(cacheKey);
-
-			if (iga != null)
-			{
-				return iga;
-			}
-			else
-			{
-				geometryInfo.compact();
-				IndexedGeometryArray ita = geometryInfo.getIndexedGeometryArray(true, false, true, true, false);
-				sharedIGAs.put(cacheKey, ita);
-				return ita;
-			}
-		}
-		else
-		{
-			IndexedGeometryArray ita = geometryInfo.getIndexedGeometryArray(false, true, false, true, false);
-			ita.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
-			ita.setCapability(GeometryArray.ALLOW_REF_DATA_WRITE);
-			return ita;
-		}
-
-	}
-
-	public static void loadGIBaseData(GeometryInfo gi, NiTriBasedGeomData data)
-	{
-		if (data.hasVertices)
-		{
-			//OPTOMIZATION
-			/*
-			Point3f[] vertices = new Point3f[data.numVertices];
-			for (int i = 0; i < data.numVertices; i++)
-			{
-				vertices[i] = ConvertFromNif.toJ3dP3f(data.vertices[i]);
-			}
-			gi.setCoordinates(vertices);*/
-			gi.setCoordinates(data.verticesOpt);
-		}
-
-		if (data.hasNormals)
-		{
-			Vector3f[] normals = new Vector3f[data.numVertices];
-			for (int i = 0; i < data.numVertices; i++)
-			{
-				normals[i] = ConvertFromNif.toJ3dNoScale(data.normals[i]);
-			}
-			gi.setNormals(normals);
-		}
-
-		Color4f[] colors = new Color4f[data.numVertices];
-		for (int i = 0; i < data.numVertices; i++)
-		{
-			if (data.hasVertexColors)
-			{
-				colors[i] = ConvertFromNif.toJ3d(data.vertexColors[i]);
-			}
-			else
-			{
-				colors[i] = new Color4f(1, 1, 1, 1);
-			}
-		}
-		gi.setColors(colors);
-
-		// process UVsets hasUV or UVset2?? Num UV Sets 2
-		int actNumUVSets = data.actNumUVSets;
-		if (actNumUVSets > 0)
-		{
-			gi.setTextureCoordinateParams(actNumUVSets, 2);
-
-			for (int i = 0; i < actNumUVSets; i++)
-			{
-				TexCoord2f[] texCoords = new TexCoord2f[data.uVSets[i].length];
-				for (int j = 0; j < data.uVSets[i].length; j++)
-				{
-					texCoords[j] = ConvertFromNif.toJ3d(data.uVSets[i][j]);
-				}
-				gi.setTextureCoordinates(i, texCoords);
-			}
-		}
-	}
-
 	protected static int getFormat(NiTriBasedGeomData data, boolean morphable)
 	{
 		int vertexFormat = (data.hasVertices ? GeometryArray.COORDINATES : 0) //
@@ -140,30 +42,23 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 	protected static void fillIn(IndexedGeometryArray ita, NiTriBasedGeomData data, boolean morphable)
 	{
-
+		//NOte consistency type in nif file also dictates morphable
 		float[] normals = null;
 		if (data.hasNormals)
 		{
-			normals = new float[data.numVertices * 3];
-			for (int i = 0; i < data.numVertices; i++)
-			{
-				normals[i * 3 + 0] = data.normals[i].x;
-				normals[i * 3 + 1] = data.normals[i].z;
-				normals[i * 3 + 2] = -data.normals[i].y;
-			}
+			normals = data.normalsOpt;
 		}
 
-		float[] colors4 = new float[data.numVertices * 4];
-		for (int i = 0; i < data.numVertices; i++)
+		float[] colors4 = null;
+		if (data.hasVertexColors)
 		{
-			if (data.hasVertexColors)
-			{
-				colors4[i * 4 + 0] = data.vertexColors[i].r;
-				colors4[i * 4 + 1] = data.vertexColors[i].g;
-				colors4[i * 4 + 2] = data.vertexColors[i].b;
-				colors4[i * 4 + 3] = data.vertexColors[i].a;
-			}
-			else
+			colors4 = data.vertexColorsOpt;
+		}
+		else
+		{
+			//TODO: do I really need a default white color set on everything?
+			colors4 = new float[data.numVertices * 4];
+			for (int i = 0; i < data.numVertices; i++)
 			{
 				colors4[i * 4 + 0] = 1;
 				colors4[i * 4 + 1] = 1;
@@ -211,6 +106,9 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 			{
 				ita.setTexCoordRefFloat(i, texCoordSets[i]);
 			}
+
+			ita.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+			ita.setCapability(GeometryArray.ALLOW_REF_DATA_WRITE);
 		}
 
 	}
