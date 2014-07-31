@@ -6,14 +6,12 @@ import java.io.InputStream;
 import nif.ByteConvert;
 import nif.NifVer;
 import nif.basic.NifRef;
-import nif.compound.NifTexCoord;
 import nif.compound.NifVector3;
 import nif.enums.ConsistencyType;
 import nif.niobject.particle.NiPSysData;
 import utils.ESConfig;
 
-/** Optomised version of NiGeometryData in jnif
- * Always alter jnif version FIRST, then optomize here
+/** Optomised version, Always alter jnif version FIRST, then optomize here
  * @author philip
  *
  */
@@ -68,7 +66,9 @@ public abstract class NiGeometryData extends NiObject
 	//public NifColor4[] vertexColors;
 	public float[] vertexColorsOpt;
 
-	public NifTexCoord[][] uVSets;
+	//OPTOMISATION
+	//public NifTexCoord[][] uVSets;
+	public float[][] uVSetsOpt;
 
 	public ConsistencyType consistencyType;
 
@@ -161,8 +161,15 @@ public abstract class NiGeometryData extends NiObject
 				{
 					tangents[i] = new NifVector3(stream);
 				}*/
-				stream.skip(numVertices * 3 * 4);
-				stream.skip(numVertices * 3 * 4);
+				for (int i = 0; i < numVertices; i++)
+				{
+					ByteConvert.readBytes(3 * 4, stream);
+				}
+
+				for (int i = 0; i < numVertices; i++)
+				{
+					ByteConvert.readBytes(3 * 4, stream);
+				}
 			}
 		}
 		center = new NifVector3(stream);
@@ -203,12 +210,23 @@ public abstract class NiGeometryData extends NiObject
 		{
 			actNumUVSets = numUVSets & 63;
 		}
+		//OPTOMISATION
+		/*
 		uVSets = new NifTexCoord[actNumUVSets][numVertices];
 		for (int j = 0; j < actNumUVSets; j++)
 		{
 			for (int i = 0; i < numVertices; i++)
 			{
 				uVSets[j][i] = new NifTexCoord(stream);
+			}
+		}*/
+		uVSetsOpt = new float[actNumUVSets][numVertices * 2];
+		for (int j = 0; j < actNumUVSets; j++)
+		{
+			for (int i = 0; i < numVertices; i++)
+			{
+				uVSetsOpt[j][i * 2 + 0] = ByteConvert.readFloat(stream);
+				uVSetsOpt[j][i * 2 + 1] = -ByteConvert.readFloat(stream);
 			}
 		}
 

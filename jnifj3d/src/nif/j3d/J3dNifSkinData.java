@@ -37,6 +37,7 @@ public class J3dNifSkinData extends Group implements GeometryUpdater
 		// TODO: head of dog needs attachign proper to blended output, in the correct update frame
 		// TODO: possibly also proper undertand of non accum etc
 		// Horses and dogs in skyrim have back legs that flick like a null rotate, (like jaw?)
+		// animated fingers in fallout show similar
 
 		this.niSkinData = niSkinData;
 

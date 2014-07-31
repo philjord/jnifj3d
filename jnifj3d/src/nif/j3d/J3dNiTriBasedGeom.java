@@ -73,15 +73,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 		int texCoordSetCount = data.actNumUVSets;
 		if (texCoordSetCount > 0)
 		{
-			texCoordSets = new float[texCoordSetCount][data.numVertices * texCoordDim];
-			for (int i = 0; i < texCoordSetCount; i++)
-			{
-				for (int j = 0; j < data.uVSets[i].length; j++)
-				{
-					texCoordSets[i][j * 2 + 0] = data.uVSets[i][j].u;
-					texCoordSets[i][j * 2 + 1] = -data.uVSets[i][j].v;
-				}
-			}
+			texCoordSets = data.uVSetsOpt;
 		}
 
 		if (!morphable)

@@ -33,13 +33,11 @@ import utils.source.TextureSource;
 
 public class J3dNiNode extends J3dNiAVObject implements Fadable
 {
-
 	private ArrayList<Fadable> j3dNiNodes = new ArrayList<Fadable>();
 
 	protected J3dNiNode(NiNode niNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes)
 	{
 		super(niNode, niToJ3dData);
-
 		if (NifToJ3d.HIDE_EDITORS && isEditorMarker(niNode.name))
 		{
 			return;
@@ -72,7 +70,8 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 						if (niTriBasedGeom instanceof NiTriShape)
 						{
 							//For now we skip meat caps
-							if (niTriBasedGeom.name.toLowerCase().indexOf("meat") == -1
+							if (!(NifToJ3d.HIDE_EDITORS && isEditorMarker(niTriBasedGeom.name))
+									&& niTriBasedGeom.name.toLowerCase().indexOf("meat") == -1
 									&& niTriBasedGeom.name.toLowerCase().indexOf("cap") == -1)
 							{
 								NiTriShape niTriShape = (NiTriShape) niTriBasedGeom;
@@ -86,8 +85,11 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 						}
 						else if (niTriBasedGeom instanceof NiTriStrips)
 						{
-							NiTriStrips niTriStrips = (NiTriStrips) niTriBasedGeom;
-							ntbg = new J3dNiTriStrips(niTriStrips, niToJ3dData, textureSource);
+							if (!(NifToJ3d.HIDE_EDITORS && isEditorMarker(niTriBasedGeom.name)))
+							{
+								NiTriStrips niTriStrips = (NiTriStrips) niTriBasedGeom;
+								ntbg = new J3dNiTriStrips(niTriStrips, niToJ3dData, textureSource);
+							}
 						}
 						j3dNiNodes.add(ntbg);
 						addChild(ntbg);

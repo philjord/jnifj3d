@@ -90,13 +90,7 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 
 		if (data.hasVertices && data.hasTriangles)
 		{
-			int[] triangles = new int[data.numTrianglePoints];
-			for (int i = 0; i < data.numTriangles; i++)
-			{
-				triangles[i * 3 + 0] = data.triangles[i].v1;
-				triangles[i * 3 + 1] = data.triangles[i].v2;
-				triangles[i * 3 + 2] = data.triangles[i].v3;
-			}
+			int[] triangles = data.trianglesOpt;
 
 			IndexedGeometryArray ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable), data.numTrianglePoints);
 			ita.setCoordIndicesRef(triangles);
