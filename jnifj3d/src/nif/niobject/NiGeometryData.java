@@ -226,7 +226,7 @@ public abstract class NiGeometryData extends NiObject
 			for (int i = 0; i < numVertices; i++)
 			{
 				uVSetsOpt[j][i * 2 + 0] = ByteConvert.readFloat(stream);
-				uVSetsOpt[j][i * 2 + 1] = -ByteConvert.readFloat(stream);
+				uVSetsOpt[j][i * 2 + 1] = ByteConvert.readFloat(stream);
 			}
 		}
 
