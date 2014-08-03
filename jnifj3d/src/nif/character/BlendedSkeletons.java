@@ -89,44 +89,48 @@ public class BlendedSkeletons extends Group
 		for (String boneName : outputSkeleton.getAllBonesInSkeleton().keySet())
 		{
 			J3dNiAVObject outputBone = outputSkeleton.getAllBonesInSkeleton().get(boneName);
-			NifTransformGroup output = outputBone.getTransformGroup();
-
-			if (alphaValue == 0f)
+			//skip calcing accum for now
+			if (outputBone != outputSkeleton.getSkeletonRoot())
 			{
-				J3dNiAVObject prevBone = prevSkeleton.getAllBonesInSkeleton().get(boneName);
-				NifTransformGroup prev = prevBone.getTransformGroup();
-				prev.getTransform(prevT);
-				outputT.set(prevT);
-			}
-			else if (alphaValue == 1f)
-			{
-				J3dNiAVObject inputBone = inputSkeleton.getAllBonesInSkeleton().get(boneName);
-				NifTransformGroup input = inputBone.getTransformGroup();
-				input.getTransform(inputT);
-				outputT.set(inputT);
-			}
-			else
-			{
-				// get out 3 transfrom groups			
-				J3dNiAVObject prevBone = prevSkeleton.getAllBonesInSkeleton().get(boneName);
-				NifTransformGroup prev = prevBone.getTransformGroup();
+				NifTransformGroup output = outputBone.getTransformGroup();
 
-				J3dNiAVObject inputBone = inputSkeleton.getAllBonesInSkeleton().get(boneName);
-				NifTransformGroup input = inputBone.getTransformGroup();
+				if (alphaValue == 0f)
+				{
+					J3dNiAVObject prevBone = prevSkeleton.getAllBonesInSkeleton().get(boneName);
+					NifTransformGroup prev = prevBone.getTransformGroup();
+					prev.getTransform(prevT);
+					outputT.set(prevT);
+				}
+				else if (alphaValue == 1f)
+				{
+					J3dNiAVObject inputBone = inputSkeleton.getAllBonesInSkeleton().get(boneName);
+					NifTransformGroup input = inputBone.getTransformGroup();
+					input.getTransform(inputT);
+					outputT.set(inputT);
+				}
+				else
+				{
+					// get out 3 transfrom groups			
+					J3dNiAVObject prevBone = prevSkeleton.getAllBonesInSkeleton().get(boneName);
+					NifTransformGroup prev = prevBone.getTransformGroup();
 
-				// combine prev and input for second transform3d
-				prev.getTransform(prevT);
-				input.getTransform(inputT);
+					J3dNiAVObject inputBone = inputSkeleton.getAllBonesInSkeleton().get(boneName);
+					NifTransformGroup input = inputBone.getTransformGroup();
 
-				computeTransform(alphaValue, prevT, inputT, outputT);
+					// combine prev and input for second transform3d
+					prev.getTransform(prevT);
+					input.getTransform(inputT);
 
-			}
+					computeTransform(alphaValue, prevT, inputT, outputT);
 
-			//only set on a change
-			if (!outputT.equals(prevOutputT))
-			{
-				output.setTransform(outputT);
-				prevOutputT.set(outputT);
+				}
+
+				//only set on a change
+				if (!outputT.equals(prevOutputT))
+				{
+					output.setTransform(outputT);
+					prevOutputT.set(outputT);
+				}
 			}
 		}
 
@@ -141,7 +145,10 @@ public class BlendedSkeletons extends Group
 		for (String boneName : outputSkeleton.getAllBonesInSkeleton().keySet())
 		{
 			J3dNiNode outputBone = (J3dNiNode) outputSkeleton.getAllBonesInSkeleton().get(boneName);
-			calcBoneVWTrans(outputBone, outputSkeleton.getNonAccumRoot());
+			if (outputBone != outputSkeleton.getSkeletonRoot())
+			{
+				calcBoneVWTrans(outputBone, outputSkeleton.getNonAccumRoot());
+			}
 		}
 	}
 
@@ -153,7 +160,7 @@ public class BlendedSkeletons extends Group
 	 */
 	private void calcBoneVWTrans(J3dNiNode skeletonBone, J3dNiAVObject nonAccumRoot)
 	{
-		//stop at accum root too
+		//stop at accum root and skeleton 
 		if (skeletonBone.topOfParent != null && skeletonBone.topOfParent instanceof J3dNiNode)
 		{
 			J3dNiNode parentSkeletonBone = (J3dNiNode) skeletonBone.topOfParent;

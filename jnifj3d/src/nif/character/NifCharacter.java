@@ -2,6 +2,7 @@ package nif.character;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -22,6 +23,7 @@ import javax.vecmath.Point3f;
 import nif.NifJ3dVisRoot;
 import nif.NifToJ3d;
 import nif.j3d.J3dNiAVObject;
+import nif.j3d.J3dNiNode;
 import nif.j3d.J3dNiSkinInstance;
 import nif.j3d.animation.J3dNiControllerSequence.SequenceListener;
 import nif.j3d.animation.J3dNiGeomMorpherController;
@@ -35,6 +37,8 @@ import utils.source.MediaSources;
 
 public class NifCharacter extends BranchGroup
 {
+	private static final boolean ATTACH_TO_BONE = false;
+
 	private MediaSources mediaSources;
 
 	private ArrayList<J3dNiSkinInstance> allSkins = new ArrayList<J3dNiSkinInstance>();
@@ -59,6 +63,8 @@ public class NifCharacter extends BranchGroup
 
 	private ArrayList<J3dNiGeomMorpherController> allMorphs = new ArrayList<J3dNiGeomMorpherController>();
 
+	private LinkedHashMap<BranchGroup, J3dNiNode> attachmentsToBones = new LinkedHashMap<BranchGroup, J3dNiNode>();
+
 	public NifCharacter(String skeletonNifFilename, List<String> skinNifModelFilenames, MediaSources mediaSources,
 			List<String> idleAnimations)
 	{
@@ -69,8 +75,6 @@ public class NifCharacter extends BranchGroup
 		this.setCapability(Group.ALLOW_CHILDREN_WRITE);
 		this.setCapability(Group.ALLOW_CHILDREN_EXTEND);
 
-		Group bg = new Group();
-
 		//note node must be in scene graph
 		updateBehavior = new NifCharUpdateBehavior(this, new float[]
 		{ 30f, 90f, 180f });
@@ -80,7 +84,16 @@ public class NifCharacter extends BranchGroup
 		blendedSkeletons = new BlendedSkeletons(skeletonNifFilename, mediaSources.getMeshSource());
 
 		// for bone blending updates
-		bg.addChild(blendedSkeletons);
+		//TODO: only used to show bone markers and attach heads etc
+		// heads need to be updated via the skin update thread anyway
+
+		Group bg = new Group();
+		addChild(bg);
+		
+		if (ATTACH_TO_BONE)
+		{
+			bg.addChild(blendedSkeletons);
+		}
 
 		for (String skinNifModelFilename : skinNifModelFilenames)
 		{
@@ -121,13 +134,13 @@ public class NifCharacter extends BranchGroup
 										.get(nsed.stringData);
 								if (attachnode != null)
 								{
-									EasyTransformGroup tg = new EasyTransformGroup();
+									EasyTransformGroup tg2 = new EasyTransformGroup();
 									// TODO: still not right I want heads of humans only!
 									if (attachnode.getName().equalsIgnoreCase("Bip01 head")
 											&& skeletonNifFilename.indexOf("haracter") != -1)
-										tg.rotZ(-Math.PI / 2d);
-									tg.addChild(model.getVisualRoot());
-									attachnode.addChild(tg);
+										tg2.rotZ(-Math.PI / 2d);
+									tg2.addChild(model.getVisualRoot());
+
 									//TODO: R Calf shows issue too (where?)
 									//TODO: hat has got double animation in it, due to nonaccum thingy 
 									// Also the antlers of the deer, so I say it need to be attached after bone rotations?
@@ -136,6 +149,21 @@ public class NifCharacter extends BranchGroup
 									// am I including that
 									// I also get teh delayed jiggle, I should probably not rigidly attach
 									// but update these thign in the skin update behave
+
+									if (ATTACH_TO_BONE)
+									{
+										attachnode.addChild(tg2);
+									}
+									else
+									{
+										//TODO: get this out into an attachment class!
+										BranchGroup attBg = new BranchGroup();
+										EasyTransformGroup tg1 = new EasyTransformGroup();//for bone trans
+										attBg.addChild(tg1);
+										tg1.addChild(tg2);
+										this.addChild(attBg);
+										attachmentsToBones.put(attBg, (J3dNiNode) attachnode);
+									}
 
 									break;
 								}
@@ -155,8 +183,6 @@ public class NifCharacter extends BranchGroup
 				}
 			}
 		}
-
-		addChild(bg);
 
 		//set us up with the idle anim
 		updateAnimation();
@@ -392,6 +418,18 @@ public class NifCharacter extends BranchGroup
 			for (J3dNiSkinInstance j3dNiSkinInstance : allSkins)
 			{
 				j3dNiSkinInstance.processSkinInstance();
+			}
+
+			if (!ATTACH_TO_BONE)
+			{
+				for (BranchGroup bg : attachmentsToBones.keySet())
+				{
+					EasyTransformGroup tg1 = (EasyTransformGroup) bg.getChild(0);
+					J3dNiNode bone = attachmentsToBones.get(bg);
+					Transform3D skeletonBoneVWTrans = new Transform3D();
+					skeletonBoneVWTrans.set(bone.getBoneCurrentAccumedTrans());
+					tg1.setTransform(skeletonBoneVWTrans);
+				}
 			}
 
 		}

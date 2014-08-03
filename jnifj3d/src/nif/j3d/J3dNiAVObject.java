@@ -6,6 +6,7 @@ import javax.media.j3d.Node;
 import javax.media.j3d.Transform3D;
 
 import nif.niobject.NiAVObject;
+import nif.niobject.bs.BSFadeNode;
 import utils.convert.ConvertFromNif;
 
 import com.sun.j3d.utils.geometry.ColorCube;
@@ -33,8 +34,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 
 		Transform3D t1 = new Transform3D();
 
-		// TODO: for enclavetable01 no rotation, is this the general case? recent quat fix up sorts this out?
-		//if (!(niAVObject instanceof BSFadeNode))
+		if (!(niAVObject instanceof BSFadeNode))
 		{
 			t1.setRotation(ConvertFromNif.toJ3d(niAVObject.rotation));
 			//the determinant should be near 1 now! otherwise all transforms will be crap			 

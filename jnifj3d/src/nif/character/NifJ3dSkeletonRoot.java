@@ -29,6 +29,8 @@ public class NifJ3dSkeletonRoot extends Group
 
 	private J3dNiAVObject nonAccumRoot;
 
+	private J3dNiAVObject skeletonRoot;
+
 	private J3dNiDefaultAVObjectPalette allBonesInSkeleton = new J3dNiDefaultAVObjectPalette();
 
 	public NifJ3dSkeletonRoot(String skeletonNifModelFile, MeshSource meshSource)
@@ -63,7 +65,14 @@ public class NifJ3dSkeletonRoot extends Group
 						System.out.println("setting nonAccumRoot more than once!!");
 
 					//TODO: if there is trans or rot above tis node I need to accumulate some how
-					nonAccumRoot = j3dNiNode;					 
+					nonAccumRoot = j3dNiNode;
+				}
+
+				if (niNode.name.equals("Bip01") || niNode.name.indexOf("[Root]") != -1)
+				{
+					if (skeletonRoot != null)
+						System.out.println("setting accumNode more than once!!");
+					skeletonRoot = j3dNiNode;
 				}
 				allBonesInSkeleton.put(j3dNiNode.getName(), j3dNiNode);
 
@@ -103,6 +112,11 @@ public class NifJ3dSkeletonRoot extends Group
 	public J3dNiAVObject getNonAccumRoot()
 	{
 		return nonAccumRoot;
+	}
+
+	public J3dNiAVObject getSkeletonRoot()
+	{
+		return skeletonRoot;
 	}
 
 	public J3dNiDefaultAVObjectPalette getAllBonesInSkeleton()
