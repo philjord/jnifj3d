@@ -57,7 +57,7 @@ public class J3dNiPoint3Interpolator extends J3dNiInterpolator
 	 */
 	private void makeKnotsPoints(NiPoint3Interpolator niPoint3Interp, NiToJ3dData niToJ3dData, float startTimeS, float lengthS)
 	{
-
+System.out.println("J3dNiPoint3Interpolator created note no xyz->x-zy yet!");
 		if (niPoint3Interp.data.ref != -1)
 		{
 			NifKeyGroup posData = ((NiPosData) niToJ3dData.get(niPoint3Interp.data)).data;

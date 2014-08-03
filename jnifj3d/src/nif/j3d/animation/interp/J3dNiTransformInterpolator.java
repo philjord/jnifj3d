@@ -66,7 +66,7 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 							{
 								NifKey key = yRotation.keys[i];
 								yKnots[i] = key.time;
-								yRots[i] = ((Float) key.value).floatValue();
+								yRots[i] = -((Float) key.value).floatValue();
 							}
 							NifKeyGroup zRotation = niTransformData.xYZRotations[1];
 							float[] zKnots = new float[zRotation.keys.length];
@@ -75,7 +75,7 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 							{
 								NifKey key = zRotation.keys[i];
 								zKnots[i] = key.time;
-								zRots[i] = -((Float) key.value).floatValue();
+								zRots[i] = ((Float) key.value).floatValue();
 							}
 							data = new XyzRotationData(xKnots, xRots, yKnots, yRots, zKnots, zRots);
 							xyzRotationDataMap.put(niTransformData, data);
