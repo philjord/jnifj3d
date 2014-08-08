@@ -34,7 +34,7 @@ public class J3dNiBoolInterpolator extends J3dNiInterpolator
 		if (knotsBools != null)
 		{
 			BoolInterpolator interpolator = new BoolInterpolator(callBack, knotsBools.knots, knotsBools.bools);
-			addInterpolator(interpolator);
+			setInterpolator(interpolator);
 
 			// also set the first value now 
 			callBack.update(knotsBools.bools[0]);

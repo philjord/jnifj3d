@@ -4,6 +4,7 @@ import java.util.WeakHashMap;
 
 import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
+import javax.vecmath.Vector3f;
 
 import nif.compound.NifKey;
 import nif.compound.NifKeyGroup;
@@ -13,6 +14,7 @@ import nif.enums.KeyType;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.NifTransformGroup;
 import nif.j3d.interp.PositionPathInterpolator;
+import nif.j3d.interp.RotPosScaleInterpolator;
 import nif.j3d.interp.RotationPathInterpolator;
 import nif.j3d.interp.ScalePathInterpolator;
 import nif.j3d.interp.XYZRotPathInterpolator;
@@ -22,20 +24,50 @@ import utils.convert.ConvertFromNif;
 
 public class J3dNiTransformInterpolator extends J3dNiInterpolator
 {
-	private PositionPathInterpolator positionPathInterpolator;
-
-	private ScalePathInterpolator scalePathInterpolator;
-
 	private XYZRotPathInterpolator xYZRotPathInterpolator;
 
 	private RotationPathInterpolator quatRotInterpolator;
 
+	private Quat4f defaultRot = new Quat4f(0f, 0f, 0f, 1f);
+
+	private PositionPathInterpolator positionPathInterpolator;
+
+	private Vector3f defaultTrans = new Vector3f();
+
+	private ScalePathInterpolator scalePathInterpolator;
+
+	private float defaultScale = 1;
+
 	public J3dNiTransformInterpolator(NiTransformInterpolator niTransformInterp, NiToJ3dData niToJ3dData,
 			NifTransformGroup targetTransform, float startTimeS, float lengthS)
 	{
-
-		if (niTransformInterp.data.ref != -1)
+		//if(niTransformInterp.data.ref>=12&&niTransformInterp.data.ref<16)
+		//	return;
+			
+		if (niTransformInterp.rotation.x != NIF_FLOAT_MIN)
 		{
+			defaultRot = ConvertFromNif.toJ3d(niTransformInterp.rotation);
+		}
+
+		if (niTransformInterp.translation.x != NIF_FLOAT_MIN)
+		{
+			defaultTrans = ConvertFromNif.toJ3d(niTransformInterp.translation);
+		}
+
+		if (niTransformInterp.scale != NIF_FLOAT_MIN)
+		{
+			//Notice scale is a percentage change so no Nif conversion done!
+			defaultScale = niTransformInterp.scale;
+		}
+
+		
+		if (niTransformInterp.data.ref != -1  )
+		{
+			if(niTransformInterp.data.ref==59)
+			{
+				//59 = sack
+				System.out.println("here debug");
+			}
 			NiTransformData niTransformData = (NiTransformData) niToJ3dData.get(niTransformInterp.data);
 
 			if (niTransformData.numRotationKeys > 0)
@@ -66,8 +98,9 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 							{
 								NifKey key = yRotation.keys[i];
 								yKnots[i] = key.time;
-								yRots[i] = -((Float) key.value).floatValue();
+								yRots[i] =  -((Float) key.value).floatValue();
 							}
+	
 							NifKeyGroup zRotation = niTransformData.xYZRotations[1];
 							float[] zKnots = new float[zRotation.keys.length];
 							float[] zRots = new float[zRotation.keys.length];
@@ -82,15 +115,13 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 
 						}
 
-						xYZRotPathInterpolator = new XYZRotPathInterpolator(J3dNiInterpolator.prepTransformGroup(targetTransform),
-								data.xKnots, data.xRots, data.yKnots, data.yRots, data.zKnots, data.zRots, startTimeS, lengthS);
-						addInterpolator(xYZRotPathInterpolator);
+						xYZRotPathInterpolator = new XYZRotPathInterpolator(data.xKnots, data.xRots, data.yKnots, data.yRots, data.zKnots,
+								data.zRots);
 					}
 				}
 				else if (niTransformData.rotationType.type == KeyType.QUADRATIC_KEY || niTransformData.rotationType.type == KeyType.TBC_KEY
 						|| niTransformData.rotationType.type == KeyType.LINEAR_KEY)
 				{
-
 					NifQuatKey[] quatKeys = niTransformData.quaternionKeys;
 					if (quatKeys != null && quatKeys.length > 0)
 					{
@@ -110,10 +141,8 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 							quatRotationDataMap.put(niTransformData, data);
 						}
 
-						//TODO: the TCBKeyFrame class and interpolator in the j3dcore jar should be used here!!
-						quatRotInterpolator = new RotationPathInterpolator(J3dNiInterpolator.prepTransformGroup(targetTransform),
-								data.knots, data.quats, startTimeS, lengthS);
-						addInterpolator(quatRotInterpolator);
+						quatRotInterpolator = new RotationPathInterpolator(data.knots, data.quats);
+
 					}
 				}
 				else
@@ -139,9 +168,8 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 					data = new TranslationData(knots, positions);
 					translationDataMap.put(niTransformData, data);
 				}
-				positionPathInterpolator = new PositionPathInterpolator(J3dNiInterpolator.prepTransformGroup(targetTransform), data.knots,
-						data.positions, startTimeS, lengthS);
-				addInterpolator(positionPathInterpolator);
+				positionPathInterpolator = new PositionPathInterpolator(data.knots, data.positions);
+
 			}
 
 			NifKeyGroup scaleKeys = niTransformData.scales;
@@ -161,12 +189,19 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 					data = new ScaleData(knots, scales);
 					scaleDataMap.put(niTransformData, data);
 				}
-				scalePathInterpolator = new ScalePathInterpolator(J3dNiInterpolator.prepTransformGroup(targetTransform), data.knots,
-						data.scales, startTimeS, lengthS);
-				addInterpolator(scalePathInterpolator);
+				scalePathInterpolator = new ScalePathInterpolator(data.knots, data.scales);
+
 			}
 
 		}
+
+		RotPosScaleInterpolator rotPosScaleInterpolator = new RotPosScaleInterpolator(
+				J3dNiInterpolator.prepTransformGroup(targetTransform), startTimeS, lengthS, positionPathInterpolator,
+				scalePathInterpolator, xYZRotPathInterpolator, quatRotInterpolator, defaultTrans, defaultRot, defaultScale);
+		setInterpolator(rotPosScaleInterpolator);
+		rotPosScaleInterpolator.setOwner(this);
+		this.setOwner(niTransformInterp);
+
 	}
 
 	private static WeakHashMap<NiTransformData, XyzRotationData> xyzRotationDataMap = new WeakHashMap<NiTransformData, XyzRotationData>();

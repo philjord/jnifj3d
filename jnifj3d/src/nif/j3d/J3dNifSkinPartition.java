@@ -30,14 +30,14 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 	private Transform3D[] accumulatedTransByBonesIndex;
 
 	/**
-	 * superceeded by teh skindata version, this is an extra on top f that, whihc I don't need
+	 * superceeded by the skindata version, this is an extra on top of that, which I don't need
 	 * this does not have enough info in it to work alone
 	 * @param nifSkinPartition
 	 * @param j3dNiTriShape
 	 * @param skinSkeletonRoot
 	 * @param skinBonesInOrder
 	 * @param skeletonBones
-	 */	
+	 */
 	public J3dNifSkinPartition(NifSkinPartition nifSkinPartition, J3dNiTriShape j3dNiTriShape, J3dNiAVObject skinSkeletonRoot,
 			J3dNiNode[] skinBonesInOrder, LinkedHashMap<String, J3dNiNode> skeletonBones)
 	{
@@ -75,7 +75,7 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 			J3dNiNode skinBone = skinBonesInOrder[spBoneId];
 			J3dNiNode skeletonBone = skeletonBones.get(skinBone.getName());
 			if (skeletonBone == null)
-				System.out.println("Null bone! mixed games or creatures? " + skinBone.getName());
+				System.out.println("Null bone! mixed games or creatures? or is it a case issue? " + skinBone.getName());
 			skeletonBonesInSkinBoneIdOrder[spBoneId] = skeletonBone;
 		}
 
@@ -99,11 +99,6 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 		double[][] accTransMats = new double[nifSkinPartition.bones.length][16];
 
 		// pre multiply transforms for repeated use for each vertex
-
-		//TODO: note I repate the exact same bones in different partitions on a given model
-		//see oblivion dogbody.nif 34/35/36 are done twice
-		// my new higherlevel start pose at skin instance may force this issue anyway
-
 		for (int spBoneIndex = 0; spBoneIndex < nifSkinPartition.bones.length; spBoneIndex++)
 		{
 			int spBoneId = nifSkinPartition.bones[spBoneIndex];
@@ -128,32 +123,6 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 			accumulatedTrans.mul(shapeVWTrans);
 
 			accumulatedTrans.get(accTransMats[spBoneIndex]);
-
-			//spider daedra bones
-			/*	if (bone.getName().equals("Bip01 jaw") //
-						|| bone.getName().equals("Bip01 Head") //
-						|| bone.getName().equals("Bip01 Spine2")//
-						|| bone.getName().equals("Bip01 L Breast")//
-						|| bone.getName().equals("Bip01 R Breast"))
-				
-				// ok so dog and wolf have exact same issue, but the tail bones appear perfectly placed?
-				if (bone.getName().equals("Bip01 NonAccum")
-						|| bone.getName().equals("Bip01 Spine0")
-						|| bone.getName().equals("Bip01 Pelvis")
-						|| bone.getName().equals("Bip01 Tail")
-						|| bone.getName().equals("Bip01 Tail1")
-						|| bone.getName().equals("Bip01 Tail2"))*/
-
-			//I think this jaw bone inverstion may NOT be related to eh bound rest pose
-			if (bone.getName().equals("Bip01 jaw"))
-			{
-
-				//TODO: I need to flip the last littel bit of teh 
-
-				//Confirmed that the jaw bone is wrong, however it's not a little bit of flipp that's needed
-				// it's something more
-			}
-
 		}
 
 		float[] baseCoordRefFloat = baseIndexedGeometryArray.getCoordRefFloat();
@@ -184,18 +153,6 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 					// find the transform for this bone
 					int spBoneIndex = nifSkinPartition.boneIndices[vm][w];
 
-					//This confirm jaw bone screwed, replace with head and all good
-					//	if( nifSkinPartition.numTriangles == 4310 &&spBoneIndex == 15 )
-					//	spBoneIndex = 0;
-
-					//This show jaw bone is just flipped over simple x rotate of 180?
-					//	if( nifSkinPartition.numTriangles == 4310 &&spBoneIndex == 0 )
-					//	spBoneIndex = 15;
-
-					// one of dog tail
-					//if( nifSkinPartition.numTriangles == 1487 && spBoneIndex == 11 )
-					//	spBoneIndex = 3;
-
 					double[] accTransMat = accTransMats[spBoneIndex];
 
 					// set the transformed point from base, ready for transformation
@@ -224,11 +181,6 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 					// record running total weight
 					totalWeight += weight;
 				}
-				/*else if (weight < 0)
-				{
-				// doesn't appear to ever happen
-					System.out.println("if (weight < 0) " +weight);
-				}*/
 			}
 			if (totalWeight != 1)
 			{

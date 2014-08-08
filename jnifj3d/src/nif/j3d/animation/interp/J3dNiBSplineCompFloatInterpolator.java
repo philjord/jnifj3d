@@ -49,7 +49,7 @@ public class J3dNiBSplineCompFloatInterpolator extends J3dNiInterpolator
 
 				
 				FloatInterpolator interpolator = new FloatInterpolator(callBack, knots, values);
-				addInterpolator(interpolator);
+				setInterpolator(interpolator);
 
 			}
 		}

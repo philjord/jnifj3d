@@ -1,33 +1,33 @@
 package nif.j3d.animation.interp;
 
-import java.util.ArrayList;
 import java.util.Enumeration;
 
 import javax.media.j3d.Alpha;
 import javax.media.j3d.Group;
 import javax.media.j3d.Interpolator;
-import javax.media.j3d.TransformGroup;
 
-import tools3d.utils.Utils3D;
 import nif.j3d.NifTransformGroup;
 import nif.j3d.interp.Interpolated;
+import tools3d.utils.Utils3D;
 
- 
 public abstract class J3dNiInterpolator extends Group
 {
+
+	private Object owner;
+
 	public static final int NIF_USHRT_MAX = 65535;
 
 	public static final float NIF_FLOAT_MIN = (float) -3.4028235E38;
 
-	private ArrayList<Interpolated> interpolators = new ArrayList<Interpolated>();
+	private Interpolated interpolator;
 
 	public J3dNiInterpolator()
 	{
 	}
 
-	public void addInterpolator(Interpolated interpolator)
+	public void setInterpolator(Interpolated interpolator)
 	{
-		interpolators.add(interpolator);
+		this.interpolator = interpolator;
 	}
 
 	/**
@@ -36,13 +36,11 @@ public abstract class J3dNiInterpolator extends Group
 	 */
 	public void process(float alphaValue)
 	{
-		for (Interpolated interpolator : interpolators)
-		{
+		if (interpolator != null)
 			interpolator.process(alphaValue);
-		}
 	}
 
-	public static TransformGroup prepTransformGroup(NifTransformGroup targetTransform)
+	public static NifTransformGroup prepTransformGroup(NifTransformGroup targetTransform)
 	{
 		if (targetTransform != null)
 		{
@@ -73,6 +71,16 @@ public abstract class J3dNiInterpolator extends Group
 		interp.setEnable(true);
 		interp.setSchedulingBounds(Utils3D.defaultBounds);
 		addChild(interp);
+	}
+
+	public Object getOwner()
+	{
+		return owner;
+	}
+
+	public void setOwner(Object owner)
+	{
+		this.owner = owner;
 	}
 
 }

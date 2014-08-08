@@ -1,23 +1,18 @@
 package nif.j3d.interp;
 
 import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
 import javax.vecmath.Quat4f;
 
-/**
- * RotationPathInterpolator is my copy if the j3d RotationPathInterpolator fixed up a bit, by not overriding the rest of the transforms components
- */
-
-public class RotationPathInterpolator extends PathInterpolator
+public class RotationPathInterpolator extends KnotInterpolator
 {
 	private Quat4f tQuat = new Quat4f();
 
 	// Array of quaternions at each knot
 	private Quat4f quats[];
 
-	public RotationPathInterpolator(TransformGroup target, float[] knots, Quat4f[] quats, float startTimeS, float lengthS)
+	public RotationPathInterpolator(float[] knots, Quat4f[] quats)
 	{
-		super(target, knots, startTimeS, lengthS);
+		super(knots);
 
 		if (knots.length != quats.length)
 			throw new IllegalArgumentException("knots.length != quats.length");
@@ -106,6 +101,7 @@ public class RotationPathInterpolator extends PathInterpolator
 		}
 	}
 
+	@Override
 	public void applyTransform(Transform3D targetTransform)
 	{
 		targetTransform.setRotation(tQuat);

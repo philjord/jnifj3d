@@ -34,7 +34,7 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 		if (knotsFloats != null)
 		{
 			FloatInterpolator interpolator = new FloatInterpolator(callBack, knotsFloats.knots, knotsFloats.floats);
-			addInterpolator(interpolator);
+			setInterpolator(interpolator);
 		}
 		else if (constantFloat != Float.NEGATIVE_INFINITY)
 		{

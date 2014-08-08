@@ -3,9 +3,7 @@ package nif.j3d;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.Group;
-import javax.vecmath.Point3d;
 
 import nif.basic.NifPtr;
 import nif.character.NifJ3dSkeletonRoot;
@@ -40,10 +38,6 @@ public class J3dNiSkinInstance extends Group
 
 		skinSkeletonRoot = niToJ3dData.get((NiAVObject) niToJ3dData.get(niSkinInstance.skeletonRoot));
 		skinSkeletonRoot.setVisualMarker(showSkinBoneMarkers);
-
-		//TODO: is this a good idea? profiler on thread shows it blocked on update bounds
-		j3dNiTriShape.getShape().setBoundsAutoCompute(false);
-		j3dNiTriShape.getShape().setBounds(new BoundingSphere(new Point3d(0, 0, 0), 20));
 
 		addChild(j3dNiTriShape);
 

@@ -83,7 +83,7 @@ public class NifCharacter extends BranchGroup
 		Group bg = new Group();
 		addChild(bg);
 
-		if (J3dNiSkinInstance.showSkinBoneMarkers)
+		if (NifJ3dSkeletonRoot.showBoneMarkers || J3dNiSkinInstance.showSkinBoneMarkers)
 		{
 			bg.addChild(blendedSkeletons);
 		}

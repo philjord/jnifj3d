@@ -18,10 +18,7 @@ public class CharacterAttachment extends BranchGroup
 
 	private J3dNiNode attachBone;
 
-	//TODO: R Calf shows issue too (where?)
-	//TODO: hat has got double animation in it, due to nonaccum thingy 
-	// Also the antlers of the deer, so I say it need to be attached after bone rotations?
-	// crabs and horse both not upright properly, horse skeleton has a rot above the non accum
+	//TODO:  crabs and horse both not upright properly, horse skeleton has a rot above the non accum
 	// I see ogre idle kf has a non accum rotation but mudcab doesn't?
 	// am I including that
 	// I also get teh delayed jiggle 
@@ -32,13 +29,18 @@ public class CharacterAttachment extends BranchGroup
 		this.attachBone = attachBone;
 		this.addChild(attachmentTrans);
 
-		EasyTransformGroup tg2 = new EasyTransformGroup();
 		// TODO: still not right I want heads of humans only!
 		if (attachBone.getName().equalsIgnoreCase("Bip01 head") && skeletonNifFilename.indexOf("haracter") != -1)
+		{
+			EasyTransformGroup tg2 = new EasyTransformGroup();
 			tg2.rotZ(-Math.PI / 2d);
-		tg2.addChild(model);
-
-		attachmentTrans.addChild(tg2);
+			tg2.addChild(model);
+			attachmentTrans.addChild(tg2);
+		}
+		else
+		{
+			attachmentTrans.addChild(model);
+		}
 
 	}
 

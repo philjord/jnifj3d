@@ -30,7 +30,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 
 		niToJ3dData.put(niAVObject, this);
 
-		transformGroup = new NifTransformGroup();
+		transformGroup = new NifTransformGroup(this);
 
 		Transform3D t1 = new Transform3D();
 
@@ -94,7 +94,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 			Enumeration<Node> children = super.getAllChildren();
 			super.removeAllChildren();
 
-			transformGroup = new NifTransformGroup();
+			transformGroup = new NifTransformGroup(this);
 
 			while (children.hasMoreElements())
 			{

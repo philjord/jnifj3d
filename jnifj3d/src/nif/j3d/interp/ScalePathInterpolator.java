@@ -1,21 +1,17 @@
 package nif.j3d.interp;
 
 import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
 
-/**
- * ScalePathInterpolator is my copy if the j3d ScalePathInterpolator fixed up a bit, by not overriding the rest of the transforms components
- */
-public class ScalePathInterpolator extends PathInterpolator
+public class ScalePathInterpolator extends KnotInterpolator
 {
 	private float tScale = 1;
 
 	// Array of positions at each knot
 	private float[] scales;
 
-	public ScalePathInterpolator(TransformGroup target, float[] knots, float[] scales, float startTimeS, float lengthS)
+	public ScalePathInterpolator(float[] knots, float[] scales)
 	{
-		super(target, knots, startTimeS, lengthS);
+		super(knots);
 
 		if (knots.length != scales.length)
 			throw new IllegalArgumentException("knots.length != scales.length");
@@ -50,6 +46,7 @@ public class ScalePathInterpolator extends PathInterpolator
 		}
 	}
 
+	@Override
 	public void computeTransform(float alphaValue)
 	{
 		if (!fixed)
@@ -64,14 +61,14 @@ public class ScalePathInterpolator extends PathInterpolator
 			else
 			{
 				tScale = scales[currentKnotIndex] + (scales[currentKnotIndex + 1] - scales[currentKnotIndex]) * currentInterpolationValue;
-
 			}
 		}
 	}
 
+	@Override
 	public void applyTransform(Transform3D targetTransform)
 	{
-		targetTransform.setScale(tScale);
+		targetTransform.setScale(tScale);		
 	}
 
 }

@@ -1,24 +1,19 @@
 package nif.j3d.interp;
 
 import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
 
-/**
- * PositionPathInterpolator is my copy if the j3d PositionPathInterpolator fixed up a bit, by not overriding the rest of the transforms components
- */
-
-public class PositionPathInterpolator extends PathInterpolator
+public class PositionPathInterpolator extends KnotInterpolator
 {
 	private Vector3f pos = new Vector3f();
 
 	// Array of positions at each knot
 	private Point3f positions[];
 
-	public PositionPathInterpolator(TransformGroup target, float[] knots, Point3f[] positions, float startTimeS, float lengthS)
+	public PositionPathInterpolator(float[] knots, Point3f[] positions)
 	{
-		super(target, knots, startTimeS, lengthS);
+		super(knots);
 
 		if (knots.length != positions.length)
 			throw new IllegalArgumentException("knots.length != positions.length");
@@ -30,7 +25,7 @@ public class PositionPathInterpolator extends PathInterpolator
 			pos.y = positions[0].y;
 			pos.z = positions[0].z;
 		}
-	}	
+	}
 
 	private boolean isFixed()
 	{
@@ -55,6 +50,7 @@ public class PositionPathInterpolator extends PathInterpolator
 		}
 	}
 
+	@Override
 	public void computeTransform(float alphaValue)
 	{
 		if (!fixed)
@@ -79,6 +75,7 @@ public class PositionPathInterpolator extends PathInterpolator
 		}
 	}
 
+	@Override
 	public void applyTransform(Transform3D targetTransform)
 	{
 		targetTransform.setTranslation(pos);

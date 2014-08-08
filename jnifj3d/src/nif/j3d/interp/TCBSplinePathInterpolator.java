@@ -1,6 +1,6 @@
 package nif.j3d.interp;
 
-import javax.media.j3d.TransformGroup;
+import nif.j3d.NifTransformGroup;
 
 import com.sun.j3d.internal.J3dUtilsI18N;
 import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
@@ -37,7 +37,7 @@ public abstract class TCBSplinePathInterpolator extends TransformInterpolator
 	 */
 	protected int upperKnot;
 
-	public TCBSplinePathInterpolator(TransformGroup target, TCBKeyFrame keys[])
+	public TCBSplinePathInterpolator(NifTransformGroup target, TCBKeyFrame keys[])
 	{
 		super(target, 0, 1f);//normalized knots
 		processKeyFrames(keys);

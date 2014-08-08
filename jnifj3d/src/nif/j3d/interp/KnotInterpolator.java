@@ -1,16 +1,8 @@
 package nif.j3d.interp;
 
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
+import javax.media.j3d.Transform3D;
 
-import nif.j3d.NifTransformGroup;
-
-/**
- * This is a  copy of the PathInterpolator from j3d, with target swapped out for a multiple targets and axis dumped
- * @author Administrator
- *
- */
-public abstract class PathInterpolator extends TransformInterpolator
+public abstract class KnotInterpolator
 {
 
 	// Array of knots
@@ -20,9 +12,10 @@ public abstract class PathInterpolator extends TransformInterpolator
 
 	protected int currentKnotIndex;
 
-	public PathInterpolator(NifTransformGroup target, float[] knots, float startTimeS, float lengthS)
+	protected boolean fixed = false;
+
+	public KnotInterpolator(float[] knots)
 	{
-		super(target, startTimeS, lengthS);
 		setKnots(knots);
 	}
 
@@ -37,7 +30,7 @@ public abstract class PathInterpolator extends TransformInterpolator
 		{
 			if (i > 0 && knots[i] < knots[i - 1])
 			{
-				throw new IllegalArgumentException(J3dI18N.getString("PathInterpolator2"));
+				throw new IllegalArgumentException("KnotInterpolator bum!");
 			}
 			this.knots[i] = knots[i];
 		}
@@ -64,21 +57,9 @@ public abstract class PathInterpolator extends TransformInterpolator
 		}
 	}
 
-	static class J3dI18N
-	{
-		static String getString(String key)
-		{
-			String s;
-			try
-			{
-				s = ResourceBundle.getBundle("javax.media.j3d.ExceptionStrings").getString(key);
-			}
-			catch (MissingResourceException e)
-			{
-				System.err.println("J3dI18N: Error looking up: " + key);
-				s = key;
-			}
-			return s;
-		}
-	}
+	public abstract void computeTransform(float alphaValue);
+
+	// Note each sub class should only call one of setRotation, setTranslation or setScale
+	public abstract void applyTransform(Transform3D t);
+
 }

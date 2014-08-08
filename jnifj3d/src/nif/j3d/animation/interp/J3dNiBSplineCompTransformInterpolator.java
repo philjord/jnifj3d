@@ -73,7 +73,7 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 
 				RotPosScaleTCBSplinePathInterpolator tCBSplinePathInterpolator = new RotPosScaleTCBSplinePathInterpolator(
 						J3dNiInterpolator.prepTransformGroup(targetTransform), keys);
-				addInterpolator(tCBSplinePathInterpolator);
+				setInterpolator(tCBSplinePathInterpolator);
 			}
 		}
 	}
@@ -92,6 +92,7 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 
 		if (nibs.scale != NIF_FLOAT_MIN)
 		{
+			//Note scale is a percentage change so no conversion from nif
 			float s = nibs.scale;
 			defaultScale = new Point3f(s, s, s);
 		}
@@ -123,6 +124,7 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 				float y = ((points[i * 4 + 2] / 32767f) * nibs.rotationMultiplier) + nibs.rotationBias;
 				float z = ((points[i * 4 + 3] / 32767f) * nibs.rotationMultiplier) + nibs.rotationBias;
 				Quat4f key = NifRotToJava3DRot.makeJ3dQ4f(x, y, z, w);
+
 				ret.add(key);
 			}
 			return ret;
@@ -175,6 +177,7 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 			for (int i = 0; i < numberOfControlPoints; i++)
 			{
 				float s = ((points[i + 0] / 32767f) * nibs.scaleMultiplier) + nibs.scaleBias;
+				//Note scale is a percentage change so no conversion from Nif
 				ret.add(new Point3f(s, s, s));
 			}
 			return ret;

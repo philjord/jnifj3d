@@ -9,6 +9,7 @@ import java.util.HashMap;
 
 import javax.media.j3d.Alpha;
 import javax.media.j3d.Appearance;
+import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.GLSLShaderProgram;
 import javax.media.j3d.Material;
 import javax.media.j3d.NodeComponent;
@@ -43,6 +44,7 @@ import nif.niobject.NiAlphaProperty;
 import nif.niobject.NiDitherProperty;
 import nif.niobject.NiFogProperty;
 import nif.niobject.NiGeometry;
+import nif.niobject.NiGeometryData;
 import nif.niobject.NiMaterialProperty;
 import nif.niobject.NiMultiTextureProperty;
 import nif.niobject.NiObject;
@@ -79,6 +81,7 @@ import nif.niobject.controller.NiSingleInterpController;
 import nif.niobject.controller.NiTimeController;
 import nif.niobject.interpolator.NiInterpolator;
 import tools3d.utils.scenegraph.Fadable;
+import utils.convert.ConvertFromNif;
 import utils.convert.NifOpenGLToJava3D;
 import utils.source.TextureSource;
 
@@ -131,6 +134,11 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 			shape = customShape;
 		}
 		shape.setName("" + this.getClass().getSimpleName() + ":" + niGeometry.name);
+		
+		NiGeometryData data = (NiGeometryData) niToJ3dData.get(niGeometry.data);
+
+		shape.setBoundsAutoCompute(false);
+		shape.setBounds(new BoundingSphere(ConvertFromNif.toJ3dP3d(data.center), ConvertFromNif.toJ3d(data.radius)));
 
 		if (!NifToJ3d.USE_SHADERS)
 		{

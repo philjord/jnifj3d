@@ -39,7 +39,7 @@ public class J3dNiPoint3Interpolator extends J3dNiInterpolator
 		if (knotsPoints != null)
 		{
 			Point3Interpolator interpolator = new Point3Interpolator(callBack, knotsPoints.knots, knotsPoints.points);
-			addInterpolator(interpolator);
+			setInterpolator(interpolator);
 		}
 		else if (constantPoint3f != null)
 		{
@@ -57,8 +57,7 @@ public class J3dNiPoint3Interpolator extends J3dNiInterpolator
 	 */
 	private void makeKnotsPoints(NiPoint3Interpolator niPoint3Interp, NiToJ3dData niToJ3dData, float startTimeS, float lengthS)
 	{
-System.out.println("J3dNiPoint3Interpolator created note no xyz->x-zy yet!");
-		if (niPoint3Interp.data.ref != -1)
+ 		if (niPoint3Interp.data.ref != -1)
 		{
 			NifKeyGroup posData = ((NiPosData) niToJ3dData.get(niPoint3Interp.data)).data;
 
@@ -77,6 +76,7 @@ System.out.println("J3dNiPoint3Interpolator created note no xyz->x-zy yet!");
 						knots[i] = (key.time - startTimeS) / lengthS;
 						NifVector3 nv3 = (NifVector3) key.value;
 
+						//not Converted because it may be controlling color! see Meshes\Architecture\Megaton\MegatonGateHouse01.NIF 
 						values[i] = new Point3f(nv3.x, nv3.y, nv3.z);
 
 					}

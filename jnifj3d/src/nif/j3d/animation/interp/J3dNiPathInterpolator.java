@@ -56,7 +56,7 @@ public class J3dNiPathInterpolator extends J3dNiInterpolator
 				}
 				RotPosPathInterpolator interpolator = new RotPosPathInterpolator(J3dNiInterpolator.prepTransformGroup(targetTransform),
 						data.knots, data.quats, data.positions);
-				addInterpolator(interpolator);
+				setInterpolator(interpolator);
 			}
 			else
 			{
