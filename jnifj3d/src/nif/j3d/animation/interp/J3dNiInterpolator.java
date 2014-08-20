@@ -30,6 +30,11 @@ public abstract class J3dNiInterpolator extends Group
 		this.interpolator = interpolator;
 	}
 
+	public Interpolated getInterpolator()
+	{
+		return interpolator;
+	}
+
 	/**
 	 * This can be called by any external behavior to progress this interp along
 	 * Or it will be called by the auto behaviour if fire is called below

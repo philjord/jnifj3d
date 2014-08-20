@@ -65,7 +65,7 @@ public abstract class TransformInterpolator implements Interpolated
 
 	//more than one can point to it, but not more than one can be animating it at once!
 
-	protected static HashMap<NifTransformGroup, Object> ts = new HashMap<NifTransformGroup, Object>();
+	protected static HashMap<Object, Object> ts = new HashMap<Object, Object>();
 
 	@Override
 	public void process(float alphaValue)

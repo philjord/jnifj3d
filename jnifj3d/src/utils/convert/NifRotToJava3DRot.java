@@ -138,7 +138,7 @@ public class NifRotToJava3DRot
 	 * @return
 	 */
 	@Deprecated
-	private static float truncToDP(float in, int scale)
+	public static float truncToDP(float in, int scale)
 	{
 		if (Float.isInfinite(in) || Float.isNaN(in))
 			return in;

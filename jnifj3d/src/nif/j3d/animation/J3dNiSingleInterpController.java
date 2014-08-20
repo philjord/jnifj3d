@@ -15,6 +15,8 @@ public class J3dNiSingleInterpController extends J3dNiTimeController
 {
 	private J3dNiInterpolator j3dNiInterpolator;
 
+
+
 	private Alpha baseAlpha;
 
 	public J3dNiSingleInterpController(NiSingleInterpController controller, NiToJ3dData niToJ3dData)
@@ -62,5 +64,9 @@ public class J3dNiSingleInterpController extends J3dNiTimeController
 		}
 
 	}
-
+	
+	public J3dNiInterpolator getJ3dNiInterpolator()
+	{
+		return j3dNiInterpolator;
+	}
 }

@@ -50,6 +50,11 @@ public abstract class J3dNiObjectNET extends BranchGroup
 			return null;
 	}
 
+	public J3dNiTimeController getJ3dNiTimeController()
+	{
+		return j3dNiTimeController;
+	}
+
 	public NiExtraData[] getExtraDataList()
 	{
 		return extraDataList;

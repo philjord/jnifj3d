@@ -5,9 +5,6 @@ import javax.media.j3d.TransformGroup;
 
 public class NifTransformGroup extends TransformGroup
 {
-	//Crazy crap about extra skelton transformcontrollers, see TransformInterpolator
-	public Transform3D skeletonTrans = null;
-	
 	private static Transform3D IDENTITY = new Transform3D();
 
 	private J3dNiAVObject owner = null;

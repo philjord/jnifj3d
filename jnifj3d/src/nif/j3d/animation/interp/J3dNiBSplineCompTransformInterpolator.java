@@ -40,6 +40,7 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 
 		if (niBSplineCompTransformInterpolator.splineData.ref != -1)
 		{
+			 
 			niBSplineData = (NiBSplineData) niToJ3dData.get(niBSplineCompTransformInterpolator.splineData);
 			if (niBSplineCompTransformInterpolator.basisData.ref != -1)
 			{

@@ -4,7 +4,9 @@ import javax.media.j3d.Transform3D;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
 
+import tools3d.utils.Utils3D;
 import nif.j3d.NifTransformGroup;
+import nif.j3d.animation.J3dNiSingleInterpController;
 import nif.j3d.animation.interp.J3dNiTransformInterpolator;
 import nif.niobject.interpolator.NiTransformInterpolator;
 
@@ -18,9 +20,9 @@ public class RotPosScaleInterpolator extends TransformInterpolator
 
 	private RotationPathInterpolator quatRotInterpolator;
 
-	private Vector3f defaultTrans = new Vector3f();
+	private Vector3f defaultTrans = null;
 
-	private Quat4f defaultRot = new Quat4f(0f, 0f, 0f, 1f);
+	private Quat4f defaultRot = null;
 
 	private float defaultScale = 1;
 
@@ -38,9 +40,28 @@ public class RotPosScaleInterpolator extends TransformInterpolator
 
 		this.quatRotInterpolator = quatRotInterpolator;
 
-		this.defaultTrans = defaultTrans;
+		// preserve the target values if interps have no defaults
+		Transform3D t1 = new Transform3D();
+		target.getTransform(t1);
 
-		this.defaultRot = defaultRot;
+		if (defaultTrans != null)
+		{
+			this.defaultTrans = defaultTrans;
+		}
+		else
+		{
+			this.defaultTrans = new Vector3f();
+			t1.get(this.defaultTrans);
+		}
+		if (defaultRot != null)
+		{
+			this.defaultRot = defaultRot;
+		}
+		else
+		{
+			this.defaultRot = new Quat4f();
+			t1.get(this.defaultRot);
+		}
 
 		this.defaultScale = defaultScale;
 	}
@@ -52,96 +73,190 @@ public class RotPosScaleInterpolator extends TransformInterpolator
 	@Override
 	public void process(float alphaValue)
 	{
-		// convert to an offsetted time in seconds
-		alphaValue *= lengthS;
-		alphaValue += startTimeS;
-
-		//FIXME: remove check to make sure nothing else is touching my target
-		//TODO: this isn't working somehow I just had 2 different thing changing a target with owner Bip01 Sack
-		// skeleton is getting a chance too, but it has only it's identiy transform to apply
-		// presumably it applie it first in the update thread then the actual one overrides, 
-		// only sack has a transcontroller in skeleton, plus the other ones that are stuffed too by the look
-
-		// So my thinking is that the skeleton transform must be done first, then the animation transform on top of that.
-		// So I wonder how I can apply that as there is no point currently that resets the transform
-		
-		// I think my problem is I have 2 transforms for this one node, and I NEED both, but in other cases I only need the 
-		// one unique one to set things absolutely
-		// to have both I need to multiply them together, which menas I need to know what teh skeletona and what's not!!
-		// but it's more complex still becuase I need to know if a skeleton has altered my value before me and keep the alteration!
-		// so I could put a skeleton trans into a cache on the target and then mul in if I find it with a normal trans later??  
-
-		Object inter = ts.get(target);
-		if (inter != null && inter != this)
+		//sack bad spine good! sack has rots disabled
+		if (!target.getOwner().getName().equals("Bip01 Sack"))
+		//&& !target.getOwner().getName().equals("Bip01 Spine"))
+		//	&& !target.getOwner().getName().equals("Bip01 Pelvis"))
 		{
-			//System.out.println("inter " + inter + " this " + this);
+			
+			//Bip01 HeadR has a bhkBlendController that has xyz below it
+			// which is animationy
+			return;
 		}
-		ts.put(target, this);
+		else
+		{
+			System.out.println("doing " + target.getOwner().getName());
+		}
+
+		// convert to an offsetted time in seconds
+		float normAlphaValue = alphaValue * lengthS;
+		normAlphaValue += startTimeS;
+
+		//OK so skel have transfroms that I think I want
+		// any given anim looks aside through a huge cast system and grabs it out
+		// right now I see that my translate are bad and my rotates are bad 
+
+		//new info, can't multiply 2 trans forms as that change frame for trasnlation, need to add rots together
+		// so now a mult of quat seperate from an add of translate seems ok?
+		// but only usigna very fixed skel quat
+		
+		// but note that teh anims should only really supply rotations not translations,
+		// as the translation come from the bones and never alter, so I should supply 
+		//them from before all this here, which is like a get before we begin!
+		
+		
+
+		// don't run skel we look aside for them in the main animation
+		if (((NiTransformInterpolator) ((J3dNiTransformInterpolator) this.getOwner()).getOwner()).nVer.fileName.contains("skeleton"))
+		{
+			//TODO: after must stop skel animations totally, and discover what anims appear in skels
+			System.out.println("ignore skel");
+			return;
+		}
 
 		if (alphaValue != prevAlphaValue)
 		{
-			if (target.getOwner().getName().equals("Bip01 Sack"))
+
+			Transform3D skelT = null;
+			Vector3f skelMod = new Vector3f();
+			;
+			try
 			{
-				System.out.println("spotted " + ((NiTransformInterpolator) ((J3dNiTransformInterpolator) this.getOwner()).getOwner()).nVer);
-				System.out.println(""+((NiTransformInterpolator) ((J3dNiTransformInterpolator) this.getOwner()).getOwner()).nVer.fileName.contains("skeleton"));
-			}			
-			 
-			
+				//if (target.getOwner().getName().equals("Bip01 Sack"))
+				{
+					J3dNiSingleInterpController skelInterp = (J3dNiSingleInterpController) target.getOwner().getJ3dNiTimeController();
+					if (skelInterp != null)
+					{
+						J3dNiTransformInterpolator jtc = (J3dNiTransformInterpolator) skelInterp.getJ3dNiInterpolator();
+						if (jtc != null)
+						{
+							RotPosScaleInterpolator rpsiskel = (RotPosScaleInterpolator) jtc.getInterpolator();
+							if (rpsiskel != null)
+							{
+								skelT = new Transform3D();
+								if (rpsiskel.xYZRotPathInterpolator != null)
+								{
+									rpsiskel.xYZRotPathInterpolator.computeTransform(alphaValue);
+									//rpsiskel.xYZRotPathInterpolator.applyTransform(skelT);
+									skelMod.set(rpsiskel.xYZRotPathInterpolator.getInterpedRot());
+								}
+								else if (rpsiskel.quatRotInterpolator != null)
+								{
+									rpsiskel.quatRotInterpolator.computeTransform(alphaValue);
+									//rpsiskel.quatRotInterpolator.applyTransform(skelT);
+								}
+								//note we DON'T use skel default (it's the bones one so it would double up)
+
+								if (rpsiskel.positionPathInterpolator != null)
+								{
+									rpsiskel.positionPathInterpolator.computeTransform(alphaValue);
+									//rpsiskel.positionPathInterpolator.applyTransform(skelT);
+								}
+								//note we DON'T use skel default (it's the bones one so it would double up)
+
+								if (rpsiskel.scalePathInterpolator != null)
+								{
+									rpsiskel.scalePathInterpolator.computeTransform(alphaValue);
+									//rpsiskel.scalePathInterpolator.applyTransform(skelT);
+								}
+								//note we DON'T use skel default (it's the bones one so it would double up)
+							}
+						}
+					}
+				}
+			}
+			catch (Exception e)
+			{
+			}
 
 			if (xYZRotPathInterpolator != null)
 			{
-				xYZRotPathInterpolator.computeTransform(alphaValue);
+				xYZRotPathInterpolator.computeTransform(normAlphaValue);
+
+				xYZRotPathInterpolator.addInterpedRot(skelMod);// add skel bit
+
 				xYZRotPathInterpolator.applyTransform(targetTransform);
+
 			}
 			else if (quatRotInterpolator != null)
 			{
-				quatRotInterpolator.computeTransform(alphaValue);
+				quatRotInterpolator.computeTransform(normAlphaValue);
 				quatRotInterpolator.applyTransform(targetTransform);
 			}
-			else
+			else if (defaultRot != null)
 			{
 				targetTransform.setRotation(defaultRot);
 			}
 
 			if (positionPathInterpolator != null)
 			{
-				positionPathInterpolator.computeTransform(alphaValue);
+				positionPathInterpolator.computeTransform(normAlphaValue);
 				positionPathInterpolator.applyTransform(targetTransform);
 			}
-			else
+			else if (defaultTrans != null)
 			{
 				targetTransform.setTranslation(defaultTrans);
 			}
 
 			if (scalePathInterpolator != null)
 			{
-				scalePathInterpolator.computeTransform(alphaValue);
+				scalePathInterpolator.computeTransform(normAlphaValue);
 				scalePathInterpolator.applyTransform(targetTransform);
 			}
-			else
+			else if (defaultScale != Float.MIN_VALUE)
 			{
-				targetTransform.setScale(defaultScale);
+				//targetTransform.setScale(defaultScale);
 			}
 
-			//**** handle extra skeleton transform that sometimes appears
-			if (((NiTransformInterpolator) ((J3dNiTransformInterpolator) this.getOwner()).getOwner()).nVer.fileName.contains("skeleton"))
+			//TODO: finalT used here to seperate away from target but target can be done in one hit
+			// possibly if target is taken out at constructor then the default system can be removed?
+			Transform3D finalT = new Transform3D();
+			if (skelT != null)
 			{
-				if(target.skeletonTrans==null)
-				{
-				 target.skeletonTrans = new Transform3D();
-				}
-				 target.skeletonTrans.set(targetTransform);
+				Quat4f q1 = new Quat4f();
+				Vector3f v1 = new Vector3f();
+				targetTransform.get(q1);
+				System.out.println("anim ypr " + Utils3D.toStringQuat(q1));
+				targetTransform.get(v1);
+				System.out.println("anim translate " + v1);
+
+				Quat4f q2 = new Quat4f();
+				Vector3f v2 = new Vector3f();
+				skelT.get(q2);
+				System.out.println("skel ypr " + Utils3D.toStringQuat(q2));
+				skelT.get(v2);
+				System.out.println("skel translate " + v2);
+
+				//	q1.add(q2);
+				//	v1.add(v2);
+				//	finalT.set(q1,v1,1);
+
+				finalT.set(targetTransform);// note skel after?
+
+				finalT.get(q1);
+				System.out.println("final ypr " + Utils3D.toStringQuat(q1));
+				finalT.get(v1);
+				System.out.println("final translate " + v1);
+
 			}
 			else
 			{
-				if(target.skeletonTrans!=null)
-				{
-					targetTransform.mul(  target.skeletonTrans, targetTransform);
-					 target.skeletonTrans.setIdentity();
-				}
+
+				Quat4f q1 = new Quat4f();
+				Vector3f v1 = new Vector3f();
+
+				targetTransform.get(q1);
+				System.out.println("anim ypr " + Utils3D.toStringQuat(q1));
+				targetTransform.get(v1);
+				System.out.println("anim translate " + v1);
+
+				finalT.get(q1);
+				System.out.println("final ypr " + Utils3D.toStringQuat(q1));
+				finalT.get(v1);
+				System.out.println("final translate " + v1);
+
+				finalT.set(targetTransform);
 			}
-			//******* Nope! skeleton animations are running at half speed!
-			// what I need to to see if the skeleton transfomr exists then use the base rotr for teh node
 
 			if (!isAffine(targetTransform))
 			{
@@ -149,10 +264,11 @@ public class RotPosScaleInterpolator extends TransformInterpolator
 			}
 
 			//only set on a change
-			if (!targetTransform.equals(prevTargetTransform))
+			if (!finalT.equals(prevTargetTransform))
 			{
-				target.setTransform(targetTransform);
-				prevTargetTransform.set(targetTransform);
+				System.out.println("and set");
+				target.setTransform(finalT);
+				prevTargetTransform.set(finalT);
 			}
 
 			prevAlphaValue = alphaValue;

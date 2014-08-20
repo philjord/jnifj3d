@@ -95,6 +95,12 @@ public class NifLoaderTester
 				if (fs[i].isFile()
 						&& (fs[i].getName().endsWith(".nif") || fs[i].getName().endsWith(".kf") || fs[i].getName().endsWith(".dds")))
 				{
+					
+					//only skels
+					//if(!fs[i].getName().toLowerCase().contains("skeleton"))
+					//	continue;
+					
+					
 					processFile(fs[i]);
 				}
 				else if (fs[i].isDirectory())
