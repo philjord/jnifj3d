@@ -26,6 +26,8 @@ public class RotPosScaleInterpolator extends TransformInterpolator
 
 	private float defaultScale = 1;
 
+	private Transform3D baseTransform = null;
+
 	public RotPosScaleInterpolator(NifTransformGroup target, float startTimeS, float lengthS,
 			PositionPathInterpolator positionPathInterpolator, ScalePathInterpolator scalePathInterpolator,
 			XYZRotPathInterpolator xYZRotPathInterpolator, RotationPathInterpolator quatRotInterpolator, Vector3f defaultTrans,
@@ -39,31 +41,8 @@ public class RotPosScaleInterpolator extends TransformInterpolator
 		this.xYZRotPathInterpolator = xYZRotPathInterpolator;
 
 		this.quatRotInterpolator = quatRotInterpolator;
+		 
 
-		// preserve the target values if interps have no defaults
-		Transform3D t1 = new Transform3D();
-		target.getTransform(t1);
-
-		if (defaultTrans != null)
-		{
-			this.defaultTrans = defaultTrans;
-		}
-		else
-		{
-			this.defaultTrans = new Vector3f();
-			t1.get(this.defaultTrans);
-		}
-		if (defaultRot != null)
-		{
-			this.defaultRot = defaultRot;
-		}
-		else
-		{
-			this.defaultRot = new Quat4f();
-			t1.get(this.defaultRot);
-		}
-
-		this.defaultScale = defaultScale;
 	}
 
 	/**
@@ -78,19 +57,27 @@ public class RotPosScaleInterpolator extends TransformInterpolator
 		//&& !target.getOwner().getName().equals("Bip01 Spine"))
 		//	&& !target.getOwner().getName().equals("Bip01 Pelvis"))
 		{
-			
+
 			//Bip01 HeadR has a bhkBlendController that has xyz below it
 			// which is animationy
 			return;
 		}
-		else
+
+		// preserve the target values if interps have no defaults		
+		if (baseTransform == null)
 		{
-			System.out.println("doing " + target.getOwner().getName());
+			baseTransform = new Transform3D();
+			target.getTransform(baseTransform);
 		}
 
 		// convert to an offsetted time in seconds
 		float normAlphaValue = alphaValue * lengthS;
 		normAlphaValue += startTimeS;
+
+		// set to the base target
+		targetTransform.set(baseTransform);
+
+		
 
 		//OK so skel have transfroms that I think I want
 		// any given anim looks aside through a huge cast system and grabs it out
@@ -99,20 +86,26 @@ public class RotPosScaleInterpolator extends TransformInterpolator
 		//new info, can't multiply 2 trans forms as that change frame for trasnlation, need to add rots together
 		// so now a mult of quat seperate from an add of translate seems ok?
 		// but only usigna very fixed skel quat
-		
+
 		// but note that teh anims should only really supply rotations not translations,
 		// as the translation come from the bones and never alter, so I should supply 
 		//them from before all this here, which is like a get before we begin!
-		
-		
 
 		// don't run skel we look aside for them in the main animation
 		if (((NiTransformInterpolator) ((J3dNiTransformInterpolator) this.getOwner()).getOwner()).nVer.fileName.contains("skeleton"))
 		{
 			//TODO: after must stop skel animations totally, and discover what anims appear in skels
-			System.out.println("ignore skel");
+			System.out.println("ignore skel ");
 			return;
 		}
+		
+		System.out.println("doing " + target.getOwner().getName());
+		Quat4f qb = new Quat4f();
+		Vector3f vb = new Vector3f();
+		Utils3D.safeGetQuat(baseTransform, qb);
+		System.out.println("base ypr " + Utils3D.toStringQuat(qb));
+		baseTransform.get(vb);
+		System.out.println("base translate " + vb);
 
 		if (alphaValue != prevAlphaValue)
 		{
@@ -133,11 +126,12 @@ public class RotPosScaleInterpolator extends TransformInterpolator
 							RotPosScaleInterpolator rpsiskel = (RotPosScaleInterpolator) jtc.getInterpolator();
 							if (rpsiskel != null)
 							{
+								System.out.println("rpsiskel.xYZRotPathInterpolator " + rpsiskel.xYZRotPathInterpolator);
 								skelT = new Transform3D();
 								if (rpsiskel.xYZRotPathInterpolator != null)
 								{
 									rpsiskel.xYZRotPathInterpolator.computeTransform(alphaValue);
-									//rpsiskel.xYZRotPathInterpolator.applyTransform(skelT);
+									rpsiskel.xYZRotPathInterpolator.applyTransform(skelT);
 									skelMod.set(rpsiskel.xYZRotPathInterpolator.getInterpedRot());
 								}
 								else if (rpsiskel.quatRotInterpolator != null)
@@ -173,7 +167,7 @@ public class RotPosScaleInterpolator extends TransformInterpolator
 			{
 				xYZRotPathInterpolator.computeTransform(normAlphaValue);
 
-				xYZRotPathInterpolator.addInterpedRot(skelMod);// add skel bit
+				//xYZRotPathInterpolator.addInterpedRot(skelMod);// add skel bit
 
 				xYZRotPathInterpolator.applyTransform(targetTransform);
 
@@ -215,25 +209,29 @@ public class RotPosScaleInterpolator extends TransformInterpolator
 			{
 				Quat4f q1 = new Quat4f();
 				Vector3f v1 = new Vector3f();
-				targetTransform.get(q1);
+				Utils3D.safeGetQuat(targetTransform, q1);
 				System.out.println("anim ypr " + Utils3D.toStringQuat(q1));
 				targetTransform.get(v1);
 				System.out.println("anim translate " + v1);
 
 				Quat4f q2 = new Quat4f();
 				Vector3f v2 = new Vector3f();
-				skelT.get(q2);
+				Utils3D.safeGetQuat(skelT,q2);
 				System.out.println("skel ypr " + Utils3D.toStringQuat(q2));
 				skelT.get(v2);
 				System.out.println("skel translate " + v2);
+				
+				//skelMod
 
 				//	q1.add(q2);
 				//	v1.add(v2);
 				//	finalT.set(q1,v1,1);
+				
+				//finalT.set(targetTransform);
+						
+				finalT.mul(targetTransform ,skelT );// note skel after?
 
-				finalT.set(targetTransform);// note skel after?
-
-				finalT.get(q1);
+				Utils3D.safeGetQuat(finalT, q1);
 				System.out.println("final ypr " + Utils3D.toStringQuat(q1));
 				finalT.get(v1);
 				System.out.println("final translate " + v1);
@@ -245,12 +243,12 @@ public class RotPosScaleInterpolator extends TransformInterpolator
 				Quat4f q1 = new Quat4f();
 				Vector3f v1 = new Vector3f();
 
-				targetTransform.get(q1);
+				Utils3D.safeGetQuat(targetTransform,q1);
 				System.out.println("anim ypr " + Utils3D.toStringQuat(q1));
 				targetTransform.get(v1);
 				System.out.println("anim translate " + v1);
 
-				finalT.get(q1);
+				Utils3D.safeGetQuat(finalT, q1);
 				System.out.println("final ypr " + Utils3D.toStringQuat(q1));
 				finalT.get(v1);
 				System.out.println("final translate " + v1);

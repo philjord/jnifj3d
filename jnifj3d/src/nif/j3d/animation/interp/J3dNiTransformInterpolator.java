@@ -22,6 +22,26 @@ import nif.niobject.NiTransformData;
 import nif.niobject.interpolator.NiTransformInterpolator;
 import utils.convert.ConvertFromNif;
 
+/**
+ * A small aside regarding nif x,y,z to java3d x,y,z
+ * Translations are simply 
+ * Point3f(x * ESConfig.ES_TO_METERS_SCALE, //
+ *				z * ESConfig.ES_TO_METERS_SCALE, //
+ *				-y * ESConfig.ES_TO_METERS_SCALE);
+ *j3dx=nifx, j3dy=nifz, j3dz=nif-y
+ * Note scaling too.
+ * 
+ * For XYZ rotations, if we assume right handedness (that is thumb in positive aixs dir, 
+ * then finger wrap is rotation dir) (if we don't just negate all three)
+ * 
+ * X rotation remains unchanged
+ * 
+ * j3dY is taken from nifZ 
+ * j3dZ is taken from nifY but -ve  
+ *
+ * @author philip
+ *
+ */
 public class J3dNiTransformInterpolator extends J3dNiInterpolator
 {
 	private XYZRotPathInterpolator xYZRotPathInterpolator;
@@ -84,27 +104,27 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 								//xRots[i] += Math.PI/2f; 
 							}
 
-							NifKeyGroup yRotation = niTransformData.xYZRotations[2];
+							NifKeyGroup yRotation = niTransformData.xYZRotations[2];// note nif Z
 							float[] yKnots = new float[yRotation.keys.length];
 							float[] yRots = new float[yRotation.keys.length];
 							for (int i = 0; i < yRotation.keys.length; i++)
 							{
 								NifKey key = yRotation.keys[i];
 								yKnots[i] = key.time;
-								yRots[i] = -((Float) key.value).floatValue();
+								yRots[i] = ((Float) key.value).floatValue();
 								
-								//yRots[i] += Math.PI; 
+								//yRots[i] += Math.PI/2f; 
 								
 							}
 
-							NifKeyGroup zRotation = niTransformData.xYZRotations[1];
+							NifKeyGroup zRotation = niTransformData.xYZRotations[1]; // note nif Y
 							float[] zKnots = new float[zRotation.keys.length];
 							float[] zRots = new float[zRotation.keys.length];
 							for (int i = 0; i < zRotation.keys.length; i++)
 							{
 								NifKey key = zRotation.keys[i];
 								zKnots[i] = key.time;
-								zRots[i] = ((Float) key.value).floatValue();
+								zRots[i] = -((Float) key.value).floatValue();
 								
 								
 								//zRots[i] += Math.PI/2f; 
@@ -114,9 +134,15 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 
 						}
 
+						if(niTransformInterp.data.ref==59||niTransformInterp.data.ref==211)
+						{
+							System.out.println("DATA ref = "+targetTransform.getOwner().getName());
+							System.out.println(""+targetTransform.getOwner().getNiAVObject().nVer.fileName);
+							
 						xYZRotPathInterpolator = new XYZRotPathInterpolator(data.xKnots, data.xRots, data.yKnots, data.yRots, data.zKnots,
 								data.zRots);
 
+						}
 					}
 				}
 				else if (niTransformData.rotationType.type == KeyType.QUADRATIC_KEY || niTransformData.rotationType.type == KeyType.TBC_KEY

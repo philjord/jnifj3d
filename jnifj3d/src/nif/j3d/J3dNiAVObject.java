@@ -4,9 +4,12 @@ import java.util.Enumeration;
 
 import javax.media.j3d.Node;
 import javax.media.j3d.Transform3D;
+import javax.vecmath.Quat4f;
+import javax.vecmath.Vector3f;
 
 import nif.niobject.NiAVObject;
 import nif.niobject.bs.BSFadeNode;
+import tools3d.utils.Utils3D;
 import utils.convert.ConvertFromNif;
 
 import com.sun.j3d.utils.geometry.ColorCube;
@@ -33,7 +36,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 		transformGroup = new NifTransformGroup(this);
 
 		Transform3D t1 = new Transform3D();
-
+		
 		if (!(niAVObject instanceof BSFadeNode))
 		{
 			t1.setRotation(ConvertFromNif.toJ3d(niAVObject.rotation));
@@ -44,8 +47,8 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 			}
 			t1.setTranslation(ConvertFromNif.toJ3d(niAVObject.translation));
 			t1.setScale(niAVObject.scale);
-		}
-
+		}		
+		
 		transformGroup.setTransform(t1);
 		super.addChild(transformGroup);
 	}

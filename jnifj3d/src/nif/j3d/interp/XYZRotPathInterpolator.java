@@ -43,13 +43,15 @@ public class XYZRotPathInterpolator extends KnotInterpolator
 			// answer is probably to for this class to hand out a vector of interp and allow a basis interp to be added in
 
 			//TODO: trunc needed? or not?
-			//			System.out.println("fx x " +Utils3D.truncToDP(xRots[0],2) + " y " + Utils3D.truncToDP(yRots[0],2)+ " z " + Utils3D.truncToDP(zRots[0],2));
+			//	System.out.println("fx x " +Utils3D.truncToDP(xRots[0],2) + " y " + Utils3D.truncToDP(yRots[0],2)+ " z " + Utils3D.truncToDP(zRots[0],2));
 
-			interpedRot.set(xRots[0], yRots[0], zRots[0]);
-
-			System.out.println("fixed = " + new Vector3d(xRots[0], yRots[0], zRots[0]));
+			// works interpedRot.set(xRots[0]+(float)Math.PI, yRots[0]-(float)(Math.PI / 2f), zRots[0]);
+			interpedRot.set(xRots[0] , yRots[0] , zRots[0]);
+			//interpedRot.set(-(float)Math.PI / 2f , (float)Math.PI , zRots[0]);
+			
+			System.out.println("" + this + " fixed = " + interpedRot);
 			temp.setEuler(new Vector3d(xRots[0], yRots[0], zRots[0]));
-			temp.invert();
+			//temp.invert();
 
 			temp.setEuler(new Vector3d(Math.PI, -Math.PI / 2f, 0));
 
@@ -59,7 +61,7 @@ public class XYZRotPathInterpolator extends KnotInterpolator
 			// ok allowed all up to pelvis, but maybe my translates are missing, not a bad rotate?
 			// I see 3 bones inside brahmin on top of each other, all rotating
 			Quat4f rot = new Quat4f();
-			temp.get(rot);//not Utils3D.safeGetQuat! setEuler is perfectly safe
+			Utils3D.safeGetQuat(temp, rot);
 
 			System.out.println("fx rot " + rot);
 			System.out.println("fx ypr " + Utils3D.toStringQuat(rot));
@@ -70,7 +72,7 @@ public class XYZRotPathInterpolator extends KnotInterpolator
 			targetTransform.set(rot);
 
 			Quat4f q2 = new Quat4f();
-			targetTransform.get(q2);
+			Utils3D.safeGetQuat(targetTransform, q2);
 			System.out.println("fx q2 " + q2);
 			System.out.println("fx q2 = ypr " + Utils3D.toStringQuat(q2));
 
@@ -204,7 +206,7 @@ public class XYZRotPathInterpolator extends KnotInterpolator
 	{
 		temp.setEuler(new Vector3d(interpedRot));
 		Quat4f rot = new Quat4f();
-		temp.get(rot);
+		Utils3D.safeGetQuat(temp, rot);
 
 		//System.out.println("" + this + " y " + Utils3D.toStringQuat(rot));
 		//targetTransform.setIdentity();// even this doesn't help!
