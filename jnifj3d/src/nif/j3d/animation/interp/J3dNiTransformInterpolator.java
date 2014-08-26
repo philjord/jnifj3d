@@ -6,7 +6,6 @@ import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
 
-import nif.NifVer;
 import nif.compound.NifKey;
 import nif.compound.NifKeyGroup;
 import nif.compound.NifQuatKey;
@@ -102,6 +101,8 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 								NifKey key = xRotation.keys[i];
 								xKnots[i] = key.time;
 								xRots[i] = ((Float) key.value).floatValue();
+
+								//System.out.println("xRot " +xRots[i] + " ref "+ niTransformInterp.data.ref);
 							}
 
 							NifKeyGroup yRotation = niTransformData.xYZRotations[2];// note nif Z
@@ -112,9 +113,24 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 								NifKey key = yRotation.keys[i];
 								yKnots[i] = key.time;
 								yRots[i] = ((Float) key.value).floatValue();
+
+								//System.out.println("yRot " +yRots[i] + " ref "+ niTransformInterp.data.ref);
+
 								//TODO: spider daedra castself wants this reversed, but brahmin turnleft doesn't
-								if (niTransformInterp.nVer.LOAD_VER < NifVer.VER_20_2_0_7)
-									yRots[i] = -yRots[i];
+								// In fact this is wrong: I see the siper daedra problem is that these little -1.4 (half Pis)
+								// need to be +1.4 but how the fuck does that make a jaw flap? it MUST be a non static frame, surely?
+								// which is a mighty tricky mapping to discover
+								// though given a full x rotate before it perhaps static frame wrong?
+								// these rots are what make the jaw talk up and down (oddly enough)
+								// there is no z fix up because of static frame ( this rot doesn't mod z in any way
+
+								// I see that breast that are also fixed by this -ve have a +Pi and a bit in this slot
+
+								//possibly static frame wrong see XYZRotPathInterpolator for apply
+
+								//if (niTransformInterp.nVer.LOAD_VER < NifVer.VER_20_2_0_7)
+								//	yRots[i] = -yRots[i];
+
 							}
 
 							NifKeyGroup zRotation = niTransformData.xYZRotations[1]; // note nif Y
@@ -125,6 +141,8 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 								NifKey key = zRotation.keys[i];
 								zKnots[i] = key.time;
 								zRots[i] = -((Float) key.value).floatValue();
+								//System.out.println("zRot " +zRots[i] + " ref "+ niTransformInterp.data.ref);
+
 							}
 							data = new XyzRotationData(xKnots, xRots, yKnots, yRots, zKnots, zRots);
 							xyzRotationDataMap.put(niTransformData, data);

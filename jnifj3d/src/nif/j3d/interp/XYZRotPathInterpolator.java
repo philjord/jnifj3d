@@ -168,8 +168,26 @@ public class XYZRotPathInterpolator extends KnotInterpolator
 	@Override
 	public void applyTransform(Transform3D targetTransform)
 	{
+		
+		
 		temp.setEuler(interpedRot);
 		Utils3D.safeGetQuat(temp, rot);
 		targetTransform.setRotation(rot);
+		
+		
+		//non static frame rotations
+	/*	Transform3D tx = new Transform3D();
+		Transform3D ty = new Transform3D();
+		Transform3D tz = new Transform3D();
+		tx.rotX(interpedRot.x);
+		ty.rotY(interpedRot.y);
+		tz.rotZ(interpedRot.z);
+		
+		temp.set(tx);		
+		temp.mul(tz);
+		temp.mul(ty);
+		
+		Utils3D.safeGetQuat(temp, rot);
+		targetTransform.setRotation(rot);*/
 	}
 }
