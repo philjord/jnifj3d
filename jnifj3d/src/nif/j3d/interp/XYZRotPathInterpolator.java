@@ -3,13 +3,12 @@ package nif.j3d.interp;
 import javax.media.j3d.Transform3D;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3d;
-import javax.vecmath.Vector3f;
 
 import tools3d.utils.Utils3D;
 
 public class XYZRotPathInterpolator extends KnotInterpolator
 {
-	private Vector3f interpedRot = new Vector3f();
+	private Vector3d interpedRot = new Vector3d();
 
 	float[] xKnots;
 
@@ -39,44 +38,7 @@ public class XYZRotPathInterpolator extends KnotInterpolator
 		fixed = isFixed();
 		if (fixed)
 		{
-			//FIXME: looks like transferring eulers into transforms into quat4f etc eventually round to a blank
-			// answer is probably to for this class to hand out a vector of interp and allow a basis interp to be added in
-
-			//TODO: trunc needed? or not?
-			//	System.out.println("fx x " +Utils3D.truncToDP(xRots[0],2) + " y " + Utils3D.truncToDP(yRots[0],2)+ " z " + Utils3D.truncToDP(zRots[0],2));
-
-			// works interpedRot.set(xRots[0]+(float)Math.PI, yRots[0]-(float)(Math.PI / 2f), zRots[0]);
-			interpedRot.set(xRots[0] , yRots[0] , zRots[0]);
-			//interpedRot.set(-(float)Math.PI / 2f , (float)Math.PI , zRots[0]);
-			
-			System.out.println("" + this + " fixed = " + interpedRot);
-			temp.setEuler(new Vector3d(xRots[0], yRots[0], zRots[0]));
-			//temp.invert();
-
-			temp.setEuler(new Vector3d(Math.PI, -Math.PI / 2f, 0));
-
-			//temp.setEuler(new Vector3d( 0,Math.PI,0));
-			//I MA HERE this is right but a translate looks to be missing? the right rotate?
-			// maybe the parent should be included?
-			// ok allowed all up to pelvis, but maybe my translates are missing, not a bad rotate?
-			// I see 3 bones inside brahmin on top of each other, all rotating
-			Quat4f rot = new Quat4f();
-			Utils3D.safeGetQuat(temp, rot);
-
-			System.out.println("fx rot " + rot);
-			System.out.println("fx ypr " + Utils3D.toStringQuat(rot));
-
-			// below here dumps my quarter turn around y!!
-			Transform3D targetTransform = new Transform3D();
-
-			targetTransform.set(rot);
-
-			Quat4f q2 = new Quat4f();
-			Utils3D.safeGetQuat(targetTransform, q2);
-			System.out.println("fx q2 " + q2);
-			System.out.println("fx q2 = ypr " + Utils3D.toStringQuat(q2));
-
-			System.out.println("fx targetTransform " + targetTransform);
+			interpedRot.set(xRots[0], yRots[0], zRots[0]);
 		}
 	}
 
@@ -201,33 +163,13 @@ public class XYZRotPathInterpolator extends KnotInterpolator
 		}
 	}
 
+	private Quat4f rot = new Quat4f();
+
 	@Override
 	public void applyTransform(Transform3D targetTransform)
 	{
-		temp.setEuler(new Vector3d(interpedRot));
-		Quat4f rot = new Quat4f();
+		temp.setEuler(interpedRot);
 		Utils3D.safeGetQuat(temp, rot);
-
-		//System.out.println("" + this + " y " + Utils3D.toStringQuat(rot));
-		//targetTransform.setIdentity();// even this doesn't help!
 		targetTransform.setRotation(rot);
-
-		//Quat4f q2 = new Quat4f();
-		//targetTransform.get(q2);
-		//System.out.println("repeat = y " + Utils3D.toStringQuat(q2));
-		//System.out.println("rot " + rot);
-		//System.out.println("q2 " + q2);
-		//System.out.println("targetTransform " + targetTransform);
 	}
-
-	public Vector3f getInterpedRot()
-	{
-		return interpedRot;
-	}
-
-	public void addInterpedRot(Vector3f mod)
-	{
-		this.interpedRot.add(mod);
-	}
-
 }

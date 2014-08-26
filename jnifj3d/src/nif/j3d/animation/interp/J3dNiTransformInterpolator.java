@@ -6,6 +6,7 @@ import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
 
+import nif.NifVer;
 import nif.compound.NifKey;
 import nif.compound.NifKeyGroup;
 import nif.compound.NifQuatKey;
@@ -31,13 +32,14 @@ import utils.convert.ConvertFromNif;
  *j3dx=nifx, j3dy=nifz, j3dz=nif-y
  * Note scaling too.
  * 
- * For XYZ rotations, if we assume right handedness (that is thumb in positive aixs dir, 
+ * For XYZ rotations, if we assume right handedness (that is thumb in positive axis dir, 
  * then finger wrap is rotation dir) (if we don't just negate all three)
  * 
  * X rotation remains unchanged
  * 
  * j3dY is taken from nifZ 
  * j3dZ is taken from nifY but -ve  
+ * you do the maths
  *
  * @author philip
  *
@@ -100,8 +102,6 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 								NifKey key = xRotation.keys[i];
 								xKnots[i] = key.time;
 								xRots[i] = ((Float) key.value).floatValue();
-								
-								//xRots[i] += Math.PI/2f; 
 							}
 
 							NifKeyGroup yRotation = niTransformData.xYZRotations[2];// note nif Z
@@ -112,9 +112,9 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 								NifKey key = yRotation.keys[i];
 								yKnots[i] = key.time;
 								yRots[i] = ((Float) key.value).floatValue();
-								
-								//yRots[i] += Math.PI/2f; 
-								
+								//TODO: spider daedra castself wants this reversed, but brahmin turnleft doesn't
+								if (niTransformInterp.nVer.LOAD_VER < NifVer.VER_20_2_0_7)
+									yRots[i] = -yRots[i];
 							}
 
 							NifKeyGroup zRotation = niTransformData.xYZRotations[1]; // note nif Y
@@ -125,24 +125,14 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 								NifKey key = zRotation.keys[i];
 								zKnots[i] = key.time;
 								zRots[i] = -((Float) key.value).floatValue();
-								
-								
-								//zRots[i] += Math.PI/2f; 
 							}
 							data = new XyzRotationData(xKnots, xRots, yKnots, yRots, zKnots, zRots);
 							xyzRotationDataMap.put(niTransformData, data);
 
 						}
 
-						if(niTransformInterp.data.ref==59||niTransformInterp.data.ref==211)
-						{
-							System.out.println("DATA ref = "+targetTransform.getOwner().getName());
-							System.out.println(""+targetTransform.getOwner().getNiAVObject().nVer.fileName);
-							
 						xYZRotPathInterpolator = new XYZRotPathInterpolator(data.xKnots, data.xRots, data.yKnots, data.yRots, data.zKnots,
 								data.zRots);
-
-						}
 					}
 				}
 				else if (niTransformData.rotationType.type == KeyType.QUADRATIC_KEY || niTransformData.rotationType.type == KeyType.TBC_KEY

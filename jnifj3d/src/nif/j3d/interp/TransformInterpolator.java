@@ -1,14 +1,12 @@
 package nif.j3d.interp;
 
-import java.util.HashMap;
-
 import javax.media.j3d.Transform3D;
 
 import nif.j3d.NifTransformGroup;
 
 /**
- * This is a  copy of the TransformInterpolator from j3d, with target swapped out for a multiple targets 
- * AND!!! the alpha for processing is an offsetted alpha over a durations in seconds
+ * This is a  copy of the TransformInterpolator from j3d
+ * the alpha for processing is an offsetted alpha over a durations in seconds
  * but setting start to 0 and length to 1 gives a normalized range again
  * @author Administrator
  *
@@ -50,22 +48,10 @@ public abstract class TransformInterpolator implements Interpolated
 
 	public abstract void applyTransform(Transform3D t);
 
-	//TODO: I'm getting Nan is transforms again
-
 	//Skyrim female/weaponadjustment has a bad left thigh in it (like a reversed rotate!) but matches bone, maybe bone is reversed?
 
-	//TODO: do I need the multiple interps over a transform?
-	// I see that all  nitransforminterpolators have a start point(?)
-	// but splines don't though they appear to have translations wher they are rotation splines
-	// I also see in fallout that teh start points for trnasfomrinterp adn spline have rubbish in unused slot
-	// however if I could find a start point and adjust all transfrom parts(trans,rot,scale) then I could 
-	// remove the get part below, and just apply the start points into the trasnform along wiht teh interped part
-	// first kick off static table of targets to interp to see if any are ever doubled up
-	// then adjust everything in nif.j3d.interp and nif.j3d.anmation.interp
-
+	//do I need the multiple interps over a transform?
 	//more than one can point to it, but not more than one can be animating it at once!
-
-	protected static HashMap<Object, Object> ts = new HashMap<Object, Object>();
 
 	@Override
 	public void process(float alphaValue)
@@ -74,23 +60,15 @@ public abstract class TransformInterpolator implements Interpolated
 		alphaValue *= lengthS;
 		alphaValue += startTimeS;
 
-		//FIXME: remove check to make sure nothing else is touching my target
-		Object inter = ts.get(target);
-		if (inter != null && inter != this)
-		{
-			System.out.println("inter " + inter + " this " + this);
-		}
-		ts.put(target, this);
-
 		if (alphaValue != prevAlphaValue)
 		{
 			computeTransform(alphaValue);
 
-			//target.getTransform(targetTransform);
 			applyTransform(targetTransform);
 
 			if (!isAffine(targetTransform))
 			{
+				//TODO: this is expensive I wager take out if no no affines
 				System.out.println("this bummed it up " + this);
 			}
 
@@ -99,7 +77,6 @@ public abstract class TransformInterpolator implements Interpolated
 			{
 				target.setTransform(targetTransform);
 				prevTargetTransform.set(targetTransform);
-
 			}
 
 			prevAlphaValue = alphaValue;

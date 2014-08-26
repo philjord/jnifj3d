@@ -36,11 +36,9 @@ public class J3dNifSkinData extends Group implements GeometryUpdater
 		// TODO: head of dog still has gaps? why?
 		// TODO: possibly also proper undertand of non accum etc
 		// TODO: skyrim characters seem to slowly aquire transform error (as do oblivs too)
-		// TODO: animated fingers in fallout show total inversion like a bum rotate
+		// TODO: ant feelers in fallout still flick the wrong way?
+		//TODO: hahaa spider daedra jaw still backwards in castself
 		
-		// TODO: Horses and dogs in skyrim have back legs that flick like a null rotate, (like jaw?)
-		
-		//TODO: xyr inteerp there<- appears in fallout but not skyrim or obliv
 		// TODO: on more far the cpu spends time on getbhv tree code, like bounds is not auto or badly set
 		// check branchgroup usage again and see if the j3dnigemetry seeting of bounds helped
 
