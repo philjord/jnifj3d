@@ -59,7 +59,8 @@ public class J3dNifSkinData extends Group implements GeometryUpdater
 			skinBonesSkinOffsetInOrder[spBoneId] = boneOffsetTrans;
 
 			J3dNiNode skeletonBone = skeletonBones.get(skinBone.getName());
-			if (skeletonBone == null)
+			//bow bones are sometime not present
+			if (skeletonBone == null && !skinBone.getName().startsWith("Bow_"))
 				System.out.println("Null bone! mixed games or creatures? " + skinBone.getName());
 			skeletonBonesInSkinBoneIdOrder[spBoneId] = skeletonBone;
 

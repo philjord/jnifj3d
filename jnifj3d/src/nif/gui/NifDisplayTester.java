@@ -1,9 +1,12 @@
 package nif.gui;
 
+import java.awt.GraphicsConfigTemplate;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -24,7 +27,11 @@ import javax.media.j3d.TransformGroup;
 import javax.media.j3d.WakeupCondition;
 import javax.media.j3d.WakeupOnElapsedFrames;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JSplitPane;
+import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
@@ -38,8 +45,12 @@ import nif.gui.util.NifFileDisplayTable;
 import nif.gui.util.NifFileDisplayTree;
 import nif.gui.util.SpinTransform;
 import nif.j3d.J3dNiAVObject;
+import tools.ddstexture.DDSTextureLoader;
 import tools.swing.DetailsFileChooser;
 import tools3d.camera.simple.SimpleCameraHandler;
+import tools3d.resolution.GraphicsSettings;
+import tools3d.resolution.QueryProperties;
+import tools3d.resolution.ScreenResolution;
 import tools3d.utils.Utils3D;
 import utils.ESConfig;
 import utils.source.MeshSource;
@@ -52,6 +63,8 @@ import com.sun.j3d.utils.universe.SimpleUniverse;
 
 public class NifDisplayTester
 {
+	public JMenuItem setGraphics = new JMenuItem("Set Graphics");
+	
 	private SimpleCameraHandler simpleCameraHandler;
 
 	private TransformGroup spinTransformGroup = new TransformGroup();
@@ -97,11 +110,43 @@ public class NifDisplayTester
 	private SimpleUniverse simpleUniverse;
 
 	private Background background = new Background();
+	
+	private JFrame win = new JFrame("Nif model");
+	private final GraphicsDevice gd;
 
-	public NifDisplayTester(GraphicsConfiguration config)
+	public NifDisplayTester()
 	{
-		simpleUniverse = new SimpleUniverse(new Canvas3D(config));
+		
+		//jogl recomends for non phones 
+		System.setProperty("jogl.disable.opengles", "true");
 
+		//DDS requires no installed java3D
+		if (QueryProperties.checkForInstalledJ3d())
+		{
+			System.exit(0);
+		}
+				
+		//win.setVisible(true);
+		win.setLocation(400, 0);	
+	//	win.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		gd = ge.getDefaultScreenDevice();
+		GraphicsConfiguration[] gc = gd.getConfigurations();
+		GraphicsConfigTemplate3D template = new GraphicsConfigTemplate3D();
+		// antialiasing REQUIRED is good to have
+		template.setSceneAntialiasing(GraphicsConfigTemplate.REQUIRED);
+		GraphicsConfiguration config = template.getBestConfiguration(gc);
+		Canvas3D canvas3D = new Canvas3D(config);
+		win.getContentPane().add(canvas3D);
+		simpleUniverse = new SimpleUniverse(canvas3D);
+		GraphicsSettings gs = ScreenResolution.organiseResolution(Preferences.userNodeForPackage(NifDisplayTester.class), win, false, true, true);		 
+			
+		canvas3D.getView().setSceneAntialiasingEnable(gs.isAaRequired());
+		DDSTextureLoader.setAnisotropicFilterDegree(gs.getAnisotropicFilterDegree());		
+
+		win.setVisible(true);
+		
 		JFrame dataF = new JFrame();
 		dataF.getContentPane().setLayout(new GridLayout(1, 1));
 
@@ -122,15 +167,8 @@ public class NifDisplayTester
 		simpleCameraHandler = new SimpleCameraHandler(simpleUniverse.getViewingPlatform(), simpleUniverse.getCanvas(), modelGroup,
 				rotateTransformGroup, false);
 
-		JFrame f = new JFrame();
-		f.getContentPane().setLayout(new GridLayout(1, 1));
-
-		f.getContentPane().add(simpleUniverse.getCanvas());
-
-		f.setSize(900, 900);
-		f.setLocation(400, 0);
-		f.setVisible(true);
-		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			
+ 
 
 		splitterV.setDividerLocation(0.5d);
 		splitterH.setDividerLocation(0.5d);
@@ -178,7 +216,38 @@ public class NifDisplayTester
 		simpleUniverse.getViewer().getView().setBackClipDistance(50000);//big cos it's only 1 nif file anyway
 
 		simpleUniverse.getCanvas().addKeyListener(new KeyHandler());
+						
+		
+		JMenuBar menuBar = new JMenuBar();
+		menuBar.setOpaque(true);
+		JMenu menu = new JMenu("File");
+		menu.setMnemonic(70);
+		menuBar.add(menu);
 
+		
+		menu.add(setGraphics);
+		setGraphics.addActionListener(new ActionListener()
+		{
+			@Override
+			public void actionPerformed(ActionEvent arg0)
+			{
+				// fully re create win in case of going full screen due to 1.7/1.8 graphics config bug
+				// wooooh! new dispose but no new win? woah!
+				win.dispose();
+				win.removeAll();
+				win = new JFrame("Nif model");
+				win.setLocation(400, 0);				
+				win.getContentPane().add(simpleUniverse.getCanvas());				
+				GraphicsSettings gs2 = ScreenResolution.organiseResolution(Preferences.userNodeForPackage(NifDisplayTester.class), win, false, true, true);		 
+				win.setVisible(true);
+				simpleUniverse.getCanvas().getView().setSceneAntialiasingEnable(gs2.isAaRequired());
+				DDSTextureLoader.setAnisotropicFilterDegree(gs2.getAnisotropicFilterDegree());
+				System.out.println("filtering will require newly loaded textures remember");
+			}
+		});
+		
+		win.setJMenuBar(menuBar);
+		win.setVisible(true);
 	}
 
 	public void setNextFileTreeRoot(File nextFileTreeRoot)
@@ -389,14 +458,8 @@ public class NifDisplayTester
 		prefs = Preferences.userNodeForPackage(NifDisplayTester.class);
 		String baseDir = prefs.get("NifDisplayTester.baseDir", System.getProperty("user.dir"));
 
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		GraphicsDevice gd = ge.getDefaultScreenDevice();
-		GraphicsConfiguration[] gc = gd.getConfigurations();
-		GraphicsConfigTemplate3D template = new GraphicsConfigTemplate3D();
-		template.setStencilSize(8);
-		GraphicsConfiguration config = template.getBestConfiguration(gc);
 
-		nifDisplay = new NifDisplayTester(config);
+		nifDisplay = new NifDisplayTester();
 
 		DetailsFileChooser dfc = new DetailsFileChooser(baseDir, new DetailsFileChooser.Listener()
 		{
