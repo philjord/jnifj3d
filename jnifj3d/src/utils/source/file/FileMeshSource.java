@@ -10,7 +10,6 @@ import java.util.List;
 
 import nif.NifFile;
 import nif.NifFileReader;
-import utils.ESConfig;
 import utils.source.MeshSource;
 
 public class FileMeshSource implements MeshSource
@@ -39,15 +38,6 @@ public class FileMeshSource implements MeshSource
 			InputStream inputStream = null;
 			try
 			{
-				if (filename.toLowerCase().contains("skyrim"))
-				{
-					ESConfig.HAVOK_TO_METERS_SCALE = ESConfig.SKYRIM_HAVOK_TO_METERS_SCALE;
-				}
-				else
-				{
-					ESConfig.HAVOK_TO_METERS_SCALE = ESConfig.PRE_SKYRIM_HAVOK_TO_METERS_SCALE;
-				}
-
 				inputStream = new BufferedInputStream(new FileInputStream(file));
 
 				nifFile = NifFileReader.readNif(filename, inputStream);

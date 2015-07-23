@@ -16,6 +16,7 @@ import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
+import nif.NifVer;
 import nif.compound.NifSphereBV;
 import nif.compound.NifbhkCMSDChunk;
 import nif.compound.NifbhkCMSDTransform;
@@ -80,7 +81,7 @@ public class J3dbhkCollisionObject extends Group
 
 					t.setRotation(ConvertFromHavok.toJ3d(bhkRigidBody.rotation));
 
-					t.setTranslation(ConvertFromHavok.toJ3d(bhkRigidBody.translation));
+					t.setTranslation(ConvertFromHavok.toJ3d(bhkRigidBody.translation, niToJ3dData.nifVer));
 
 					lowerGroup = new TransformGroup(t);
 				}
@@ -137,33 +138,33 @@ public class J3dbhkCollisionObject extends Group
 			if (bhkPackedNiTriStripsShape.data.ref != -1)
 			{
 				hkPackedNiTriStripsData hkPackedNiTriStripsData = (hkPackedNiTriStripsData) niToJ3dData.get(bhkPackedNiTriStripsShape.data);
-				group.addChild(hkPackedNiTriStripsData(hkPackedNiTriStripsData));//, niToJ3dData.nifVer));
+				group.addChild(hkPackedNiTriStripsData(hkPackedNiTriStripsData, niToJ3dData.nifVer));
 			}
 		}
 		else if (bhkShape instanceof hkPackedNiTriStripsData)
 		{
 			hkPackedNiTriStripsData hkPackedNiTriStripsData = (hkPackedNiTriStripsData) bhkShape;
-			group.addChild(hkPackedNiTriStripsData(hkPackedNiTriStripsData));//, niToJ3dData.nifVer));
+			group.addChild(hkPackedNiTriStripsData(hkPackedNiTriStripsData, niToJ3dData.nifVer));
 		}
 		else if (bhkShape instanceof bhkBoxShape)
 		{
-			group.addChild(bhkBoxShape((bhkBoxShape) bhkShape));
+			group.addChild(bhkBoxShape((bhkBoxShape) bhkShape, niToJ3dData.nifVer));
 		}
 		else if (bhkShape instanceof bhkCapsuleShape)
 		{
-			group.addChild(bhkCapsuleShape((bhkCapsuleShape) bhkShape));
+			group.addChild(bhkCapsuleShape((bhkCapsuleShape) bhkShape, niToJ3dData.nifVer));
 		}
 		else if (bhkShape instanceof bhkSphereShape)
 		{
-			group.addChild(bhkSphereShape((bhkSphereShape) bhkShape));
+			group.addChild(bhkSphereShape((bhkSphereShape) bhkShape, niToJ3dData.nifVer));
 		}
 		else if (bhkShape instanceof bhkConvexVerticesShape)
 		{
-			group.addChild(bhkConvexVerticesShape((bhkConvexVerticesShape) bhkShape));
+			group.addChild(bhkConvexVerticesShape((bhkConvexVerticesShape) bhkShape, niToJ3dData.nifVer));
 		}
 		else if (bhkShape instanceof bhkMultiSphereShape)
 		{
-			group.addChild(bhkMultiSphereShape((bhkMultiSphereShape) bhkShape));
+			group.addChild(bhkMultiSphereShape((bhkMultiSphereShape) bhkShape, niToJ3dData.nifVer));
 		}
 		else if (bhkShape instanceof bhkMoppBvTreeShape)
 		{
@@ -186,7 +187,7 @@ public class J3dbhkCollisionObject extends Group
 			{
 				bhkCompressedMeshShapeData bhkCompressedMeshShapeData = (bhkCompressedMeshShapeData) niToJ3dData
 						.get(bhkCompressedMeshShape.data);
-				group.addChild(bhkCompressedMeshShape(bhkCompressedMeshShapeData));
+				group.addChild(bhkCompressedMeshShape(bhkCompressedMeshShapeData, niToJ3dData.nifVer));
 			}
 		}
 		else
@@ -221,7 +222,7 @@ public class J3dbhkCollisionObject extends Group
 
 		Quat4f q = ConvertFromHavok.toJ3dQ4f(data.transform);
 
-		Vector3f t = ConvertFromHavok.toJ3dV3f(data.transform);
+		Vector3f t = ConvertFromHavok.toJ3dV3f(data.transform, niToJ3dData.nifVer);
 
 		transform.set(q, t, 1);
 		transformGroup.setTransform(transform);
@@ -234,9 +235,9 @@ public class J3dbhkCollisionObject extends Group
 		g.addChild(transformGroup);
 	}
 
-	private static Shape3D bhkSphereShape(bhkSphereShape data)
+	private static Shape3D bhkSphereShape(bhkSphereShape data, NifVer nifVer)
 	{
-		float radius = ConvertFromHavok.toJ3d(data.radius);
+		float radius = ConvertFromHavok.toJ3d(data.radius, nifVer);
 		SphereGenerator sg = new SphereGenerator(radius);
 		GeometryData gd = new GeometryData();
 		gd.geometryType = GeometryData.TRIANGLE_STRIPS;
@@ -253,7 +254,7 @@ public class J3dbhkCollisionObject extends Group
 		return shape;
 	}
 
-	private static Group bhkMultiSphereShape(bhkMultiSphereShape data)
+	private static Group bhkMultiSphereShape(bhkMultiSphereShape data, NifVer nifVer)
 	{
 		Group g = new Group();
 
@@ -261,8 +262,8 @@ public class J3dbhkCollisionObject extends Group
 		{
 			NifSphereBV sphere = data.spheres[i];
 
-			float radius = ConvertFromHavok.toJ3d(sphere.radius);
-			Vector3f v1 = ConvertFromHavok.toJ3d(sphere.center);
+			float radius = ConvertFromHavok.toJ3d(sphere.radius, nifVer);
+			Vector3f v1 = ConvertFromHavok.toJ3d(sphere.center, nifVer);
 
 			SphereGenerator sg = new SphereGenerator(radius);
 			GeometryData gd = new GeometryData();
@@ -287,16 +288,16 @@ public class J3dbhkCollisionObject extends Group
 
 	}
 
-	private static Group bhkCapsuleShape(bhkCapsuleShape data)
+	private static Group bhkCapsuleShape(bhkCapsuleShape data, NifVer nifVer)
 	{
 		//TODO: try JBullet CapsuleShapeX
 		Group g = new Group();
 
-		float radius = ConvertFromHavok.toJ3d(data.radius);
-		Vector3f v1 = ConvertFromHavok.toJ3d(data.firstPoint);
-		float radius1 = ConvertFromHavok.toJ3d(data.radius1);
-		Vector3f v2 = ConvertFromHavok.toJ3d(data.secondPoint);
-		float radius2 = ConvertFromHavok.toJ3d(data.radius2);
+		float radius = ConvertFromHavok.toJ3d(data.radius, nifVer);
+		Vector3f v1 = ConvertFromHavok.toJ3d(data.firstPoint, nifVer);
+		float radius1 = ConvertFromHavok.toJ3d(data.radius1, nifVer);
+		Vector3f v2 = ConvertFromHavok.toJ3d(data.secondPoint, nifVer);
+		float radius2 = ConvertFromHavok.toJ3d(data.radius2, nifVer);
 
 		SphereGenerator sg = new SphereGenerator(radius1);
 		GeometryData gd = new GeometryData();
@@ -368,11 +369,11 @@ public class J3dbhkCollisionObject extends Group
 
 	}
 
-	private static Shape3D bhkBoxShape(bhkBoxShape data)
+	private static Shape3D bhkBoxShape(bhkBoxShape data, NifVer nifVer)
 	{
-		float x = ConvertFromHavok.toJ3d(data.dimensions.x);
-		float y = ConvertFromHavok.toJ3d(data.dimensions.z);
-		float z = ConvertFromHavok.toJ3d(data.dimensions.y);
+		float x = ConvertFromHavok.toJ3d(data.dimensions.x, nifVer);
+		float y = ConvertFromHavok.toJ3d(data.dimensions.z, nifVer);
+		float z = ConvertFromHavok.toJ3d(data.dimensions.y, nifVer);
 
 		QuadArray cube = new QuadArray(24, GeometryArray.COORDINATES | GeometryArray.COLOR_3);
 
@@ -402,13 +403,13 @@ public class J3dbhkCollisionObject extends Group
 		return shape;
 	}
 
-	public static Shape3D bhkConvexVerticesShape(bhkConvexVerticesShape data)
+	public static Shape3D bhkConvexVerticesShape(bhkConvexVerticesShape data, NifVer nifVer)
 	{
 		ObjectArrayList<Vector3f> points = new ObjectArrayList<Vector3f>();
 
 		for (int i = 0; i < data.numVertices; i++)
 		{
-			points.add(new Vector3f(ConvertFromHavok.toJ3dP3f(data.vertices[i])));
+			points.add(new Vector3f(ConvertFromHavok.toJ3dP3f(data.vertices[i], nifVer)));
 		}
 
 		ConvexHullShape convexShape = new ConvexHullShape(points);
@@ -454,7 +455,7 @@ public class J3dbhkCollisionObject extends Group
 		return null;
 	}
 
-	public static Shape3D hkPackedNiTriStripsData(hkPackedNiTriStripsData data)//, NifVer nifVer)
+	public static Shape3D hkPackedNiTriStripsData(hkPackedNiTriStripsData data, NifVer nifVer)
 	{
 		int[] coordIndices = new int[data.numTriangles * 3];
 
@@ -476,7 +477,7 @@ public class J3dbhkCollisionObject extends Group
 		Point3f[] coords = new Point3f[data.numVertices];
 		for (int i = 0; i < data.numVertices; i++)
 		{
-			coords[i] = ConvertFromHavok.toJ3dP3f(data.vertices[i]);
+			coords[i] = ConvertFromHavok.toJ3dP3f(data.vertices[i], nifVer);
 		}
 
 		GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
@@ -553,7 +554,7 @@ public class J3dbhkCollisionObject extends Group
 
 	public static float CMD_VERT_SCALE = 1f / 1000f;
 
-	public static Group bhkCompressedMeshShape(bhkCompressedMeshShapeData data)
+	public static Group bhkCompressedMeshShape(bhkCompressedMeshShapeData data, NifVer nifVer)
 	{
 
 		//the masks are just low 17 bits for tri and highest bit for winding
@@ -571,9 +572,9 @@ public class J3dbhkCollisionObject extends Group
 			for (int i = 0; i < data.BigVerts.length; i++)
 			{
 				vertices[i] = ConvertFromHavok.toJ3dP3f(//
-						((data.BigVerts[i].x)),//
-						((data.BigVerts[i].y)),//
-						((data.BigVerts[i].z)));
+						(data.BigVerts[i].x),//
+						(data.BigVerts[i].y),//
+						(data.BigVerts[i].z), nifVer);
 			}
 
 			int[] listPoints = new int[data.BigTris.length * 3];
@@ -605,7 +606,7 @@ public class J3dbhkCollisionObject extends Group
 				vertices[i] = ConvertFromHavok.toJ3dP3f(//
 						((chunk.Vertices[(i * 3) + 0]) * CMD_VERT_SCALE) + chunk.translation.x,//
 						((chunk.Vertices[(i * 3) + 1]) * CMD_VERT_SCALE) + chunk.translation.y,//
-						((chunk.Vertices[(i * 3) + 2]) * CMD_VERT_SCALE) + chunk.translation.z);
+						((chunk.Vertices[(i * 3) + 2]) * CMD_VERT_SCALE) + chunk.translation.z, nifVer);
 			}
 
 			int numStrips = chunk.NumStrips;
@@ -642,7 +643,7 @@ public class J3dbhkCollisionObject extends Group
 			}
 
 			NifbhkCMSDTransform cmsdt = data.ChunkTransforms[chunk.transformIndex];
-			Vector3f transformTrans = ConvertFromHavok.toJ3d(cmsdt.Translation);
+			Vector3f transformTrans = ConvertFromHavok.toJ3d(cmsdt.Translation, nifVer);
 			Quat4f transformRot = ConvertFromHavok.toJ3d(cmsdt.Rotation);
 			Transform3D t = new Transform3D(transformRot, transformTrans, 1f);
 
@@ -693,7 +694,7 @@ public class J3dbhkCollisionObject extends Group
 	 * @return
 	 */
 	@Deprecated
-	public static Shape3D bhkConvexVerticesShapePreBullet(bhkConvexVerticesShape data)
+	public static Shape3D bhkConvexVerticesShapePreBullet(bhkConvexVerticesShape data, NifVer nifVer)
 	{
 		// It appears that a convex shape has no triangles to it. It is simply
 		// a pile of points on an exterior. so a box is simply 8 points with no triangles defined
@@ -773,7 +774,7 @@ public class J3dbhkCollisionObject extends Group
 			Point3f[] coords = new Point3f[data.numVertices];
 			for (int i = 0; i < data.numVertices; i++)
 			{
-				coords[i] = ConvertFromHavok.toJ3dP3f(data.vertices[i]);
+				coords[i] = ConvertFromHavok.toJ3dP3f(data.vertices[i], nifVer);
 			}
 
 			GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);

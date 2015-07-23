@@ -31,7 +31,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JSplitPane;
-import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
@@ -52,7 +51,6 @@ import tools3d.resolution.GraphicsSettings;
 import tools3d.resolution.QueryProperties;
 import tools3d.resolution.ScreenResolution;
 import tools3d.utils.Utils3D;
-import utils.ESConfig;
 import utils.source.MeshSource;
 import utils.source.TextureSource;
 import utils.source.file.FileMeshSource;
@@ -64,7 +62,7 @@ import com.sun.j3d.utils.universe.SimpleUniverse;
 public class NifDisplayTester
 {
 	public JMenuItem setGraphics = new JMenuItem("Set Graphics");
-	
+
 	private SimpleCameraHandler simpleCameraHandler;
 
 	private TransformGroup spinTransformGroup = new TransformGroup();
@@ -110,13 +108,14 @@ public class NifDisplayTester
 	private SimpleUniverse simpleUniverse;
 
 	private Background background = new Background();
-	
+
 	private JFrame win = new JFrame("Nif model");
+
 	private final GraphicsDevice gd;
 
 	public NifDisplayTester()
 	{
-		
+
 		//jogl recomends for non phones 
 		System.setProperty("jogl.disable.opengles", "true");
 
@@ -125,11 +124,11 @@ public class NifDisplayTester
 		{
 			System.exit(0);
 		}
-				
+
 		//win.setVisible(true);
-		win.setLocation(400, 0);	
-	//	win.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		
+		win.setLocation(400, 0);
+		//	win.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		gd = ge.getDefaultScreenDevice();
 		GraphicsConfiguration[] gc = gd.getConfigurations();
@@ -138,15 +137,17 @@ public class NifDisplayTester
 		template.setSceneAntialiasing(GraphicsConfigTemplate.REQUIRED);
 		GraphicsConfiguration config = template.getBestConfiguration(gc);
 		Canvas3D canvas3D = new Canvas3D(config);
+
 		win.getContentPane().add(canvas3D);
 		simpleUniverse = new SimpleUniverse(canvas3D);
-		GraphicsSettings gs = ScreenResolution.organiseResolution(Preferences.userNodeForPackage(NifDisplayTester.class), win, false, true, true);		 
-			
+		GraphicsSettings gs = ScreenResolution.organiseResolution(Preferences.userNodeForPackage(NifDisplayTester.class), win, false, true,
+				true);
+
 		canvas3D.getView().setSceneAntialiasingEnable(gs.isAaRequired());
-		DDSTextureLoader.setAnisotropicFilterDegree(gs.getAnisotropicFilterDegree());		
+		DDSTextureLoader.setAnisotropicFilterDegree(gs.getAnisotropicFilterDegree());
 
 		win.setVisible(true);
-		
+
 		JFrame dataF = new JFrame();
 		dataF.getContentPane().setLayout(new GridLayout(1, 1));
 
@@ -166,9 +167,6 @@ public class NifDisplayTester
 		rotateTransformGroup.addChild(modelGroup);
 		simpleCameraHandler = new SimpleCameraHandler(simpleUniverse.getViewingPlatform(), simpleUniverse.getCanvas(), modelGroup,
 				rotateTransformGroup, false);
-
-			
- 
 
 		splitterV.setDividerLocation(0.5d);
 		splitterH.setDividerLocation(0.5d);
@@ -216,36 +214,28 @@ public class NifDisplayTester
 		simpleUniverse.getViewer().getView().setBackClipDistance(50000);//big cos it's only 1 nif file anyway
 
 		simpleUniverse.getCanvas().addKeyListener(new KeyHandler());
-						
-		
+
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.setOpaque(true);
 		JMenu menu = new JMenu("File");
 		menu.setMnemonic(70);
 		menuBar.add(menu);
 
-		
 		menu.add(setGraphics);
 		setGraphics.addActionListener(new ActionListener()
 		{
 			@Override
 			public void actionPerformed(ActionEvent arg0)
 			{
-				// fully re create win in case of going full screen due to 1.7/1.8 graphics config bug
-				// wooooh! new dispose but no new win? woah!
-				win.dispose();
-				win.removeAll();
-				win = new JFrame("Nif model");
-				win.setLocation(400, 0);				
-				win.getContentPane().add(simpleUniverse.getCanvas());				
-				GraphicsSettings gs2 = ScreenResolution.organiseResolution(Preferences.userNodeForPackage(NifDisplayTester.class), win, false, true, true);		 
-				win.setVisible(true);
+				GraphicsSettings gs2 = ScreenResolution.organiseResolution(Preferences.userNodeForPackage(NifDisplayTester.class), win,
+						false, true, true);
+
 				simpleUniverse.getCanvas().getView().setSceneAntialiasingEnable(gs2.isAaRequired());
 				DDSTextureLoader.setAnisotropicFilterDegree(gs2.getAnisotropicFilterDegree());
 				System.out.println("filtering will require newly loaded textures remember");
 			}
 		});
-		
+
 		win.setJMenuBar(menuBar);
 		win.setVisible(true);
 	}
@@ -377,11 +367,6 @@ public class NifDisplayTester
 
 	public void showNif(String filename, MeshSource meshSource, TextureSource textureSource)
 	{
-
-		if (filename.contains("skyrim"))
-		{
-			ESConfig.HAVOK_TO_METERS_SCALE = ESConfig.SKYRIM_HAVOK_TO_METERS_SCALE;
-		}
 		display(NifToJ3d.loadNif(filename, meshSource, textureSource));
 	}
 
@@ -457,7 +442,6 @@ public class NifDisplayTester
 	{
 		prefs = Preferences.userNodeForPackage(NifDisplayTester.class);
 		String baseDir = prefs.get("NifDisplayTester.baseDir", System.getProperty("user.dir"));
-
 
 		nifDisplay = new NifDisplayTester();
 
