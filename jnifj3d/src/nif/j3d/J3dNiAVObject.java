@@ -4,12 +4,9 @@ import java.util.Enumeration;
 
 import javax.media.j3d.Node;
 import javax.media.j3d.Transform3D;
-import javax.vecmath.Quat4f;
-import javax.vecmath.Vector3f;
 
 import nif.niobject.NiAVObject;
 import nif.niobject.bs.BSFadeNode;
-import tools3d.utils.Utils3D;
 import utils.convert.ConvertFromNif;
 
 import com.sun.j3d.utils.geometry.ColorCube;

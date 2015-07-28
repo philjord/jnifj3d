@@ -181,10 +181,12 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 		else if (niNode instanceof BSLeafAnimNode)
 		{
 			//nothng new and interesting, drop through
+			// this guy should and BSLODLeaf below
 		}
 		else if (niNode instanceof BSMultiBoundNode)
 		{
 			//nothng new and interesting, drop through
+			// this guy should have switch nodes below for skyrim trees
 		}
 
 		// return ordinary ninode

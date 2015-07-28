@@ -32,7 +32,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 		int vertexFormat = (data.hasVertices ? GeometryArray.COORDINATES : 0) //
 				| (data.hasNormals ? GeometryArray.NORMALS : 0) //
 				| (data.actNumUVSets > 0 ? GeometryArray.TEXTURE_COORDINATE_2 : 0) //
-				| GeometryArray.COLOR_4 //
+				| (data.vertexColorsOpt != null ? GeometryArray.COLOR_4 : 0) //
 				| GeometryArray.BY_REFERENCE_INDICES //
 				| GeometryArray.USE_COORD_INDEX_ONLY //
 				| GeometryArray.BY_REFERENCE //
@@ -57,14 +57,14 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 		else
 		{
 			//TODO: do I really need a default white color set on everything?
-			colors4 = new float[data.numVertices * 4];
+			/*colors4 = new float[data.numVertices * 4];
 			for (int i = 0; i < data.numVertices; i++)
 			{
 				colors4[i * 4 + 0] = 1;
 				colors4[i * 4 + 1] = 1;
 				colors4[i * 4 + 2] = 1;
 				colors4[i * 4 + 3] = 1;
-			}
+			}*/
 		}
 
 		int texCoordDim = 2;

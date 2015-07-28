@@ -24,6 +24,8 @@ import utils.source.TextureSource;
  * 
  * The select of the second(non plucked) FLOR switch must reside in the REFR itslef
  * 
+ * The first switch path (highest detail I think?) is the only one with a havok attached (e.g. treeaspen01.nif)
+ * 
  * @author philip
  *
  */
@@ -39,6 +41,7 @@ public class J3dNiSwitchNode extends J3dNiNode
 	protected J3dNiSwitchNode(NiSwitchNode niSwitchNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes)
 	{
 		super(niSwitchNode, niToJ3dData, textureSource, onlyNiNodes);
+		System.out.println("!!!! I thought J3dNiSwitchNode were stripped out! ");
 		configureOrderedGroup();
 	}
 
@@ -58,7 +61,8 @@ public class J3dNiSwitchNode extends J3dNiNode
 	{
 		configureOrderedGroup();
 		switchGroup.addChild(child);
-		switchGroup.setWhichChild(switchGroup.numChildren() - 1);
+		switchGroup.setWhichChild(0);
+		//switchGroup.setWhichChild(switchGroup.numChildren() - 1);
 	}
 
 	@Override

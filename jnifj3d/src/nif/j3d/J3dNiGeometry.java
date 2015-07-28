@@ -37,6 +37,7 @@ import nif.compound.NifTexDesc;
 import nif.enums.BSShaderFlags;
 import nif.enums.BSShaderType;
 import nif.enums.FaceDrawMode;
+import nif.enums.SkyrimShaderPropertyFlags2;
 import nif.enums.VertMode;
 import nif.j3d.animation.J3dNiTimeController;
 import nif.j3d.animation.interp.J3dNiInterpolator;
@@ -60,7 +61,6 @@ import nif.niobject.NiVertexColorProperty;
 import nif.niobject.NiWireframeProperty;
 import nif.niobject.NiZBufferProperty;
 import nif.niobject.bs.BSEffectShaderProperty;
-import nif.niobject.bs.BSLeafAnimNode;
 import nif.niobject.bs.BSLightingShaderProperty;
 import nif.niobject.bs.BSRefractionFirePeriodController;
 import nif.niobject.bs.BSShaderLightingProperty;
@@ -69,7 +69,6 @@ import nif.niobject.bs.BSShaderPPLightingProperty;
 import nif.niobject.bs.BSShaderProperty;
 import nif.niobject.bs.BSShaderTextureSet;
 import nif.niobject.bs.BSSkyShaderProperty;
-import nif.niobject.bs.BSTreeNode;
 import nif.niobject.bs.BSWaterShaderProperty;
 import nif.niobject.bs.Lighting30ShaderProperty;
 import nif.niobject.bs.SkyShaderProperty;
@@ -125,7 +124,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		if (customShape == null)
 		{
 			shape = new Shape3D();
-			
+
 			addChild(shape);
 		}
 		else
@@ -134,7 +133,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 			shape = customShape;
 		}
 		shape.setName("" + this.getClass().getSimpleName() + ":" + niGeometry.name);
-		
+
 		NiGeometryData data = (NiGeometryData) niToJ3dData.get(niGeometry.data);
 
 		shape.setBoundsAutoCompute(false);
@@ -247,7 +246,9 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		TextureAttributes textureAttributes = new TextureAttributes();
 
 		//TODO: this might be set by the texturing and the ppshader properties?
+
 		textureAttributes.setTextureMode(TextureAttributes.MODULATE);
+
 		tus0.setTextureAttributes(textureAttributes);
 
 		app.setTextureUnitState(tus);
@@ -489,26 +490,19 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 
 						if (nap.alphaTestEnabled())
 						{
-							//TODO: I think possibly the PolygonAttributes.CULL_NONE should be applied to anything 
-							//wiht an alphaTestEnabled()? , But no many alpha object have 2 one sided geom on top each other
-							//PolygonAttributes pa = new PolygonAttributes();
-							//pa.setCullFace(PolygonAttributes.CULL_NONE);
-							//app.setPolygonAttributes(pa);
+							//I think the PolygonAttributes.CULL_NONE should be applied to anything 
+							//with an alphaTestEnabled(), flat_lod trees from skyrim prove it 
+							//obviously transparent stuff can be seen from the back quite often
+							PolygonAttributes pa = new PolygonAttributes();
+							pa.setCullFace(PolygonAttributes.CULL_NONE);
+							app.setPolygonAttributes(pa);
 
 							int alphaTestMode = NifOpenGLToJava3D.convertAlphaTestMode(nap.alphaTestMode());
 							ra.setAlphaTestFunction(alphaTestMode);
 
-							float threshold = ((nap.threshold) / 255f);//threshold range of 255(trans) to 0 (opaque) comfirmed empirically
+							float threshold = ((nap.threshold) / 255f);//threshold range of 255 to 0  comfirmed empirically
 
 							ra.setAlphaTestValue(threshold);
-
-							// this is garbage but fixes the debate between giantobelisk03.nif and floralavender01.nif
-							// but screws up treeaspen01.nif treeaspen want the ignore to be done too but has same falgs as obelisk
-							// I think I want to always ignore alpha values in trishape color data
-							// rock has alpha values of 0x21 on the painting trishape
-							//this is a temp rubbish thing
-							if (niToJ3dData.root() instanceof BSTreeNode || niToJ3dData.root() instanceof BSLeafAnimNode)
-								ra.setIgnoreVertexColors(true);
 
 							app.setRenderingAttributes(ra);
 						}
@@ -708,6 +702,16 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						app.setTransparencyAttributes(ta);
 					}
 
+					// apparently the The vertex colors are used as well, just not the alpha component when SF_Vertex_Animation is present
+					//http://niftools.sourceforge.net/forum/viewtopic.php?f=10&t=3276
+					if (bslsp.ShaderFlags2.isBitSet(SkyrimShaderPropertyFlags2.SLSF2_Tree_Anim))
+					{
+						// attempt to discard teh vertex alpha
+						System.out.println("discarding now");
+						textureAttributes.setTextureMode(TextureAttributes.COMBINE);
+						textureAttributes.setCombineAlphaMode(TextureAttributes.COMBINE_REPLACE);
+					}
+
 				}
 				else
 				{
@@ -824,8 +828,8 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 			{
 				if (normalApp.getTransparencyAttributes() != faderTA)
 					normalApp.setTransparencyAttributes(faderTA);
-				
-			//	System.out.println("fade set to " + percent);
+
+				//	System.out.println("fade set to " + percent);
 				faderTA.setTransparency(percent);
 			}
 			currentTrans = percent;

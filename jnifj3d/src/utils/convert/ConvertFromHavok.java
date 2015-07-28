@@ -22,7 +22,8 @@ public class ConvertFromHavok
 
 	public static float getHavokScale(NifVer nifVer)
 	{
-		if (nifVer.LOAD_VER == NifVer.VER_20_2_0_7 && nifVer.LOAD_USER_VER >= 11 && nifVer.LOAD_USER_VER2 >= 24)
+		//TODO: confirm the fallout/skyrim interface USER2 number (might be >26)
+		if (nifVer.LOAD_VER == NifVer.VER_20_2_0_7 && nifVer.LOAD_USER_VER >= 11 && nifVer.LOAD_USER_VER2 >= 83)
 			return SKYRIM_HAVOK_TO_METERS_SCALE;
 		else
 			return PRE_SKYRIM_HAVOK_TO_METERS_SCALE;

@@ -25,7 +25,7 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 		super(niTriShape, niToJ3dData, textureSource);
 
 		niToJ3dData.put(niTriShape, this);
-		data = (NiTriShapeData) niToJ3dData.get(niTriShape.data);		
+		data = (NiTriShapeData) niToJ3dData.get(niTriShape.data);
 
 		//am I a skin shape in which case I need to be uncompacted ready for animation
 		if (niTriShape.skin.ref != -1)
@@ -45,9 +45,14 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 	 * @param niToJ3dData
 	 * @param textureSource
 	 */
+
 	public J3dNiTriShape(BSLODTriShape bsLODTriShape, NiToJ3dData niToJ3dData, TextureSource textureSource)
 	{
 		super(bsLODTriShape, niToJ3dData, textureSource);
+
+		//	BSLODTriShape level data for lodding not used! But it one tree see ReachTree01
+		//	http://afkmods.iguanadons.net/index.php?/topic/4133-skyrim-meshes-containing-bslodtrishape-blocks/
+		//	so just turn on at each level if any are there inall 0 is far 1 is close 2 is closer
 
 		niToJ3dData.put(bsLODTriShape, this);
 		data = (NiTriShapeData) niToJ3dData.get(bsLODTriShape.data);
