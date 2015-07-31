@@ -706,12 +706,9 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 					//http://niftools.sourceforge.net/forum/viewtopic.php?f=10&t=3276
 					if (bslsp.ShaderFlags2.isBitSet(SkyrimShaderPropertyFlags2.SLSF2_Tree_Anim))
 					{
-						// attempt to discard teh vertex alpha
-						System.out.println("discarding now");
 						textureAttributes.setTextureMode(TextureAttributes.COMBINE);
 						textureAttributes.setCombineAlphaMode(TextureAttributes.COMBINE_REPLACE);
 					}
-
 				}
 				else
 				{
