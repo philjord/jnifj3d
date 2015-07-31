@@ -1,6 +1,6 @@
 package nif.j3d;
 
-import javax.media.j3d.BranchGroup;
+import javax.media.j3d.Group;
 
 import nif.j3d.animation.J3dNiControllerManager;
 import nif.j3d.animation.J3dNiGeomMorpherController;
@@ -14,7 +14,7 @@ import nif.niobject.controller.NiObjectNET;
 import nif.niobject.controller.NiSingleInterpController;
 import nif.niobject.controller.NiTimeController;
 
-public abstract class J3dNiObjectNET extends BranchGroup
+public abstract class J3dNiObjectNET extends Group
 {
 	private NiObjectNET niObjectNET;
 
