@@ -83,14 +83,18 @@ public abstract class TransformInterpolator implements Interpolated
 		}
 	}
 
-	private static boolean isAffine(Transform3D t)
+	public static boolean isAffine(Transform3D t)
 	{
 		float[] matrix = new float[16];
 		t.get(matrix);
-		Float.isNaN(matrix[0]);
+		boolean hasNAN = false;
+		for (int i = 0; i < 16; i++)
+			hasNAN = hasNAN || Float.isNaN(matrix[i]);
 		boolean byPrim = (matrix[12] == 0 && matrix[13] == 0 && matrix[14] == 0 && matrix[15] == 1);
 		boolean byMeth = ((t.getType() & Transform3D.AFFINE) != 0);
 
+		if (hasNAN)
+			System.out.println("hasNAN");
 		if (byPrim != byMeth)
 			System.out.println("differs? " + t);
 		return byMeth;

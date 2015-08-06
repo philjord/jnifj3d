@@ -107,11 +107,7 @@ public class RotPosScaleInterpolator extends TransformInterpolator
 				targetTransform.setScale(defaultScale);
 			}
 
-			if (!isAffine(targetTransform))
-			{
-				System.out.println("rps this bummed it up " + this);
-			}
-
+			
 			//only set on a change
 			if (!targetTransform.equals(prevTargetTransform))
 			{
@@ -124,22 +120,7 @@ public class RotPosScaleInterpolator extends TransformInterpolator
 
 	}
 
-	private static boolean isAffine(Transform3D t)
-	{
-		float[] matrix = new float[16];
-		t.get(matrix);
-		boolean hasNAN = false;
-		for (int i = 0; i < 16; i++)
-			hasNAN = hasNAN || Float.isNaN(matrix[i]);
-		boolean byPrim = (matrix[12] == 0 && matrix[13] == 0 && matrix[14] == 0 && matrix[15] == 1);
-		boolean byMeth = ((t.getType() & Transform3D.AFFINE) != 0);
-
-		if (hasNAN)
-			System.out.println("hasNAN");
-		if (byPrim != byMeth)
-			System.out.println("differs? " + t);
-		return byMeth;
-	}
+	
 
 	@Override
 	public void computeTransform(float alphaValue)

@@ -219,12 +219,20 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 						NifKey key = scaleKeys.keys[i];
 						knots[i] = key.time;
 						scales[i] = ((Float) key.value).floatValue();
+
+						//skyrim hkx bad converter to kf
+						if (Float.isNaN(scales[i]))
+						{
+							scales = null;//set ignore flag
+							break;
+						}
 					}
 					data = new ScaleData(knots, scales);
 					scaleDataMap.put(niTransformData, data);
 				}
-				scalePathInterpolator = new ScalePathInterpolator(data.knots, data.scales);
-
+				//check for ignore flagging above
+				if (data.scales != null)
+					scalePathInterpolator = new ScalePathInterpolator(data.knots, data.scales);
 			}
 
 		}

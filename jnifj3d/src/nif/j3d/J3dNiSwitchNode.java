@@ -41,7 +41,6 @@ public class J3dNiSwitchNode extends J3dNiNode
 	protected J3dNiSwitchNode(NiSwitchNode niSwitchNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes)
 	{
 		super(niSwitchNode, niToJ3dData, textureSource, onlyNiNodes);
-		System.out.println("!!!! I thought J3dNiSwitchNode were stripped out! ");
 		configureOrderedGroup();
 	}
 
