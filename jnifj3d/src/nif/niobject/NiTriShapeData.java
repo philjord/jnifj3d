@@ -28,8 +28,14 @@ public class NiTriShapeData extends NiTriBasedGeomData
 	{
 		boolean success = super.readFromStream(stream, nifVer);
 		numTrianglePoints = ByteConvert.readInt(stream);
-		hasTriangles = ByteConvert.readBool(stream, nifVer);
-		if (hasTriangles)
+		if (nifVer.LOAD_VER >= NifVer.VER_10_1_0_0)
+		{
+			hasTriangles = ByteConvert.readBool(stream, nifVer);
+		}
+		
+		
+		// has triangles wasn't used  until a few version after it appeared
+		if (nifVer.LOAD_VER <= NifVer.VER_10_0_1_3 ||hasTriangles)
 		{
 			//OPTOMISATION
 			/*triangles = new NifTriangle[numTriangles];

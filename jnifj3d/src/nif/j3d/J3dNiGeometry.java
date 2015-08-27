@@ -315,34 +315,46 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 
 						NiSourceTexture niSourceTexture = null;
 
-						// use it if there's only 1
-						if (ntp.shaderTextures.length == 1)
+						if (ntp.shaderTextures != null)
 						{
-							NifTexDesc textureData = ntp.shaderTextures[0].textureData;
-							if (textureData.source.ref != -1)
+							// use it if there's only 1
+							if (ntp.shaderTextures.length == 1)
 							{
-								niSourceTexture = (NiSourceTexture) niToJ3dData.get(textureData.source);
-							}
-						}
-						else if (ntp.shaderTextures.length > 1)
-						{
-							// use 0 unless occulsion, in which case use 1
-							NifTexDesc textureData = ntp.shaderTextures[0].textureData;
-							if (textureData.source.ref != -1)
-							{
-								niSourceTexture = (NiSourceTexture) niToJ3dData.get(textureData.source);
-								if (niSourceTexture.fileName.string.contains("_lod")
-										|| niSourceTexture.fileName.string.equals("occ_blank.dds")
-										|| niSourceTexture.fileName.string.contains("_occ"))
+								NifTexDesc textureData = ntp.shaderTextures[0].textureData;
+								if (textureData.source.ref != -1)
 								{
-									textureData = ntp.shaderTextures[1].textureData;
-									if (textureData.source.ref != -1)
+									niSourceTexture = (NiSourceTexture) niToJ3dData.get(textureData.source);
+								}
+							}
+							else if (ntp.shaderTextures.length > 1)
+							{
+								// use 0 unless occulsion, in which case use 1
+								NifTexDesc textureData = ntp.shaderTextures[0].textureData;
+								if (textureData.source.ref != -1)
+								{
+									niSourceTexture = (NiSourceTexture) niToJ3dData.get(textureData.source);
+									if (niSourceTexture.fileName.string.contains("_lod")
+											|| niSourceTexture.fileName.string.equals("occ_blank.dds")
+											|| niSourceTexture.fileName.string.contains("_occ"))
 									{
-										niSourceTexture = (NiSourceTexture) niToJ3dData.get(textureData.source);
+										textureData = ntp.shaderTextures[1].textureData;
+										if (textureData.source.ref != -1)
+										{
+											niSourceTexture = (NiSourceTexture) niToJ3dData.get(textureData.source);
+										}
 									}
 								}
 							}
+						}
+						else
+						{
+							//just use base?
+							NifTexDesc textureData = ntp.baseTexture;
+							if (textureData.source.ref != -1)
+							{
+								niSourceTexture = (NiSourceTexture) niToJ3dData.get(textureData.source);
 
+							}
 						}
 
 						if (niSourceTexture != null)
@@ -723,6 +735,10 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 	{
 		if (ts != null && texName != null && texName.length() > 0)
 		{
+			//morrowind has bmp and tga endings ?
+			if (texName.endsWith(".bmp"))
+				texName = texName.substring(0, texName.indexOf(".bmp")) + ".dds";
+
 			return ts.getTexture(texName);
 		}
 

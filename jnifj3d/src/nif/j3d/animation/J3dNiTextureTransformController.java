@@ -4,6 +4,7 @@ import javax.media.j3d.Appearance;
 import javax.media.j3d.TextureAttributes;
 import javax.media.j3d.Transform3D;
 import javax.vecmath.AxisAngle4f;
+import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
 import nif.enums.TexTransform;
@@ -41,6 +42,25 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 				{
 					textureAttributes.setCapability(TextureAttributes.ALLOW_TRANSFORM_WRITE);
 				}
+				
+				
+				
+				if (operation.transform == TexTransform.TT_SCALE_U)
+				{
+					System.out.println("texture transform.setScale(u) spotted in " + niTimeController.nVer.fileName);
+				}
+				else if (operation.transform == TexTransform.TT_SCALE_V)
+				{
+					System.out.println("texture transform.setScale(v) spotted in  " + niTimeController.nVer.fileName);
+				}
+				else if (operation.transform == TexTransform.TT_ROTATE)
+				{
+					System.out.println("rotate in spotted " + niTimeController.nVer.fileName);
+				}
+				else
+				{
+					System.out.println("J3dNiTextureTransformController - unsupported operation value : " + operation.transform);
+				}
 			}
 		}
 		else
@@ -71,28 +91,33 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 			}
 			else if (operation.transform == TexTransform.TT_SCALE_U)
 			{
-				//TODO: this can only do uniform scales for now
 				//TODO: removed as particle atlas animated textures don't like being interpolated by non powers of 2
-				//			transform.setScale(value);
-				System.out.println("texture transform.setScale(u) spotted");
+				transform.setScale(new Vector3d(0d, value, 0d));
+				
 			}
 			else if (operation.transform == TexTransform.TT_SCALE_V)
 			{
-				//TODO: this can only do uniform scales for now
 				//TODO: removed as particle atlas animated textures don't like being interpolated by non powers of 2
-				//			transform.setScale(value);
-				System.out.println("texture transform.setScale(v) spotted");
+				transform.setScale(new Vector3d(value, 0d, 0d));
+				
 			}
 			else if (operation.transform == TexTransform.TT_ROTATE)
 			{
-				//TODO: TT_ROTATE improve this as it's rotating around bottom left corner
-				// see E:\game media\Oblivion\meshes\effects\lichbloodspray.nif
 				AxisAngle4f aa = new AxisAngle4f(0, 0, -1, value);
 				transform.setRotation(aa);
+
+				// transforms allpy to the texcoords so the -0.5 should work , but I can't confirm it, needs testing
+				//TODO: TT_ROTATE improve this as it's rotating around bottom left corner
+				// see E:\game media\Oblivion\meshes\effects\lichbloodspray.nif
+				transform.get(t);
+				t.x = -0.5f;
+				t.y = -0.5f;
+				transform.setTranslation(t);
+				
 			}
 			else
 			{
-				System.out.println("J3dNiTextureTransformController - unsupported operation value : " + operation.transform);
+				//ignore
 			}
 
 			textureAttributes.setTextureTransform(transform);

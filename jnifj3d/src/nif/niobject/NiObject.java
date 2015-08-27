@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import nif.NifVer;
 
 /**
- * This is here to supress the non optomisated message from teh default nif loader
+ * This is here to supress the non optomisated message from the default nif loader
  * @author philip
  *
  */

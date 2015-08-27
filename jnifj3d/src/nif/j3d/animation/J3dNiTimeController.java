@@ -51,12 +51,15 @@ public abstract class J3dNiTimeController extends Group implements InterpolatorL
 
 	private J3dNiTimeController j3dNiTimeController;
 
+	protected NiTimeController niTimeController;
+
 	/**
 	 * Just requires sub classes to hand it up for now, no reason
 	 * @param niTimeController
 	 */
 	public J3dNiTimeController(NiTimeController niTimeController)
 	{
+		this.niTimeController = niTimeController;
 	}
 
 	public J3dNiTimeController getJ3dNiTimeController()

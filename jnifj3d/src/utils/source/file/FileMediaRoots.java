@@ -19,12 +19,13 @@ public class FileMediaRoots
 	 */
 	static
 	{
-		defaultMediaRoots.add("e:/game media/oblivion/");
-		defaultMediaRoots.add("e:/game media/fallout/");
-		defaultMediaRoots.add("e:/game media/falloutnv/");
-		defaultMediaRoots.add("e:/game media/skyrim/");
-		defaultMediaRoots.add("e:/game media/x3tc/");
-		defaultMediaRoots.add("e:/game media/black prophecy/");
+		defaultMediaRoots.add("f:/game media/morrowind/");
+		defaultMediaRoots.add("f:/game media/oblivion/");
+		defaultMediaRoots.add("f:/game media/fallout/");
+		defaultMediaRoots.add("f:/game media/falloutnv/");
+		defaultMediaRoots.add("f:/game media/skyrim/");
+		defaultMediaRoots.add("f:/game media/x3tc/");
+		defaultMediaRoots.add("f:/game media/black prophecy/");
 	}
 
 	public static void setMediaRoots(String[] mediaRoots)

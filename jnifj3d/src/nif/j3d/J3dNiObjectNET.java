@@ -1,7 +1,10 @@
 package nif.j3d;
 
+import java.util.ArrayList;
+
 import javax.media.j3d.Group;
 
+import nif.NifVer;
 import nif.j3d.animation.J3dNiControllerManager;
 import nif.j3d.animation.J3dNiGeomMorpherController;
 import nif.j3d.animation.J3dNiSingleInterpController;
@@ -27,10 +30,32 @@ public abstract class J3dNiObjectNET extends Group
 		this.niObjectNET = niObjectNET;
 		this.setName(niObjectNET.name);
 
-		extraDataList = new NiExtraData[niObjectNET.extraDataList.length];
-		for (int i = 0; i < niObjectNET.extraDataList.length; i++)
+		buildExtraDataInList(niObjectNET, niToJ3dData);
+
+	}
+
+	private void buildExtraDataInList(NiObjectNET niObjectNET2, NiToJ3dData niToJ3dData)
+	{
+		//early versions used a chain, build a list if needed
+		if (niObjectNET2.nVer.LOAD_VER <= NifVer.VER_4_2_2_0)
 		{
-			extraDataList[i] = (NiExtraData) niToJ3dData.get(niObjectNET.extraDataList[i]);
+			ArrayList<NiExtraData> niExtraDatas = new ArrayList<NiExtraData>();
+			NiExtraData ned = (NiExtraData) niToJ3dData.get(niObjectNET.extraData);
+			while (ned != null)
+			{
+				niExtraDatas.add(ned);
+				ned = (NiExtraData) niToJ3dData.get(ned.NextExtraData);
+			}
+			extraDataList = new NiExtraData[niExtraDatas.size()];
+			niExtraDatas.toArray(extraDataList);
+		}
+		else
+		{
+			extraDataList = new NiExtraData[niObjectNET.extraDataList.length];
+			for (int i = 0; i < niObjectNET.extraDataList.length; i++)
+			{
+				extraDataList[i] = (NiExtraData) niToJ3dData.get(niObjectNET.extraDataList[i]);
+			}
 		}
 	}
 
