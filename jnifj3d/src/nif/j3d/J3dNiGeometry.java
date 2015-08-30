@@ -224,7 +224,6 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		if (shape.getAppearance() == null)
 		{
 			new Throwable("what?").printStackTrace();
-			;
 		}
 
 		return shape;
@@ -738,6 +737,8 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 			//morrowind has bmp and tga endings ?
 			if (texName.endsWith(".bmp"))
 				texName = texName.substring(0, texName.indexOf(".bmp")) + ".dds";
+			else if (texName.endsWith(".tga"))
+				texName = texName.substring(0, texName.indexOf(".tga")) + ".dds";
 
 			return ts.getTexture(texName);
 		}

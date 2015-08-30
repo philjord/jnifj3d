@@ -9,12 +9,14 @@ import nif.j3d.J3dBSTreeNode;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiCamera;
 import nif.j3d.J3dNiNode;
+import nif.j3d.J3dRootCollisionNode;
 import nif.j3d.J3dbhkCollisionObject;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.SimpleCamera;
 import nif.niobject.NiControllerSequence;
 import nif.niobject.NiNode;
 import nif.niobject.NiObject;
+import nif.niobject.RootCollisionNode;
 import nif.niobject.bhk.bhkCollisionObject;
 import nif.niobject.bs.BSTreeNode;
 import utils.source.MeshSource;
@@ -185,6 +187,16 @@ public class NifToJ3d
 					{
 						// NOTE attaches itself into the hierarchy in j3dNiNodes
 						new J3dbhkCollisionObject((bhkCollisionObject) niObject, niToJ3dData);
+					}
+					else if (niObject instanceof RootCollisionNode)
+					{
+						// morrowind special verison of above
+						J3dRootCollisionNode jrcn = new J3dRootCollisionNode((RootCollisionNode) niObject, niToJ3dData);
+						// I hope they are always off root??? TODO: check this in all files
+						j3dNiAVObjectRoot.addChild(jrcn);
+						
+						//TODO: very much mix this into the jbullet system
+						//use BhkCollisionToNifBullet.makeFromGeometryInfo(GeometryInfo gi)
 					}
 				}
 

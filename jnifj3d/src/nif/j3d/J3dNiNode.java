@@ -18,9 +18,11 @@ import nif.niobject.NiPointLight;
 import nif.niobject.NiRoom;
 import nif.niobject.NiRoomGroup;
 import nif.niobject.NiSwitchNode;
+import nif.niobject.NiTextureEffect;
 import nif.niobject.NiTriBasedGeom;
 import nif.niobject.NiTriShape;
 import nif.niobject.NiTriStrips;
+import nif.niobject.RootCollisionNode;
 import nif.niobject.bs.BSFadeNode;
 import nif.niobject.bs.BSLODTriShape;
 import nif.niobject.bs.BSLeafAnimNode;
@@ -56,6 +58,11 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 			{
 				if (child instanceof NiNode)
 				{
+					if(child instanceof RootCollisionNode )
+					{						
+						continue;//skip these as they are picked up by havok pass later like bhk nodes
+					}
+					
 					J3dNiNode j3dNiNode = createNiNode((NiNode) child, niToJ3dData, textureSource, onlyNiNodes);
 					j3dNiNodes.add(j3dNiNode);
 					addChild(j3dNiNode);
@@ -120,6 +127,10 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 						J3dNiDirectionalLight j3dNiDirectionalLight = new J3dNiDirectionalLight((NiDirectionalLight) child, niToJ3dData);
 						addChild(j3dNiDirectionalLight);
 					}
+					else if (child instanceof NiTextureEffect)
+					{
+						//TODO: NiTextureEffect
+					}					
 					else
 					{
 						System.out.println("J3dNiNode - unhandled child NiAVObject " + child);
@@ -188,6 +199,7 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 			//nothng new and interesting, drop through
 			// this guy should have switch nodes below for skyrim trees
 		}
+		
 
 		// return ordinary ninode
 		return new J3dNiNode(niNode, niToJ3dData, textureSource, onlyNiNodes);

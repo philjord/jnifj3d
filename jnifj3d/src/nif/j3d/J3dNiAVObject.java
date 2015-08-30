@@ -354,11 +354,4 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 			visualMarker = null;
 		}
 	}
-
-	public Node getShape()
-	{
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }

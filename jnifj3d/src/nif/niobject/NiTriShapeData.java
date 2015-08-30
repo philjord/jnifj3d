@@ -32,6 +32,10 @@ public class NiTriShapeData extends NiTriBasedGeomData
 		{
 			hasTriangles = ByteConvert.readBool(stream, nifVer);
 		}
+		else
+		{
+			hasTriangles = true;
+		}
 		
 		
 		// has triangles wasn't used  until a few version after it appeared

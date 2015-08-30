@@ -61,27 +61,30 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 			J3dNiAVObject nodeTarget = niToJ3dData.get(target);
 			if (nodeTarget != null)
 			{
-				if (controller.nVer.LOAD_VER <= NifVer.VER_20_0_0_5)
+				if (controller.nVer.LOAD_VER >= NifVer.VER_10_1_0_106)
 				{
-					for (int i = 0; i < controller.interpolators.length; i++)
+					if (controller.nVer.LOAD_VER <= NifVer.VER_20_0_0_5)
 					{
-						// build and attach intrerps for later use, note index order match morph
-						NifRef nr = controller.interpolators[i];
-						createInterp(nr, niToJ3dData);
+						for (int i = 0; i < controller.interpolators.length; i++)
+						{
+							// build and attach intrerps for later use, note index order match morph
+							NifRef nr = controller.interpolators[i];
+							createInterp(nr, niToJ3dData);
+						}
 					}
-				}
-				else if (controller.nVer.LOAD_VER >= NifVer.VER_20_1_0_3)
-				{
-					for (int i = 0; i < controller.interpolatorWeights.length; i++)
+					else if (controller.nVer.LOAD_VER >= NifVer.VER_20_1_0_3)
 					{
-						// build and attach intrerps for later use, note index order match morph
-						NifMorphWeight nmw = controller.interpolatorWeights[i];
+						for (int i = 0; i < controller.interpolatorWeights.length; i++)
+						{
+							// build and attach intrerps for later use, note index order match morph
+							NifMorphWeight nmw = controller.interpolatorWeights[i];
 
-						NifRef nr = nmw.interpolator;
-						if (nmw.weight != 0)
-							System.out.println("non 0 nifmorphweight " + nmw.weight + " " + controller.nVer);
+							NifRef nr = nmw.interpolator;
+							if (nmw.weight != 0)
+								System.out.println("non 0 nifmorphweight " + nmw.weight + " " + controller.nVer);
 
-						createInterp(nr, niToJ3dData);
+							createInterp(nr, niToJ3dData);
+						}
 					}
 				}
 
