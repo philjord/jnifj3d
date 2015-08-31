@@ -74,8 +74,12 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 					idx++;
 				}
 			}
+			
+			int[] texMap = new int[data.actNumUVSets];
+			for (int i = 0; i < data.actNumUVSets; i++)
+				texMap[i] = i;
 
-			IndexedGeometryArray ita = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable), length, stripLengths);
+			IndexedGeometryArray ita = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable), data.actNumUVSets, texMap, length, stripLengths);
 			ita.setCoordIndicesRef(points);
 			fillIn(ita, data, morphable);
 

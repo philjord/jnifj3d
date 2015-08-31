@@ -94,7 +94,7 @@ public abstract class NiGeometryData extends NiObject
 			{
 				numVertices = ByteConvert.readUnsignedShort(stream);
 			}
-			else if (nifVer.LOAD_VER >= NifVer.VER_20_2_0_7 && nifVer.LOAD_USER_VER >= 11)
+			else if (nifVer.LOAD_VER >= NifVer.VER_20_2_0_7 && nifVer.LOAD_USER_VER >= 11 && !nifVer.isBP())
 			{
 				BSMaxVertices = ByteConvert.readUnsignedShort(stream);
 			}
@@ -129,7 +129,7 @@ public abstract class NiGeometryData extends NiObject
 			numUVSets = ByteConvert.readUnsignedShort(stream);
 		}
 
-		if (!(this instanceof NiPSysData) && nifVer.LOAD_VER >= NifVer.VER_20_2_0_7 && nifVer.LOAD_USER_VER == 12)
+		if (!(this instanceof NiPSysData) && nifVer.LOAD_VER >= NifVer.VER_20_2_0_7 && nifVer.LOAD_USER_VER == 12 && !nifVer.isBP())
 		{
 			unknownInt2 = ByteConvert.readInt(stream);
 		}
@@ -208,7 +208,7 @@ public abstract class NiGeometryData extends NiObject
 				vertexColorsOpt[i * 4 + 3] = ByteConvert.readFloat(stream);
 			}
 		}
-		
+
 		if (nifVer.LOAD_VER <= NifVer.VER_4_2_2_0)
 		{
 			numUVSets = ByteConvert.readUnsignedShort(stream);
@@ -218,8 +218,8 @@ public abstract class NiGeometryData extends NiObject
 			hasUV = ByteConvert.readBool(stream, nifVer);
 		}
 
-		//claculated actual value based on version
-		if (nifVer.LOAD_VER >= NifVer.VER_20_2_0_7 && nifVer.LOAD_USER_VER >= 11 && nifVer.LOAD_VER != NifVer.VER_20_3_0_9)
+		//calculated actual value based on version
+		if (nifVer.LOAD_VER >= NifVer.VER_20_2_0_7 && nifVer.LOAD_USER_VER >= 11 && !nifVer.isBP())
 		{
 			actNumUVSets = numUVSets & 1;
 		}
@@ -227,6 +227,7 @@ public abstract class NiGeometryData extends NiObject
 		{
 			actNumUVSets = numUVSets & 63;
 		}
+					
 		//OPTOMISATION
 		/*
 		uVSets = new NifTexCoord[actNumUVSets][numVertices];

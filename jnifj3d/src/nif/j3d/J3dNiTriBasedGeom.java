@@ -71,6 +71,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 		float[][] texCoordSets = null;
 		// process UVsets hasUV or UVset2?? Num UV Sets 2
 		int texCoordSetCount = data.actNumUVSets;
+		
 		if (texCoordSetCount > 0)
 		{
 			texCoordSets = data.uVSetsOpt;
