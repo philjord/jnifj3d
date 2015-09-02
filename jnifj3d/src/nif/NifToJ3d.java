@@ -16,6 +16,7 @@ import nif.j3d.SimpleCamera;
 import nif.niobject.NiControllerSequence;
 import nif.niobject.NiNode;
 import nif.niobject.NiObject;
+import nif.niobject.NiSequenceStreamHelper;
 import nif.niobject.RootCollisionNode;
 import nif.niobject.bhk.bhkCollisionObject;
 import nif.niobject.bs.BSTreeNode;
@@ -238,9 +239,15 @@ public class NifToJ3d
 
 				return kfJ3dRoot;
 			}
+			else if (nifFile.blocks.root() instanceof NiSequenceStreamHelper)
+			{
+				//Pre 10.1.0.0 
+				//TODO: NiSequenceStreamHelper root F:\game media\Morrowind\Meshes\f\xfurn_redoran_flag_01.kf
+				return null;
+			}
 			else
 			{
-				System.out.println("kf ile MUST have a NiControllerSequence as root: " + nifFile.toString());
+				System.out.println("kf file MUST have a NiControllerSequence as root: " + nifFile.toString());
 			}
 		}
 

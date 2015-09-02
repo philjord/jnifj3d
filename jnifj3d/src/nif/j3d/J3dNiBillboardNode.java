@@ -12,6 +12,7 @@ import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
 
+import nif.NifVer;
 import nif.enums.BillboardMode;
 import nif.niobject.NiBillboardNode;
 import utils.source.TextureSource;
@@ -39,9 +40,23 @@ public class J3dNiBillboardNode extends J3dNiNode
 		setupGroups();
 
 		Billboard billBehave = null;
+		int mode = BillboardMode.ROTATE_ABOUT_UP;
+		if (niBillboardNode.nVer.LOAD_VER >= NifVer.VER_10_1_0_0)
+		{
+			mode = niBillboardNode.billboardMode.mode;
+		}
+		else
+		{
+			//TODO: check this
+			//In pre-10.1.0.0 the Flags field is used for BillboardMode.
+			//Bit 0: hidden
+			//Bits 1-2: collision mode
+			//Bit 3: unknown (set in most official meshes)
+			//Bits 5-6: billboard mode
+			mode = (niBillboardNode.flags.flags >> 5) & 0x3;
+		}
 
-		if (niBillboardNode.billboardMode.mode == BillboardMode.ROTATE_ABOUT_UP
-				|| niBillboardNode.billboardMode.mode == BillboardMode.ROTATE_ABOUT_UP2)
+		if (mode == BillboardMode.ROTATE_ABOUT_UP || mode == BillboardMode.ROTATE_ABOUT_UP2)
 		{
 			billBehave = new Billboard(billboardGroup, Billboard.ROTATE_ABOUT_AXIS, new Vector3f(0, 1, 0));
 		}
@@ -62,7 +77,7 @@ public class J3dNiBillboardNode extends J3dNiNode
 			setUncompactable();
 
 			//TODO: fires in oblivion are still sideways
-			
+
 			// billboard blanks out the translation , but I really wwant it left
 			// so I'll try clearing out the rotation at the root so there is none, but leave teh trans alone
 			Transform3D rot = new Transform3D();

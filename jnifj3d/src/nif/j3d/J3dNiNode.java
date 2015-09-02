@@ -8,6 +8,7 @@ import nif.NifToJ3d;
 import nif.j3d.particles.J3dNiParticleSystem;
 import nif.niobject.NiAVObject;
 import nif.niobject.NiAmbientLight;
+import nif.niobject.NiBSParticleNode;
 import nif.niobject.NiBillboardNode;
 import nif.niobject.NiBone;
 import nif.niobject.NiCamera;
@@ -58,11 +59,11 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 			{
 				if (child instanceof NiNode)
 				{
-					if(child instanceof RootCollisionNode )
-					{						
+					if (child instanceof RootCollisionNode)
+					{
 						continue;//skip these as they are picked up by havok pass later like bhk nodes
 					}
-					
+
 					J3dNiNode j3dNiNode = createNiNode((NiNode) child, niToJ3dData, textureSource, onlyNiNodes);
 					j3dNiNodes.add(j3dNiNode);
 					addChild(j3dNiNode);
@@ -130,7 +131,7 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 					else if (child instanceof NiTextureEffect)
 					{
 						//TODO: NiTextureEffect
-					}					
+					}
 					else
 					{
 						System.out.println("J3dNiNode - unhandled child NiAVObject " + child);
@@ -186,8 +187,16 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 			//System.out.println("********************** NiRoomGroup");, drop through
 		}
 		else if (niNode instanceof BSMasterParticleSystem)
-		{//TODO: BSMasterParticleSystem
+		{
+			//TODO: BSMasterParticleSystem
 			System.out.println("********************** BSMasterParticleSystem");
+			return null;
+		}
+		else if (niNode instanceof NiBSParticleNode)
+		{
+			//TODO: NiBSParticleNode  
+			System.out.println("********************** NiBSParticleNode");
+			return null;
 		}
 		else if (niNode instanceof BSLeafAnimNode)
 		{
@@ -199,7 +208,6 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 			//nothng new and interesting, drop through
 			// this guy should have switch nodes below for skyrim trees
 		}
-		
 
 		// return ordinary ninode
 		return new J3dNiNode(niNode, niToJ3dData, textureSource, onlyNiNodes);
