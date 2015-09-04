@@ -9,6 +9,7 @@ import nif.j3d.J3dBSTreeNode;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiCamera;
 import nif.j3d.J3dNiNode;
+import nif.j3d.J3dNiTriShape;
 import nif.j3d.J3dRootCollisionNode;
 import nif.j3d.J3dbhkCollisionObject;
 import nif.j3d.NiToJ3dData;
@@ -17,6 +18,7 @@ import nif.niobject.NiControllerSequence;
 import nif.niobject.NiNode;
 import nif.niobject.NiObject;
 import nif.niobject.NiSequenceStreamHelper;
+import nif.niobject.NiTriShape;
 import nif.niobject.RootCollisionNode;
 import nif.niobject.bhk.bhkCollisionObject;
 import nif.niobject.bs.BSTreeNode;
@@ -114,7 +116,8 @@ public class NifToJ3d
 		if (nifFile != null)
 		{
 			NiObject root = nifFile.blocks.root();
-			if (root instanceof NiNode || root instanceof BSTreeNode)
+			//sometimes in tes3 nif files are just a nitrishape
+			if (root instanceof NiNode || root instanceof BSTreeNode || root instanceof NiTriShape)
 			{
 				NiToJ3dData niToJ3dData = new NiToJ3dData(nifFile.blocks);
 				J3dNiAVObject j3dNiAVObjectRoot = null;
@@ -126,6 +129,10 @@ public class NifToJ3d
 				else if (root instanceof BSTreeNode)
 				{
 					j3dNiAVObjectRoot = new J3dBSTreeNode((BSTreeNode) root, niToJ3dData, textureSource, false);
+				}
+				else if (root instanceof NiTriShape)
+				{
+					j3dNiAVObjectRoot = new J3dNiTriShape((NiTriShape) root, niToJ3dData, textureSource);
 				}
 				else
 				{
@@ -165,7 +172,7 @@ public class NifToJ3d
 		if (nifFile != null)
 		{
 			NiObject root = nifFile.blocks.root();
-			if (root instanceof NiNode || root instanceof BSTreeNode)
+			if (root instanceof NiNode || root instanceof BSTreeNode || root instanceof NiTriShape)
 			{
 
 				NiToJ3dData niToJ3dData = new NiToJ3dData(nifFile.blocks);
@@ -179,6 +186,10 @@ public class NifToJ3d
 				else if (root instanceof BSTreeNode)
 				{
 					j3dNiAVObjectRoot = new J3dBSTreeNode((BSTreeNode) root, niToJ3dData, null, true);
+				}
+				else if (root instanceof NiTriShape)
+				{
+					j3dNiAVObjectRoot = new J3dNiTriShape((NiTriShape) root, niToJ3dData, null);
 				}
 
 				// now attach each havok node to it appropriate NiNOde				
@@ -195,7 +206,7 @@ public class NifToJ3d
 						J3dRootCollisionNode jrcn = new J3dRootCollisionNode((RootCollisionNode) niObject, niToJ3dData);
 						// I hope they are always off root??? TODO: check this in all files
 						j3dNiAVObjectRoot.addChild(jrcn);
-						
+
 						//TODO: very much mix this into the jbullet system
 						//use BhkCollisionToNifBullet.makeFromGeometryInfo(GeometryInfo gi)
 					}
