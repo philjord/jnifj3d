@@ -28,7 +28,7 @@ public class J3dNiFlipController extends J3dNiTimeController
 			for (int t = 0; t < controller.numSources; t++)
 			{
 				String texName = ((NiSourceTexture) niToJ3dData.get(controller.sources[t])).fileName.string;
-				textures[t] = loadTexture(texName, textureSource);
+				textures[t] = J3dNiGeometry.loadTexture(texName, textureSource);
 			}
 			app.getTextureUnitState(0).setCapability(TextureUnitState.ALLOW_STATE_WRITE);
 		}
@@ -36,16 +36,6 @@ public class J3dNiFlipController extends J3dNiTimeController
 		{
 			app.setCapability(Appearance.ALLOW_TEXTURE_WRITE);
 		}
-	}
-
-	public Texture loadTexture(String texName, TextureSource textureSource)
-	{
-		if (textureSource != null && texName != null && texName.length() > 0)
-		{
-			return textureSource.getTexture(texName);
-		}
-
-		return null;
 	}
 
 	@Override
@@ -67,7 +57,7 @@ public class J3dNiFlipController extends J3dNiTimeController
 		//I think the floats in the interp are in the correct range, the above was possibly me being keen 
 		int idx = (int) Math.floor(value);
 		if (app.getTextureUnitCount() > 0)
-		{			
+		{
 			app.getTextureUnitState(0).setTexture(textures[idx]);
 		}
 		else

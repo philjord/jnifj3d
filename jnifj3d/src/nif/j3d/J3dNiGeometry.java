@@ -730,11 +730,12 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 
 	}
 
-	public Texture loadTexture(String texName, TextureSource ts)
+	public static Texture loadTexture(String texName, TextureSource ts)
 	{
 		if (ts != null && texName != null && texName.length() > 0)
 		{
 			//morrowind has bmp and tga endings ?
+			texName = texName.toLowerCase().trim();
 			if (texName.endsWith(".bmp"))
 				texName = texName.substring(0, texName.indexOf(".bmp")) + ".dds";
 			else if (texName.endsWith(".tga"))
