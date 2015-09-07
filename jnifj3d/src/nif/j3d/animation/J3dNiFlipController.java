@@ -21,15 +21,16 @@ public class J3dNiFlipController extends J3dNiTimeController
 	{
 		super(controller);
 		app = ((J3dNiGeometry) nodeTarget).getShape().getAppearance();
+		textures = new Texture[controller.numSources];
+
+		for (int t = 0; t < controller.numSources; t++)
+		{
+			String texName = ((NiSourceTexture) niToJ3dData.get(controller.sources[t])).fileName.string;
+			textures[t] = J3dNiGeometry.loadTexture(texName, textureSource);
+		}
+		
 		if (app.getTextureUnitCount() > 0)
 		{
-			textures = new Texture[controller.numSources];
-
-			for (int t = 0; t < controller.numSources; t++)
-			{
-				String texName = ((NiSourceTexture) niToJ3dData.get(controller.sources[t])).fileName.string;
-				textures[t] = J3dNiGeometry.loadTexture(texName, textureSource);
-			}
 			app.getTextureUnitState(0).setCapability(TextureUnitState.ALLOW_STATE_WRITE);
 		}
 		else

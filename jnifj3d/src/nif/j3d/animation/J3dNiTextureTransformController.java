@@ -43,8 +43,7 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 					textureAttributes.setCapability(TextureAttributes.ALLOW_TRANSFORM_WRITE);
 				}
 				
-				
-				
+				// for those special cases output the incomplete operation suport
 				if (operation.transform == TexTransform.TT_SCALE_U)
 				{
 					System.out.println("texture transform.setScale(u) spotted in " + niTimeController.nVer.fileName);
@@ -57,10 +56,7 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 				{
 					System.out.println("rotate in spotted " + niTimeController.nVer.fileName);
 				}
-				else
-				{
-					System.out.println("J3dNiTextureTransformController - unsupported operation value : " + operation.transform);
-				}
+				
 			}
 		}
 		else
@@ -86,7 +82,7 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 			else if (operation.transform == TexTransform.TT_TRANSLATE_V)
 			{
 				transform.get(t);
-				t.y = -value;
+				t.y = value;
 				transform.setTranslation(t);
 			}
 			else if (operation.transform == TexTransform.TT_SCALE_U)
@@ -106,8 +102,8 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 				AxisAngle4f aa = new AxisAngle4f(0, 0, -1, value);
 				transform.setRotation(aa);
 
-				// transforms allpy to the texcoords so the -0.5 should work , but I can't confirm it, needs testing
-				//TODO: TT_ROTATE improve this as it's rotating around bottom left corner
+				//TODO:  transforms apply to the texcoords so the -0.5 should work , but I can't confirm it, needs testing
+				//TT_ROTATE improve this as it's rotating around bottom left corner
 				// see E:\game media\Oblivion\meshes\effects\lichbloodspray.nif
 				transform.get(t);
 				t.x = -0.5f;
