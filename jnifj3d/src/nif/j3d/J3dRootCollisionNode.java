@@ -2,10 +2,11 @@ package nif.j3d;
 
 import java.util.ArrayList;
 
+import javax.media.j3d.Group;
+
+import nif.niobject.AvoidNode;
 import nif.niobject.NiAVObject;
-import nif.niobject.NiTriBasedGeom;
 import nif.niobject.NiTriShape;
-import nif.niobject.NiTriStrips;
 import nif.niobject.RootCollisionNode;
 import utils.PhysAppearance;
 
@@ -15,42 +16,35 @@ import utils.PhysAppearance;
  * @author philip
  *
  */
-public class J3dRootCollisionNode extends J3dNiAVObject
+public class J3dRootCollisionNode extends Group
 {
+
+	//F:\game media\Morrowind\Meshes\base_anim.1st.nif fix
 	private ArrayList<J3dNiTriBasedGeom> j3dNiNodes = new ArrayList<J3dNiTriBasedGeom>();
 
 	public J3dRootCollisionNode(RootCollisionNode niNode, NiToJ3dData niToJ3dData)
 	{
-		super(niNode, niToJ3dData);
 		for (int i = 0; i < niNode.numChildren; i++)
 		{
 			NiAVObject child = (NiAVObject) niToJ3dData.get(niNode.children[i]);
 			if (child != null)
 			{
-
-				if (child instanceof NiTriBasedGeom)
+				if (child instanceof NiTriShape)
 				{
-					NiTriBasedGeom niTriBasedGeom = (NiTriBasedGeom) child;
-					J3dNiTriBasedGeom ntbg = null;
+					NiTriShape niTriShape = (NiTriShape) child;
+					J3dNiTriBasedGeom ntbg = new J3dNiTriShape(niTriShape, niToJ3dData, null);
+					ntbg.getShape().setAppearance(new PhysAppearance());
 
-					if (niTriBasedGeom instanceof NiTriShape)
-					{
-						NiTriShape niTriShape = (NiTriShape) niTriBasedGeom;
-						ntbg = new J3dNiTriShape(niTriShape, niToJ3dData, null);
-						ntbg.getShape().setAppearance(new PhysAppearance());
-					}
-					else if (niTriBasedGeom instanceof NiTriStrips)
-					{
-						NiTriStrips niTriStrips = (NiTriStrips) niTriBasedGeom;
-						ntbg = new J3dNiTriStrips(niTriStrips, niToJ3dData, null);
-						ntbg.getShape().setAppearance(new PhysAppearance());
-					}
 					j3dNiNodes.add(ntbg);
 					addChild(ntbg);
 				}
+				else if (child instanceof AvoidNode)
+				{
+					// possibly for AI? ignore
+				}
 				else
 				{
-					System.out.println("NON! NiTriBasedGeom child of " + this);
+					System.out.println("NON! NiTriBasedGeom child of " + this + " " + child);
 				}
 			}
 		}

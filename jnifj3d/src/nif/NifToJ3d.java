@@ -204,11 +204,12 @@ public class NifToJ3d
 					{
 						// morrowind special verison of above
 						J3dRootCollisionNode jrcn = new J3dRootCollisionNode((RootCollisionNode) niObject, niToJ3dData);
-						// I hope they are always off root??? TODO: check this in all files
+						
+						// I hope they are always off root??? check this in all files						
+						if(((RootCollisionNode) niObject).parent.parent!=null)
+							System.out.println("Bugger RootCollisionNode not off root!!!");
+						
 						j3dNiAVObjectRoot.addChild(jrcn);
-
-						//TODO: very much mix this into the jbullet system
-						//use BhkCollisionToNifBullet.makeFromGeometryInfo(GeometryInfo gi)
 					}
 				}
 
