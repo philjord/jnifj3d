@@ -36,8 +36,6 @@ import utils.source.TextureSource;
 
 public class J3dNiNode extends J3dNiAVObject implements Fadable
 {
-	public static boolean warnPresenceRootCollisionNode = true;
-
 	public static boolean warnPresenceBSMasterParticleSystem = true;
 
 	public static boolean warnPresenceNiBSParticleNode = true;
@@ -67,11 +65,6 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 				{
 					if (child instanceof RootCollisionNode)
 					{
-						if (warnPresenceRootCollisionNode)
-						{
-							System.out.println("****************************RootCollisionNode");
-							warnPresenceRootCollisionNode = false;
-						}
 						continue;//skip these as they are picked up by havok pass later like bhk nodes
 					}
 
