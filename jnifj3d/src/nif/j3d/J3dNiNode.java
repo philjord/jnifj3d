@@ -81,10 +81,11 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 
 						if (niTriBasedGeom instanceof NiTriShape)
 						{
-							//For now we skip meat caps
+							//For now we skip meat caps and morrowind shadows
 							if (!(NifToJ3d.HIDE_EDITORS && isEditorMarker(niTriBasedGeom.name))
 									&& niTriBasedGeom.name.toLowerCase().indexOf("meat") == -1
-									&& niTriBasedGeom.name.toLowerCase().indexOf("cap") == -1)
+									&& niTriBasedGeom.name.toLowerCase().indexOf("cap") == -1
+									&& niTriBasedGeom.name.toLowerCase().indexOf("tri shadow") == -1)
 							{
 								NiTriShape niTriShape = (NiTriShape) niTriBasedGeom;
 								ntbg = new J3dNiTriShape(niTriShape, niToJ3dData, textureSource);
