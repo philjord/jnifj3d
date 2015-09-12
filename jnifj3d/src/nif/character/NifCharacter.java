@@ -172,9 +172,9 @@ public class NifCharacter extends BranchGroup
 
 	}
 
-	//TODO: a better caching system here, kfJ3dRoot.setAnimatedSkeleton(inputSkeleton.getAllBonesInSkeleton()); is expensive
-	private HashMap<String, KfJ3dRoot> cachedAnimations = new HashMap<String, KfJ3dRoot>();
-
+	/**
+	 * Note no caching as the file load cache of niffile is the only step that can support it
+	 */
 	private void updateAnimation()
 	{
 		if (nextAnimation.length() > 0)
@@ -184,7 +184,6 @@ public class NifCharacter extends BranchGroup
 			nextAnimation = "";
 
 			KfJ3dRoot kfJ3dRoot = null;
-			kfJ3dRoot = cachedAnimations.get(currentAnimation);
 
 			if (kfJ3dRoot == null)
 			{
@@ -197,8 +196,6 @@ public class NifCharacter extends BranchGroup
 
 					NifJ3dSkeletonRoot inputSkeleton = blendedSkeletons.startNewInputAnimation(defaultAlpha);
 					kfJ3dRoot.setAnimatedSkeleton(inputSkeleton.getAllBonesInSkeleton(), allOtherModels);
-
-					cachedAnimations.put(currentAnimation, kfJ3dRoot);
 
 					// now add the root to the scene so the controller sequence is live
 					BranchGroup newKfBg = new BranchGroup();
@@ -235,7 +232,6 @@ public class NifCharacter extends BranchGroup
 				defaultAlpha.setStartTime(System.currentTimeMillis());
 
 				blendedSkeletons.startNewInputAnimation(defaultAlpha);
-				//kfJ3dRoot.setAnimatedSkeleton(inputSkeleton.getAllBonesInSkeleton());
 
 				// now add the root to the scene so the controller sequence is live
 				BranchGroup newKfBg = new BranchGroup();
