@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.WeakHashMap;
 
 import javax.media.j3d.Alpha;
 import javax.media.j3d.Appearance;
@@ -89,9 +89,9 @@ import com.sun.j3d.utils.shader.StringIO;
 public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 {
 
-	private static HashMap<NiProperty, NodeComponent> propertyLookup = new HashMap<NiProperty, NodeComponent>();
+	private static WeakHashMap<NiProperty, NodeComponent> propertyLookup = new WeakHashMap<NiProperty, NodeComponent>();
 
-	private static HashMap<BSLightingShaderProperty, NodeComponent> bsLightingShaderPropertyLookup = new HashMap<BSLightingShaderProperty, NodeComponent>();
+	private static WeakHashMap<BSLightingShaderProperty, NodeComponent> bsLightingShaderPropertyLookup = new WeakHashMap<BSLightingShaderProperty, NodeComponent>();
 
 	private Appearance normalApp;
 
