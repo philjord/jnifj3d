@@ -42,7 +42,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 	protected static void fillIn(IndexedGeometryArray ita, NiTriBasedGeomData data, boolean morphable)
 	{
-		//NOte consistency type in nif file also dictates morphable
+		//Note consistency type in nif file also dictates morphable
 		float[] normals = null;
 		if (data.hasNormals)
 		{
@@ -71,7 +71,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 		float[][] texCoordSets = null;
 		// process UVsets hasUV or UVset2?? Num UV Sets 2
 		int texCoordSetCount = data.actNumUVSets;
-		
+
 		if (texCoordSetCount > 0)
 		{
 			texCoordSets = data.uVSetsOpt;

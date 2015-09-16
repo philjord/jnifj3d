@@ -111,6 +111,31 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 				sharedIGAs.put(data, ita);
 			}
 			return ita;
+
+			//	DO NOT DELETE this is how you make strip arrays
+			// you will have to disable setControllers in extractShapes in NifToJ3d
+			/*	  GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
+					
+					gi.setCoordinateIndices(triangles);
+					gi.setUseCoordIndexOnly(true);
+					gi.setCoordinates(data.verticesOpt);
+					gi.setColors4(data.vertexColorsOpt);
+					gi.setNormals(data.normalsOpt);
+					if(data.actNumUVSets>0)
+					{
+					gi.setTextureCoordinateParams(data.actNumUVSets, 2);
+					gi.setTexCoordSetMap(texMap);
+					for (int i = 0; i < data.actNumUVSets; i++)
+					{
+						gi.setTextureCoordinates(i, data.uVSetsOpt[i]);
+					}
+					}
+					
+					Stripifier stripifer = new Stripifier();
+					stripifer.stripify(gi);
+
+					return gi.getIndexedGeometryArray(true, false, true, true, true);
+			*/
 		}
 		//TODO: some trishapes with skin data nearby have no tris (it's in skin data)
 		//data.hasTriangles = no in trees in skyrim down the switch paths
