@@ -9,6 +9,9 @@ import nif.niobject.NiTriShapeData;
 import nif.niobject.bs.BSLODTriShape;
 import utils.source.TextureSource;
 
+import com.sun.j3d.utils.geometry.GeometryInfo;
+import com.sun.j3d.utils.geometry.Stripifier;
+
 /**
  * This class has a base geometry and a current to allow skin instances to deform the base
  * @author philip
@@ -16,6 +19,10 @@ import utils.source.TextureSource;
  */
 public class J3dNiTriShape extends J3dNiTriBasedGeom
 {
+	private static boolean INTERLEAVE = true;
+
+	private static boolean STRIPIFY = false;
+
 	private GeometryArray currentGeometryArray;
 
 	private NiTriShapeData data;
@@ -95,47 +102,59 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 
 		if (data.hasVertices && data.hasTriangles)
 		{
-			int[] triangles = data.trianglesOpt;
-
 			int[] texMap = new int[data.actNumUVSets];
 			for (int i = 0; i < data.actNumUVSets; i++)
 				texMap[i] = i;
-
-			IndexedGeometryArray ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable), data.actNumUVSets, texMap,
-					data.numTrianglePoints);
-			ita.setCoordIndicesRef(triangles);
-			fillIn(ita, data, morphable);
-
-			if (!morphable)
+			if (!STRIPIFY || morphable)
 			{
-				sharedIGAs.put(data, ita);
-			}
-			return ita;
+				IndexedGeometryArray ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, INTERLEAVE),
+						data.actNumUVSets, texMap, data.numTrianglePoints);
+				//if (INTERLEAVE)
+				ita.setCoordIndicesRef(data.trianglesOpt);
+				//else
+				//	ita.setCoordinateIndices(0, triangles);
 
-			//	DO NOT DELETE this is how you make strip arrays
-			// you will have to disable setControllers in extractShapes in NifToJ3d
-			/*	  GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
-					
-					gi.setCoordinateIndices(triangles);
-					gi.setUseCoordIndexOnly(true);
-					gi.setCoordinates(data.verticesOpt);
-					gi.setColors4(data.vertexColorsOpt);
-					gi.setNormals(data.normalsOpt);
-					if(data.actNumUVSets>0)
-					{
+				fillIn(ita, data, morphable, INTERLEAVE);
+
+				if (!morphable)
+				{
+					sharedIGAs.put(data, ita);
+				}
+				return ita;
+			}
+			else
+			{
+				//	DO NOT DELETE this is how you make strip arrays
+				// NifToJ3d.extractShapes  setControllers might complain, but it should have set morphable proper by now
+
+				GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
+
+				gi.setCoordinateIndices(data.trianglesOpt);
+				gi.setUseCoordIndexOnly(true);
+				gi.setCoordinates(data.verticesOpt);
+				gi.setColors4(data.vertexColorsOpt);
+				gi.setNormals(data.normalsOpt);
+				if (data.actNumUVSets > 0)
+				{
 					gi.setTextureCoordinateParams(data.actNumUVSets, 2);
 					gi.setTexCoordSetMap(texMap);
 					for (int i = 0; i < data.actNumUVSets; i++)
 					{
 						gi.setTextureCoordinates(i, data.uVSetsOpt[i]);
 					}
-					}
-					
-					Stripifier stripifer = new Stripifier();
-					stripifer.stripify(gi);
+				}
 
-					return gi.getIndexedGeometryArray(true, false, true, true, true);
-			*/
+				Stripifier stripifer = new Stripifier();
+				stripifer.stripify(gi);
+
+				IndexedGeometryArray ita =  gi.getIndexedGeometryArray(true, true, INTERLEAVE, true, false);
+				
+				if (!morphable)
+				{
+					sharedIGAs.put(data, ita);
+				}
+				return ita;
+			}
 		}
 		//TODO: some trishapes with skin data nearby have no tris (it's in skin data)
 		//data.hasTriangles = no in trees in skyrim down the switch paths

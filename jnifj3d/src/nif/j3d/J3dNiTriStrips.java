@@ -15,6 +15,8 @@ import utils.source.TextureSource;
  */
 public class J3dNiTriStrips extends J3dNiTriBasedGeom
 {
+	private static boolean INTERLEAVE = true;
+
 	private NiTriStripsData data;
 
 	public J3dNiTriStrips(NiTriStrips niTriStrips, NiToJ3dData niToJ3dData, TextureSource textureSource)
@@ -22,7 +24,7 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 		super(niTriStrips, niToJ3dData, textureSource);
 		niToJ3dData.put(niTriStrips, this);
 		data = (NiTriStripsData) niToJ3dData.get(niTriStrips.data);
-		
+
 		getShape().setGeometry(createGeometry(data, false));
 
 	}
@@ -37,7 +39,6 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 		baseGeometryArray = newGeom;
 	}
 
-	
 	public static IndexedGeometryArray createGeometry(NiTriStripsData data, boolean morphable)
 	{
 		// if not morphable check cache
@@ -74,21 +75,27 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 					idx++;
 				}
 			}
-			
+
 			int[] texMap = new int[data.actNumUVSets];
 			for (int i = 0; i < data.actNumUVSets; i++)
 				texMap[i] = i;
 
-			IndexedGeometryArray ita = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable), data.actNumUVSets, texMap, length, stripLengths);
-			ita.setCoordIndicesRef(points);
-			fillIn(ita, data, morphable);
+			IndexedGeometryArray itsa = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable, INTERLEAVE),
+					data.actNumUVSets, texMap, length, stripLengths);
+			//if (INTERLEAVE)
+			itsa.setCoordIndicesRef(points);
+		//else
+		//	itsa.setCoordinateIndices(0, triangles);
+				 
+
+			fillIn(itsa, data, morphable, INTERLEAVE);
 
 			// if not morphable cache
 			if (!morphable)
 			{
-				sharedIGAs.put(data, ita);
+				sharedIGAs.put(data, itsa);
 			}
-			return ita;
+			return itsa;
 		}
 
 		new Throwable("Null IGA!").printStackTrace();

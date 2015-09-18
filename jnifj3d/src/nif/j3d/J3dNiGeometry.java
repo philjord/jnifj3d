@@ -9,7 +9,6 @@ import java.util.WeakHashMap;
 
 import javax.media.j3d.Alpha;
 import javax.media.j3d.Appearance;
-import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.GLSLShaderProgram;
 import javax.media.j3d.Material;
 import javax.media.j3d.NodeComponent;
@@ -45,7 +44,6 @@ import nif.niobject.NiAlphaProperty;
 import nif.niobject.NiDitherProperty;
 import nif.niobject.NiFogProperty;
 import nif.niobject.NiGeometry;
-import nif.niobject.NiGeometryData;
 import nif.niobject.NiMaterialProperty;
 import nif.niobject.NiMultiTextureProperty;
 import nif.niobject.NiObject;
@@ -80,7 +78,6 @@ import nif.niobject.controller.NiSingleInterpController;
 import nif.niobject.controller.NiTimeController;
 import nif.niobject.interpolator.NiInterpolator;
 import tools3d.utils.scenegraph.Fadable;
-import utils.convert.ConvertFromNif;
 import utils.convert.NifOpenGLToJava3D;
 import utils.source.TextureSource;
 
@@ -124,7 +121,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		if (customShape == null)
 		{
 			shape = new Shape3D();
-
+ 
 			addChild(shape);
 		}
 		else
@@ -133,11 +130,12 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 			shape = customShape;
 		}
 		shape.setName("" + this.getClass().getSimpleName() + ":" + niGeometry.name);
-
-		NiGeometryData data = (NiGeometryData) niToJ3dData.get(niGeometry.data);
-
-		shape.setBoundsAutoCompute(false);
-		shape.setBounds(new BoundingSphere(ConvertFromNif.toJ3dP3d(data.center), ConvertFromNif.toJ3d(data.radius)));
+		
+		// using the bounds form teh files cause things to be culled, lets go with auto instead and a cache
+		//-Dj3d.cacheAutoComputeBounds=true 	If set to true, cache AutoCompute Bounds to accelerate getBounds method
+		//NiGeometryData data = (NiGeometryData) niToJ3dData.get(niGeometry.data);
+		//shape.setBoundsAutoCompute(false);
+		//shape.setBounds(new BoundingSphere(ConvertFromNif.toJ3dP3d(data.center), ConvertFromNif.toJ3d(data.radius)));
 
 		// no texture source probably just wants the geometry set up
 		if (textureSource != null)

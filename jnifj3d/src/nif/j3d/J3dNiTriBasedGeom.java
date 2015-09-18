@@ -27,7 +27,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 	//Note self expunging cache
 	protected static WeakValueHashMap<Object, IndexedGeometryArray> sharedIGAs = new WeakValueHashMap<Object, IndexedGeometryArray>();
 
-	protected static int getFormat(NiTriBasedGeomData data, boolean morphable)
+	protected static int getFormat(NiTriBasedGeomData data, boolean morphable, boolean interleave)
 	{
 		int vertexFormat = (data.hasVertices ? GeometryArray.COORDINATES : 0) //
 				| (data.hasNormals ? GeometryArray.NORMALS : 0) //
@@ -35,12 +35,12 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 				| (data.vertexColorsOpt != null ? GeometryArray.COLOR_4 : 0) //
 				| GeometryArray.BY_REFERENCE_INDICES //
 				| GeometryArray.USE_COORD_INDEX_ONLY //
-				| GeometryArray.BY_REFERENCE //
-				| (!morphable ? GeometryArray.INTERLEAVED : 0);
+				| (morphable || interleave ? GeometryArray.BY_REFERENCE : 0)//
+				| (!morphable && interleave ? GeometryArray.INTERLEAVED : 0);
 		return vertexFormat;
 	}
 
-	protected static void fillIn(IndexedGeometryArray ita, NiTriBasedGeomData data, boolean morphable)
+	protected static void fillIn(GeometryArray ga, NiTriBasedGeomData data, boolean morphable, boolean interleave)
 	{
 		//Note consistency type in nif file also dictates morphable
 		float[] normals = null;
@@ -79,29 +79,47 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 		if (!morphable)
 		{
-			float[] vertexData = J3dNiTriBasedGeom.interleave(texCoordSetCount, texCoordDim, texCoordSets, null, colors4, normals,
-					data.verticesOpt);
-			ita.setInterleavedVertices(vertexData);
+			if (interleave)
+			{
+				float[] vertexData = J3dNiTriBasedGeom.interleave(texCoordSetCount, texCoordDim, texCoordSets, null, colors4, normals,
+						data.verticesOpt);
+				ga.setInterleavedVertices(vertexData);
+			}
+			else
+			{
+				ga.setCoordinates(0, data.verticesOpt);
+
+				if (data.hasNormals)
+					ga.setNormals(0, normals);
+
+				if (data.hasVertexColors)
+					ga.setColors(0, colors4);
+
+				for (int i = 0; i < texCoordSetCount; i++)
+				{
+					ga.setTextureCoordinates(i, 0, texCoordSets[i]);
+				}
+			}
 		}
 		else
 		{
 			// copy as we are by ref and people will morph these coords later on
 			float[] coords = new float[data.verticesOpt.length];
 			System.arraycopy(data.verticesOpt, 0, coords, 0, data.verticesOpt.length);
-			ita.setCoordRefFloat(coords);
+			ga.setCoordRefFloat(coords);
 
 			if (data.hasNormals)
-				ita.setNormalRefFloat(normals);
+				ga.setNormalRefFloat(normals);
 
-			ita.setColorRefFloat(colors4);
+			ga.setColorRefFloat(colors4);
 
 			for (int i = 0; i < texCoordSetCount; i++)
 			{
-				ita.setTexCoordRefFloat(i, texCoordSets[i]);
+				ga.setTexCoordRefFloat(i, texCoordSets[i]);
 			}
 
-			ita.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
-			ita.setCapability(GeometryArray.ALLOW_REF_DATA_WRITE);
+			ga.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+			ga.setCapability(GeometryArray.ALLOW_REF_DATA_WRITE);
 		}
 
 	}
@@ -111,7 +129,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 	 * //GeometryInfo.fillIn(GeometryArray ga, boolean byRef, boolean interleaved, boolean nio)
 	 * 
 	 */
-	private static float[] interleave(int texCoordSetCount, int texCoordDim, float[][] texCoordSets, float[] colors3, float[] colors4,
+	public static float[] interleave(int texCoordSetCount, int texCoordDim, float[][] texCoordSets, float[] colors3, float[] colors4,
 			float[] normals, float[] coordinates)
 	{
 		// Calculate number of words per vertex
