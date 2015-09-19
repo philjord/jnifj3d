@@ -19,9 +19,9 @@ import com.sun.j3d.utils.geometry.Stripifier;
  */
 public class J3dNiTriShape extends J3dNiTriBasedGeom
 {
-	private static boolean INTERLEAVE = true;
+	public static boolean INTERLEAVE = true;
 
-	private static boolean STRIPIFY = false;
+	public static boolean STRIPIFY = false;
 
 	private GeometryArray currentGeometryArray;
 
@@ -109,10 +109,10 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 			{
 				IndexedGeometryArray ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, INTERLEAVE),
 						data.actNumUVSets, texMap, data.numTrianglePoints);
-				//if (INTERLEAVE)
-				ita.setCoordIndicesRef(data.trianglesOpt);
-				//else
-				//	ita.setCoordinateIndices(0, triangles);
+				if (INTERLEAVE)
+					ita.setCoordIndicesRef(data.trianglesOpt);
+				else
+					ita.setCoordinateIndices(0, data.trianglesOpt);
 
 				fillIn(ita, data, morphable, INTERLEAVE);
 
@@ -147,8 +147,8 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 				Stripifier stripifer = new Stripifier();
 				stripifer.stripify(gi);
 
-				IndexedGeometryArray ita =  gi.getIndexedGeometryArray(true, true, INTERLEAVE, true, false);
-				
+				IndexedGeometryArray ita = gi.getIndexedGeometryArray(true, true, INTERLEAVE, true, false);
+
 				if (!morphable)
 				{
 					sharedIGAs.put(data, ita);

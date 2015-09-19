@@ -25,6 +25,8 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 			FloatInterpolator.Listener callBack)
 	{
 		makeKnotsFloats(niFloatInterpolator, niToJ3dData, startTimeS, lengthS);
+		if (callBack == null)
+			new Throwable("null callback in " + niFloatInterpolator.nVer.fileName).printStackTrace();
 		createInterpolator(callBack);
 	}
 
@@ -38,9 +40,6 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 		}
 		else if (constantFloat != Float.NEGATIVE_INFINITY)
 		{
-			if(callBack==null)
-				new Throwable("null").printStackTrace();
-			
 			// otherwise it just a  constant value set once now
 			callBack.update(constantFloat);
 		}

@@ -33,8 +33,8 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 				| (data.hasNormals ? GeometryArray.NORMALS : 0) //
 				| (data.actNumUVSets > 0 ? GeometryArray.TEXTURE_COORDINATE_2 : 0) //
 				| (data.vertexColorsOpt != null ? GeometryArray.COLOR_4 : 0) //
-				| GeometryArray.BY_REFERENCE_INDICES //
 				| GeometryArray.USE_COORD_INDEX_ONLY //
+				| (morphable || interleave ? GeometryArray.BY_REFERENCE_INDICES : 0)//				
 				| (morphable || interleave ? GeometryArray.BY_REFERENCE : 0)//
 				| (!morphable && interleave ? GeometryArray.INTERLEAVED : 0);
 		return vertexFormat;
