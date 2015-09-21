@@ -14,7 +14,7 @@ public class J3dNiAlphaController extends J3dNiTimeController implements FloatIn
 
 	public J3dNiAlphaController(NiAlphaController controller, J3dNiAVObject nodeTarget)
 	{
-		super(controller);
+		super(controller, nodeTarget);
 
 		if (nodeTarget instanceof J3dNiGeometry)
 		{

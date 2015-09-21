@@ -15,18 +15,16 @@ public class J3dNiSingleInterpController extends J3dNiTimeController
 {
 	private J3dNiInterpolator j3dNiInterpolator;
 
-
-
 	private Alpha baseAlpha;
 
 	public J3dNiSingleInterpController(NiSingleInterpController controller, NiToJ3dData niToJ3dData)
 	{
-		super(controller);
+		super(controller, null);
 		float startTimeS = controller.startTime;
 		float stopTimeS = controller.stopTime;
 
 		NiAVObject target = (NiAVObject) niToJ3dData.get(controller.target);
-		J3dNiAVObject nodeTarget = niToJ3dData.get(target);
+		nodeTarget = niToJ3dData.get(target);
 		if (nodeTarget != null)
 		{
 			NiInterpolator niInterpolator = (NiInterpolator) niToJ3dData.get(controller.interpolator);
@@ -38,12 +36,12 @@ public class J3dNiSingleInterpController extends J3dNiTimeController
 					// I appear to go straight for the transformgroup, but I should step through the controller to it
 					// controller link makes this hard note
 					j3dNiInterpolator = J3dNiTransformInterpolatorFactory.createTransformInterpolator(niInterpolator, niToJ3dData,
-							nodeTarget, startTimeS, stopTimeS);
+							(J3dNiAVObject) nodeTarget, startTimeS, stopTimeS);
 				}
 				else
 				{
 					J3dNiTimeController j3dNiTimeController = J3dNiTimeController.createJ3dNiTimeController(controller, niToJ3dData,
-							nodeTarget, null);
+							(J3dNiAVObject) nodeTarget, null);
 
 					if (j3dNiTimeController != null)
 					{
@@ -64,7 +62,7 @@ public class J3dNiSingleInterpController extends J3dNiTimeController
 		}
 
 	}
-	
+
 	public J3dNiInterpolator getJ3dNiInterpolator()
 	{
 		return j3dNiInterpolator;

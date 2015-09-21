@@ -19,7 +19,7 @@ public class J3dNiFlipController extends J3dNiTimeController
 
 	public J3dNiFlipController(NiFlipController controller, J3dNiAVObject nodeTarget, NiToJ3dData niToJ3dData, TextureSource textureSource)
 	{
-		super(controller);
+		super(controller, nodeTarget);
 		app = ((J3dNiGeometry) nodeTarget).getShape().getAppearance();
 		textures = new Texture[controller.numSources];
 

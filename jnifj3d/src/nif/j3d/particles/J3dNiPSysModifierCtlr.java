@@ -1,8 +1,10 @@
 package nif.j3d.particles;
 
 import javax.media.j3d.Alpha;
+import javax.media.j3d.Bounds;
 import javax.vecmath.Point3f;
 
+import tools3d.utils.Utils3D;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.animation.J3dNiTimeController;
 import nif.j3d.animation.interp.J3dNiInterpolator;
@@ -36,9 +38,19 @@ public abstract class J3dNiPSysModifierCtlr extends J3dNiTimeController
 
 	public J3dNiPSysModifierCtlr(NiPSysModifierCtlr niPSysModifierCtlr, J3dNiPSysModifier j3dNiPSysModifier)
 	{
-		super(niPSysModifierCtlr);
+		super(niPSysModifierCtlr, null);
 		this.j3dNiPSysModifier = j3dNiPSysModifier;
 
+	}
+
+	/**
+	 * hard to work this out
+	 * @see nif.j3d.animation.J3dNiTimeController#getBounds()
+	 */
+	@Override
+	public Bounds getBounds()
+	{
+		return Utils3D.defaultBounds;
 	}
 
 	private void setInterpolator(J3dNiInterpolator j3dNiInterpolator2, Alpha baseAlpha2)

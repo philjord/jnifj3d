@@ -19,7 +19,7 @@ public class J3dNiMaterialColorController extends J3dNiTimeController
 
 	public J3dNiMaterialColorController(NiMaterialColorController controller, J3dNiAVObject nodeTarget)
 	{
-		super(controller);
+		super(controller, nodeTarget);
 
 		targetColor = controller.targetColor.color;
 		for (int i = 0; i < nodeTarget.numChildren(); i++)

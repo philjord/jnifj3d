@@ -19,7 +19,7 @@ public class J3dNiVisController extends J3dNiTimeController implements BoolInter
 
 	public J3dNiVisController(NiVisController controller, J3dNiAVObject nodeTarget)
 	{
-		super(controller);
+		super(controller, nodeTarget);
 		if (nodeTarget instanceof J3dNiNode || nodeTarget instanceof J3dNiParticleSystem)
 		{
 

@@ -13,7 +13,6 @@ import nif.NifVer;
 import nif.basic.NifRef;
 import nif.compound.NifMorph;
 import nif.compound.NifMorphWeight;
-import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiTriBasedGeom;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.animation.interp.J3dNiInterpolator;
@@ -48,7 +47,7 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 
 	public J3dNiGeomMorpherController(NiGeomMorpherController controller, NiToJ3dData niToJ3dData)
 	{
-		super(controller);
+		super(controller, null);
 
 		niMorphData = (NiMorphData) niToJ3dData.get(controller.data);
 
@@ -58,7 +57,7 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 			stopTimeS = controller.stopTime;
 
 			NiAVObject target = (NiAVObject) niToJ3dData.get(controller.target);
-			J3dNiAVObject nodeTarget = niToJ3dData.get(target);
+			nodeTarget = niToJ3dData.get(target);
 			if (nodeTarget != null)
 			{
 				if (controller.nVer.LOAD_VER >= NifVer.VER_10_1_0_106)
@@ -90,11 +89,9 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 
 				if (nodeTarget instanceof J3dNiTriBasedGeom)
 				{
+					// this bad boy is not connect to scene graph!
 					J3dNiTriBasedGeom j3dNiTriBasedGeom = (J3dNiTriBasedGeom) nodeTarget;
 					j3dNiTriBasedGeom.makeMorphable();
-					// make it so auto bounds doesn't update all the time
-					j3dNiTriBasedGeom.getShape().setBoundsAutoCompute(false);
-					j3dNiTriBasedGeom.getShape().setBounds(new BoundingSphere(new Point3d(0, 0, 0), 20));
 
 					itsa = ((J3dNiTriBasedGeom) nodeTarget).getBaseGeometryArray();
 
@@ -171,7 +168,6 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 					currentNifMorph = niMorphData.morphs[i];
 					sequenceAlpha = null;
 					currentJ3dNiInterpolator = null;
-
 				}
 			}
 		}
@@ -235,12 +231,13 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 		{
 			// NOTE!!!! these MUST be active, otherwise the headless locale that might be running physics doesn't continuously render
 			super(node, new float[]
-			{ 40, 120, 280 }, false);
+			{ 40, 120, 280 }, true, true);
 		}
 
 		@Override
 		public void process()
 		{
+
 			// will be null when another interp is running this
 			if (sequenceAlpha != null)
 			{

@@ -5,6 +5,7 @@ import java.util.Enumeration;
 
 import javax.media.j3d.Behavior;
 import javax.media.j3d.BoundingSphere;
+import javax.media.j3d.Bounds;
 import javax.media.j3d.Group;
 import javax.media.j3d.Node;
 import javax.media.j3d.WakeupOnElapsedFrames;
@@ -270,19 +271,44 @@ public class J3dNiControllerSequence extends Group
 		return j3dNiTextKeyExtraData;
 	}
 
+	/**
+	 * Our physical bounds is all children bounds nound
+	 * but damn slow to re calc so let's cache up! woot
+	 * @see javax.media.j3d.Node#getBounds()
+	 */
+	private Bounds cachedBounds = null;
+
+	@Override
+	public Bounds getBounds()
+	{
+		if (cachedBounds != null)
+			return cachedBounds;
+
+		BoundingSphere ret = new BoundingSphere((BoundingSphere) null);
+		for (J3dControllerLink j3dControllerLink : controlledBlocks)
+		{
+			ret.combine(j3dControllerLink.getBounds());
+		}
+		// if we hit nothing below us (e.g. just animated bones) give it a plenty big radius
+		if (ret.isEmpty())
+			ret.setRadius(50);
+
+		cachedBounds = ret;
+		return ret;
+	}
+
 	public class SequenceBehavior extends VaryingLODBehaviour
 	{
 		public SequenceBehavior(Node node)
 		{
 			// NOTE!!!! these MUST be active, otherwise the headless locale that might be running physics doesn't continuously render
 			super(node, new float[]
-			{ 40, 120, 280 }, false);
+			{ 40, 120, 280 }, false, true);
 		}
 
 		@Override
 		public void process()
 		{
-
 			float alphaValue = sequenceAlpha.value();
 			for (J3dControllerLink j3dControllerLink : controlledBlocks)
 			{

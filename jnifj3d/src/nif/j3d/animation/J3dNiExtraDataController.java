@@ -9,7 +9,7 @@ public class J3dNiExtraDataController extends J3dNiTimeController implements Flo
 	//This is for the extra data track in animations (for say doing damage as the animation progresses)
 	public J3dNiExtraDataController(NiExtraDataController controller, J3dNiAVObject nodeTarget)
 	{
-		super(controller);
+		super(controller, nodeTarget);
 	}
 
 	@Override

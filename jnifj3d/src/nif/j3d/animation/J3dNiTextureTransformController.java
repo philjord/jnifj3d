@@ -23,7 +23,7 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 
 	public J3dNiTextureTransformController(NiTextureTransformController controller, J3dNiAVObject nodeTarget)
 	{
-		super(controller);
+		super(controller, nodeTarget);
 		if (nodeTarget instanceof J3dNiGeometry)
 		{
 			J3dNiGeometry j3dNiGeometry = (J3dNiGeometry) nodeTarget;

@@ -16,7 +16,7 @@ public class J3dNiLightColorController extends J3dNiTimeController
 
 	public J3dNiLightColorController(NiLightColorController controller, J3dNiAVObject nodeTarget)
 	{
-		super(controller);
+		super(controller, nodeTarget);
 		for (int i = 0; i < nodeTarget.numChildren(); i++)
 		{
 			if (nodeTarget.getChild(i) instanceof PointLight)

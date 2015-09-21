@@ -9,7 +9,10 @@ import javax.media.j3d.Group;
 import javax.media.j3d.Transform3D;
 
 import nif.compound.NifSkinPartition;
-
+/**
+ * superceeded by the skindata version, this is an extra on top of that, which I don't need
+ * this does not have enough info in it to work alone
+ */
 @Deprecated
 public class J3dNifSkinPartition extends Group implements GeometryUpdater
 {

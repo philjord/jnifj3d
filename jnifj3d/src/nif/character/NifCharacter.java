@@ -1,7 +1,6 @@
 package nif.character;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -361,7 +360,7 @@ public class NifCharacter extends BranchGroup
 	{
 		public NifCharUpdateBehavior(Node node, float[] dists)
 		{
-			super(node, dists);
+			super(node, dists, true, true);
 			setSchedulingBounds(Utils3D.defaultBounds);
 		}
 

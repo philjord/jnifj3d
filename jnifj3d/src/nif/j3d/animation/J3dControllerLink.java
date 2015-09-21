@@ -2,6 +2,7 @@ package nif.j3d.animation;
 
 import java.util.ArrayList;
 
+import javax.media.j3d.Bounds;
 import javax.media.j3d.Group;
 
 import nif.NifJ3dVisRoot;
@@ -20,6 +21,8 @@ import nif.niobject.interpolator.NiInterpolator;
 public class J3dControllerLink extends Group
 {
 	private J3dNiInterpolator j3dNiInterpolator = null;
+
+	private J3dNiAVObject nodeTarget = null;
 
 	private J3dNiGeomMorpherController j3dNiGeomMorpherController = null;
 
@@ -59,7 +62,7 @@ public class J3dControllerLink extends Group
 				controllerType = lookUpPaletteString(controllerTypeOffset, niToJ3dData, controllerLink.stringPalette);
 		}
 
-		J3dNiAVObject nodeTarget = allBonesInSkeleton.get(nodeName);
+		nodeTarget = allBonesInSkeleton.get(nodeName);
 		NiToJ3dData targetNiToJ3dData = niToJ3dData;
 
 		// sometimes we are also controlling NiGeomorpherController from the skin files
@@ -128,6 +131,16 @@ public class J3dControllerLink extends Group
 			}
 
 		}
+	}
+
+	@Override
+	public Bounds getBounds()
+	{
+		if (nodeTarget != null)
+		{
+			return nodeTarget.getBounds();
+		}
+		return null;
 	}
 
 	public void process(float alphaValue)

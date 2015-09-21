@@ -1,7 +1,9 @@
 package nif.j3d.animation;
 
 import javax.media.j3d.Alpha;
+import javax.media.j3d.Bounds;
 import javax.media.j3d.Group;
+import javax.media.j3d.Node;
 import javax.vecmath.Point3f;
 
 import nif.j3d.J3dNiAVObject;
@@ -53,13 +55,19 @@ public abstract class J3dNiTimeController extends Group implements InterpolatorL
 
 	protected NiTimeController niTimeController;
 
+	protected Node nodeTarget;
+
 	/**
 	 * Just requires sub classes to hand it up for now, no reason
+	 * if nodeTarget == null getBounds() MUST be overrriden or nodeTarget must be set
 	 * @param niTimeController
+	 * @param nodeTarget 
 	 */
-	public J3dNiTimeController(NiTimeController niTimeController)
+	public J3dNiTimeController(NiTimeController niTimeController, Node nodeTarget)
 	{
 		this.niTimeController = niTimeController;
+		this.nodeTarget = nodeTarget;
+		
 	}
 
 	public J3dNiTimeController getJ3dNiTimeController()
@@ -72,6 +80,14 @@ public abstract class J3dNiTimeController extends Group implements InterpolatorL
 		// TODO: there are cases where this should be fired I think
 		this.j3dNiTimeController = j3dNiTimeController;
 		addChild(j3dNiTimeController);
+	}
+
+	@Override
+	public Bounds getBounds()
+	{   // Notice this is not called setBoundsAutoCompute(false);
+		// it cause NPE because we need to give it a bounds with set bounds, only instead we are just 
+		// the exteranl getbounds, not used by pipeline at all
+		return nodeTarget.getBounds();
 	}
 
 	@Override

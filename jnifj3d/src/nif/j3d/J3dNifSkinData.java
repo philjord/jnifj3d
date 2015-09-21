@@ -40,7 +40,7 @@ public class J3dNifSkinData extends Group implements GeometryUpdater
 		// TODO: deathclaw skin totally rooted up
 
 		this.niSkinData = niSkinData;
-
+		
 		skinDataTrans.setRotation(ConvertFromNif.toJ3d(niSkinData.nifSkinTransform.rotation));
 		skinDataTrans.setTranslation(ConvertFromNif.toJ3d(niSkinData.nifSkinTransform.translation));
 		skinDataTrans.setScale(niSkinData.nifSkinTransform.scale);

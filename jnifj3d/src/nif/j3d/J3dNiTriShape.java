@@ -1,5 +1,6 @@
 package nif.j3d;
 
+import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.GeometryArray;
 import javax.media.j3d.IndexedGeometryArray;
 import javax.media.j3d.IndexedTriangleArray;
@@ -7,6 +8,7 @@ import javax.media.j3d.IndexedTriangleArray;
 import nif.niobject.NiTriShape;
 import nif.niobject.NiTriShapeData;
 import nif.niobject.bs.BSLODTriShape;
+import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
 import com.sun.j3d.utils.geometry.GeometryInfo;
@@ -82,7 +84,10 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 	 * Note expensive re-create should be optomised one day
 	 */
 	public void makeMorphable()
-	{
+	{		
+		getShape().setBoundsAutoCompute(false);// expensive to do regularly so animated node just get one
+		getShape().setBounds(new BoundingSphere(ConvertFromNif.toJ3dP3d(data.center), ConvertFromNif.toJ3d(data.radius)));
+
 		baseGeometryArray = createGeometry(data, true);
 		currentGeometryArray = createGeometry(data, true);
 		getShape().setGeometry(currentGeometryArray);
