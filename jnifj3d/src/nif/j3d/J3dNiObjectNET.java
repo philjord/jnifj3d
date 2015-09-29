@@ -12,6 +12,7 @@ import nif.j3d.animation.J3dNiTimeController;
 import nif.niobject.NiExtraData;
 import nif.niobject.controller.NiControllerManager;
 import nif.niobject.controller.NiGeomMorpherController;
+import nif.niobject.controller.NiKeyframeController;
 import nif.niobject.controller.NiMultiTargetTransformController;
 import nif.niobject.controller.NiObjectNET;
 import nif.niobject.controller.NiSingleInterpController;
@@ -115,6 +116,10 @@ public abstract class J3dNiObjectNET extends Group
 			else if (controller instanceof NiSingleInterpController)
 			{
 				ret = new J3dNiSingleInterpController((NiSingleInterpController) controller, niToJ3dData);
+			}
+			else if (controller instanceof NiKeyframeController)
+			{
+				// ignored as we don't have a target yet for this (which is a controllerlink type thing anyway)			
 			}
 			else if (controller instanceof NiMultiTargetTransformController)
 			{

@@ -6,6 +6,8 @@ import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.io.File;
@@ -23,16 +25,22 @@ import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
 import nif.character.NifCharacter;
+import nif.character.NifCharacterTes3;
 import nif.character.NifJ3dSkeletonRoot;
 import nif.j3d.J3dNiSkinInstance;
+import nif.j3d.animation.tes3.J3dNiSequenceStreamHelper;
 import tools.swing.DetailsFileChooser;
 import tools.swing.TitledJFileChooser;
 import utils.source.MediaSources;
@@ -126,31 +134,39 @@ public class KfDisplayTester
 				{
 					//This is fine, just animate the bones and show them
 				}
-
-				DetailsFileChooser dfc = new DetailsFileChooser(skeletonNifModelFile, new DetailsFileChooser.Listener()
+				if (!skeletonNifModelFile.toLowerCase().contains("morrowind"))
 				{
-					@Override
-					public void fileSelected(File file)
+					DetailsFileChooser dfc = new DetailsFileChooser(skeletonNifModelFile, new DetailsFileChooser.Listener()
 					{
-						try
+						@Override
+						public void fileSelected(File file)
 						{
-							System.out.println("\tFile: " + file);
-							display(skeletonNifModelFile, skinNifFiles, file);
+							try
+							{
+								System.out.println("\tFile: " + file);
+								display(skeletonNifModelFile, skinNifFiles, file);
+							}
+							catch (Exception ex)
+							{
+								ex.printStackTrace();
+							}
 						}
-						catch (Exception ex)
+
+						@Override
+						public void directorySelected(File dir)
 						{
-							ex.printStackTrace();
+							//  ignored
 						}
-					}
+					});
 
-					@Override
-					public void directorySelected(File dir)
-					{
-						//  ignored
-					}
-				});
+					dfc.setFileFilter(new FileNameExtensionFilter("Kf files", "kf"));
 
-				dfc.setFileFilter(new FileNameExtensionFilter("Kf files", "kf"));
+				}
+				else
+				{
+					//morrowind has a single kf files named after sekeleton
+					displayTes3(skeletonNifModelFile, skinNifFiles);
+				}
 			}
 			else
 			{
@@ -173,6 +189,7 @@ public class KfDisplayTester
 
 		NifJ3dSkeletonRoot.showBoneMarkers = true;
 		J3dNiSkinInstance.showSkinBoneMarkers = false;//TODO: this doesn't show anything?
+		MediaSources mediaSources = new MediaSources(new FileMeshSource(), new FileTextureSource(), new FileSoundSource());
 
 		ArrayList<String> idleAnimations = new ArrayList<String>();
 
@@ -181,14 +198,77 @@ public class KfDisplayTester
 			idleAnimations.add(kff.getAbsolutePath());
 		}
 
-		MediaSources mediaSources = new MediaSources(new FileMeshSource(), new FileTextureSource(), new FileSoundSource());
-		NifCharacter nifCharacter = new NifCharacter(skeletonNifFile, skinNifFiles2, mediaSources, idleAnimations);
-
 		// now add the root to the scene so the controller sequence is live
+
+		NifCharacter nifCharacter = new NifCharacter(skeletonNifFile, skinNifFiles2, mediaSources, idleAnimations);
 		bg.addChild(nifCharacter);
 
 		transformGroup.addChild(bg);
 
+	}
+
+	private static void displayTes3(String skeletonNifFile, ArrayList<String> skinNifFiles2)
+	{
+		transformGroup.removeAllChildren();
+
+		BranchGroup bg = new BranchGroup();
+		bg.setCapability(BranchGroup.ALLOW_DETACH);
+
+		NifJ3dSkeletonRoot.showBoneMarkers = true;
+		J3dNiSkinInstance.showSkinBoneMarkers = false;//TODO: this doesn't show anything?
+		MediaSources mediaSources = new MediaSources(new FileMeshSource(), new FileTextureSource(), new FileSoundSource());
+
+		final NifCharacterTes3 nifCharacter = new NifCharacterTes3(skeletonNifFile, skinNifFiles2, mediaSources);
+		bg.addChild(nifCharacter);
+
+		transformGroup.addChild(bg);
+
+		// now display all sequences from the kf file for user to pickage
+		J3dNiSequenceStreamHelper j3dNiSequenceStreamHelper = nifCharacter.getJ3dNiSequenceStreamHelper();
+
+		JFrame frame = new JFrame("Select Sequence");
+		frame.setSize(200, 600);
+
+		final DefaultTableModel tableModel = new DefaultTableModel(new String[]
+		{ "FireName", "Length (ms)", }, 0)
+		{
+			@Override
+			public boolean isCellEditable(int row, int column)
+			{
+				return false; // disallow editing of the table
+			}
+
+			@Override
+			@SuppressWarnings("unchecked")
+			public Class<? extends Object> getColumnClass(int c)
+			{
+				return getValueAt(0, c).getClass();
+			}
+		};
+
+		for (String fireName : j3dNiSequenceStreamHelper.getAllSequences())
+		{
+			long len = j3dNiSequenceStreamHelper.getSequence(fireName).getLengthMS();
+			tableModel.addRow(new Object[]
+			{ fireName, len });
+		}
+		final JTable table = new JTable(tableModel);
+		table.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseClicked(MouseEvent e)
+			{
+				String newAnimation = (String) tableModel.getValueAt(table.convertRowIndexToModel(table.getSelectedRow()), 0);
+				System.out.println("newAnimation " + newAnimation);
+				nifCharacter.startAnimation(newAnimation, false);
+			}
+
+		});
+
+		table.setRowSorter(new TableRowSorter<DefaultTableModel>(tableModel));
+
+		frame.getContentPane().add(new JScrollPane(table));
+		frame.setVisible(true);
 	}
 
 	private static SimpleUniverse universe;

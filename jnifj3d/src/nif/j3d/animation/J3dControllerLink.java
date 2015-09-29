@@ -20,9 +20,9 @@ import nif.niobject.interpolator.NiInterpolator;
 
 public class J3dControllerLink extends Group
 {
-	private J3dNiInterpolator j3dNiInterpolator = null;
+	protected J3dNiInterpolator j3dNiInterpolator = null;
 
-	private J3dNiAVObject nodeTarget = null;
+	protected J3dNiAVObject nodeTarget = null;
 
 	private J3dNiGeomMorpherController j3dNiGeomMorpherController = null;
 
@@ -33,6 +33,12 @@ public class J3dControllerLink extends Group
 	//private String variable1 = "";
 
 	private String variable2 = "";
+
+	// for TES3
+	protected J3dControllerLink()
+	{
+
+	}
 
 	public J3dControllerLink(NifControllerLink controllerLink, NiToJ3dData niToJ3dData, float startTimeS, float stopTimeS,
 			J3dNiDefaultAVObjectPalette allBonesInSkeleton, ArrayList<NifJ3dVisRoot> allOtherModels)

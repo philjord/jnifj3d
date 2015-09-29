@@ -28,30 +28,41 @@ public class J3dNiControllerSequence extends Group
 
 	private ArrayList<SequenceListener> sequenceListeners = new ArrayList<SequenceListener>();
 
-	private J3dControllerLink[] controlledBlocks;
+	protected J3dControllerLink[] controlledBlocks;
 
-	private String fireName;
+	protected String fireName;
 
-	private J3dNiTextKeyExtraData j3dNiTextKeyExtraData;
+	protected J3dNiTextKeyExtraData j3dNiTextKeyExtraData;
 
 	private SequenceAlpha sequenceAlpha;
 
 	private float prevSquenceAlphaValue = 0;
 
-	private long lengthMS = 0;
+	protected long lengthMS = 0;
 
-	private float startTimeS = 0;
+	protected float startTimeS = 0;
 
-	private float stopTimeS = 0;
+	protected float stopTimeS = 0;
 
-	private float lengthS = 0;
+	protected float lengthS = 0;
 
 	private NiControllerSequence niControllerSequence;
 
 	private NiToJ3dData niToJ3dData;
 
-	private int cycleType = NiControllerSequence.CYCLE_CLAMP;
+	protected int cycleType = NiControllerSequence.CYCLE_CLAMP;
 
+	// for TES3
+	protected J3dNiControllerSequence()
+	{
+		sequenceEventsbehave.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
+		addChild(sequenceEventsbehave);
+
+		sequenceBehavior.setEnable(false);
+		sequenceBehavior.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
+		addChild(sequenceBehavior);
+	}
+	
 	public J3dNiControllerSequence(NiControllerSequence niControllerSequence, NiToJ3dData niToJ3dData)
 	{
 		this.niControllerSequence = niControllerSequence;
@@ -140,12 +151,13 @@ public class J3dNiControllerSequence extends Group
 	 */
 	public void fireSequenceOnce()
 	{
+		System.out.println("fired? " +this.getFireName());
 		fireSequence(true);
 	}
 
 	/**
-	 * This will trigger the sequnce, if it has the startloop and end loop tags it will continue looping until rampDown is called
-	 * otherwise if it ais cycleType == CYCLE_LOOP it will loop indefinately
+	 * This will trigger the sequence, if it has the startloop and end loop tags it will continue looping until rampDown is called
+	 * otherwise if it is cycleType == CYCLE_LOOP it will loop indefinately
 	 */
 	public void fireSequence()
 	{
@@ -157,21 +169,14 @@ public class J3dNiControllerSequence extends Group
 		sequenceAlpha.beginExit();
 	}
 
-	/*
-	 * TODO:
-	 * I need to have one varying behavior up here, work out the node dist just once(it's expensive)
-	 * call the alpha value just once, and then call all the interpolators below here with a process and a 
-	 * single alpha value given to each
-	 *  
-	 *
-	 */
-	private void fireSequence(boolean forceOnce)
+	protected void fireSequence(boolean forceOnce)
 	{
 		sequenceEventsbehave.setEnable(false);
 		sequenceBehavior.setEnable(false);
 
 		if (forceOnce)
 		{
+			//in theory the start time is working right here right now?
 			sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, false);
 		}
 		else
@@ -194,7 +199,7 @@ public class J3dNiControllerSequence extends Group
 		publishSequenceEvents();
 		sequenceEventsbehave.setEnable(true);
 
-		sequenceBehavior.setEnable(true);// disbales after loop if required
+		sequenceBehavior.setEnable(true);// disables after loop if required
 
 	}
 
@@ -271,12 +276,20 @@ public class J3dNiControllerSequence extends Group
 		return j3dNiTextKeyExtraData;
 	}
 
+	public void processSequence(float alphaValue)
+	{
+		for (J3dControllerLink j3dControllerLink : controlledBlocks)
+		{
+			j3dControllerLink.process(alphaValue);
+		}
+	}
+
 	/**
 	 * Our physical bounds is all children bounds nound
 	 * but damn slow to re calc so let's cache up! woot
 	 * @see javax.media.j3d.Node#getBounds()
 	 */
-	private Bounds cachedBounds = null;
+	protected Bounds cachedBounds = null;
 
 	@Override
 	public Bounds getBounds()
@@ -310,10 +323,7 @@ public class J3dNiControllerSequence extends Group
 		public void process()
 		{
 			float alphaValue = sequenceAlpha.value();
-			for (J3dControllerLink j3dControllerLink : controlledBlocks)
-			{
-				j3dControllerLink.process(alphaValue);
-			}
+			processSequence(alphaValue);
 
 			//turn off at the end
 			if (sequenceAlpha.finished())

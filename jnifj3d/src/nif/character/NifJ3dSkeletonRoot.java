@@ -3,18 +3,13 @@ package nif.character;
 import javax.media.j3d.Group;
 import javax.media.j3d.Transform3D;
 
-import nif.NiObjectList;
-import nif.NifFile;
 import nif.NifJ3dVisRoot;
 import nif.NifToJ3d;
-import nif.basic.NifRef;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiDefaultAVObjectPalette;
 import nif.j3d.J3dNiNode;
 import nif.j3d.NiToJ3dData;
 import nif.niobject.NiNode;
-import nif.niobject.NiObject;
-import nif.niobject.NiStringExtraData;
 import utils.source.MeshSource;
 
 public class NifJ3dSkeletonRoot extends Group
@@ -35,9 +30,8 @@ public class NifJ3dSkeletonRoot extends Group
 
 	public NifJ3dSkeletonRoot(String skeletonNifModelFile, MeshSource meshSource)
 	{
-		//TODO: this could be ninode only?
-		NifJ3dVisRoot skeleton = NifToJ3d.loadShapes(skeletonNifModelFile, meshSource, null);
-		NifFile sNifFile = NifToJ3d.loadNiObjects(skeletonNifModelFile, meshSource);
+		NifJ3dVisRoot skeleton = NifToJ3d.loadShapes(skeletonNifModelFile, meshSource, true);
+		//NifFile sNifFile = NifToJ3d.loadNiObjects(skeletonNifModelFile, meshSource);
 
 		this.root = skeleton.getVisualRoot();
 		niToJ3dData = skeleton.getNiToJ3dData();
@@ -59,7 +53,7 @@ public class NifJ3dSkeletonRoot extends Group
 				j3dNiNode.setVisualMarker(showBoneMarkers);
 
 				// note extra space character
-				if (niNode.name.indexOf("NonAccum") != -1 || niNode.name.indexOf("[COM ]") != -1)
+				if (niNode.name.indexOf("NonAccum") != -1 || niNode.name.indexOf("[COM ]") != -1 || niNode.name.indexOf("Main Bone") != -1)
 				{
 					if (nonAccumRoot != null)
 						System.out.println("setting nonAccumRoot more than once!!");
@@ -68,45 +62,37 @@ public class NifJ3dSkeletonRoot extends Group
 					nonAccumRoot = j3dNiNode;
 				}
 
-				if (niNode.name.equals("Bip01") || niNode.name.indexOf("[Root]") != -1)
+				if (niNode.name.equals("Bip01") || niNode.name.indexOf("[Root]") != -1 || niNode.name.indexOf("Root Bone") != -1)
 				{
 					if (skeletonRoot != null)
-						System.out.println("setting accumNode more than once!!");
+						System.out.println("setting skeletonRoot more than once!!");
 					skeletonRoot = j3dNiNode;
+
+					// clear the bone root of it's rot and trans as these are Y trans for height and y rots for yaw
+					// because in the real Gamebryo this is the node that is transformed by movement, where as we simply 
+					// do it one up from the root.
+					//TODO: damn crabs in obliv are sideways!
+					skeletonRoot.getTransformGroup().setTransform(new Transform3D());
 				}
 				allBonesInSkeleton.put(j3dNiNode.getName(), j3dNiNode);
 
-				// clear the bone root of it's rot and trans as these are Y trans for height and y rots for yaw
-				// because in the real Gamebryo this is the node that is transformed by movement, where as we simply 
-				// do it one up from the root.
-				NiStringExtraData niStringExtraData = getNiStringExtraData(niNode, sNifFile.blocks);
-				if ((niStringExtraData != null && niStringExtraData.stringData.indexOf("BoneRoot#") != -1)
-						|| niNode.name.indexOf("[Root]") != -1)
-				{
-					//TODO: taking this out make the horses head appear correct (bones must be right)
-					// but the skinned stuff is still on it's side
-					j3dNiNode.getTransformGroup().setTransform(new Transform3D());
-				}
 			}
 		}
+
+		if (nonAccumRoot == null)
+		{
+			//TES3 often has not these, let's see if the parent of Bip01 will do
+			//new Throwable("nonAccumRoot == null").printStackTrace();
+			nonAccumRoot = skeleton.getVisualRoot();
+		}
+
+		if (skeletonRoot == null)
+			new Throwable("skeletonRoot == null").getStackTrace();
 	}
 
 	public J3dNiNode getHeadJ3dNiNode()
 	{
 		return headJ3dNiNode;
-	}
-
-	private NiStringExtraData getNiStringExtraData(NiNode niNode, NiObjectList blocks)
-	{
-		for (NifRef nifRef : niNode.extraDataList)
-		{
-			NiObject niObject = blocks.get(nifRef);
-			if (niObject instanceof NiStringExtraData)
-			{
-				return (NiStringExtraData) niObject;
-			}
-		}
-		return null;
 	}
 
 	public J3dNiAVObject getNonAccumRoot()

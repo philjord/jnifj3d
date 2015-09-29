@@ -68,7 +68,7 @@ public class NifToJ3d
 		NifFile nifFile = loadNiObjects(modelFileName, meshSource);
 		if (nifFile != null)
 		{
-			NifJ3dVisRoot root = extractShapes(nifFile, textureSource);
+			NifJ3dVisRoot root = extractShapes(nifFile, textureSource, false);
 			NifJ3dHavokRoot phys = extractHavok(nifFile);
 
 			if (root != null)
@@ -86,7 +86,17 @@ public class NifToJ3d
 		NifFile nifFile = loadNiObjects(filename, meshSource);
 		if (nifFile != null)
 		{
-			return extractShapes(nifFile, textureSource);
+			return extractShapes(nifFile, textureSource, false);
+		}
+		return null;
+	}
+
+	public static NifJ3dVisRoot loadShapes(String filename, MeshSource meshSource, boolean nodesOnly)
+	{
+		NifFile nifFile = loadNiObjects(filename, meshSource);
+		if (nifFile != null)
+		{
+			return extractShapes(nifFile, null, nodesOnly);
 		}
 		return null;
 	}
@@ -111,7 +121,7 @@ public class NifToJ3d
 		return null;
 	}
 
-	private static NifJ3dVisRoot extractShapes(NifFile nifFile, TextureSource textureSource)
+	private static NifJ3dVisRoot extractShapes(NifFile nifFile, TextureSource textureSource, boolean nodesOnly)
 	{
 		if (nifFile != null)
 		{
@@ -124,13 +134,13 @@ public class NifToJ3d
 
 				if (root instanceof NiNode)
 				{
-					j3dNiAVObjectRoot = J3dNiNode.createNiNode((NiNode) root, niToJ3dData, textureSource, false);
+					j3dNiAVObjectRoot = J3dNiNode.createNiNode((NiNode) root, niToJ3dData, textureSource, nodesOnly);
 				}
 				else if (root instanceof BSTreeNode)
 				{
-					j3dNiAVObjectRoot = new J3dBSTreeNode((BSTreeNode) root, niToJ3dData, textureSource, false);
+					j3dNiAVObjectRoot = new J3dBSTreeNode((BSTreeNode) root, niToJ3dData, textureSource, nodesOnly);
 				}
-				else if (root instanceof NiTriShape)
+				else if (root instanceof NiTriShape && !nodesOnly)
 				{
 					j3dNiAVObjectRoot = new J3dNiTriShape((NiTriShape) root, niToJ3dData, textureSource);
 				}
@@ -191,6 +201,10 @@ public class NifToJ3d
 				{
 					j3dNiAVObjectRoot = new J3dNiTriShape((NiTriShape) root, niToJ3dData, null);
 				}
+				else
+				{
+					System.out.println("No root found in extractHavok!");
+				}
 
 				// now attach each havok node to it appropriate NiNOde				
 				for (NiObject niObject : nifFile.blocks.getNiObjects())
@@ -204,11 +218,11 @@ public class NifToJ3d
 					{
 						// morrowind special verison of above
 						J3dRootCollisionNode jrcn = new J3dRootCollisionNode((RootCollisionNode) niObject, niToJ3dData);
-						
+
 						// I hope they are always off root??? check this in all files						
-						if(((RootCollisionNode) niObject).parent.parent!=null)
+						if (((RootCollisionNode) niObject).parent.parent != null)
 							System.out.println("Bugger RootCollisionNode not off root!!!");
-						
+
 						j3dNiAVObjectRoot.addChild(jrcn);
 					}
 				}
@@ -243,19 +257,17 @@ public class NifToJ3d
 	{
 		if (nifFile != null)
 		{
+			NiToJ3dData niToJ3dData = new NiToJ3dData(nifFile.blocks);
+			// make the kf file root 
 			if (nifFile.blocks.root() instanceof NiControllerSequence)
 			{
-				// make the kf file root 
-				NiToJ3dData niToJ3dData = new NiToJ3dData(nifFile.blocks);
 				KfJ3dRoot kfJ3dRoot = new KfJ3dRoot((NiControllerSequence) niToJ3dData.root(), niToJ3dData);
-
 				return kfJ3dRoot;
 			}
 			else if (nifFile.blocks.root() instanceof NiSequenceStreamHelper)
 			{
-				//Pre 10.1.0.0 
-				//TODO: NiSequenceStreamHelper root F:\game media\Morrowind\Meshes\f\xfurn_redoran_flag_01.kf
-				return null;
+				KfJ3dRoot kfJ3dRoot = new KfJ3dRoot((NiSequenceStreamHelper) niToJ3dData.root(), niToJ3dData);
+				return kfJ3dRoot;
 			}
 			else
 			{

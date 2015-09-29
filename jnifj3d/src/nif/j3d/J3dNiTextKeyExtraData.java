@@ -1,22 +1,26 @@
 package nif.j3d;
 
-import nif.NiObjectList;
 import nif.character.TextKeyExtraDataKey;
-import nif.niobject.NiObject;
 import nif.niobject.NiTextKeyExtraData;
 
 public class J3dNiTextKeyExtraData
 {
-	private TextKeyExtraDataKey[] kfSequenceTimeData;
+	protected TextKeyExtraDataKey[] kfSequenceTimeData;
 
 	// common keys	
-	private float startTime = -1;
+	protected float startTime = -1;
 
-	private float startLoopTime = -1;
+	protected float startLoopTime = -1;
 
-	private float endLoopTime = -1;
+	protected float endLoopTime = -1;
 
-	private float endTime = -1;
+	protected float endTime = -1;
+
+	//for TES3
+	protected J3dNiTextKeyExtraData()
+	{
+
+	}
 
 	public J3dNiTextKeyExtraData(NiTextKeyExtraData niTextKeyExtraData)
 	{
@@ -69,18 +73,6 @@ public class J3dNiTextKeyExtraData
 		return newKFSequenceTimeData;
 	}
 
-	private static TextKeyExtraDataKey[] getKFSequenceTimeData(NiObjectList niObjects)
-	{
-		for (NiObject no : niObjects)
-		{
-			if (no instanceof NiTextKeyExtraData)
-			{
-				return getKFSequenceTimeData((NiTextKeyExtraData) no);
-			}
-		}
-		return null;
-	}
-
 	/**
 	 * Equals on text before :
 	 * @param niTextKeyExtraData
@@ -99,27 +91,6 @@ public class J3dNiTextKeyExtraData
 			}
 		}
 		return null;
-	}
-
-	/**
-	
-	 * @param niToJ3dData
-	 * @param key
-	 * @return -1 if no exist
-	 */
-	public static float getTimeForString(NiToJ3dData niToJ3dData, String key)
-	{
-
-		TextKeyExtraDataKey[] kfSequenceTimeData = getKFSequenceTimeData(niToJ3dData.getNiObjects());
-		if (kfSequenceTimeData != null)
-		{
-			TextKeyExtraDataKey data = getTimeForString(kfSequenceTimeData, key);
-			if (data != null)
-			{
-				return data.getTime();
-			}
-		}
-		return -1;
 	}
 
 	public TextKeyExtraDataKey[] getKfSequenceTimeData()

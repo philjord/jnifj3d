@@ -6,7 +6,7 @@ import javax.vecmath.Vector3f;
 
 import nif.j3d.NifTransformGroup;
 import nif.j3d.animation.interp.J3dNiTransformInterpolator;
-import nif.niobject.interpolator.NiTransformInterpolator;
+import nif.niobject.NiObject;
 
 public class RotPosScaleInterpolator extends TransformInterpolator
 {
@@ -64,7 +64,7 @@ public class RotPosScaleInterpolator extends TransformInterpolator
 		targetTransform.set(baseTransform);
 
 		// don't run skel animation at all
-		if (((NiTransformInterpolator) ((J3dNiTransformInterpolator) this.getOwner()).getOwner()).nVer.fileName.contains("skeleton"))
+		if (((NiObject) ((J3dNiTransformInterpolator) this.getOwner()).getOwner()).nVer.fileName.contains("skeleton"))
 		{
 			//TODO: after must stop skel animations totally at teh root
 			return;

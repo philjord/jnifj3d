@@ -75,7 +75,7 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 					{
 						for (int i = 0; i < controller.interpolatorWeights.length; i++)
 						{
-							// build and attach intrerps for later use, note index order match morph
+							// build and attach interps for later use, note index order match morph
 							NifMorphWeight nmw = controller.interpolatorWeights[i];
 
 							NifRef nr = nmw.interpolator;
@@ -85,6 +85,10 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 							createInterp(nr, niToJ3dData);
 						}
 					}
+				}
+				else
+				{
+					//TODO: god damn damn different!
 				}
 
 				if (nodeTarget instanceof J3dNiTriBasedGeom)
@@ -135,15 +139,33 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 	{
 		for (int i = 0; i < niMorphData.numMorphs; i++)
 		{
-			if (niMorphData.morphs[i].frameName.equalsIgnoreCase(action))
+			if (niMorphData.nVer.LOAD_VER <= NifVer.VER_10_1_0_0)
 			{
-				sequenceBehavior.setEnable(false);
-				currentNifMorph = niMorphData.morphs[i];
-				currentJ3dNiInterpolator = j3dNiInterpolators.get(i);
-				sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, false);
+				if (("Frame_" + i).equals(action))
+				{
+					/*sequenceBehavior.setEnable(false);
+					currentNifMorph = niMorphData.morphs[i];
+					currentJ3dNiInterpolator = j3dNiInterpolators.get(i);
+					sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, false);
 
-				sequenceBehavior.setEnable(true);// disables after loop if required
-				return;
+					sequenceBehavior.setEnable(true);// disables after loop if required
+					*/
+					//TODO: god damn damn different!
+					return;
+				}
+			}
+			else
+			{
+				if (niMorphData.morphs[i].frameName.equalsIgnoreCase(action))
+				{
+					sequenceBehavior.setEnable(false);
+					currentNifMorph = niMorphData.morphs[i];
+					currentJ3dNiInterpolator = j3dNiInterpolators.get(i);
+					sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, false);
+
+					sequenceBehavior.setEnable(true);// disables after loop if required
+					return;
+				}
 			}
 		}
 	}
@@ -162,12 +184,28 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 		{
 			for (int i = 0; i < niMorphData.numMorphs; i++)
 			{
-				if (niMorphData.morphs[i].frameName.equals(action))
+				if (niMorphData.nVer.LOAD_VER <= NifVer.VER_10_1_0_0)
 				{
-					sequenceBehavior.setEnable(false);
-					currentNifMorph = niMorphData.morphs[i];
-					sequenceAlpha = null;
-					currentJ3dNiInterpolator = null;
+					if (("Frame_" + i).equals(action))
+					{
+						/*sequenceBehavior.setEnable(false);
+						currentNifMorph = niMorphData.morphs[i];
+						sequenceAlpha = null;
+						currentJ3dNiInterpolator = null;*/
+						//TODO: god damn damn different!
+						return;
+					}
+				}
+				else
+				{
+					if (niMorphData.morphs[i].frameName.equals(action))
+					{
+						sequenceBehavior.setEnable(false);
+						currentNifMorph = niMorphData.morphs[i];
+						sequenceAlpha = null;
+						currentJ3dNiInterpolator = null;
+						return;
+					}
 				}
 			}
 		}
@@ -178,7 +216,14 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 		String[] strings = new String[niMorphData.numMorphs];
 		for (int i = 0; i < niMorphData.numMorphs; i++)
 		{
-			strings[i] = niMorphData.morphs[i].frameName;
+			if (niMorphData.nVer.LOAD_VER <= NifVer.VER_10_1_0_0)
+			{
+				strings[i] = "Frame_" + i;
+			}
+			else
+			{
+				strings[i] = niMorphData.morphs[i].frameName;
+			}
 		}
 		return strings;
 	}

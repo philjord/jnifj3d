@@ -39,25 +39,25 @@ public class NifCharacter extends BranchGroup
 
 	private ArrayList<J3dNiSkinInstance> allSkins = new ArrayList<J3dNiSkinInstance>();
 
-	private ArrayList<NifJ3dVisRoot> allOtherModels = new ArrayList<NifJ3dVisRoot>();
+	protected ArrayList<NifJ3dVisRoot> allOtherModels = new ArrayList<NifJ3dVisRoot>();
 
-	private String currentAnimation = "";
+	protected String currentAnimation = "";
 
-	private String nextAnimation = "";
+	protected String nextAnimation = "";
 
-	private boolean returnToIdleWhenDone = true;
+	protected boolean returnToIdleWhenDone = true;
 
-	private List<String> idleAnimations;
+	protected List<String> idleAnimations;
 
 	private KfJ3dRoot currentkfJ3dRoot;
 
-	private BlendedSkeletons blendedSkeletons;
+	protected BlendedSkeletons blendedSkeletons;
 
-	private BranchGroup currentKfBg;
+	protected BranchGroup currentKfBg;
 
 	private NifCharUpdateBehavior updateBehavior;
 
-	private ArrayList<J3dNiGeomMorpherController> allMorphs = new ArrayList<J3dNiGeomMorpherController>();
+	protected ArrayList<J3dNiGeomMorpherController> allMorphs = new ArrayList<J3dNiGeomMorpherController>();
 
 	private ArrayList<CharacterAttachment> attachments = new ArrayList<CharacterAttachment>();
 
@@ -174,11 +174,10 @@ public class NifCharacter extends BranchGroup
 	/**
 	 * Note no caching as the file load cache of niffile is the only step that can support it
 	 */
-	private void updateAnimation()
+	protected void updateAnimation()
 	{
 		if (nextAnimation.length() > 0)
 		{
-
 			currentAnimation = nextAnimation;
 			nextAnimation = "";
 
@@ -203,7 +202,7 @@ public class NifCharacter extends BranchGroup
 
 					newKfBg.addChild(kfJ3dRoot);
 					// add it on
-					addChild(newKfBg);
+					addChild(newKfBg);					 
 
 					kfJ3dRoot.getJ3dNiControllerSequence().addSequenceListener(new SequenceSoundListener());
 					kfJ3dRoot.getJ3dNiControllerSequence().fireSequence();
@@ -283,9 +282,9 @@ public class NifCharacter extends BranchGroup
 
 	}
 
-	private long prevMorphTime = 0;
+	protected long prevMorphTime = 0;
 
-	private float nextFireTime = 0;
+	protected float nextFireTime = 0;
 
 	/**
 	 * This only sets teh new animation if it is different from our current, otherwise ignore

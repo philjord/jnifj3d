@@ -6,6 +6,7 @@ import javax.media.j3d.Node;
 import javax.media.j3d.Transform3D;
 
 import nif.niobject.NiAVObject;
+import nif.niobject.NiSequenceStreamHelper;
 import nif.niobject.bs.BSFadeNode;
 import utils.convert.ConvertFromNif;
 
@@ -48,6 +49,15 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 
 		transformGroup.setTransform(t1);
 		super.addChild(transformGroup);
+	}
+
+	//for Tes3 kf files they are subs of NiObjectNET but I can't risk altering everything in the univers
+	public J3dNiAVObject(NiSequenceStreamHelper niSequenceStreamHelper, NiToJ3dData niToJ3dData)
+	{
+		super(niSequenceStreamHelper, niToJ3dData);
+		this.setName(niSequenceStreamHelper.name);
+		// notice nothing added to niToJ3dData
+		// notice no transform group
 	}
 
 	/**

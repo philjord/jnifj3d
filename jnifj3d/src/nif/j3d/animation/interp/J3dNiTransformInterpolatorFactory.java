@@ -15,7 +15,6 @@ public class J3dNiTransformInterpolatorFactory
 	public static J3dNiInterpolator createTransformInterpolator(NiInterpolator niInterpolator, NiToJ3dData niToJ3dData,
 			J3dNiAVObject nodeTarget, float startTimeS, float stopTimeS)
 	{
-
 		float lengthS = stopTimeS - startTimeS;
 
 		NifTransformGroup targetTransform = nodeTarget.getTransformGroup();

@@ -10,6 +10,13 @@ public class TextKeyExtraDataKey
 
 	private float time = -1;
 
+	// for TES3
+	public TextKeyExtraDataKey(String textKey, float time)
+	{
+		this.textKey = textKey;
+		this.time = time;
+	}
+
 	public TextKeyExtraDataKey(NifKey nifKey)
 	{
 		String value = (String) nifKey.value;
