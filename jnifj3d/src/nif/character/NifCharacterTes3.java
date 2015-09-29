@@ -25,33 +25,40 @@ public class NifCharacterTes3 extends NifCharacter
 		super(skeletonNifFilename, skinNifModelFilenames, mediaSources, null);
 
 		KfJ3dRoot kfJ3dRoot = null;
-		String kfName = skeletonNifFilename.substring(0, skeletonNifFilename.indexOf(".nif")) + ".kf";
-		kfJ3dRoot = NifToJ3d.loadKf(kfName, mediaSources.getMeshSource());
-		if (kfJ3dRoot != null)
+		if (skeletonNifFilename.toLowerCase().indexOf(".nif") != -1)
 		{
-			// just default to a 0.3 second blend?
-			Alpha defaultAlpha = new SequenceAlpha(0, 0.3f, false);
-			defaultAlpha.setStartTime(System.currentTimeMillis());
+			String kfName = skeletonNifFilename.substring(0, skeletonNifFilename.toLowerCase().indexOf(".nif")) + ".kf";
+			kfJ3dRoot = NifToJ3d.loadKf(kfName, mediaSources.getMeshSource());
+			if (kfJ3dRoot != null)
+			{
+				// just default to a 0.3 second blend?
+				Alpha defaultAlpha = new SequenceAlpha(0, 0.3f, false);
+				defaultAlpha.setStartTime(System.currentTimeMillis());
 
-			NifJ3dSkeletonRoot inputSkeleton = blendedSkeletons.startNewInputAnimation(defaultAlpha);
-			kfJ3dRoot.setAnimatedSkeleton(inputSkeleton.getAllBonesInSkeleton(), allOtherModels);
-			//TODO: this input skeleton needs to be reset on a new animation call, 
-			//but setAnimatedSkeleton only happens once in J3dNiSequenceStreamHelper
+				NifJ3dSkeletonRoot inputSkeleton = blendedSkeletons.startNewInputAnimation(defaultAlpha);
+				kfJ3dRoot.setAnimatedSkeleton(inputSkeleton.getAllBonesInSkeleton(), allOtherModels);
+				//TODO: this input skeleton needs to be reset on a new animation call, 
+				//but setAnimatedSkeleton only happens once in J3dNiSequenceStreamHelper
 
-			j3dNiSequenceStreamHelper = kfJ3dRoot.getJ3dNiSequenceStreamHelper();
-			addChild(kfJ3dRoot);
+				j3dNiSequenceStreamHelper = kfJ3dRoot.getJ3dNiSequenceStreamHelper();
+				addChild(kfJ3dRoot);
 
-			// now set the list of idle animations from the kf file 
-			idleAnimations = new ArrayList<String>();
-			for (String fireName : j3dNiSequenceStreamHelper.getAllSequences())
-				idleAnimations.add(fireName);
+				// now set the list of idle animations from the kf file 
+				idleAnimations = new ArrayList<String>();
+				for (String fireName : j3dNiSequenceStreamHelper.getAllSequences())
+					idleAnimations.add(fireName);
 
-			//set us up with the idle anim
-			updateAnimation();
+				//set us up with the idle anim
+				updateAnimation();
+			}
+			else
+			{
+				System.out.println("No TES3 kf file for " + skeletonNifFilename + " " + kfName);
+			}
 		}
 		else
 		{
-			System.out.println("No TES3 kf file for " + skeletonNifFilename + " " + kfName);
+			System.out.println("No TES3 kf file for " + skeletonNifFilename + " (missing .nif)");
 		}
 
 	}
@@ -83,7 +90,7 @@ public class NifCharacterTes3 extends NifCharacter
 
 			// now add the root to the scene so the controller sequence is live
 			BranchGroup newKfBg = currentSequence.getBranchGroup();
-			
+
 			// add it on
 			addChild(newKfBg);
 
@@ -108,9 +115,6 @@ public class NifCharacterTes3 extends NifCharacter
 			nextAnimation = idleAnimations.get(r);
 			if (nextAnimation.length() > 0)
 				updateAnimation();
-
-			System.out.println("new animation " + nextAnimation);
-
 		}
 
 		if (System.currentTimeMillis() - prevMorphTime > (3000 + nextFireTime))
