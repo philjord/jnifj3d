@@ -25,9 +25,12 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 			FloatInterpolator.Listener callBack)
 	{
 		makeKnotsFloats(niFloatInterpolator, niToJ3dData, startTimeS, lengthS);
-		if (callBack == null)
+
+		if (callBack != null)
+			createInterpolator(callBack);
+		else
 			new Throwable("null callback in " + niFloatInterpolator.nVer.fileName).printStackTrace();
-		createInterpolator(callBack);
+
 	}
 
 	//TODO: make this add interp so many can be called back from one
