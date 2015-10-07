@@ -21,12 +21,15 @@ import javax.vecmath.Point3f;
 import nif.NifJ3dVisRoot;
 import nif.NifToJ3d;
 import nif.j3d.J3dNiAVObject;
+import nif.j3d.J3dNiGeometry;
 import nif.j3d.J3dNiNode;
 import nif.j3d.J3dNiSkinInstance;
 import nif.j3d.animation.J3dNiControllerSequence.SequenceListener;
 import nif.j3d.animation.J3dNiGeomMorpherController;
 import nif.j3d.animation.SequenceAlpha;
 import nif.niobject.NiExtraData;
+import nif.niobject.NiGeometry;
+import nif.niobject.NiNode;
 import nif.niobject.NiStringExtraData;
 import tools3d.utils.Utils3D;
 import tools3d.utils.scenegraph.VaryingLODBehaviour;
@@ -110,11 +113,10 @@ public class NifCharacter extends BranchGroup
 				}
 				else
 				{
-					// add any non skin based gear like hats!!	
+					// add any non skin based gear from other files like hats!!	
 					allOtherModels.add(model);
 
 					// use an nistringextra of weapon and shield, node name of prn for extra data
-
 					for (NiExtraData ned : model.getVisualRoot().getExtraDataList())
 					{
 						if (ned instanceof NiStringExtraData)
@@ -135,14 +137,37 @@ public class NifCharacter extends BranchGroup
 							}
 						}
 					}
+				}
 
-					//add all morphs into a bunch for fun
-					for (J3dNiAVObject j3dNiAVObject : model.getNiToJ3dData().j3dNiAVObjectValues())
+				//add all morphs into a bunch for fun 
+				for (J3dNiAVObject j3dNiAVObject : model.getNiToJ3dData().j3dNiAVObjectValues())
+				{
+					J3dNiGeomMorpherController j3dNiGeomMorpherController = j3dNiAVObject.getJ3dNiGeomMorpherController();
+					if (j3dNiGeomMorpherController != null)
 					{
-						J3dNiGeomMorpherController j3dNiGeomMorpherController = j3dNiAVObject.getJ3dNiGeomMorpherController();
-						if (j3dNiGeomMorpherController != null)
+						allMorphs.add(j3dNiGeomMorpherController);
+					}
+				}
+
+				//For TES3: add any unskinned trishapes in the skin file onto the bones
+				for (J3dNiAVObject j3dNiAVObject : model.getNiToJ3dData().j3dNiAVObjectValues())
+				{
+					if (j3dNiAVObject instanceof J3dNiGeometry)
+					{
+						J3dNiGeometry j3dNiGeometry = (J3dNiGeometry) j3dNiAVObject;
+						NiGeometry niGeometry = (NiGeometry) j3dNiGeometry.getNiAVObject();
+						if (niGeometry.skin.ref == -1)
 						{
-							allMorphs.add(j3dNiGeomMorpherController);
+							NiNode parent = niGeometry.parent;
+							J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton().get(parent.name);
+							if (attachnode != null)
+							{
+								//TODO: this is possibly a bad idea?
+								j3dNiAVObject.topOfParent.removeAllChildren();
+								CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, skeletonNifFilename, j3dNiAVObject);
+								this.addChild(ca);
+								attachments.add(ca);
+							}
 						}
 					}
 				}
@@ -202,7 +227,7 @@ public class NifCharacter extends BranchGroup
 
 					newKfBg.addChild(kfJ3dRoot);
 					// add it on
-					addChild(newKfBg);					 
+					addChild(newKfBg);
 
 					kfJ3dRoot.getJ3dNiControllerSequence().addSequenceListener(new SequenceSoundListener());
 					kfJ3dRoot.getJ3dNiControllerSequence().fireSequence();
@@ -255,8 +280,9 @@ public class NifCharacter extends BranchGroup
 			}
 
 		}
-		else if (idleAnimations.size() > 0
-				&& (currentkfJ3dRoot == null || (currentkfJ3dRoot.getJ3dNiControllerSequence().isNotRunning() && returnToIdleWhenDone)))
+		else if (idleAnimations.size() > 0 && (currentkfJ3dRoot == null || //
+				(currentkfJ3dRoot.getJ3dNiControllerSequence().isNotRunning() && returnToIdleWhenDone) || //
+				System.currentTimeMillis() - prevAnimTime > 10000))
 		{
 			//TODO: I've a list of idle, measure time in idle and change from time to time
 			//otherwise drop back to idle if the current has finished 
@@ -265,22 +291,31 @@ public class NifCharacter extends BranchGroup
 			if (nextAnimation.length() > 0)
 				updateAnimation();
 
+			prevAnimTime = System.currentTimeMillis();
+
 		}
 
-		if (System.currentTimeMillis() - prevMorphTime > (3000 + nextFireTime))
+		if (System.currentTimeMillis() - prevMorphTime > nextFireTime)
 		{
+			float maxLength = 0;
 			for (J3dNiGeomMorpherController j3dNiGeomMorpherController : allMorphs)
 			{
 				String[] morphsFrames = j3dNiGeomMorpherController.getAllMorphFrameNames();
 				int r2 = (int) (Math.random() * morphsFrames.length - 1);
 				String frame = morphsFrames[r2];
 				j3dNiGeomMorpherController.fireFrameName(frame);
+
+				if (maxLength < j3dNiGeomMorpherController.getLength())
+					maxLength = j3dNiGeomMorpherController.getLength();
 			}
+
 			prevMorphTime = System.currentTimeMillis();
-			nextFireTime = new Random(prevMorphTime).nextFloat() * 7000f;
+			nextFireTime = (maxLength * 1000) + (new Random().nextFloat() * 3000f);
 		}
 
 	}
+
+	protected long prevAnimTime = 0;
 
 	protected long prevMorphTime = 0;
 

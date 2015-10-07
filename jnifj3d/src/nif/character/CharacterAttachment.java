@@ -8,7 +8,7 @@ import nif.j3d.J3dNiNode;
 import tools3d.utils.scenegraph.EasyTransformGroup;
 
 /**
- * Attachments can be faces or weapons, so some or removable, some are not
+ * Attachments can be faces or weapons, so some are removable, some are not
  * @author philip
  *
  */

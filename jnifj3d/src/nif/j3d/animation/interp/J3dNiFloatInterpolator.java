@@ -2,6 +2,7 @@ package nif.j3d.animation.interp;
 
 import nif.compound.NifKey;
 import nif.compound.NifKeyGroup;
+import nif.compound.NifMorph;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.compound.KnotsFloats;
 import nif.j3d.interp.FloatInterpolator;
@@ -33,6 +34,18 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 
 	}
 
+	//FOR TES3
+	public J3dNiFloatInterpolator(NifMorph nifMorph, float startTimeS, float lengthS, FloatInterpolator.Listener callBack)
+	{
+		makeKnotsFloats(nifMorph.Keys, startTimeS, lengthS);
+
+		if (callBack != null)
+			createInterpolator(callBack);
+		else
+			new Throwable("null callback in nifMorph " + nifMorph.nVer.fileName).printStackTrace();
+
+	}
+
 	//TODO: make this add interp so many can be called back from one
 	private void createInterpolator(FloatInterpolator.Listener callBack)
 	{
@@ -54,16 +67,29 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 		{
 			NifKeyGroup floatData = ((NiFloatData) niToJ3dData.get(niFloatInterpolator.data)).data;
 
-			if (floatData.keys.length > 2 || (floatData.keys.length == 2 && !floatData.keys[0].value.equals(floatData.keys[1].value)))
+			makeKnotsFloats(floatData.keys, startTimeS, lengthS);
+		}
+		else
+		{
+			constantFloat = niFloatInterpolator.floatValue;
+		}
+	}
+
+	private void makeKnotsFloats(NifKey[] keys, float startTimeS, float lengthS)
+	{
+		if (keys != null && keys.length > 0)
+		{
+			if (keys.length > 2 || (keys.length == 2 && !keys[0].value.equals(keys[1].value)))
 			{
-				//floatData.interpolation.type tends to be 1 or 2
+				// floatData.interpolation.type tends to be 1 LINEAR_KEY or 2 QUADRATIC_KEY
+				// below is ONLY LINEAR_KEY
 
-				float[] knots = new float[floatData.keys.length];
-				float[] values = new float[floatData.keys.length];
+				float[] knots = new float[keys.length];
+				float[] values = new float[keys.length];
 
-				for (int i = 0; i < floatData.keys.length; i++)
+				for (int i = 0; i < keys.length; i++)
 				{
-					NifKey key = floatData.keys[i];
+					NifKey key = keys[i];
 					// make into 0 to 1 form
 					knots[i] = (key.time - startTimeS) / lengthS;
 					values[i] = (Float) key.value;
@@ -76,13 +102,67 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 			else
 			{
 				// if it's a single value (or 2 the same) then make a constant out of it
-				NifKey key = floatData.keys[0];
+				NifKey key = keys[0];
 				constantFloat = (Float) key.value;
 			}
 		}
 		else
 		{
-			constantFloat = niFloatInterpolator.floatValue;
+			// it's buggered
+			constantFloat = 0;
 		}
+
 	}
+
+	//The interp type should be used by users of this float interp to interp the value as below
+
+	/** Quaternion linear interpolation /
+	Quaternion slerp(float t, Quaternion p, Quaternion q) {
+	  float cosTheta = p.data.Dot(q.data);
+	  float theta    = acosf(cosTheta);
+	  float sinTheta = sinf(theta);
+	  float wp, wq;
+
+	  if (sinTheta > 0.001f) {
+	    wq = sinf(        t  * theta) / sinTheta;
+	    wp = sinf((1.0f - t) * theta) / sinTheta;
+	  }
+	  else {
+	    wq =         t ;
+	    wp = (1.0f - t);
+	  }
+
+	  return (p.data * wp) + (q.data * wq);
+	}
+
+	
+	   Quaternion quadratic interpolation 
+	Quaternion squad(float t, Quaternion p, Quaternion a, Quaternion b, Quaternion q) {
+	  Quaternion sq1 = slerp(t, p, q);
+	  Quaternion sq2 = slerp(t, a, b);
+
+	  return slerp(2.0f * t * (1.0f - t), sq1, sq2);
+	}
+
+	/ Scalar/Vector linear interpolation /
+	K lerp(float t, Key<K> p, Key<K> q) {
+	  float wp, wq;
+
+	  wq =         t ;
+	  wp = (1.0f - t);
+
+	  return (p->data * wp) + (q->data * wq);
+	}
+
+	/ Scalar/Vector quadratic interpolation /
+	K herp(float t, Key<K> p, K a, K b, Key<K> q) {
+	  K po1 = (q->value - p->value) * 3.0f - (a * 2.0f + b);
+	  K po2 = (p->value - q->value) * 2.0f + (a        + b);
+
+	  K po3 = (po2 * t) + po1;
+	  K po4 = (po3 * t) + a;
+	  K po5 = (po4 * t) + p;
+
+	  return po5;
+	}*/
 }

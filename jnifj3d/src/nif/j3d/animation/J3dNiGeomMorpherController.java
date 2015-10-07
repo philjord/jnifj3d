@@ -14,7 +14,9 @@ import nif.basic.NifRef;
 import nif.compound.NifMorph;
 import nif.compound.NifMorphWeight;
 import nif.j3d.J3dNiTriBasedGeom;
+import nif.j3d.J3dNiTriShape;
 import nif.j3d.NiToJ3dData;
+import nif.j3d.animation.interp.J3dNiFloatInterpolator;
 import nif.j3d.animation.interp.J3dNiInterpolator;
 import nif.niobject.NiAVObject;
 import nif.niobject.NiMorphData;
@@ -88,7 +90,10 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 				}
 				else
 				{
-					//TODO: god damn damn different!
+					for (int i = 0; i < niMorphData.numMorphs; i++)
+					{
+						createInterp(niMorphData.morphs[i], niToJ3dData);
+					}
 				}
 
 				if (nodeTarget instanceof J3dNiTriBasedGeom)
@@ -96,8 +101,16 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 					// this bad boy is not connect to scene graph!
 					J3dNiTriBasedGeom j3dNiTriBasedGeom = (J3dNiTriBasedGeom) nodeTarget;
 					j3dNiTriBasedGeom.makeMorphable();
-
-					itsa = ((J3dNiTriBasedGeom) nodeTarget).getBaseGeometryArray();
+					// trishape use a base and current as then are truely animateable
+					if (nodeTarget instanceof J3dNiTriShape)
+					{
+						itsa = ((J3dNiTriShape) j3dNiTriBasedGeom).getCurrentGeometryArray();
+					}
+					else
+					{
+						// should be a tristriparray
+						itsa = j3dNiTriBasedGeom.getBaseGeometryArray();
+					}
 
 					// take a copy of the base vert coords
 					float[] coords = itsa.getCoordRefFloat();
@@ -114,6 +127,26 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 				addChild(sequenceBehavior);
 			}
 		}
+	}
+
+	public float getLength()
+	{
+		return stopTimeS - startTimeS;
+	}
+
+	/**
+	 * For TES version the interpolators are just stuck in teh NifMorph as keys
+	 * @param nifMorph
+	 * @param niToJ3dData
+	 */
+	private void createInterp(NifMorph nifMorph, NiToJ3dData niToJ3dData)
+	{
+		float lengthS = stopTimeS - startTimeS;
+		J3dNiFloatInterpolator j3dNiInterpolator = new J3dNiFloatInterpolator(nifMorph, startTimeS, lengthS, this);
+
+		j3dNiInterpolators.add(j3dNiInterpolator);
+		addChild(j3dNiInterpolator);
+
 	}
 
 	private void createInterp(NifRef nr, NiToJ3dData niToJ3dData)
@@ -143,14 +176,12 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 			{
 				if (("Frame_" + i).equals(action))
 				{
-					/*sequenceBehavior.setEnable(false);
+					sequenceBehavior.setEnable(false);
 					currentNifMorph = niMorphData.morphs[i];
 					currentJ3dNiInterpolator = j3dNiInterpolators.get(i);
 					sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, false);
 
 					sequenceBehavior.setEnable(true);// disables after loop if required
-					*/
-					//TODO: god damn damn different!
 					return;
 				}
 			}
@@ -188,11 +219,10 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 				{
 					if (("Frame_" + i).equals(action))
 					{
-						/*sequenceBehavior.setEnable(false);
+						sequenceBehavior.setEnable(false);
 						currentNifMorph = niMorphData.morphs[i];
 						sequenceAlpha = null;
-						currentJ3dNiInterpolator = null;*/
-						//TODO: god damn damn different!
+						currentJ3dNiInterpolator = null;
 						return;
 					}
 				}
@@ -235,6 +265,7 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 		if (currentNifMorph != null && itsa != null)
 		{
 			final float interpValue = value;
+
 			// use a local as the member can be swapped out anytime
 			final NifMorph localCurrentNifMorph = currentNifMorph;
 
@@ -259,6 +290,7 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 						coordRefFloat[(i * 3) + 1] = y1 + (y2 * (interpValue));
 						coordRefFloat[(i * 3) + 2] = z1 + (z2 * (interpValue));
 					}
+
 				}
 			});
 		}

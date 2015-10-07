@@ -106,28 +106,40 @@ public class NifCharacterTes3 extends NifCharacter
 			// assign currents
 			currentKfBg = newKfBg;
 		}
-		else if (idleAnimations != null && idleAnimations.size() > 0
-				&& (currentSequence == null || (currentSequence.isNotRunning() && returnToIdleWhenDone)))
+		else if (idleAnimations != null && //
+				idleAnimations.size() > 0 && //
+				(currentSequence == null || //
+						(currentSequence.isNotRunning() && returnToIdleWhenDone) || //
+				System.currentTimeMillis() - prevAnimTime > 10000))
 		{
-			//TODO: I've a list of idle, measure time in idle and change from time to time
-			//otherwise drop back to idle if the current has finished 
-			int r = (int) (Math.random() * idleAnimations.size() - 1);
+			int r = (int) (Math.random() * idleAnimations.size());
+			r = r == idleAnimations.size() ? 0 : r;
 			nextAnimation = idleAnimations.get(r);
 			if (nextAnimation.length() > 0)
 				updateAnimation();
+
+			prevAnimTime = System.currentTimeMillis();
 		}
 
-		if (System.currentTimeMillis() - prevMorphTime > (3000 + nextFireTime))
+		if (System.currentTimeMillis() - prevMorphTime > nextFireTime)
 		{
+			float maxLength = 0;
 			for (J3dNiGeomMorpherController j3dNiGeomMorpherController : allMorphs)
 			{
 				String[] morphsFrames = j3dNiGeomMorpherController.getAllMorphFrameNames();
-				int r2 = (int) (Math.random() * morphsFrames.length - 1);
+				int r2 = (int) (Math.random() * morphsFrames.length);
+				r2 = r2 == morphsFrames.length ? 0 : r2;
 				String frame = morphsFrames[r2];
+				System.out.println("frame " + frame);
 				j3dNiGeomMorpherController.fireFrameName(frame);
+
+				if (maxLength < j3dNiGeomMorpherController.getLength())
+					maxLength = j3dNiGeomMorpherController.getLength();
 			}
+
 			prevMorphTime = System.currentTimeMillis();
-			nextFireTime = new Random(prevMorphTime).nextFloat() * 7000f;
+			nextFireTime = (maxLength * 1000) + (new Random().nextFloat() * 3000f);
+
 		}
 
 	}

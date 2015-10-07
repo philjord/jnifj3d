@@ -45,14 +45,14 @@ public class J3dControllerLink extends Group
 	{
 		float lengthS = stopTimeS - startTimeS;
 
-		if (niToJ3dData.nifVer.LOAD_VER >= NifVer.VER_20_1_0_3)
+		if (niToJ3dData.nifVer.LOAD_VER == NifVer.VER_10_1_0_106 || niToJ3dData.nifVer.LOAD_VER >= NifVer.VER_20_1_0_3)
 		{
 			nodeName = controllerLink.nodeName;
 			//variable1 = controllerLink.variable1;
 			variable2 = controllerLink.variable2;
 			controllerType = controllerLink.controllerType;
 		}
-		else if (niToJ3dData.nifVer.LOAD_VER <= NifVer.VER_20_0_0_5)
+		else if (niToJ3dData.nifVer.LOAD_VER >= NifVer.VER_10_2_0_0 && niToJ3dData.nifVer.LOAD_VER <= NifVer.VER_20_0_0_5)
 		{
 			int nodeNameOffset = controllerLink.nodeNameOffset.offset;
 			if (nodeNameOffset != -1)
