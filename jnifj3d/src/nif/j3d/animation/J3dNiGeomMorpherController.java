@@ -174,6 +174,8 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 		{
 			if (niMorphData.nVer.LOAD_VER <= NifVer.VER_10_1_0_0)
 			{
+				//TODO: b_n_dark_elf_head_06 has a NiTextKeyExtraData 
+				// that shows the pieces of teh geomorph animation by time slice
 				if (("Frame_" + i).equals(action))
 				{
 					sequenceBehavior.setEnable(false);

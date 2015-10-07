@@ -21,15 +21,12 @@ import javax.vecmath.Point3f;
 import nif.NifJ3dVisRoot;
 import nif.NifToJ3d;
 import nif.j3d.J3dNiAVObject;
-import nif.j3d.J3dNiGeometry;
 import nif.j3d.J3dNiNode;
 import nif.j3d.J3dNiSkinInstance;
 import nif.j3d.animation.J3dNiControllerSequence.SequenceListener;
 import nif.j3d.animation.J3dNiGeomMorpherController;
 import nif.j3d.animation.SequenceAlpha;
 import nif.niobject.NiExtraData;
-import nif.niobject.NiGeometry;
-import nif.niobject.NiNode;
 import nif.niobject.NiStringExtraData;
 import tools3d.utils.Utils3D;
 import tools3d.utils.scenegraph.VaryingLODBehaviour;
@@ -62,7 +59,7 @@ public class NifCharacter extends BranchGroup
 
 	protected ArrayList<J3dNiGeomMorpherController> allMorphs = new ArrayList<J3dNiGeomMorpherController>();
 
-	private ArrayList<CharacterAttachment> attachments = new ArrayList<CharacterAttachment>();
+	protected ArrayList<CharacterAttachment> attachments = new ArrayList<CharacterAttachment>();
 
 	public NifCharacter(String skeletonNifFilename, List<String> skinNifModelFilenames, MediaSources mediaSources,
 			List<String> idleAnimations)
@@ -146,29 +143,6 @@ public class NifCharacter extends BranchGroup
 					if (j3dNiGeomMorpherController != null)
 					{
 						allMorphs.add(j3dNiGeomMorpherController);
-					}
-				}
-
-				//For TES3: add any unskinned trishapes in the skin file onto the bones
-				for (J3dNiAVObject j3dNiAVObject : model.getNiToJ3dData().j3dNiAVObjectValues())
-				{
-					if (j3dNiAVObject instanceof J3dNiGeometry)
-					{
-						J3dNiGeometry j3dNiGeometry = (J3dNiGeometry) j3dNiAVObject;
-						NiGeometry niGeometry = (NiGeometry) j3dNiGeometry.getNiAVObject();
-						if (niGeometry.skin.ref == -1)
-						{
-							NiNode parent = niGeometry.parent;
-							J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton().get(parent.name);
-							if (attachnode != null)
-							{
-								//TODO: this is possibly a bad idea?
-								j3dNiAVObject.topOfParent.removeAllChildren();
-								CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, skeletonNifFilename, j3dNiAVObject);
-								this.addChild(ca);
-								attachments.add(ca);
-							}
-						}
 					}
 				}
 			}

@@ -7,11 +7,17 @@ import java.util.Random;
 import javax.media.j3d.Alpha;
 import javax.media.j3d.BranchGroup;
 
+import nif.NifJ3dVisRoot;
 import nif.NifToJ3d;
+import nif.j3d.J3dNiAVObject;
+import nif.j3d.J3dNiGeometry;
+import nif.j3d.J3dNiNode;
 import nif.j3d.animation.J3dNiGeomMorpherController;
 import nif.j3d.animation.SequenceAlpha;
 import nif.j3d.animation.tes3.J3dNiControllerSequenceTes3;
 import nif.j3d.animation.tes3.J3dNiSequenceStreamHelper;
+import nif.niobject.NiGeometry;
+import nif.niobject.NiNode;
 import utils.source.MediaSources;
 
 public class NifCharacterTes3 extends NifCharacter
@@ -23,6 +29,136 @@ public class NifCharacterTes3 extends NifCharacter
 	public NifCharacterTes3(String skeletonNifFilename, List<String> skinNifModelFilenames, MediaSources mediaSources)
 	{
 		super(skeletonNifFilename, skinNifModelFilenames, mediaSources, null);
+
+		for (String skinNifModelFilename : skinNifModelFilenames)
+		{
+			if (skinNifModelFilename != null && skinNifModelFilename.length() > 0)
+			{
+				NifJ3dVisRoot model = NifToJ3d.loadShapes(skinNifModelFilename, mediaSources.getMeshSource(),
+						mediaSources.getTextureSource());
+
+				boolean leftRequired = false;
+				//For TES3: add any unskinned trishapes in the skin file onto the bones
+				for (J3dNiAVObject j3dNiAVObject : model.getNiToJ3dData().j3dNiAVObjectValues())
+				{
+					if (j3dNiAVObject instanceof J3dNiGeometry)
+					{
+						J3dNiGeometry j3dNiGeometry = (J3dNiGeometry) j3dNiAVObject;
+						NiGeometry niGeometry = (NiGeometry) j3dNiGeometry.getNiAVObject();
+						if (niGeometry.skin.ref == -1)
+						{
+							String attachNodeName = niGeometry.name;
+							NiNode parent = niGeometry.parent;
+							if (parent != null)
+							{
+								attachNodeName = parent.name;
+							}
+
+							//map known values
+							if (attachNodeName.contains("_Head"))
+								attachNodeName = "Head";
+							else if (attachNodeName.contains("_Hair"))
+								attachNodeName = "Head";
+							else if (attachNodeName.contains("_Neck"))
+								attachNodeName = "Neck";
+							else if (attachNodeName.contains("_Groin"))
+								attachNodeName = "Groin";
+							else if (attachNodeName.contains("_Ankle"))
+								attachNodeName = "Right Ankle";
+							else if (attachNodeName.contains("_Forearm"))
+								attachNodeName = "Right Forearm";
+							else if (attachNodeName.contains("_Foot"))
+								attachNodeName = "Right Foot";
+							else if (attachNodeName.contains("_Knee"))
+								attachNodeName = "Right Knee";
+							else if (attachNodeName.contains("_Upper Arm"))
+								attachNodeName = "Right Upper Arm";
+							else if (attachNodeName.contains("_Upper Leg"))
+								attachNodeName = "Right Upper Leg";
+							else if (attachNodeName.contains("_Wrist"))
+								attachNodeName = "Right Wrist";
+
+							J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton().get(attachNodeName);
+							if (attachnode != null)
+							{
+								//TODO: this is possibly a bad idea?
+								if (j3dNiAVObject.topOfParent != null)
+									j3dNiAVObject.topOfParent.removeAllChildren();
+
+								CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, skeletonNifFilename, j3dNiAVObject);
+								this.addChild(ca);
+								attachments.add(ca);
+							}
+
+							// please excuse crazy time now, both sides needed
+							if (attachNodeName.contains("Right "))
+							{
+								leftRequired = true;
+							}
+						}
+					}
+				}
+
+				if (leftRequired)
+				{
+					NifJ3dVisRoot model2 = NifToJ3d.loadShapes(skinNifModelFilename, mediaSources.getMeshSource(),
+							mediaSources.getTextureSource());
+
+					for (J3dNiAVObject j3dNiAVObject : model2.getNiToJ3dData().j3dNiAVObjectValues())
+					{
+						if (j3dNiAVObject instanceof J3dNiGeometry)
+						{
+							J3dNiGeometry j3dNiGeometry = (J3dNiGeometry) j3dNiAVObject;
+							NiGeometry niGeometry = (NiGeometry) j3dNiGeometry.getNiAVObject();
+							if (niGeometry.skin.ref == -1)
+							{
+								String attachNodeName = niGeometry.name;
+								NiNode parent = niGeometry.parent;
+								if (parent != null)
+								{
+									attachNodeName = parent.name;
+								}
+
+								else if (attachNodeName.contains("_Ankle"))
+									attachNodeName = "Left Ankle";
+								else if (attachNodeName.contains("_Forearm"))
+									attachNodeName = "Left Forearm";
+								else if (attachNodeName.contains("_Foot"))
+									attachNodeName = "Left Foot";
+								else if (attachNodeName.contains("_Knee"))
+									attachNodeName = "Left Knee";
+								else if (attachNodeName.contains("_Upper Arm"))
+									attachNodeName = "Left Upper Arm";
+								else if (attachNodeName.contains("_Upper Leg"))
+									attachNodeName = "Left Upper Leg";
+								else if (attachNodeName.contains("_Wrist"))
+									attachNodeName = "Left Wrist";
+
+								 
+								//TODO in fact I want a mirrored object, all x value reversed to -x
+								//GeometryArray ga = (GeometryArray) j3dNiGeometry.getShape().getGeometry();
+								//if g is a geo arry then flips all x's?
+								//float[] cos = ga.getCoordRefFloat();
+							 
+								J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton().get(attachNodeName);
+								if (attachnode != null)
+								{
+									//TODO: this is possibly a bad idea?
+									if (j3dNiAVObject.topOfParent != null)
+										j3dNiAVObject.topOfParent.removeAllChildren();
+
+									CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, skeletonNifFilename,
+											j3dNiAVObject);
+									this.addChild(ca);
+									attachments.add(ca);
+								}
+							}
+						}
+
+					}
+				}
+			}
+		}
 
 		KfJ3dRoot kfJ3dRoot = null;
 		if (skeletonNifFilename.toLowerCase().indexOf(".nif") != -1)
@@ -86,6 +222,12 @@ public class NifCharacterTes3 extends NifCharacter
 
 			//blendedSkeletons.startNewInputAnimation(defaultAlpha);
 
+			// remove the old one
+			if (currentKfBg != null)
+			{
+				currentKfBg.detach();
+			}
+
 			currentSequence = j3dNiSequenceStreamHelper.getSequence(currentAnimation);
 
 			// now add the root to the scene so the controller sequence is live
@@ -96,12 +238,6 @@ public class NifCharacterTes3 extends NifCharacter
 
 			currentSequence.addSequenceListener(new SequenceSoundListener());
 			currentSequence.fireSequence();
-
-			// remove the old one
-			if (currentKfBg != null)
-			{
-				currentKfBg.detach();
-			}
 
 			// assign currents
 			currentKfBg = newKfBg;
@@ -130,7 +266,6 @@ public class NifCharacterTes3 extends NifCharacter
 				int r2 = (int) (Math.random() * morphsFrames.length);
 				r2 = r2 == morphsFrames.length ? 0 : r2;
 				String frame = morphsFrames[r2];
-				System.out.println("frame " + frame);
 				j3dNiGeomMorpherController.fireFrameName(frame);
 
 				if (maxLength < j3dNiGeomMorpherController.getLength())
