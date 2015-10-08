@@ -5,7 +5,9 @@ import java.util.Enumeration;
 import javax.media.j3d.Node;
 import javax.media.j3d.Transform3D;
 
+import nif.NifVer;
 import nif.niobject.NiAVObject;
+import nif.niobject.NiNode;
 import nif.niobject.NiSequenceStreamHelper;
 import nif.niobject.bs.BSFadeNode;
 import utils.convert.ConvertFromNif;
@@ -35,7 +37,12 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 
 		Transform3D t1 = new Transform3D();
 
-		if (!(niAVObject instanceof BSFadeNode))
+		// oblivion does not ignore top level rotrs
+		boolean ignoreTopTransform = (niAVObject instanceof BSFadeNode) || //fallout and upwards
+				(niAVObject.nVer.LOAD_VER < NifVer.VER_10_0_1_0 && // morrowind
+						niAVObject instanceof NiNode && niAVObject.parent == null); // check for root
+
+		if (!ignoreTopTransform)
 		{
 			t1.setRotation(ConvertFromNif.toJ3d(niAVObject.rotation));
 			//the determinant should be near 1 now! otherwise all transforms will be crap			 
