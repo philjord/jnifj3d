@@ -29,12 +29,12 @@ import nif.j3d.animation.SequenceAlpha;
 import nif.niobject.NiExtraData;
 import nif.niobject.NiStringExtraData;
 import tools3d.utils.Utils3D;
+import tools3d.utils.scenegraph.Fadable;
 import tools3d.utils.scenegraph.VaryingLODBehaviour;
 import utils.source.MediaSources;
 
-public class NifCharacter extends BranchGroup
+public class NifCharacter extends BranchGroup implements Fadable
 {
-
 	private MediaSources mediaSources;
 
 	private ArrayList<J3dNiSkinInstance> allSkins = new ArrayList<J3dNiSkinInstance>();
@@ -73,7 +73,7 @@ public class NifCharacter extends BranchGroup
 
 		//note node must be in scene graph
 		updateBehavior = new NifCharUpdateBehavior(this, new float[]
-		{ 30f, 90f, 180f });
+		{ 60f, 120f, 180f });
 		addChild(updateBehavior);
 		updateBehavior.setEnable(true);
 
@@ -180,61 +180,21 @@ public class NifCharacter extends BranchGroup
 			currentAnimation = nextAnimation;
 			nextAnimation = "";
 
-			KfJ3dRoot kfJ3dRoot = null;
-
-			if (kfJ3dRoot == null)
+			KfJ3dRoot kfJ3dRoot = NifToJ3d.loadKf(currentAnimation, mediaSources.getMeshSource());
+			if (kfJ3dRoot != null)
 			{
-				kfJ3dRoot = NifToJ3d.loadKf(currentAnimation, mediaSources.getMeshSource());
-				if (kfJ3dRoot != null)
-				{
-					// just default to a 0.3 second blend?
-					Alpha defaultAlpha = new SequenceAlpha(0, 0.3f, false);
-					defaultAlpha.setStartTime(System.currentTimeMillis());
-
-					NifJ3dSkeletonRoot inputSkeleton = blendedSkeletons.startNewInputAnimation(defaultAlpha);
-					kfJ3dRoot.setAnimatedSkeleton(inputSkeleton.getAllBonesInSkeleton(), allOtherModels);
-
-					// now add the root to the scene so the controller sequence is live
-					BranchGroup newKfBg = new BranchGroup();
-					newKfBg.setCapability(BranchGroup.ALLOW_DETACH);
-					newKfBg.setCapability(Group.ALLOW_CHILDREN_WRITE);
-
-					newKfBg.addChild(kfJ3dRoot);
-					// add it on
-					addChild(newKfBg);
-
-					kfJ3dRoot.getJ3dNiControllerSequence().addSequenceListener(new SequenceSoundListener());
-					kfJ3dRoot.getJ3dNiControllerSequence().fireSequence();
-
-					// remove the old one
-					if (currentKfBg != null)
-					{
-						currentKfBg.detach();
-					}
-
-					// assign currents
-					currentKfBg = newKfBg;
-					currentkfJ3dRoot = kfJ3dRoot;
-				}
-				else
-				{
-					System.out.println("kf file does not exist :) " + currentAnimation);
-				}
-			}
-			else
-			{
-
 				// just default to a 0.3 second blend?
 				Alpha defaultAlpha = new SequenceAlpha(0, 0.3f, false);
 				defaultAlpha.setStartTime(System.currentTimeMillis());
 
-				blendedSkeletons.startNewInputAnimation(defaultAlpha);
+				NifJ3dSkeletonRoot inputSkeleton = blendedSkeletons.startNewInputAnimation(defaultAlpha);
+				kfJ3dRoot.setAnimatedSkeleton(inputSkeleton.getAllBonesInSkeleton(), allOtherModels);
 
 				// now add the root to the scene so the controller sequence is live
 				BranchGroup newKfBg = new BranchGroup();
 				newKfBg.setCapability(BranchGroup.ALLOW_DETACH);
 				newKfBg.setCapability(Group.ALLOW_CHILDREN_WRITE);
-				kfJ3dRoot.detach();
+
 				newKfBg.addChild(kfJ3dRoot);
 				// add it on
 				addChild(newKfBg);
@@ -251,6 +211,10 @@ public class NifCharacter extends BranchGroup
 				// assign currents
 				currentKfBg = newKfBg;
 				currentkfJ3dRoot = kfJ3dRoot;
+			}
+			else
+			{
+				System.out.println("kf file does not exist :) " + currentAnimation);
 			}
 
 		}
@@ -394,6 +358,21 @@ public class NifCharacter extends BranchGroup
 				ca.process();
 			}
 
+		}
+
+	}
+
+	@Override
+	public void fade(float percent)
+	{
+		for (J3dNiSkinInstance j3dNiSkinInstance : allSkins)
+		{
+			j3dNiSkinInstance.fade(percent);
+		}
+
+		for (CharacterAttachment ca : attachments)
+		{
+			ca.fade(percent);
 		}
 
 	}

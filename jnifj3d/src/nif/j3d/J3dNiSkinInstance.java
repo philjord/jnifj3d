@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 
 import javax.media.j3d.Group;
 
+import tools3d.utils.scenegraph.Fadable;
 import nif.basic.NifPtr;
 import nif.character.NifJ3dSkeletonRoot;
 import nif.niobject.NiAVObject;
@@ -14,7 +15,7 @@ import nif.niobject.NiSkinData;
 import nif.niobject.NiSkinInstance;
 import nif.niobject.NiTriShape;
 
-public class J3dNiSkinInstance extends Group
+public class J3dNiSkinInstance extends Group implements Fadable
 {
 	public static boolean showSkinBoneMarkers = false;
 
@@ -72,6 +73,15 @@ public class J3dNiSkinInstance extends Group
 		if (j3dNifSkinData != null)
 		{
 			j3dNifSkinData.updateSkin();
+		}
+	}
+
+	@Override
+	public void fade(float percent)
+	{
+		if (j3dNifSkinData != null)
+		{
+			j3dNifSkinData.fade(percent);
 		}
 	}
 

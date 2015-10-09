@@ -12,9 +12,10 @@ import nif.compound.NifSkinData;
 import nif.compound.NifSkinTransform;
 import nif.compound.NifSkinWeight;
 import nif.niobject.NiSkinData;
+import tools3d.utils.scenegraph.Fadable;
 import utils.convert.ConvertFromNif;
 
-public class J3dNifSkinData extends Group implements GeometryUpdater
+public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 {
 	private NiSkinData niSkinData;
 
@@ -28,6 +29,8 @@ public class J3dNifSkinData extends Group implements GeometryUpdater
 
 	private Transform3D[] skinBonesSkinOffsetInOrder;
 
+	private J3dNiTriShape j3dNiTriShape;
+
 	public J3dNifSkinData(NiSkinData niSkinData, J3dNiTriShape j3dNiTriShape, J3dNiNode[] skinBonesInOrder,
 			LinkedHashMap<String, J3dNiNode> skeletonBones)
 	{
@@ -40,7 +43,8 @@ public class J3dNifSkinData extends Group implements GeometryUpdater
 		// TODO: deathclaw skin totally rooted up
 
 		this.niSkinData = niSkinData;
-		
+		this.j3dNiTriShape = j3dNiTriShape;
+
 		skinDataTrans.setRotation(ConvertFromNif.toJ3d(niSkinData.nifSkinTransform.rotation));
 		skinDataTrans.setTranslation(ConvertFromNif.toJ3d(niSkinData.nifSkinTransform.translation));
 		skinDataTrans.setScale(niSkinData.nifSkinTransform.scale);
@@ -69,6 +73,12 @@ public class J3dNifSkinData extends Group implements GeometryUpdater
 		currentIndexedGeometryArray = j3dNiTriShape.getCurrentGeometryArray();
 		baseIndexedGeometryArray = j3dNiTriShape.getBaseGeometryArray();
 
+	}
+
+	@Override
+	public void fade(float percent)
+	{
+		j3dNiTriShape.fade(percent);
 	}
 
 	public void updateSkin()
