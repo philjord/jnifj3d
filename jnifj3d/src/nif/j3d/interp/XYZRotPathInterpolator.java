@@ -22,6 +22,16 @@ public class XYZRotPathInterpolator extends KnotInterpolator
 
 	float[] zRots;
 
+	/**
+	 * NOTE!!!!!!!!! x,y,z rots are expected in Nif order!!!
+	 * If you want to use this from regular XYZ data go make another one!
+	 * @param xKnots
+	 * @param xRots
+	 * @param yKnots
+	 * @param yRots
+	 * @param zKnots
+	 * @param zRots
+	 */
 	public XYZRotPathInterpolator(float[] xKnots, float[] xRots, float[] yKnots, float[] yRots, float[] zKnots, float[] zRots)
 	{
 		//note dummy knots
@@ -165,29 +175,32 @@ public class XYZRotPathInterpolator extends KnotInterpolator
 
 	private Quat4f rot = new Quat4f();
 
+	private Transform3D tx = new Transform3D();
+
+	private Transform3D ty = new Transform3D();
+
+	private Transform3D tz = new Transform3D();
+
 	@Override
 	public void applyTransform(Transform3D targetTransform)
 	{
-		
-		
-		temp.setEuler(interpedRot);
+		//non static frame rotations, notice order of rotates in xzy
+		// so don't use Java3D XYZ support as it is static frame
+
+		tx.rotX(interpedRot.x);
+		ty.rotY(interpedRot.z);// j3d y rot take from the z value
+		tz.rotZ(-interpedRot.y);// j3d z rot take from the -y value
+
+		//in nif xyz order so my x z y order
+
+		// order of rotations is REVERSED!!! OMG, why ffs? clue here:
+		//https://www.opengl.org/discussion_boards/showthread.php/168354-Rotations-Order-Euler-Angle
+		// in fact on further thought this is as expected, recall all mul of trans goes up from teh bottom so xyz is done zyx
+		temp.set(ty);
+		temp.mul(tz);// j3d z described as y in nif
+		temp.mul(tx);// j3d y described as z in nif
+
 		Utils3D.safeGetQuat(temp, rot);
 		targetTransform.setRotation(rot);
-		
-		
-		//non static frame rotations
-	/*	Transform3D tx = new Transform3D();
-		Transform3D ty = new Transform3D();
-		Transform3D tz = new Transform3D();
-		tx.rotX(interpedRot.x);
-		ty.rotY(interpedRot.y);
-		tz.rotZ(interpedRot.z);
-		
-		temp.set(tx);		
-		temp.mul(tz);
-		temp.mul(ty);
-		
-		Utils3D.safeGetQuat(temp, rot);
-		targetTransform.setRotation(rot);*/
 	}
 }

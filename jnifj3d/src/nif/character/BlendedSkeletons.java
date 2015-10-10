@@ -22,9 +22,6 @@ public class BlendedSkeletons extends Group
 		zeroT.setZero();
 	}
 
-	// not modified to give base line
-	//private NifJ3dSkeletonRoot baseSkeleton;
-
 	// modified by wieghted input, used for output
 	private NifJ3dSkeletonRoot outputSkeleton;
 
@@ -38,13 +35,13 @@ public class BlendedSkeletons extends Group
 
 	public BlendedSkeletons(String skeletonNifFilename, MeshSource meshSource)
 	{
-		//baseSkeleton = createSkeleton();
 		outputSkeleton = new NifJ3dSkeletonRoot(skeletonNifFilename, meshSource);
 		inputSkeleton = new NifJ3dSkeletonRoot(skeletonNifFilename, meshSource);
 		prevSkeleton = new NifJ3dSkeletonRoot(skeletonNifFilename, meshSource);
 
 		// for simple hats to be attched to etc
-		addChild(outputSkeleton);
+		if (NifJ3dSkeletonRoot.showBoneMarkers)
+			addChild(outputSkeleton);
 	}
 
 	/**
@@ -188,13 +185,13 @@ public class BlendedSkeletons extends Group
 		{
 			// make  the bone accum trans ident
 			skeletonBone.getBoneCurrentAccumedTrans().setIdentity();
+			return;
 		}
 
 		NifTransformGroup boneTrans = skeletonBone.getTransformGroup();
 
 		//multiply the bone accum trans by the bone current transform
 		boneTrans.transformMul(skeletonBone.getBoneCurrentAccumedTrans());
-
 	}
 
 	public NifJ3dSkeletonRoot getOutputSkeleton()

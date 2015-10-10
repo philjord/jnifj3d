@@ -92,12 +92,12 @@ public class RotPosScaleTCBSplinePathInterpolator extends TCBSplinePathInterpola
 	}
 	
 	@Override
-	public void applyTransform(Transform3D targetTransform)
+	protected void applyTransform(Transform3D targetTransform1)
 	{
-		targetTransform.setRotation(iQuat);
-		targetTransform.setTranslation(iPos);
+		targetTransform1.setRotation(iQuat);
+		targetTransform1.setTranslation(iPos);
 		//TODO: can't do non uniform scale in J3D
-		targetTransform.setScale(iScale.x);
+		targetTransform1.setScale(iScale.x);
 	}
 
 }

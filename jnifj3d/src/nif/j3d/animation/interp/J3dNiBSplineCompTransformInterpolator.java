@@ -3,8 +3,10 @@ package nif.j3d.animation.interp;
 import java.util.ArrayList;
 import java.util.WeakHashMap;
 
+import javax.media.j3d.Transform3D;
 import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
+import javax.vecmath.Vector3f;
 
 import nif.j3d.NiToJ3dData;
 import nif.j3d.NifTransformGroup;
@@ -25,11 +27,11 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 
 	private NiBSplineBasisData niBSplineBasisData;
 
-	private Point3f defaultTrans = new Point3f();
+	private Point3f defaultTrans = null;
 
-	private Quat4f defaultRot = new Quat4f(0f, 0f, 0f, 1f);
+	private Quat4f defaultRot = null;
 
-	private Point3f defaultScale = new Point3f(1, 1, 1);
+	private Point3f defaultScale = null;
 
 	private static WeakHashMap<NiBSplineCompTransformInterpolator, TCBKeyFrame[]> keysMap = new WeakHashMap<NiBSplineCompTransformInterpolator, TCBKeyFrame[]>();
 
@@ -40,7 +42,7 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 
 		if (niBSplineCompTransformInterpolator.splineData.ref != -1)
 		{
-			 
+
 			niBSplineData = (NiBSplineData) niToJ3dData.get(niBSplineCompTransformInterpolator.splineData);
 			if (niBSplineCompTransformInterpolator.basisData.ref != -1)
 			{
@@ -49,7 +51,7 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 				TCBKeyFrame[] keys = keysMap.get(nibs);//note key!
 				if (keys == null)
 				{
-					setDefaultRotPosScale();
+					setDefaultRotPosScale(targetTransform);
 
 					ArrayList<Quat4f> quats = getQuatRotateControlData();
 					ArrayList<Point3f> points = getTranslateControlData();
@@ -79,16 +81,31 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 		}
 	}
 
-	private void setDefaultRotPosScale()
+	private void setDefaultRotPosScale(NifTransformGroup targetTransform)
 	{
 		if (nibs.translation.x != NIF_FLOAT_MIN)
 		{
 			defaultTrans = ConvertFromNif.toJ3dP3f(nibs.translation);
 		}
+		else
+		{
+			Transform3D t1 = new Transform3D();
+			targetTransform.getTransform(t1);
+			Vector3f v = new Vector3f();
+			t1.get(v);
+			defaultTrans = new Point3f(v);
+		}
 
 		if (nibs.rotation.x != NIF_FLOAT_MIN)
 		{
 			defaultRot = ConvertFromNif.toJ3d(nibs.rotation);
+		}
+		else
+		{
+			Transform3D t1 = new Transform3D();
+			targetTransform.getTransform(t1);
+			defaultRot = new Quat4f();
+			t1.get(defaultRot);
 		}
 
 		if (nibs.scale != NIF_FLOAT_MIN)
@@ -97,14 +114,14 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 			float s = nibs.scale;
 			defaultScale = new Point3f(s, s, s);
 		}
+		else
+		{
+			Transform3D t1 = new Transform3D();
+			targetTransform.getTransform(t1);
+			float s = (float) t1.getScale();
+			defaultScale = new Point3f(s, s, s);
+		}
 
-	}
-
-	private short[] getShortControlPointRange(short[] allControlPoints, int offset, int numberOfControlPoints)
-	{
-		short[] ret = new short[numberOfControlPoints];
-		System.arraycopy(allControlPoints, offset, ret, 0, numberOfControlPoints);
-		return ret;
 	}
 
 	private ArrayList<Quat4f> getQuatRotateControlData()
@@ -116,14 +133,13 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 			ArrayList<Quat4f> ret = new ArrayList<Quat4f>();
 			int numberOfControlPoints = niBSplineBasisData.numControlPoints;
 
-			short[] points = getShortControlPointRange(niBSplineData.shortControlPoints, nibs.rotationOffset, numberOfControlPoints * 4);
-
-			for (int i = 0; i < numberOfControlPoints; i++)
+			short[] points = niBSplineData.shortControlPoints;
+			for (int i = nibs.rotationOffset; i < nibs.rotationOffset + (numberOfControlPoints * 4); i += 4)
 			{
-				float w = ((points[i * 4 + 0] / 32767f) * nibs.rotationMultiplier) + nibs.rotationBias;
-				float x = ((points[i * 4 + 1] / 32767f) * nibs.rotationMultiplier) + nibs.rotationBias;
-				float y = ((points[i * 4 + 2] / 32767f) * nibs.rotationMultiplier) + nibs.rotationBias;
-				float z = ((points[i * 4 + 3] / 32767f) * nibs.rotationMultiplier) + nibs.rotationBias;
+				float w = ((points[i + 0] / 32767f) * nibs.rotationMultiplier) + nibs.rotationBias;
+				float x = ((points[i + 1] / 32767f) * nibs.rotationMultiplier) + nibs.rotationBias;
+				float y = ((points[i + 2] / 32767f) * nibs.rotationMultiplier) + nibs.rotationBias;
+				float z = ((points[i + 3] / 32767f) * nibs.rotationMultiplier) + nibs.rotationBias;
 				Quat4f key = NifRotToJava3DRot.makeJ3dQ4f(x, y, z, w);
 
 				ret.add(key);
@@ -146,13 +162,12 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 			ArrayList<Point3f> ret = new ArrayList<Point3f>();
 			int numberOfControlPoints = niBSplineBasisData.numControlPoints;
 
-			short[] points = getShortControlPointRange(niBSplineData.shortControlPoints, nibs.translationOffset, numberOfControlPoints * 3);
-
-			for (int i = 0; i < numberOfControlPoints; i++)
+			short[] points = niBSplineData.shortControlPoints;
+			for (int i = nibs.translationOffset; i < nibs.translationOffset + (numberOfControlPoints * 3); i += 3)
 			{
-				float x = ((points[i * 3 + 0] / 32767f) * nibs.translationMultiplier) + nibs.translationBias;
-				float y = ((points[i * 3 + 1] / 32767f) * nibs.translationMultiplier) + nibs.translationBias;
-				float z = ((points[i * 3 + 2] / 32767f) * nibs.translationMultiplier) + nibs.translationBias;
+				float x = ((points[i + 0] / 32767f) * nibs.translationMultiplier) + nibs.translationBias;
+				float y = ((points[i + 1] / 32767f) * nibs.translationMultiplier) + nibs.translationBias;
+				float z = ((points[i + 2] / 32767f) * nibs.translationMultiplier) + nibs.translationBias;
 
 				Point3f key = ConvertFromNif.toJ3dP3f(x, y, z);
 				ret.add(key);
@@ -174,8 +189,8 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 			ArrayList<Point3f> ret = new ArrayList<Point3f>();
 			int numberOfControlPoints = niBSplineBasisData.numControlPoints;
 
-			short[] points = getShortControlPointRange(niBSplineData.shortControlPoints, nibs.scaleOffset, numberOfControlPoints * 1);
-			for (int i = 0; i < numberOfControlPoints; i++)
+			short[] points = niBSplineData.shortControlPoints;
+			for (int i = nibs.scaleOffset; i < nibs.scaleOffset + (numberOfControlPoints * 1); i += 1)
 			{
 				float s = ((points[i + 0] / 32767f) * nibs.scaleMultiplier) + nibs.scaleBias;
 				//Note scale is a percentage change so no conversion from Nif

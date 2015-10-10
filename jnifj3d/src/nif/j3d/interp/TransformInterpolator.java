@@ -46,7 +46,7 @@ public abstract class TransformInterpolator implements Interpolated
 
 	public abstract void computeTransform(float alphaValue);
 
-	public abstract void applyTransform(Transform3D t);
+	protected abstract void applyTransform(Transform3D t);
 
 	//Skyrim female/weaponadjustment has a bad left thigh in it (like a reversed rotate!) but matches bone, maybe bone is reversed?
 

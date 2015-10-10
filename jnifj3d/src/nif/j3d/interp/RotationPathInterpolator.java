@@ -3,6 +3,7 @@ package nif.j3d.interp;
 import javax.media.j3d.Transform3D;
 import javax.vecmath.Quat4f;
 
+//TODO: a lot of copying here of data? perhaps expensive on memory 
 public class RotationPathInterpolator extends KnotInterpolator
 {
 	private Quat4f tQuat = new Quat4f();

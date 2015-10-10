@@ -52,6 +52,9 @@ public class NifJ3dSkeletonRoot extends Group
 				j3dNiNode.setUncompactable();
 				j3dNiNode.setVisualMarker(showBoneMarkers);
 
+				//Non accum mean node above is the accum node, means rotr above needs to be pushed down to non accum
+				//http://gamebryo32docchs.googlecode.com/svn/trunk/gamebryo3_2_doc_chs/HTML/Convert/Previous/NiAnimation_Conversion.htm
+
 				// note extra space character
 				if (niNode.name.indexOf("NonAccum") != -1 || niNode.name.indexOf("[COM ]") != -1 || niNode.name.indexOf("Main Bone") != -1)
 				{
@@ -71,7 +74,7 @@ public class NifJ3dSkeletonRoot extends Group
 					// clear the bone root of it's rot and trans as these are Y trans for height and y rots for yaw
 					// because in the real Gamebryo this is the node that is transformed by movement, where as we simply 
 					// do it one up from the root.
-					//TODO: damn crabs in obliv are sideways!
+
 					skeletonRoot.getTransformGroup().setTransform(new Transform3D());
 				}
 				allBonesInSkeleton.put(j3dNiNode.getName(), j3dNiNode);

@@ -37,9 +37,6 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 
 	private HashMap<GeometryArray, Transform3D> transformMap = new HashMap<GeometryArray, Transform3D>();
 
-	//TODO:  crabs both not upright properly, horse skeleton has a rot above the non accum
-	// I see ogre idle kf has a non accum rotation but mudcab doesn't?
-
 	//TODO: this doesn't have to be a branchgroup if it a dog face is stuck on permanently,
 	//posssiby make skins seperate from gear that can be removed?
 
@@ -107,17 +104,10 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 
 			//TODO: do I need this any more? odd fix up here still (characters needs ignoring)
 			// perhaps teh bip 01 is related to bad rotation direction?
-			// I see animations going teh wrong way
+			// I see animations going teh wrong way ? still
 			// I see bip01 head being bum
-			// I see the spider daedra issue too
-			// perhaps getsafequat for very close quats gets it waaay wrong?
-			if (attachBone.getName().equalsIgnoreCase("Bip01 head"))
-			{
-				//Transform3D tg2 = new Transform3D();
-				//tg2.rotZ(-Math.PI / 2d);
-				//trans.mul(tg2);
-			}
-
+			// I see hair being attached wrong as well
+	
 			//blank the j3dNiTriBasedGeom transform as this is now embedded above
 			j3dNiTriBasedGeom.getTransformGroup().setTransform(new Transform3D());
 

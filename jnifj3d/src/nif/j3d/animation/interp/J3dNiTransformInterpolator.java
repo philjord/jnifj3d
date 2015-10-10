@@ -112,6 +112,10 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 		{
 			if (niTransformData.rotationType.type == KeyType.XYZ_ROTATION_KEY)
 			{
+				//XYZ rotate axis swap xyz=xz-y occurs in XYZRotPathInterpolator
+				//It's MADNESS !!! do nothing ere but give it across
+				// so we do NO modification here, the interpolator will do the change over work
+
 				//	niTransformData.xYZRotations.length is 3 for x rot y rot z rot
 				NifKeyGroup xRotation = niTransformData.xYZRotations[0];
 				if (xRotation.keys != null && xRotation.keys.length > 0)
@@ -127,11 +131,9 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 							NifKey key = xRotation.keys[i];
 							xKnots[i] = key.time;
 							xRots[i] = ((Float) key.value).floatValue();
-
-							//System.out.println("xRot " +xRots[i] + " ref "+ niTransformInterp.data.ref);
 						}
 
-						NifKeyGroup yRotation = niTransformData.xYZRotations[2];// note nif Z
+						NifKeyGroup yRotation = niTransformData.xYZRotations[1];
 						float[] yKnots = new float[yRotation.keys.length];
 						float[] yRots = new float[yRotation.keys.length];
 						for (int i = 0; i < yRotation.keys.length; i++)
@@ -139,40 +141,19 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 							NifKey key = yRotation.keys[i];
 							yKnots[i] = key.time;
 							yRots[i] = ((Float) key.value).floatValue();
-
-							//System.out.println("yRot " +yRots[i] + " ref "+ niTransformInterp.data.ref);
-
-							//TODO: spider daedra castself wants this reversed, but brahmin turnleft doesn't
-							// In fact this is wrong: I see the siper daedra problem is that these little -1.4 (half Pis)
-							// need to be +1.4 but how the fuck does that make a jaw flap? it MUST be a non static frame, surely?
-							// which is a mighty tricky mapping to discover
-							// though given a full x rotate before it perhaps static frame wrong?
-							// these rots are what make the jaw talk up and down (oddly enough)
-							// there is no z fix up because of static frame ( this rot doesn't mod z in any way
-
-							// I see that breast that are also fixed by this -ve have a +Pi and a bit in this slot
-
-							//possibly static frame wrong see XYZRotPathInterpolator for apply
-
-							//if (niTransformInterp.nVer.LOAD_VER < NifVer.VER_20_2_0_7)
-							//	yRots[i] = -yRots[i];
-
 						}
 
-						NifKeyGroup zRotation = niTransformData.xYZRotations[1]; // note nif Y
+						NifKeyGroup zRotation = niTransformData.xYZRotations[2];
 						float[] zKnots = new float[zRotation.keys.length];
 						float[] zRots = new float[zRotation.keys.length];
 						for (int i = 0; i < zRotation.keys.length; i++)
 						{
 							NifKey key = zRotation.keys[i];
 							zKnots[i] = key.time;
-							zRots[i] = -((Float) key.value).floatValue();
-							//System.out.println("zRot " +zRots[i] + " ref "+ niTransformInterp.data.ref);
-
+							zRots[i] = ((Float) key.value).floatValue();
 						}
 						data = new XyzRotationData(xKnots, xRots, yKnots, yRots, zKnots, zRots);
 						xyzRotationDataMap.put(niTransformData, data);
-
 					}
 
 					xYZRotPathInterpolator = new XYZRotPathInterpolator(data.xKnots, data.xRots, data.yKnots, data.yRots, data.zKnots,
@@ -195,7 +176,6 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 							NifQuatKey key = quatKeys[i];
 							knots[i] = key.time;
 							quats[i] = ConvertFromNif.toJ3d(key.value);
-
 						}
 						data = new QuatRotationData(knots, quats);
 						quatRotationDataMap.put(niTransformData, data);
