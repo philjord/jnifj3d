@@ -275,9 +275,19 @@ public class KfDisplayTester
 
 	private static TransformGroup transformGroup;
 
+	private static long c = 0;
+
 	public KfDisplayTester(GraphicsConfiguration config)
 	{
-		universe = new SimpleUniverse(new Canvas3D(config));
+		Canvas3D canvas = new Canvas3D(config)
+		{
+			public void postRender()
+			{
+				//System.out.println("Count " + (c++));
+			}
+		};
+
+		universe = new SimpleUniverse(canvas);
 
 		transformGroup = new TransformGroup();
 

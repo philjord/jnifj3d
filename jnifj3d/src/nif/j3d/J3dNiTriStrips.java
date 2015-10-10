@@ -1,13 +1,10 @@
 package nif.j3d;
 
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.GeometryArray;
 import javax.media.j3d.IndexedGeometryArray;
 import javax.media.j3d.IndexedTriangleStripArray;
 
 import nif.niobject.NiTriStrips;
 import nif.niobject.NiTriStripsData;
-import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
 /**
@@ -19,29 +16,19 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 {
 	public static boolean INTERLEAVE = true;
 
-	private NiTriStripsData data;
-
 	public J3dNiTriStrips(NiTriStrips niTriStrips, NiToJ3dData niToJ3dData, TextureSource textureSource)
 	{
 		super(niTriStrips, niToJ3dData, textureSource);
 		niToJ3dData.put(niTriStrips, this);
-		data = (NiTriStripsData) niToJ3dData.get(niTriStrips.data);
 
-		getShape().setGeometry(createGeometry(data, false));
+		getShape().setGeometry(createGeometry(false));
 
 	}
 
-	/**
-	 * Note expensive re-create should be optomised one day
-	 */
-	public void makeMorphable()
+	@Override
+	protected IndexedGeometryArray createGeometry(boolean morphable)
 	{
-		getShape().setBoundsAutoCompute(false);// expensive to do regularly so animated node just get one
-		getShape().setBounds(new BoundingSphere(ConvertFromNif.toJ3dP3d(data.center), ConvertFromNif.toJ3d(data.radius)));
-
-		GeometryArray newGeom = createGeometry(data, true);
-		getShape().setGeometry(newGeom);
-		baseGeometryArray = newGeom;
+		return createGeometry((NiTriStripsData) data, morphable);
 	}
 
 	public static IndexedGeometryArray createGeometry(NiTriStripsData data, boolean morphable)

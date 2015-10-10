@@ -151,7 +151,6 @@ public class J3dNiControllerSequence extends Group
 	 */
 	public void fireSequenceOnce()
 	{
-		System.out.println("fired? " +this.getFireName());
 		fireSequence(true);
 	}
 
@@ -343,7 +342,7 @@ public class J3dNiControllerSequence extends Group
 
 	class SequenceEventsBehavior extends Behavior
 	{
-		private WakeupOnElapsedFrames passiveWakeupCriterion = new WakeupOnElapsedFrames(10, true);
+		private WakeupOnElapsedFrames passiveWakeupCriterion = new WakeupOnElapsedFrames(5, true);
 
 		public void initialize()
 		{

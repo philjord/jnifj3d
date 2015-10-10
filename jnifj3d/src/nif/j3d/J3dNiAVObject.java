@@ -37,12 +37,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 
 		Transform3D t1 = new Transform3D();
 
-		// oblivion does not ignore top level rotrs
-		boolean ignoreTopTransform = (niAVObject instanceof BSFadeNode) || //fallout and upwards
-				(niAVObject.nVer.LOAD_VER < NifVer.VER_10_0_1_0 && // morrowind
-						niAVObject instanceof NiNode && niAVObject.parent == null); // check for root
-
-		if (!ignoreTopTransform)
+		if (!ignoreTopTransform(niAVObject))
 		{
 			t1.setRotation(ConvertFromNif.toJ3d(niAVObject.rotation));
 			//the determinant should be near 1 now! otherwise all transforms will be crap			 
@@ -56,6 +51,15 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 
 		transformGroup.setTransform(t1);
 		super.addChild(transformGroup);
+	}
+
+	// oblivion does not ignore top level rotrs
+	public static boolean ignoreTopTransform(NiAVObject niAVObject)
+	{
+		boolean ignoreTopTransform = (niAVObject instanceof BSFadeNode) || //fallout and upwards
+				(niAVObject.nVer.LOAD_VER < NifVer.VER_10_0_1_0 && // morrowind
+						niAVObject instanceof NiNode && niAVObject.parent == null); // check for root
+		return ignoreTopTransform;
 	}
 
 	//for Tes3 kf files they are subs of NiObjectNET but I can't risk altering everything in the univers

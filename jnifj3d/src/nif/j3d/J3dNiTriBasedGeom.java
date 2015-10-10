@@ -1,27 +1,58 @@
 package nif.j3d;
 
+import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.GeometryArray;
 import javax.media.j3d.IndexedGeometryArray;
 
 import nif.niobject.NiTriBasedGeom;
 import nif.niobject.NiTriBasedGeomData;
 import tools.WeakValueHashMap;
+import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
 public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 {
 	protected GeometryArray baseGeometryArray;
 
+	protected GeometryArray currentGeometryArray;
+
+	protected NiTriBasedGeomData data;
+
+	protected boolean isMorphable = false;
+
 	public J3dNiTriBasedGeom(NiTriBasedGeom niTriBasedGeom, NiToJ3dData niToJ3dData, TextureSource textureSource)
 	{
 		super(niTriBasedGeom, niToJ3dData, textureSource);
+		data = (NiTriBasedGeomData) niToJ3dData.get(niTriBasedGeom.data);
 	}
 
-	public abstract void makeMorphable();
+	protected abstract IndexedGeometryArray createGeometry(boolean morphable);
+
+	/**
+	 * Note expensive re-create should be optomised one day
+	 */
+	public void makeMorphable()
+	{
+		if (!isMorphable)
+		{
+			getShape().setBoundsAutoCompute(false);// expensive to do regularly so animated node just get one
+			getShape().setBounds(new BoundingSphere(ConvertFromNif.toJ3dP3d(data.center), ConvertFromNif.toJ3d(data.radius)));
+
+			baseGeometryArray = createGeometry(true);
+			currentGeometryArray = createGeometry(true);
+			getShape().setGeometry(currentGeometryArray);
+			isMorphable = true;
+		}
+	}
 
 	public GeometryArray getBaseGeometryArray()
 	{
 		return baseGeometryArray;
+	}
+
+	public GeometryArray getCurrentGeometryArray()
+	{
+		return currentGeometryArray;
 	}
 
 	//Note self expunging cache

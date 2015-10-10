@@ -65,9 +65,10 @@ public abstract class J3dNiTimeController extends Group implements InterpolatorL
 	 */
 	public J3dNiTimeController(NiTimeController niTimeController, Node nodeTarget)
 	{
+		 
 		this.niTimeController = niTimeController;
 		this.nodeTarget = nodeTarget;
-		
+
 	}
 
 	public J3dNiTimeController getJ3dNiTimeController()
@@ -84,7 +85,7 @@ public abstract class J3dNiTimeController extends Group implements InterpolatorL
 
 	@Override
 	public Bounds getBounds()
-	{   // Notice this is not called setBoundsAutoCompute(false);
+	{ // Notice this is not called setBoundsAutoCompute(false);
 		// it cause NPE because we need to give it a bounds with set bounds, only instead we are just 
 		// the exteranl getbounds, not used by pipeline at all
 		return nodeTarget.getBounds();

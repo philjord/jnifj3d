@@ -14,7 +14,6 @@ import nif.basic.NifRef;
 import nif.compound.NifMorph;
 import nif.compound.NifMorphWeight;
 import nif.j3d.J3dNiTriBasedGeom;
-import nif.j3d.J3dNiTriShape;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.animation.interp.J3dNiFloatInterpolator;
 import nif.j3d.animation.interp.J3dNiInterpolator;
@@ -27,9 +26,9 @@ import utils.ESConfig;
 
 public class J3dNiGeomMorpherController extends J3dNiTimeController
 {
-	private GeometryArray itsa;
+	private GeometryArray currentGeoArray;
 
-	private float[] baseCoords;
+	private GeometryArray baseGeoArray;
 
 	private NiMorphData niMorphData;
 
@@ -47,6 +46,8 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 
 	private ArrayList<J3dNiInterpolator> j3dNiInterpolators = new ArrayList<J3dNiInterpolator>();
 
+	private boolean vertsResetOffBase = false;
+
 	public J3dNiGeomMorpherController(NiGeomMorpherController controller, NiToJ3dData niToJ3dData)
 	{
 		super(controller, null);
@@ -62,69 +63,21 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 			nodeTarget = niToJ3dData.get(target);
 			if (nodeTarget != null)
 			{
-				if (controller.nVer.LOAD_VER >= NifVer.VER_10_1_0_106)
-				{
-					if (controller.nVer.LOAD_VER <= NifVer.VER_20_0_0_5)
-					{
-						for (int i = 0; i < controller.interpolators.length; i++)
-						{
-							// build and attach intrerps for later use, note index order match morph
-							NifRef nr = controller.interpolators[i];
-							createInterp(nr, niToJ3dData);
-						}
-					}
-					else if (controller.nVer.LOAD_VER >= NifVer.VER_20_1_0_3)
-					{
-						for (int i = 0; i < controller.interpolatorWeights.length; i++)
-						{
-							// build and attach interps for later use, note index order match morph
-							NifMorphWeight nmw = controller.interpolatorWeights[i];
-
-							NifRef nr = nmw.interpolator;
-							if (nmw.weight != 0)
-								System.out.println("non 0 nifmorphweight " + nmw.weight + " " + controller.nVer);
-
-							createInterp(nr, niToJ3dData);
-						}
-					}
-				}
-				else
-				{
-					for (int i = 0; i < niMorphData.numMorphs; i++)
-					{
-						createInterp(niMorphData.morphs[i], niToJ3dData);
-					}
-				}
 
 				if (nodeTarget instanceof J3dNiTriBasedGeom)
 				{
-					// this bad boy is not connect to scene graph!
+					// this bad boy is not connected to scene graph!
 					J3dNiTriBasedGeom j3dNiTriBasedGeom = (J3dNiTriBasedGeom) nodeTarget;
 					j3dNiTriBasedGeom.makeMorphable();
-					// trishape use a base and current as then are truely animateable
-					if (nodeTarget instanceof J3dNiTriShape)
-					{
-						itsa = ((J3dNiTriShape) j3dNiTriBasedGeom).getCurrentGeometryArray();
-					}
-					else
-					{
-						// should be a tristriparray
-						itsa = j3dNiTriBasedGeom.getBaseGeometryArray();
-					}
-
-					// take a copy of the base vert coords
-					float[] coords = itsa.getCoordRefFloat();
-					baseCoords = new float[coords.length];
-					System.arraycopy(coords, 0, baseCoords, 0, coords.length);
+					currentGeoArray = j3dNiTriBasedGeom.getCurrentGeometryArray();
+					baseGeoArray = j3dNiTriBasedGeom.getBaseGeometryArray();
 				}
 				else
 				{
 					System.out.println("J3dNiGeomMorpherController target not J3dNiTriBasedGeom but " + nodeTarget + " " + controller.nVer);
 				}
 
-				sequenceBehavior.setEnable(false);
-				sequenceBehavior.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
-				addChild(sequenceBehavior);
+				setupInterps(controller, niToJ3dData);
 			}
 		}
 	}
@@ -134,73 +87,14 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 		return stopTimeS - startTimeS;
 	}
 
-	/**
-	 * For TES version the interpolators are just stuck in teh NifMorph as keys
-	 * @param nifMorph
-	 * @param niToJ3dData
-	 */
-	private void createInterp(NifMorph nifMorph, NiToJ3dData niToJ3dData)
+	public boolean isVertsResetOffBase()
 	{
-		float lengthS = stopTimeS - startTimeS;
-		J3dNiFloatInterpolator j3dNiInterpolator = new J3dNiFloatInterpolator(nifMorph, startTimeS, lengthS, this);
-
-		j3dNiInterpolators.add(j3dNiInterpolator);
-		addChild(j3dNiInterpolator);
-
+		return vertsResetOffBase;
 	}
 
-	private void createInterp(NifRef nr, NiToJ3dData niToJ3dData)
+	public void setVertsResetOffBase(boolean vertsResetOffBase)
 	{
-		NiInterpolator niInterpolator = (NiInterpolator) niToJ3dData.get(nr);
-		if (niInterpolator != null)
-		{
-			J3dNiInterpolator j3dNiInterpolator = J3dNiTimeController.createInterpForController(this, niInterpolator, niToJ3dData,
-					startTimeS, stopTimeS);
-			if (j3dNiInterpolator != null)
-			{
-				j3dNiInterpolators.add(j3dNiInterpolator);
-				addChild(j3dNiInterpolator);
-			}
-		}
-	}
-
-	/**
-	 * Fires off in a single loop of the fire in question
-	 * @param action
-	 */
-	public void fireFrameName(String action)
-	{
-		for (int i = 0; i < niMorphData.numMorphs; i++)
-		{
-			if (niMorphData.nVer.LOAD_VER <= NifVer.VER_10_1_0_0)
-			{
-				//TODO: b_n_dark_elf_head_06 has a NiTextKeyExtraData 
-				// that shows the pieces of teh geomorph animation by time slice
-				if (("Frame_" + i).equals(action))
-				{
-					sequenceBehavior.setEnable(false);
-					currentNifMorph = niMorphData.morphs[i];
-					currentJ3dNiInterpolator = j3dNiInterpolators.get(i);
-					sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, false);
-
-					sequenceBehavior.setEnable(true);// disables after loop if required
-					return;
-				}
-			}
-			else
-			{
-				if (niMorphData.morphs[i].frameName.equalsIgnoreCase(action))
-				{
-					sequenceBehavior.setEnable(false);
-					currentNifMorph = niMorphData.morphs[i];
-					currentJ3dNiInterpolator = j3dNiInterpolators.get(i);
-					sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, false);
-
-					sequenceBehavior.setEnable(true);// disables after loop if required
-					return;
-				}
-			}
-		}
+		this.vertsResetOffBase = vertsResetOffBase;
 	}
 
 	/**
@@ -243,39 +137,24 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 		}
 	}
 
-	public String[] getAllMorphFrameNames()
-	{
-		String[] strings = new String[niMorphData.numMorphs];
-		for (int i = 0; i < niMorphData.numMorphs; i++)
-		{
-			if (niMorphData.nVer.LOAD_VER <= NifVer.VER_10_1_0_0)
-			{
-				strings[i] = "Frame_" + i;
-			}
-			else
-			{
-				strings[i] = niMorphData.morphs[i].frameName;
-			}
-		}
-		return strings;
-	}
-
 	@Override
 	public void update(float value)
 	{
 		//the current morph needs to simply interp between start and morph vertex locations
-		if (currentNifMorph != null && itsa != null)
+		if (currentNifMorph != null && currentGeoArray != null)
 		{
 			final float interpValue = value;
 
 			// use a local as the member can be swapped out anytime
 			final NifMorph localCurrentNifMorph = currentNifMorph;
 
-			itsa.updateData(new GeometryUpdater()
+			currentGeoArray.updateData(new GeometryUpdater()
 			{
 				public void updateData(Geometry geometry)
 				{
-					float[] coordRefFloat = itsa.getCoordRefFloat();
+					// Note teh below only works if character attachment constantly resetting for us
+					float[] coordRefFloat = currentGeoArray.getCoordRefFloat();
+					float[] baseCoords = baseGeoArray.getCoordRefFloat();
 
 					for (int i = 0; i < (coordRefFloat.length / 3); i++)
 					{
@@ -293,10 +172,170 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 						coordRefFloat[(i * 3) + 2] = z1 + (z2 * (interpValue));
 					}
 
+					vertsResetOffBase = true;
 				}
 			});
 		}
+	}
 
+	////////////////////////////////////////////////////////////////////////////////////////
+	// in theory most of the below is just demoish stuff
+	// possibly TES3 haed talk/blink needs it maybe
+
+	private void setupInterps(NiGeomMorpherController controller, NiToJ3dData niToJ3dData)
+	{
+		// in theory most of the below is just demoish stuff, possibly TES3 haed talk/blink needs it maybe
+		if (controller.nVer.LOAD_VER >= NifVer.VER_10_1_0_106)
+		{
+			if (controller.nVer.LOAD_VER <= NifVer.VER_20_0_0_5)
+			{
+				for (int i = 0; i < controller.interpolators.length; i++)
+				{
+					// build and attach intrerps for later use, note index order match morph
+					NifRef nr = controller.interpolators[i];
+					createInterp(nr, niToJ3dData);
+				}
+			}
+			else if (controller.nVer.LOAD_VER >= NifVer.VER_20_1_0_3)
+			{
+				for (int i = 0; i < controller.interpolatorWeights.length; i++)
+				{
+					// build and attach interps for later use, note index order match morph
+					NifMorphWeight nmw = controller.interpolatorWeights[i];
+
+					NifRef nr = nmw.interpolator;
+					if (nmw.weight != 0)
+						System.out.println("non 0 nifmorphweight " + nmw.weight + " " + controller.nVer);
+
+					createInterp(nr, niToJ3dData);
+				}
+			}
+		}
+		else
+		{
+			// 0 is base vert, 1 is often no morph, 2 is often all morphs in one track
+			// Meshes\r\xKwama Forager.NIF is 10 morphs interesting
+			for (int i = 0; i < niMorphData.numMorphs; i++)
+			{
+				createInterp(niMorphData.morphs[i], niToJ3dData);
+			}
+		}
+
+		// this and all interp created above should never really be used, tehy are more for demo/debug kf file run this lot
+		sequenceBehavior.setEnable(false);
+		sequenceBehavior.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
+		addChild(sequenceBehavior);
+
+	}
+
+	/**
+	 * For TES version the interpolators are just stuck in the NifMorph as keys
+	 * @param nifMorph
+	 * @param niToJ3dData
+	 */
+	private void createInterp(NifMorph nifMorph, NiToJ3dData niToJ3dData)
+	{
+		float lengthS = stopTimeS - startTimeS;
+		J3dNiFloatInterpolator j3dNiInterpolator = new J3dNiFloatInterpolator(nifMorph, startTimeS, lengthS, this);
+
+		j3dNiInterpolators.add(j3dNiInterpolator);
+		addChild(j3dNiInterpolator);
+
+	}
+
+	private void createInterp(NifRef nr, NiToJ3dData niToJ3dData)
+	{
+		NiInterpolator niInterpolator = (NiInterpolator) niToJ3dData.get(nr);
+		if (niInterpolator != null)
+		{
+			J3dNiInterpolator j3dNiInterpolator = J3dNiTimeController.createInterpForController(this, niInterpolator, niToJ3dData,
+					startTimeS, stopTimeS);
+			if (j3dNiInterpolator != null)
+			{
+				j3dNiInterpolators.add(j3dNiInterpolator);
+				addChild(j3dNiInterpolator);
+			}
+		}
+	}
+
+	/**
+	 * NOTE! it's unlikely to want to do this! kf files manage geomorphs properly
+	 * 
+	 * Fires off in a single loop of the fire in question
+	 * @param action
+	 */
+	public void fireFrameName(String action)
+	{
+		//Notice geomorphs are controlled by kf files for above TES3
+		// talking head appears to be skin/bones (including eyes/eyelids and teeth too)
+		// the .tri adn .egm files possibly run these?
+
+		//TODO: I've got the geomorphs totally wrong for TES3
+		// firstly they have a morph 0 which is a baseline one that repeats the base verts
+		// morph 1 tends to be a full length no changes morph
+		// and morph 2 is the changes; morph 2 is the same length as the toatal kf file
+		// and each piece of it corresponds to tke kf animation track
+		//(e.g. attack has the mouth open and close at teh right time)
+		
+		// there is a fully geomorph animated create r\\xkwama forager.nif it has 10 morphs 
+		//and is interesting it has a kf file that has one bone transform track	
+		// each fo teh 10 morphs is the full 13 seonds long and each touchs all 370 verts
+		// but teh key set seems to be lots of alpha 0's when the track is off
+		// so all tracks run and all track modify verts, but only 1 is ever non-0 alpha at
+		//a given time
+
+		// but for complex humans (talking blinking heads) there is also
+		// b_n_dark_elf_head_06 has a NiTextKeyExtraData 
+		// that shows the pieces of the geomorph animation by time slice
+
+		System.out.println("TES3 only! fireFrameName " + action);
+		for (int i = 0; i < niMorphData.numMorphs; i++)
+		{
+			if (niMorphData.nVer.LOAD_VER <= NifVer.VER_10_1_0_0)
+			{
+
+				if (("Frame_" + i).equals(action))
+				{
+					sequenceBehavior.setEnable(false);
+					currentNifMorph = niMorphData.morphs[i];
+					currentJ3dNiInterpolator = j3dNiInterpolators.get(i);
+					sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, false);
+
+					sequenceBehavior.setEnable(true);// disables after loop if required
+					return;
+				}
+			}
+			else
+			{
+				if (niMorphData.morphs[i].frameName.equalsIgnoreCase(action))
+				{
+					sequenceBehavior.setEnable(false);
+					currentNifMorph = niMorphData.morphs[i];
+					currentJ3dNiInterpolator = j3dNiInterpolators.get(i);
+					sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, false);
+
+					sequenceBehavior.setEnable(true);// disables after loop if required
+					return;
+				}
+			}
+		}
+	}
+
+	public String[] getAllMorphFrameNames()
+	{
+		String[] strings = new String[niMorphData.numMorphs];
+		for (int i = 0; i < niMorphData.numMorphs; i++)
+		{
+			if (niMorphData.nVer.LOAD_VER <= NifVer.VER_10_1_0_0)
+			{
+				strings[i] = "Frame_" + i;
+			}
+			else
+			{
+				strings[i] = niMorphData.morphs[i].frameName;
+			}
+		}
+		return strings;
 	}
 
 	/**

@@ -26,6 +26,8 @@ public class NifCharacterTes3 extends NifCharacter
 
 	private J3dNiControllerSequenceTes3 currentSequence;
 
+	protected ArrayList<J3dNiGeomMorpherController> allMorphs = new ArrayList<J3dNiGeomMorpherController>();
+
 	public NifCharacterTes3(String skeletonNifFilename, List<String> skinNifModelFilenames, MediaSources mediaSources)
 	{
 		super(skeletonNifFilename, skinNifModelFilenames, mediaSources, null);
@@ -36,6 +38,16 @@ public class NifCharacterTes3 extends NifCharacter
 			{
 				NifJ3dVisRoot model = NifToJ3d.loadShapes(skinNifModelFilename, mediaSources.getMeshSource(),
 						mediaSources.getTextureSource());
+
+				//TODO: add all morphs into a bunch for fun , but dump once kf it running geomorphs properly
+				for (J3dNiAVObject j3dNiAVObject : model.getNiToJ3dData().j3dNiAVObjectValues())
+				{
+					J3dNiGeomMorpherController j3dNiGeomMorpherController = j3dNiAVObject.getJ3dNiGeomMorpherController();
+					if (j3dNiGeomMorpherController != null)
+					{
+						allMorphs.add(j3dNiGeomMorpherController);
+					}
+				}
 
 				boolean leftRequired = false;
 				//For TES3: add any unskinned trishapes in the skin file onto the bones
@@ -85,7 +97,7 @@ public class NifCharacterTes3 extends NifCharacter
 								if (j3dNiAVObject.topOfParent != null)
 									j3dNiAVObject.topOfParent.removeAllChildren();
 
-								CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, skeletonNifFilename, j3dNiAVObject);
+								CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, j3dNiAVObject, true);
 								this.addChild(ca);
 								attachments.add(ca);
 							}
@@ -134,12 +146,11 @@ public class NifCharacterTes3 extends NifCharacter
 								else if (attachNodeName.contains("_Wrist"))
 									attachNodeName = "Left Wrist";
 
-								 
 								//TODO in fact I want a mirrored object, all x value reversed to -x
 								//GeometryArray ga = (GeometryArray) j3dNiGeometry.getShape().getGeometry();
 								//if g is a geo arry then flips all x's?
 								//float[] cos = ga.getCoordRefFloat();
-							 
+
 								J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton().get(attachNodeName);
 								if (attachnode != null)
 								{
@@ -147,8 +158,7 @@ public class NifCharacterTes3 extends NifCharacter
 									if (j3dNiAVObject.topOfParent != null)
 										j3dNiAVObject.topOfParent.removeAllChildren();
 
-									CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, skeletonNifFilename,
-											j3dNiAVObject);
+									CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, j3dNiAVObject, true);
 									this.addChild(ca);
 									attachments.add(ca);
 								}
@@ -278,4 +288,8 @@ public class NifCharacterTes3 extends NifCharacter
 		}
 
 	}
+
+	protected long prevMorphTime = 0;
+
+	protected float nextFireTime = 0;
 }

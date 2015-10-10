@@ -1,14 +1,11 @@
 package nif.j3d;
 
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.GeometryArray;
 import javax.media.j3d.IndexedGeometryArray;
 import javax.media.j3d.IndexedTriangleArray;
 
 import nif.niobject.NiTriShape;
 import nif.niobject.NiTriShapeData;
 import nif.niobject.bs.BSLODTriShape;
-import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
 import com.sun.j3d.utils.geometry.GeometryInfo;
@@ -25,10 +22,6 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 
 	public static boolean STRIPIFY = false;
 
-	private GeometryArray currentGeometryArray;
-
-	private NiTriShapeData data;
-
 	public J3dNiTriShape(NiTriShape niTriShape, NiToJ3dData niToJ3dData, TextureSource textureSource)
 	{
 		super(niTriShape, niToJ3dData, textureSource);
@@ -43,7 +36,7 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 		}
 		else
 		{
-			getShape().setGeometry(createGeometry(data, false));
+			getShape().setGeometry(createGeometry(false));
 		}
 
 	}
@@ -64,9 +57,8 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 		//	so just turn on at each level if any are there inall 0 is far 1 is close 2 is closer
 
 		niToJ3dData.put(bsLODTriShape, this);
-		data = (NiTriShapeData) niToJ3dData.get(bsLODTriShape.data);
 
-		getShape().setGeometry(createGeometry(data, false));
+		getShape().setGeometry(createGeometry(false));
 
 		if (bsLODTriShape.skin.ref != -1)
 		{
@@ -75,22 +67,10 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 
 	}
 
-	public GeometryArray getCurrentGeometryArray()
+	@Override
+	protected IndexedGeometryArray createGeometry(boolean morphable)
 	{
-		return currentGeometryArray;
-	}
-
-	/**
-	 * Note expensive re-create should be optomised one day
-	 */
-	public void makeMorphable()
-	{		
-		getShape().setBoundsAutoCompute(false);// expensive to do regularly so animated node just get one
-		getShape().setBounds(new BoundingSphere(ConvertFromNif.toJ3dP3d(data.center), ConvertFromNif.toJ3d(data.radius)));
-
-		baseGeometryArray = createGeometry(data, true);
-		currentGeometryArray = createGeometry(data, true);
-		getShape().setGeometry(currentGeometryArray);
+		return createGeometry((NiTriShapeData) data, morphable);
 	}
 
 	public static IndexedGeometryArray createGeometry(NiTriShapeData data, boolean morphable)

@@ -2,7 +2,6 @@ package nif.character;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import javax.media.j3d.Alpha;
 import javax.media.j3d.BoundingSphere;
@@ -24,7 +23,6 @@ import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiNode;
 import nif.j3d.J3dNiSkinInstance;
 import nif.j3d.animation.J3dNiControllerSequence.SequenceListener;
-import nif.j3d.animation.J3dNiGeomMorpherController;
 import nif.j3d.animation.SequenceAlpha;
 import nif.niobject.NiExtraData;
 import nif.niobject.NiStringExtraData;
@@ -32,6 +30,30 @@ import tools3d.utils.Utils3D;
 import tools3d.utils.scenegraph.Fadable;
 import tools3d.utils.scenegraph.VaryingLODBehaviour;
 import utils.source.MediaSources;
+
+/**
+ * //https://www.mail-archive.com/java3d-interest@java.sun.com/msg23102.html
+ * >There are a few latency issues in the Java 3D 1.3 architecture that could
+>affect what you're doing:
+>
+>1) Updates to geometry and texture data have a 1-frame latency.
+>2) Updates to transforms and scene graph structure have a 2-frame latency.
+>3) Methods such as getImagePlateToVworld() in Canvas3D query the internal
+>   representation of the Java 3D scene graph, which has the 2-frame latency
+>   previously mentioned, so you can't use those methods directly to
+>   synchronize view dependent scene graph updates.*/
+
+/**
+ * Because of teh above limitations all parts of teh scenegraph below character 
+ * must not use transformgroup but rework the same change into a geometryupdate call
+ * @author phil
+ *
+ */
+
+//TODO: look into this for the fustum work
+//The ViewInfo utility class (somewhere in com.sun.j3d.utils.universe)
+//will give you view info that is up-to-date with respect to the current
+//state of the scene graph.
 
 public class NifCharacter extends BranchGroup implements Fadable
 {
@@ -57,8 +79,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 
 	private NifCharUpdateBehavior updateBehavior;
 
-	protected ArrayList<J3dNiGeomMorpherController> allMorphs = new ArrayList<J3dNiGeomMorpherController>();
-
+	
 	protected ArrayList<CharacterAttachment> attachments = new ArrayList<CharacterAttachment>();
 
 	public NifCharacter(String skeletonNifFilename, List<String> skinNifModelFilenames, MediaSources mediaSources,
@@ -125,8 +146,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 										.get(nsed.stringData);
 								if (attachnode != null)
 								{
-									CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, skeletonNifFilename,
-											model.getVisualRoot());
+									CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, model.getVisualRoot());
 									this.addChild(ca);
 									attachments.add(ca);
 									break;
@@ -136,15 +156,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 					}
 				}
 
-				//add all morphs into a bunch for fun 
-				for (J3dNiAVObject j3dNiAVObject : model.getNiToJ3dData().j3dNiAVObjectValues())
-				{
-					J3dNiGeomMorpherController j3dNiGeomMorpherController = j3dNiAVObject.getJ3dNiGeomMorpherController();
-					if (j3dNiGeomMorpherController != null)
-					{
-						allMorphs.add(j3dNiGeomMorpherController);
-					}
-				}
+				
 			}
 		}
 
@@ -222,7 +234,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 				(currentkfJ3dRoot.getJ3dNiControllerSequence().isNotRunning() && returnToIdleWhenDone) || //
 				System.currentTimeMillis() - prevAnimTime > 10000))
 		{
-			//TODO: I've a list of idle, measure time in idle and change from time to time
+			// The above measures time in idle and changes from once it's been 10 seconds in case of looping idle
 			//otherwise drop back to idle if the current has finished 
 			int r = (int) (Math.random() * idleAnimations.size() - 1);
 			nextAnimation = idleAnimations.get(r);
@@ -233,31 +245,9 @@ public class NifCharacter extends BranchGroup implements Fadable
 
 		}
 
-		if (System.currentTimeMillis() - prevMorphTime > nextFireTime)
-		{
-			float maxLength = 0;
-			for (J3dNiGeomMorpherController j3dNiGeomMorpherController : allMorphs)
-			{
-				String[] morphsFrames = j3dNiGeomMorpherController.getAllMorphFrameNames();
-				int r2 = (int) (Math.random() * morphsFrames.length - 1);
-				String frame = morphsFrames[r2];
-				j3dNiGeomMorpherController.fireFrameName(frame);
-
-				if (maxLength < j3dNiGeomMorpherController.getLength())
-					maxLength = j3dNiGeomMorpherController.getLength();
-			}
-
-			prevMorphTime = System.currentTimeMillis();
-			nextFireTime = (maxLength * 1000) + (new Random().nextFloat() * 3000f);
-		}
-
 	}
 
 	protected long prevAnimTime = 0;
-
-	protected long prevMorphTime = 0;
-
-	protected float nextFireTime = 0;
 
 	/**
 	 * This only sets teh new animation if it is different from our current, otherwise ignore
