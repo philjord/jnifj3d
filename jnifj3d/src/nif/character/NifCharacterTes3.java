@@ -270,16 +270,19 @@ public class NifCharacterTes3 extends NifCharacter
 		if (System.currentTimeMillis() - prevMorphTime > nextFireTime)
 		{
 			float maxLength = 0;
-			for (J3dNiGeomMorpherController j3dNiGeomMorpherController : allMorphs)
+			if (allMorphs != null)
 			{
-				String[] morphsFrames = j3dNiGeomMorpherController.getAllMorphFrameNames();
-				int r2 = (int) (Math.random() * morphsFrames.length);
-				r2 = r2 == morphsFrames.length ? 0 : r2;
-				String frame = morphsFrames[r2];
-				j3dNiGeomMorpherController.fireFrameName(frame);
+				for (J3dNiGeomMorpherController j3dNiGeomMorpherController : allMorphs)
+				{
+					String[] morphsFrames = j3dNiGeomMorpherController.getAllMorphFrameNames();
+					int r2 = (int) (Math.random() * morphsFrames.length);
+					r2 = r2 == morphsFrames.length ? 0 : r2;
+					String frame = morphsFrames[r2];
+					j3dNiGeomMorpherController.fireFrameName(frame);
 
-				if (maxLength < j3dNiGeomMorpherController.getLength())
-					maxLength = j3dNiGeomMorpherController.getLength();
+					if (maxLength < j3dNiGeomMorpherController.getLength())
+						maxLength = j3dNiGeomMorpherController.getLength();
+				}
 			}
 
 			prevMorphTime = System.currentTimeMillis();

@@ -30,7 +30,7 @@ public abstract class KnotInterpolator
 		{
 			if (i > 0 && knots[i] < knots[i - 1])
 			{
-				throw new IllegalArgumentException("KnotInterpolator bum!");
+				throw new IllegalArgumentException("KnotInterpolator bum! " + i + " ! " + knots[i] + " < " + knots[i - 1]);
 			}
 			this.knots[i] = knots[i];
 		}

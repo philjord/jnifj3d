@@ -46,6 +46,7 @@ public class J3dNiPathInterpolator extends J3dNiInterpolator
 						knots[i] = key.time;
 						positions[i] = ConvertFromNif.toJ3dP3f((NifVector3) key.value);
 
+						//TODO: this looks like a rubbish system, why not proper forward to a quat
 						tempTrans.lookAt(new Point3d(0, 0, 0), ConvertFromNif.toJ3dP3d((NifVector3) key.forward), new Vector3d(0, 0, 1));
 
 						quats[i] = new Quat4f();

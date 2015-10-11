@@ -1,8 +1,8 @@
 package nif.j3d.interp;
 
 import javax.media.j3d.Transform3D;
-import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
+import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
 import nif.j3d.NifTransformGroup;
@@ -21,7 +21,7 @@ public class RotPosScaleTCBSplinePathInterpolator extends TCBSplinePathInterpola
 
 	private Vector3f iPos = new Vector3f(); // interpolated position 
 
-	private Point3f iScale = new Point3f(); // interpolated scale 
+	private Vector3d iScale = new Vector3d(); // interpolated scale 
 
 	private CubicSplineCurve cubicSplineCurve = new CubicSplineCurve();
 
@@ -37,7 +37,7 @@ public class RotPosScaleTCBSplinePathInterpolator extends TCBSplinePathInterpola
 		numSegments = cubicSplineCurve.numSegments;
 
 	}
-	
+
 	@Override
 	public void computeTransform(float alphaValue)
 	{
@@ -49,27 +49,27 @@ public class RotPosScaleTCBSplinePathInterpolator extends TCBSplinePathInterpola
 		// Determine the segment within which we will be interpolating
 		currentSegmentIndex = this.lowerKnot - 1;
 
-		// if we are at the start of the curve 
+		
 		if (currentSegmentIndex == 0 && currentU == 0f)
-		{
+		{// if we are at the start of the curve 
 
 			iQuat.set(keyFrames[1].quat);
 			iPos.set(keyFrames[1].position);
 			iScale.set(keyFrames[1].scale);
 
-			// if we are at the end of the curve 
+			 
 		}
 		else if (currentSegmentIndex == (numSegments - 1) && currentU == 1.0)
-		{
+		{// if we are at the end of the curve
 
 			iQuat.set(keyFrames[upperKnot].quat);
 			iPos.set(keyFrames[upperKnot].position);
 			iScale.set(keyFrames[upperKnot].scale);
 
-			// if we are somewhere in between the curve
+			
 		}
 		else
-		{
+		{// if we are somewhere in between the curve
 
 			// Get a reference to the current spline segment i.e. the
 			// one bounded by lowerKnot and upperKnot 
@@ -90,14 +90,13 @@ public class RotPosScaleTCBSplinePathInterpolator extends TCBSplinePathInterpola
 		iQuat.normalize();
 
 	}
-	
+
 	@Override
 	protected void applyTransform(Transform3D targetTransform1)
 	{
 		targetTransform1.setRotation(iQuat);
 		targetTransform1.setTranslation(iPos);
-		//TODO: can't do non uniform scale in J3D
-		targetTransform1.setScale(iScale.x);
+		targetTransform1.setScale(iScale);
 	}
 
 }

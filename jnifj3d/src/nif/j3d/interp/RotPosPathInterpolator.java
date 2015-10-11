@@ -30,10 +30,10 @@ public class RotPosPathInterpolator extends PathInterpolator
 		super(target, knots, 0, 1f);//normailized knots
 
 		if (knots.length != positions.length)
-			throw new IllegalArgumentException(J3dI18N.getString("RotPosPathInterpolator0"));
+			throw new IllegalArgumentException("knots.length != positions.length " + knots.length + " " + positions.length);
 
 		if (knots.length != quats.length)
-			throw new IllegalArgumentException(J3dI18N.getString("RotPosPathInterpolator0"));
+			throw new IllegalArgumentException("knots.length != quats.length " + knots.length + " " + quats.length);
 
 		setPathArrays(quats, positions);
 		fixed = isFixed();
@@ -48,7 +48,7 @@ public class RotPosPathInterpolator extends PathInterpolator
 			pos.z = positions[0].z;
 		}
 	}
-	
+
 	private boolean isFixed()
 	{
 		//check for a fixed value
@@ -115,7 +115,7 @@ public class RotPosPathInterpolator extends PathInterpolator
 			this.positions[i].set(positions[i]);
 		}
 	}
-	
+
 	@Override
 	public void computeTransform(float alphaValue)
 	{
@@ -182,10 +182,10 @@ public class RotPosPathInterpolator extends PathInterpolator
 	}
 
 	@Override
-	public void applyTransform(Transform3D targetTransform)
+	public void applyTransform(Transform3D targetTransform1)
 	{
-		targetTransform.setRotation(tQuat);
-		targetTransform.setTranslation(pos);
+		targetTransform1.setRotation(tQuat);
+		targetTransform1.setTranslation(pos);
 	}
 
 }

@@ -1,8 +1,5 @@
 package nif.j3d.interp;
 
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
-
 import nif.j3d.NifTransformGroup;
 
 /**
@@ -37,7 +34,7 @@ public abstract class PathInterpolator extends TransformInterpolator
 		{
 			if (i > 0 && knots[i] < knots[i - 1])
 			{
-				throw new IllegalArgumentException(J3dI18N.getString("PathInterpolator2"));
+				throw new IllegalArgumentException("KnotInterpolator bum! " + i + " ! " + knots[i] + " < " + knots[i - 1]);
 			}
 			this.knots[i] = knots[i];
 		}
@@ -61,24 +58,6 @@ public abstract class PathInterpolator extends TransformInterpolator
 				}
 				break;
 			}
-		}
-	}
-
-	static class J3dI18N
-	{
-		static String getString(String key)
-		{
-			String s;
-			try
-			{
-				s = ResourceBundle.getBundle("javax.media.j3d.ExceptionStrings").getString(key);
-			}
-			catch (MissingResourceException e)
-			{
-				System.err.println("J3dI18N: Error looking up: " + key);
-				s = key;
-			}
-			return s;
 		}
 	}
 }

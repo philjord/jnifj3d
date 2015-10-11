@@ -288,7 +288,7 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 		// b_n_dark_elf_head_06 has a NiTextKeyExtraData 
 		// that shows the pieces of the geomorph animation by time slice
 
-		System.out.println("TES3 only! fireFrameName " + action);
+		//System.out.println("TES3 only! fireFrameName " + action);
 		for (int i = 0; i < niMorphData.numMorphs; i++)
 		{
 			if (niMorphData.nVer.LOAD_VER <= NifVer.VER_10_1_0_0)

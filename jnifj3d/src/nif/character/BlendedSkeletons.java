@@ -90,7 +90,9 @@ public class BlendedSkeletons extends Group
 			if (outputBone != outputSkeleton.getSkeletonRoot())
 			{
 				NifTransformGroup output = outputBone.getTransformGroup();
-
+				
+//TODO: blending now causes massive issues see blockhit for example!				
+alphaValue = 1f;
 				if (alphaValue == 0f)
 				{
 					J3dNiAVObject prevBone = prevSkeleton.getAllBonesInSkeleton().get(boneName);

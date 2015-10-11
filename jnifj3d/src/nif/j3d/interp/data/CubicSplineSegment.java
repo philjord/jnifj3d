@@ -2,6 +2,7 @@ package nif.j3d.interp.data;
 
 import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
+import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
 import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
@@ -47,14 +48,12 @@ public class CubicSplineSegment
 	Point3f e0, e1, e2, e3; // coefficients for scale 
 
 	// variables for destination derivative
- 
 
 	float ddb;
 
 	float dda;
 
 	// variables for source derivative
- 
 
 	float dsb;
 
@@ -335,10 +334,12 @@ public class CubicSplineSegment
 		{
 			double quatDot;
 
-			quatDot = keyFrame[1].quat.x * keyFrame[2].quat.x + keyFrame[1].quat.y * keyFrame[2].quat.y + keyFrame[1].quat.z * keyFrame[2].quat.z
-					+ keyFrame[1].quat.w * keyFrame[2].quat.w;
+			quatDot = keyFrame[1].quat.x * keyFrame[2].quat.x + keyFrame[1].quat.y * keyFrame[2].quat.y + keyFrame[1].quat.z
+					* keyFrame[2].quat.z + keyFrame[1].quat.w * keyFrame[2].quat.w;
 
-			if (quatDot < 0)
+			// TODO: this code was in place to prevent long route interps, but I think I never want that
+			// example of contra is idleanims\\searchforsecretdoor.kf
+			if (false && quatDot < 0)
 			{
 				newQuat.x = keyFrame[1].quat.x + (-keyFrame[2].quat.x - keyFrame[1].quat.x) * u;
 				newQuat.y = keyFrame[1].quat.y + (-keyFrame[2].quat.y - keyFrame[1].quat.y) * u;
@@ -377,7 +378,7 @@ public class CubicSplineSegment
 	 * @param newScale returns the interpolated x,y,z scale value in a Point3f
 	 */
 
-	public void getInterpolatedScale(float u, Point3f newScale)
+	public void getInterpolatedScale(float u, Vector3d newScale)
 	{
 
 		// if linear interpolation
