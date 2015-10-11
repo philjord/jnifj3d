@@ -3,8 +3,8 @@ package nif.j3d.animation.j3dinterp;
 import nif.compound.NifKey;
 import nif.compound.NifKeyGroup;
 import nif.j3d.NiToJ3dData;
-import nif.j3d.animation.j3dinterp.compound.KnotsBools;
 import nif.j3d.animation.j3dinterp.interp.BoolInterpolator;
+import nif.j3d.animation.j3dinterp.interp.data.KnotsBools;
 import nif.niobject.NiBoolData;
 import nif.niobject.interpolator.NiBoolInterpolator;
 

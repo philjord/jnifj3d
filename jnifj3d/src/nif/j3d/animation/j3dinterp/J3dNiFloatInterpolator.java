@@ -4,8 +4,8 @@ import nif.compound.NifKey;
 import nif.compound.NifKeyGroup;
 import nif.compound.NifMorph;
 import nif.j3d.NiToJ3dData;
-import nif.j3d.animation.j3dinterp.compound.KnotsFloats;
 import nif.j3d.animation.j3dinterp.interp.FloatInterpolator;
+import nif.j3d.animation.j3dinterp.interp.data.KnotsFloats;
 import nif.niobject.NiFloatData;
 import nif.niobject.interpolator.NiFloatInterpolator;
 

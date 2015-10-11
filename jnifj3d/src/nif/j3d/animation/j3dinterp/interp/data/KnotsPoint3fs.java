@@ -1,4 +1,4 @@
-package nif.j3d.animation.j3dinterp.compound;
+package nif.j3d.animation.j3dinterp.interp.data;
 
 import javax.vecmath.Point3f;
 

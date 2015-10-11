@@ -6,8 +6,8 @@ import nif.compound.NifKey;
 import nif.compound.NifKeyGroup;
 import nif.compound.NifVector3;
 import nif.j3d.NiToJ3dData;
-import nif.j3d.animation.j3dinterp.compound.KnotsPoint3fs;
 import nif.j3d.animation.j3dinterp.interp.Point3Interpolator;
+import nif.j3d.animation.j3dinterp.interp.data.KnotsPoint3fs;
 import nif.niobject.NiPosData;
 import nif.niobject.interpolator.NiPoint3Interpolator;
 
