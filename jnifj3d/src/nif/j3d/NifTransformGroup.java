@@ -41,11 +41,10 @@ public class NifTransformGroup extends TransformGroup
 			this.getTransform(transformCache);
 		}
 
-		//TODO: test speed improvement!!!
 		//TODO: this is still expensive, think about making a generic fast version like SkinData?
-		// the isAffine call seems pricey, but I'm ALWAYS affine
-		t.mul(transformCache);
-		//affineTransfromMul(t, transformCache);
+		// the isAffine call seems pricey, but I'm ALWAYS affine, so I use faster version below
+		//t.mul(transformCache);
+		affineTransfromMul(t, transformCache);
 
 	}
 

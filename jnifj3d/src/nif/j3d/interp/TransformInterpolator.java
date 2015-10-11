@@ -48,8 +48,6 @@ public abstract class TransformInterpolator implements Interpolated
 
 	protected abstract void applyTransform(Transform3D t);
 
-	//Skyrim female/weaponadjustment has a bad left thigh in it (like a reversed rotate!) but matches bone, maybe bone is reversed?
-
 	//do I need the multiple interps over a transform?
 	//more than one can point to it, but not more than one can be animating it at once!
 
@@ -66,10 +64,10 @@ public abstract class TransformInterpolator implements Interpolated
 
 			applyTransform(targetTransform);
 
-			if (!isAffine(targetTransform))
+			//if (!isAffine(targetTransform))
 			{
-				//TODO: this is expensive I wager take out if no no affines
-				System.out.println("this bummed it up " + this);
+				//this is expensive I wager take out if no no affines
+				//System.out.println("this bummed it up " + this);
 			}
 
 			//only set on a change
