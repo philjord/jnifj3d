@@ -4,8 +4,8 @@ import javax.media.j3d.Alpha;
 
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.NiToJ3dData;
-import nif.j3d.animation.interp.J3dNiInterpolator;
-import nif.j3d.animation.interp.J3dNiTransformInterpolatorFactory;
+import nif.j3d.animation.j3dinterp.J3dNiInterpolator;
+import nif.j3d.animation.j3dinterp.J3dNiTransformInterpolatorFactory;
 import nif.niobject.NiAVObject;
 import nif.niobject.controller.NiSingleInterpController;
 import nif.niobject.controller.NiTransformController;

@@ -5,7 +5,7 @@ import javax.media.j3d.TransparencyAttributes;
 
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiGeometry;
-import nif.j3d.interp.FloatInterpolator;
+import nif.j3d.animation.j3dinterp.interp.FloatInterpolator;
 import nif.niobject.controller.NiAlphaController;
 
 public class J3dNiAlphaController extends J3dNiTimeController implements FloatInterpolator.Listener

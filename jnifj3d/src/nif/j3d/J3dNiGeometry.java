@@ -39,7 +39,7 @@ import nif.enums.FaceDrawMode;
 import nif.enums.SkyrimShaderPropertyFlags2;
 import nif.enums.VertMode;
 import nif.j3d.animation.J3dNiTimeController;
-import nif.j3d.animation.interp.J3dNiInterpolator;
+import nif.j3d.animation.j3dinterp.J3dNiInterpolator;
 import nif.niobject.NiAlphaProperty;
 import nif.niobject.NiDitherProperty;
 import nif.niobject.NiFogProperty;

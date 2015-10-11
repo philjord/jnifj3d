@@ -10,7 +10,7 @@ import javax.vecmath.Vector3f;
 import nif.enums.TexTransform;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiGeometry;
-import nif.j3d.interp.FloatInterpolator;
+import nif.j3d.animation.j3dinterp.interp.FloatInterpolator;
 import nif.niobject.controller.NiTextureTransformController;
 
 public class J3dNiTextureTransformController extends J3dNiTimeController implements FloatInterpolator.Listener

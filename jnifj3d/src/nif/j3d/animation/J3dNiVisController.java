@@ -7,7 +7,7 @@ import javax.vecmath.Vector4d;
 
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiNode;
-import nif.j3d.interp.BoolInterpolator;
+import nif.j3d.animation.j3dinterp.interp.BoolInterpolator;
 import nif.j3d.particles.J3dNiParticleSystem;
 import nif.niobject.controller.NiVisController;
 

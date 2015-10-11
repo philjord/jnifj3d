@@ -1,7 +1,7 @@
 package nif.j3d.animation;
 
 import nif.j3d.J3dNiAVObject;
-import nif.j3d.interp.FloatInterpolator;
+import nif.j3d.animation.j3dinterp.interp.FloatInterpolator;
 import nif.niobject.controller.NiExtraDataController;
 
 public class J3dNiExtraDataController extends J3dNiTimeController implements FloatInterpolator.Listener

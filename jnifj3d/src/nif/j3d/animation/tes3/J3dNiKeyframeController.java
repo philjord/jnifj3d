@@ -3,7 +3,7 @@ package nif.j3d.animation.tes3;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.NifTransformGroup;
-import nif.j3d.animation.interp.J3dNiTransformInterpolator;
+import nif.j3d.animation.j3dinterp.J3dNiTransformInterpolator;
 import nif.niobject.NiKeyframeData;
 import nif.niobject.controller.NiKeyframeController;
 

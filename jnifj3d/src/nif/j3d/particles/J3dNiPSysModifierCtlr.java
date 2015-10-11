@@ -7,7 +7,7 @@ import javax.vecmath.Point3f;
 import tools3d.utils.Utils3D;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.animation.J3dNiTimeController;
-import nif.j3d.animation.interp.J3dNiInterpolator;
+import nif.j3d.animation.j3dinterp.J3dNiInterpolator;
 import nif.niobject.bs.BSPSysMultiTargetEmitterCtlr;
 import nif.niobject.controller.NiTimeController;
 import nif.niobject.controller.NiVisController;

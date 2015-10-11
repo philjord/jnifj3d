@@ -8,7 +8,7 @@ import nif.NifVer;
 import nif.basic.NifPtr;
 import nif.basic.NifRef;
 import nif.j3d.animation.J3dNiTimeController;
-import nif.j3d.animation.interp.J3dNiInterpolator;
+import nif.j3d.animation.j3dinterp.J3dNiInterpolator;
 import nif.niobject.NiAVObject;
 import nif.niobject.NiObject;
 import nif.niobject.controller.NiTimeController;

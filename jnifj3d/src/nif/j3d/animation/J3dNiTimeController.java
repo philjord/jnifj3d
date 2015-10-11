@@ -8,12 +8,12 @@ import javax.vecmath.Point3f;
 
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.NiToJ3dData;
-import nif.j3d.animation.interp.J3dNiBSplineCompFloatInterpolator;
-import nif.j3d.animation.interp.J3dNiBoolInterpolator;
-import nif.j3d.animation.interp.J3dNiFloatInterpolator;
-import nif.j3d.animation.interp.J3dNiInterpolator;
-import nif.j3d.animation.interp.J3dNiPoint3Interpolator;
-import nif.j3d.interp.InterpolatorListener;
+import nif.j3d.animation.j3dinterp.J3dNiBSplineCompFloatInterpolator;
+import nif.j3d.animation.j3dinterp.J3dNiBoolInterpolator;
+import nif.j3d.animation.j3dinterp.J3dNiFloatInterpolator;
+import nif.j3d.animation.j3dinterp.J3dNiInterpolator;
+import nif.j3d.animation.j3dinterp.J3dNiPoint3Interpolator;
+import nif.j3d.animation.j3dinterp.interp.InterpolatorListener;
 import nif.j3d.particles.J3dNiParticleSystem;
 import nif.niobject.bhk.bhkBlendController;
 import nif.niobject.bs.BSEffectShaderPropertyColorController;
