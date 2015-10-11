@@ -3,7 +3,6 @@ package nif.j3d.interp;
 import javax.media.j3d.Transform3D;
 import javax.vecmath.Quat4f;
 
-//TODO: a lot of copying here of data? perhaps expensive on memory 
 public class RotationPathInterpolator extends KnotInterpolator
 {
 	private Quat4f tQuat = new Quat4f();
@@ -18,7 +17,7 @@ public class RotationPathInterpolator extends KnotInterpolator
 		if (knots.length != quats.length)
 			throw new IllegalArgumentException("knots.length != quats.length");
 
-		setPathArrays(quats);
+		this.quats = quats;
 
 		fixed = isFixed();
 		if (fixed)
@@ -40,17 +39,6 @@ public class RotationPathInterpolator extends KnotInterpolator
 		}
 
 		return true;
-	}
-
-	// Set the specific arrays for this path interpolator
-	private void setPathArrays(Quat4f[] quats)
-	{
-		this.quats = new Quat4f[quats.length];
-		for (int i = 0; i < quats.length; i++)
-		{
-			this.quats[i] = new Quat4f();
-			this.quats[i].set(quats[i]);
-		}
 	}
 
 	@Override

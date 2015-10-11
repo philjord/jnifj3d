@@ -63,10 +63,12 @@ public class RotPosScaleInterpolator extends TransformInterpolator
 		// set to the base target
 		targetTransform.set(baseTransform);
 
+		//TODO:  shouldn't I stop skel animations totally at teh root? Are they ever running?
+
 		// don't run skel animation at all
 		if (((NiObject) ((J3dNiTransformInterpolator) this.getOwner()).getOwner()).nVer.fileName.contains("skeleton"))
 		{
-			//TODO: after must stop skel animations totally at teh root
+			System.out.println("skel anim stopped");
 			return;
 		}
 
@@ -107,7 +109,6 @@ public class RotPosScaleInterpolator extends TransformInterpolator
 				targetTransform.setScale(defaultScale);
 			}
 
-			
 			//only set on a change
 			if (!targetTransform.equals(prevTargetTransform))
 			{
@@ -119,8 +120,6 @@ public class RotPosScaleInterpolator extends TransformInterpolator
 		}
 
 	}
-
-	
 
 	@Override
 	public void computeTransform(float alphaValue)

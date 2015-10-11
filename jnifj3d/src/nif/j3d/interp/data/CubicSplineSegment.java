@@ -92,10 +92,10 @@ public class CubicSplineSegment
 	{
 
 		// Copy KeyFrame information
-		keyFrame[0] = new TCBKeyFrame(kf0);
-		keyFrame[1] = new TCBKeyFrame(kf1);
-		keyFrame[2] = new TCBKeyFrame(kf2);
-		keyFrame[3] = new TCBKeyFrame(kf3);
+		keyFrame[0] = kf0;
+		keyFrame[1] = kf1;
+		keyFrame[2] = kf2;
+		keyFrame[3] = kf3;
 
 		// if linear interpolation is requested then just set linear flag
 		// if spline interpolation is needed then compute spline coefficients

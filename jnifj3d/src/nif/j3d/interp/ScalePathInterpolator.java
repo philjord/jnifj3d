@@ -15,7 +15,7 @@ public class ScalePathInterpolator extends KnotInterpolator
 
 		if (knots.length != scales.length)
 			throw new IllegalArgumentException("knots.length != scales.length");
-		setPathArrays(scales);
+		this.scales = scales;
 		fixed = isFixed();
 		if (fixed)
 		{
@@ -33,17 +33,6 @@ public class ScalePathInterpolator extends KnotInterpolator
 		}
 
 		return true;
-	}
-
-	// Set the specific arrays for this path interpolator
-	private void setPathArrays(float[] scales)
-	{
-
-		this.scales = new float[scales.length];
-		for (int i = 0; i < scales.length; i++)
-		{
-			this.scales[i] = scales[i];
-		}
 	}
 
 	@Override
@@ -68,7 +57,7 @@ public class ScalePathInterpolator extends KnotInterpolator
 	@Override
 	public void applyTransform(Transform3D targetTransform)
 	{
-		targetTransform.setScale(tScale);		
+		targetTransform.setScale(tScale);
 	}
 
 }

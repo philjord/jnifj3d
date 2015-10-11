@@ -2,7 +2,6 @@ package nif.j3d.interp;
 
 import nif.j3d.NifTransformGroup;
 
-import com.sun.j3d.internal.J3dUtilsI18N;
 import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
 
 /**
@@ -50,20 +49,20 @@ public abstract class TCBSplinePathInterpolator extends TransformInterpolator
 		keysLength = keys.length;
 		if (keysLength < 2)
 		{
-			throw new IllegalArgumentException(J3dUtilsI18N.getString("TCBSplinePathInterpolator0"));
+			throw new IllegalArgumentException("keysLength < 2 " + keysLength);
 
 		}
 
 		// Make sure that the first key frame's knot is equal to 0.0 
 		if (keys[0].knot < -0.0001 || keys[0].knot > 0.0001)
 		{
-			throw new IllegalArgumentException(J3dUtilsI18N.getString("TCBSplinePathInterpolator1"));
+			throw new IllegalArgumentException("keys[0].knot != 0 " + keys[0].knot);
 		}
 
 		// Make sure that the last key frames knot is equal to 1.0 
 		if (keys[keysLength - 1].knot - 1.0 < -0.0001 || keys[keysLength - 1].knot - 1.0 > 0.0001)
 		{
-			throw new IllegalArgumentException(J3dUtilsI18N.getString("TCBSplinePathInterpolator2"));
+			throw new IllegalArgumentException("keys[keysLength - 1] != 1" + keys[keysLength - 1]);
 		}
 
 		// Make sure that all the knots are in sequence 
@@ -71,7 +70,7 @@ public abstract class TCBSplinePathInterpolator extends TransformInterpolator
 		{
 			if (i > 0 && keys[i].knot < keys[i - 1].knot)
 			{
-				throw new IllegalArgumentException(J3dUtilsI18N.getString("TCBSplinePathInterpolator3"));
+				throw new IllegalArgumentException("knots out of sequence");
 			}
 		}
 

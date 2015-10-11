@@ -8,7 +8,7 @@ import javax.vecmath.Vector3f;
 import nif.j3d.NifTransformGroup;
 
 /**
- * RotPosPathInterpolator is my copy if the j3d RotPosPathInterpolator with multiple targets 
+ * RotPosPathInterpolator is my copy if the j3d RotPosPathInterpolator
  */
 
 public class RotPosPathInterpolator extends PathInterpolator
@@ -17,8 +17,6 @@ public class RotPosPathInterpolator extends PathInterpolator
 	private Vector3f pos = new Vector3f();
 
 	private Quat4f tQuat = new Quat4f();
-
-	//private Matrix4d tMat = new Matrix4d();
 
 	// Arrays of quaternions and positions at each knot
 	private Quat4f quats[];
@@ -35,7 +33,8 @@ public class RotPosPathInterpolator extends PathInterpolator
 		if (knots.length != quats.length)
 			throw new IllegalArgumentException("knots.length != quats.length " + knots.length + " " + quats.length);
 
-		setPathArrays(quats, positions);
+		this.quats = quats;
+		this.positions = positions;
 		fixed = isFixed();
 		if (fixed)
 		{
@@ -97,25 +96,6 @@ public class RotPosPathInterpolator extends PathInterpolator
 		this.positions[index].set(position);
 	}
 
-	// Set the specific arrays for this path interpolator
-	private void setPathArrays(Quat4f[] quats, Point3f[] positions)
-	{
-
-		this.quats = new Quat4f[quats.length];
-		for (int i = 0; i < quats.length; i++)
-		{
-			this.quats[i] = new Quat4f();
-			this.quats[i].set(quats[i]);
-		}
-
-		this.positions = new Point3f[positions.length];
-		for (int i = 0; i < positions.length; i++)
-		{
-			this.positions[i] = new Point3f();
-			this.positions[i].set(positions[i]);
-		}
-	}
-
 	@Override
 	public void computeTransform(float alphaValue)
 	{
@@ -170,14 +150,6 @@ public class RotPosPathInterpolator extends PathInterpolator
 						* currentInterpolationValue;
 			}
 			tQuat.normalize();
-
-			// Set the rotation components
-			//		tMat.set(tQuat);
-
-			// Set the translation components.
-			//		tMat.m03 = pos.x;
-			//		tMat.m13 = pos.y;
-			//		tMat.m23 = pos.z;
 		}
 	}
 

@@ -17,7 +17,9 @@ public class PositionPathInterpolator extends KnotInterpolator
 
 		if (knots.length != positions.length)
 			throw new IllegalArgumentException("knots.length != positions.length");
-		setPathArrays(positions);
+
+		this.positions = positions;
+
 		fixed = isFixed();
 		if (fixed)
 		{
@@ -37,17 +39,6 @@ public class PositionPathInterpolator extends KnotInterpolator
 		}
 
 		return true;
-	}
-
-	// Set the specific arrays for this path interpolator
-	private void setPathArrays(Point3f[] ps)
-	{
-		positions = new Point3f[ps.length];
-		for (int i = 0; i < ps.length; i++)
-		{
-			positions[i] = new Point3f();
-			positions[i].set(ps[i]);
-		}
 	}
 
 	@Override

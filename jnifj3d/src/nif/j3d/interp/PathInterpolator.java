@@ -29,15 +29,16 @@ public abstract class PathInterpolator extends TransformInterpolator
 	 */
 	protected void setKnots(float[] knots)
 	{
-		this.knots = new float[knots.length];
 		for (int i = 0; i < knots.length; i++)
 		{
 			if (i > 0 && knots[i] < knots[i - 1])
 			{
 				throw new IllegalArgumentException("KnotInterpolator bum! " + i + " ! " + knots[i] + " < " + knots[i - 1]);
 			}
-			this.knots[i] = knots[i];
+
 		}
+		this.knots = knots;
+
 	}
 
 	protected void computePathInterpolation(float alphaValue)
