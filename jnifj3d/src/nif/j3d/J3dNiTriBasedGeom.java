@@ -3,15 +3,31 @@ package nif.j3d;
 import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.GeometryArray;
 import javax.media.j3d.IndexedGeometryArray;
+import javax.media.j3d.J3DBuffer;
 
 import nif.niobject.NiTriBasedGeom;
 import nif.niobject.NiTriBasedGeomData;
 import tools.WeakValueHashMap;
+import tools3d.utils.Utils3D;
 import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
+/**
+ * This class has a base geometry and a current to allow skin instances to deform the base
+ * @author philip
+ *
+ */
 public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 {
+	//morrowind wants true false false
+	//oblivion wants true false false
+	//skyrim wants true false false
+	public static boolean INTERLEAVE = true;
+
+	public static boolean STRIPIFY = false;// relavant to shape only
+
+	public static boolean BUFFERS = false;
+
 	protected GeometryArray baseGeometryArray;
 
 	protected GeometryArray currentGeometryArray;
@@ -65,9 +81,10 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 				| (data.actNumUVSets > 0 ? GeometryArray.TEXTURE_COORDINATE_2 : 0) //
 				| (data.vertexColorsOpt != null ? GeometryArray.COLOR_4 : 0) //
 				| GeometryArray.USE_COORD_INDEX_ONLY //
-				| (morphable || interleave ? GeometryArray.BY_REFERENCE_INDICES : 0)//				
-				| (morphable || interleave ? GeometryArray.BY_REFERENCE : 0)//
-				| (!morphable && interleave ? GeometryArray.INTERLEAVED : 0);
+				| ((morphable || interleave || BUFFERS) ? GeometryArray.BY_REFERENCE_INDICES : 0)//				
+				| ((morphable || interleave || BUFFERS) ? GeometryArray.BY_REFERENCE : 0)//
+				| ((!morphable && interleave) ? GeometryArray.INTERLEAVED : 0)//
+				| ((!morphable && BUFFERS) ? GeometryArray.USE_NIO_BUFFER : 0);
 		return vertexFormat;
 	}
 
@@ -114,21 +131,42 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 			{
 				float[] vertexData = J3dNiTriBasedGeom.interleave(texCoordSetCount, texCoordDim, texCoordSets, null, colors4, normals,
 						data.verticesOpt);
-				ga.setInterleavedVertices(vertexData);
+				if (!BUFFERS)
+				{
+					ga.setInterleavedVertices(vertexData);
+				}
+				else
+				{
+					ga.setInterleavedVertexBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(vertexData)));
+				}
 			}
 			else
 			{
-				ga.setCoordinates(0, data.verticesOpt);
-
-				if (data.hasNormals)
-					ga.setNormals(0, normals);
-
-				if (data.hasVertexColors)
-					ga.setColors(0, colors4);
-
-				for (int i = 0; i < texCoordSetCount; i++)
+				if (!BUFFERS)
 				{
-					ga.setTextureCoordinates(i, 0, texCoordSets[i]);
+					ga.setCoordinates(0, data.verticesOpt);
+
+					if (data.hasNormals)
+						ga.setNormals(0, normals);
+
+					if (data.hasVertexColors)
+						ga.setColors(0, colors4);
+
+					for (int i = 0; i < texCoordSetCount; i++)
+					{
+						ga.setTextureCoordinates(i, 0, texCoordSets[i]);
+					}
+				}
+				else
+				{
+					ga.setCoordRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(data.verticesOpt)));
+
+					ga.setNormalRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(normals)));
+					ga.setColorRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(colors4)));
+					for (int i = 0; i < texCoordSetCount; i++)
+					{
+						ga.setTexCoordRefBuffer(i, new J3DBuffer(Utils3D.makeFloatBuffer(texCoordSets[i])));
+					}
 				}
 			}
 		}

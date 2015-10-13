@@ -5,8 +5,6 @@ import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
 
 import nif.j3d.NifTransformGroup;
-import nif.j3d.animation.j3dinterp.J3dNiTransformInterpolator;
-import nif.niobject.NiObject;
 
 public class RotPosScaleInterpolator extends TransformInterpolator
 {
@@ -62,15 +60,6 @@ public class RotPosScaleInterpolator extends TransformInterpolator
 
 		// set to the base target
 		targetTransform.set(baseTransform);
-
-		//TODO:  shouldn't I stop skel animations totally at teh root? Are they ever running?
-
-		// don't run skel animation at all
-		if (((NiObject) ((J3dNiTransformInterpolator) this.getOwner()).getOwner()).nVer.fileName.contains("skeleton"))
-		{
-			System.out.println("skel anim stopped");
-			return;
-		}
 
 		if (alphaValue != prevAlphaValue)
 		{

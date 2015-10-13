@@ -79,7 +79,6 @@ public class NifCharacter extends BranchGroup implements Fadable
 
 	private NifCharUpdateBehavior updateBehavior;
 
-	
 	protected ArrayList<CharacterAttachment> attachments = new ArrayList<CharacterAttachment>();
 
 	public NifCharacter(String skeletonNifFilename, List<String> skinNifModelFilenames, MediaSources mediaSources,
@@ -156,7 +155,6 @@ public class NifCharacter extends BranchGroup implements Fadable
 					}
 				}
 
-				
 			}
 		}
 
@@ -238,7 +236,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 			//otherwise drop back to idle if the current has finished 
 			int r = (int) (Math.random() * idleAnimations.size() - 1);
 			nextAnimation = idleAnimations.get(r);
-			if (nextAnimation.length() > 0)
+			if (nextAnimation.length() > 0 && nextAnimation.endsWith(".kf"))
 				updateAnimation();
 
 			prevAnimTime = System.currentTimeMillis();

@@ -11,16 +11,10 @@ import utils.source.TextureSource;
 import com.sun.j3d.utils.geometry.GeometryInfo;
 import com.sun.j3d.utils.geometry.Stripifier;
 
-/**
- * This class has a base geometry and a current to allow skin instances to deform the base
- * @author philip
- *
- */
+
 public class J3dNiTriShape extends J3dNiTriBasedGeom
 {
-	public static boolean INTERLEAVE = true;
 
-	public static boolean STRIPIFY = false;
 
 	public J3dNiTriShape(NiTriShape niTriShape, NiToJ3dData niToJ3dData, TextureSource textureSource)
 	{
@@ -94,7 +88,7 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 			{
 				IndexedGeometryArray ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, INTERLEAVE),
 						data.actNumUVSets, texMap, data.numTrianglePoints);
-				if (INTERLEAVE)
+				if (morphable || INTERLEAVE)
 					ita.setCoordIndicesRef(data.trianglesOpt);
 				else
 					ita.setCoordinateIndices(0, data.trianglesOpt);
@@ -132,7 +126,7 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 				Stripifier stripifer = new Stripifier();
 				stripifer.stripify(gi);
 
-				IndexedGeometryArray ita = gi.getIndexedGeometryArray(true, true, INTERLEAVE, true, false);
+				IndexedGeometryArray ita = gi.getIndexedGeometryArray(false, false, INTERLEAVE, true, BUFFERS);
 
 				if (!morphable)
 				{

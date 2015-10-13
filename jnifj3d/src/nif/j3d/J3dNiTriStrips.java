@@ -14,7 +14,6 @@ import utils.source.TextureSource;
  */
 public class J3dNiTriStrips extends J3dNiTriBasedGeom
 {
-	public static boolean INTERLEAVE = true;
 
 	public J3dNiTriStrips(NiTriStrips niTriStrips, NiToJ3dData niToJ3dData, TextureSource textureSource)
 	{
@@ -74,7 +73,7 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 
 			IndexedGeometryArray itsa = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable, INTERLEAVE),
 					data.actNumUVSets, texMap, length, stripLengths);
-			if (INTERLEAVE)
+			if (morphable || INTERLEAVE)
 				itsa.setCoordIndicesRef(points);
 			else
 				itsa.setCoordinateIndices(0, points);
