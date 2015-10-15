@@ -94,6 +94,7 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 					temp1.setRotation(new Quat4f(0, 0, 0, 1));
 				}
 				temp1.setTranslation(ConvertFromNif.toJ3d(niAVObject.translation));
+				temp1.setScale(niAVObject.scale);
 
 				trans.mul(temp1, trans);
 

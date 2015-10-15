@@ -14,8 +14,6 @@ import com.sun.j3d.utils.geometry.Stripifier;
 
 public class J3dNiTriShape extends J3dNiTriBasedGeom
 {
-
-
 	public J3dNiTriShape(NiTriShape niTriShape, NiToJ3dData niToJ3dData, TextureSource textureSource)
 	{
 		super(niTriShape, niToJ3dData, textureSource);

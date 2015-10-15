@@ -1,9 +1,15 @@
 package nif.j3d;
 
+import javax.media.j3d.Appearance;
 import javax.media.j3d.BoundingSphere;
+import javax.media.j3d.ColoringAttributes;
 import javax.media.j3d.GeometryArray;
 import javax.media.j3d.IndexedGeometryArray;
 import javax.media.j3d.J3DBuffer;
+import javax.media.j3d.LineAttributes;
+import javax.media.j3d.PolygonAttributes;
+import javax.media.j3d.RenderingAttributes;
+import javax.media.j3d.Shape3D;
 
 import nif.niobject.NiTriBasedGeom;
 import nif.niobject.NiTriBasedGeomData;
@@ -27,6 +33,10 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 	public static boolean STRIPIFY = false;// relavant to shape only
 
 	public static boolean BUFFERS = false;
+
+	public static boolean OUTLINE_MORPHS_DEMO = true;
+
+	public static int OUTLINE_STENCIL_MASK = 0x01;
 
 	protected GeometryArray baseGeometryArray;
 
@@ -58,6 +68,46 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 			currentGeometryArray = createGeometry(true);
 			getShape().setGeometry(currentGeometryArray);
 			isMorphable = true;
+
+			if (OUTLINE_MORPHS_DEMO)
+			{
+
+				//-Dj3d.stencilClear=true still required??
+
+				Appearance sapp = getShape().getAppearance();
+				RenderingAttributes ra1 = new RenderingAttributes();
+				ra1.setStencilEnable(true);
+				ra1.setStencilWriteMask(OUTLINE_STENCIL_MASK);
+				ra1.setStencilFunction(RenderingAttributes.ALWAYS, 1, OUTLINE_STENCIL_MASK);
+				ra1.setStencilOp(RenderingAttributes.STENCIL_REPLACE, //
+						RenderingAttributes.STENCIL_REPLACE,//
+						RenderingAttributes.STENCIL_REPLACE);
+				sapp.setRenderingAttributes(ra1);
+
+				Shape3D outliner = new Shape3D();
+				outliner.setGeometry(currentGeometryArray);
+				Appearance app = new Appearance();
+				LineAttributes la = new LineAttributes(4, LineAttributes.PATTERN_SOLID, true);
+				app.setLineAttributes(la);
+				PolygonAttributes pa = new PolygonAttributes(PolygonAttributes.POLYGON_LINE, PolygonAttributes.CULL_NONE, 0.0f, false, 0.0f);
+				app.setPolygonAttributes(pa);
+				ColoringAttributes colorAtt = new ColoringAttributes(1.0f, 1.0f, 0.0f, ColoringAttributes.FASTEST);
+				app.setColoringAttributes(colorAtt);
+
+				RenderingAttributes ra2 = new RenderingAttributes();
+				ra2.setStencilEnable(true);
+				ra2.setStencilWriteMask(OUTLINE_STENCIL_MASK);
+				ra2.setStencilFunction(RenderingAttributes.NOT_EQUAL, 1, OUTLINE_STENCIL_MASK);
+				ra2.setStencilOp(RenderingAttributes.STENCIL_KEEP, //
+						RenderingAttributes.STENCIL_KEEP,//
+						RenderingAttributes.STENCIL_KEEP);
+
+				ra2.setDepthBufferEnable(false);
+
+				app.setRenderingAttributes(ra2);
+				outliner.setAppearance(app);
+				addChild(outliner);
+			}
 		}
 	}
 

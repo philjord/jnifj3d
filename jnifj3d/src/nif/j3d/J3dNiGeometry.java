@@ -121,7 +121,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		if (customShape == null)
 		{
 			shape = new Shape3D();
- 
+
 			addChild(shape);
 		}
 		else
@@ -130,7 +130,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 			shape = customShape;
 		}
 		shape.setName("" + this.getClass().getSimpleName() + ":" + niGeometry.name);
-		
+
 		// using the bounds form teh files cause things to be culled, lets go with auto instead and a cache
 		//-Dj3d.cacheAutoComputeBounds=true 	If set to true, cache AutoCompute Bounds to accelerate getBounds method
 		//NiGeometryData data = (NiGeometryData) niToJ3dData.get(niGeometry.data);
@@ -503,6 +503,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 							//obviously transparent stuff can be seen from the back quite often
 							PolygonAttributes pa = new PolygonAttributes();
 							pa.setCullFace(PolygonAttributes.CULL_NONE);
+							pa.setBackFaceNormalFlip(true);
 							app.setPolygonAttributes(pa);
 
 							int alphaTestMode = NifOpenGLToJava3D.convertAlphaTestMode(nap.alphaTestMode());
@@ -529,19 +530,15 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 							app.setPolygonAttributes(pa);
 						}
 
-						/*
-						 * Note Although it works (with the slight mod below) for a single model nicely
-						 * When multiple models are involved, the transparent ones (like light glow) are sorted and rendered back to front
-						 * This means we get the opposite effect, where the back most glow gets to stamp the stencil and the front one leaves a space for it
-						 * which obviously looks madness. Maybe shaders deal with this for real?
-						 * Possibly setting the stencilbuffer to 0 after each render might help?
-						 */
-						if (nsp.isStencilEnable() && false)//isStencilEnable tends to be false even though the prop is attached
+						if (nsp.isStencilEnable())
 						{
 							ra.setStencilEnable(true);
+							if (nsp.stencilMask == J3dNiTriBasedGeom.OUTLINE_STENCIL_MASK)
+								System.out.println("j3dgeometry using outline stencil mask");
+							ra.setStencilWriteMask(nsp.stencilMask);
 
-							//ra.setStencilFunction(NifOpenGLToJava3D.convertStencilFunction(nsp.stencilFunction()), nsp.stencilRef, nsp.stencilMask);
-							ra.setStencilFunction(RenderingAttributes.GREATER_OR_EQUAL, nsp.stencilRef, nsp.stencilMask);
+							ra.setStencilFunction(NifOpenGLToJava3D.convertStencilFunction(nsp.stencilFunction()), nsp.stencilRef,
+									nsp.stencilMask);
 							ra.setStencilOp(NifOpenGLToJava3D.convertStencilAction(nsp.failAction()), //
 									NifOpenGLToJava3D.convertStencilAction(nsp.zFailAction()),//
 									NifOpenGLToJava3D.convertStencilAction(nsp.passAction()));
