@@ -131,12 +131,6 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		}
 		shape.setName("" + this.getClass().getSimpleName() + ":" + niGeometry.name);
 
-		// using the bounds form teh files cause things to be culled, lets go with auto instead and a cache
-		//-Dj3d.cacheAutoComputeBounds=true 	If set to true, cache AutoCompute Bounds to accelerate getBounds method
-		//NiGeometryData data = (NiGeometryData) niToJ3dData.get(niGeometry.data);
-		//shape.setBoundsAutoCompute(false);
-		//shape.setBounds(new BoundingSphere(ConvertFromNif.toJ3dP3d(data.center), ConvertFromNif.toJ3d(data.radius)));
-
 		// no texture source probably just wants the geometry set up
 		if (textureSource != null)
 		{
@@ -149,7 +143,19 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 				normalApp = new ShaderAppearance();
 			}
 			configureAppearance(niGeometry, niToJ3dData, normalApp);
-
+	
+			
+		/*	System.out.println("niGeometry " +niGeometry.nVer.fileName);
+			System.out.println("normalApp.getTransparencyAttributes() " + normalApp.getTransparencyAttributes());
+			System.out.println("normalApp.getRenderingAttributes() " + normalApp.getRenderingAttributes());
+			System.out.println("normalApp.getColoringAttributes() " + normalApp.getColoringAttributes());
+			System.out.println("normalApp.getLineAttributes() " + normalApp.getLineAttributes());
+			System.out.println("normalApp.getTextureUnitCount() " + normalApp.getTextureUnitCount());
+			System.out.println("normalApp.getMaterial() " + normalApp.getMaterial());
+			System.out.println("normalApp.getPolygonAttributes() " + normalApp.getPolygonAttributes());*/
+			 
+			
+			
 			//Some times the nif just has no texture, odd. see BSShaderNoLightingProperty
 
 			// Various parts to allow fading in and out
@@ -489,7 +495,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 							ta.setTransparencyMode(TransparencyAttributes.BLENDED);
 							ta.setSrcBlendFunction(NifOpenGLToJava3D.convertBlendMode(nap.sourceBlendMode(), true));
 							ta.setDstBlendFunction(NifOpenGLToJava3D.convertBlendMode(nap.destinationBlendMode(), false));
-							app.setTransparencyAttributes(ta);
+							app.setTransparencyAttributes(ta);							
 						}
 						else
 						{
@@ -531,9 +537,9 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						}
 
 						if (nsp.isStencilEnable())
-						{
+						{						
 							ra.setStencilEnable(true);
-							if (nsp.stencilMask == J3dNiTriBasedGeom.OUTLINE_STENCIL_MASK)
+							if ((nsp.stencilMask & J3dNiTriBasedGeom.OUTLINE_STENCIL_MASK)!=0)
 								System.out.println("j3dgeometry using outline stencil mask");
 							ra.setStencilWriteMask(nsp.stencilMask);
 

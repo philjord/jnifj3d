@@ -111,11 +111,18 @@ public class J3dControllerLink extends Group
 			{
 				J3dNiAVObject targetParent = targetNiToJ3dData.get(nodeName);
 				j3dNiGeomMorpherController = targetParent.getJ3dNiGeomMorpherController();
-				//note set frame name called on process
-				j3dNiInterpolator = J3dNiTimeController.createInterpForController(j3dNiGeomMorpherController, niInterpolator, niToJ3dData,
-						startTimeS, stopTimeS);
+				if (j3dNiGeomMorpherController != null)
+				{
+					//note set frame name called on process
+					j3dNiInterpolator = J3dNiTimeController.createInterpForController(j3dNiGeomMorpherController, niInterpolator,
+							niToJ3dData, startTimeS, stopTimeS);
 
-				addChild(j3dNiInterpolator);
+					addChild(j3dNiInterpolator);
+				}
+				else
+				{
+					//TODO: why is the geomorph blank, tripwire nif shows it should be fine??
+				}
 			}
 			else
 			{
@@ -153,7 +160,7 @@ public class J3dControllerLink extends Group
 		// because we need to ensure the controller is running our frame (could be set by another link at some point)
 		if (j3dNiGeomMorpherController != null)
 		{
-			 
+
 			j3dNiGeomMorpherController.setFrameName(variable2);
 		}
 
