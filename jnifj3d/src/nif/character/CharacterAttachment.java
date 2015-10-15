@@ -7,6 +7,7 @@ import javax.media.j3d.BranchGroup;
 import javax.media.j3d.Geometry;
 import javax.media.j3d.GeometryArray;
 import javax.media.j3d.GeometryUpdater;
+import javax.media.j3d.Group;
 import javax.media.j3d.Node;
 import javax.media.j3d.Transform3D;
 import javax.vecmath.Quat4f;
@@ -107,7 +108,7 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 			// I see animations going teh wrong way ? still
 			// I see bip01 head being bum
 			// I see hair being attached wrong as well
-	
+
 			//blank the j3dNiTriBasedGeom transform as this is now embedded above
 			j3dNiTriBasedGeom.getTransformGroup().setTransform(new Transform3D());
 
@@ -117,6 +118,10 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 			// ensure detached
 			if (j3dNiTriBasedGeom.topOfParent != null)
 				j3dNiTriBasedGeom.topOfParent.removeChild(j3dNiTriBasedGeom);
+
+			//TODO: see Meshes\Weapons\Hand2Hand\PowerFistRigid.NIF for interesting setup that topofparent misses
+			if (j3dNiTriBasedGeom.getParent() != null)
+				((Group)j3dNiTriBasedGeom.getParent()).removeChild(j3dNiTriBasedGeom);
 
 			//add it to scene 		
 			addChild(j3dNiTriBasedGeom);
