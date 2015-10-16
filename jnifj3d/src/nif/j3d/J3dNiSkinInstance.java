@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import javax.media.j3d.Group;
+import javax.vecmath.Color3f;
 
 import tools3d.utils.scenegraph.Fadable;
 import nif.basic.NifPtr;
@@ -82,6 +83,15 @@ public class J3dNiSkinInstance extends Group implements Fadable
 		if (j3dNifSkinData != null)
 		{
 			j3dNifSkinData.fade(percent);
+		}
+	}
+	
+	@Override
+	public void setOutline(Color3f c)
+	{
+		if (j3dNifSkinData != null)
+		{
+			j3dNifSkinData.setOutline(c);
 		}
 	}
 

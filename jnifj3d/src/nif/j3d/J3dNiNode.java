@@ -3,6 +3,7 @@ package nif.j3d;
 import java.util.ArrayList;
 
 import javax.media.j3d.Transform3D;
+import javax.vecmath.Color3f;
 
 import nif.NifToJ3d;
 import nif.j3d.particles.J3dNiParticleSystem;
@@ -247,6 +248,16 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 			if (f != null)
 				f.fade(percent);
 		}
+	}
+	
+	@Override
+	public void setOutline(Color3f c)
+	{
+		for (Fadable f : j3dNiNodes)
+		{
+			if (f != null)
+				f.setOutline(c);
+		}	
 	}
 
 	//NOTE do not use, for bones only, sorry 

@@ -13,6 +13,7 @@ import javax.media.j3d.PointSound;
 import javax.media.j3d.Sound;
 import javax.media.j3d.SoundException;
 import javax.media.j3d.Transform3D;
+import javax.vecmath.Color3f;
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
@@ -158,6 +159,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 			}
 		}
 
+		
 		//set us up with the idle anim
 		updateAnimation();
 	}
@@ -361,6 +363,21 @@ public class NifCharacter extends BranchGroup implements Fadable
 		for (CharacterAttachment ca : attachments)
 		{
 			ca.fade(percent);
+		}
+
+	}
+
+	@Override
+	public void setOutline(Color3f c)
+	{
+		for (J3dNiSkinInstance j3dNiSkinInstance : allSkins)
+		{
+			j3dNiSkinInstance.setOutline(c);
+		}
+
+		for (CharacterAttachment ca : attachments)
+		{
+			ca.setOutline(c);
 		}
 
 	}

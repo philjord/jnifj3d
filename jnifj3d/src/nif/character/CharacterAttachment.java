@@ -10,6 +10,7 @@ import javax.media.j3d.GeometryUpdater;
 import javax.media.j3d.Group;
 import javax.media.j3d.Node;
 import javax.media.j3d.Transform3D;
+import javax.vecmath.Color3f;
 import javax.vecmath.Quat4f;
 
 import nif.j3d.J3dNiAVObject;
@@ -122,7 +123,7 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 
 			//TODO: see Meshes\Weapons\Hand2Hand\PowerFistRigid.NIF for interesting setup that topofparent misses
 			if (j3dNiTriBasedGeom.getParent() != null)
-				((Group)j3dNiTriBasedGeom.getParent()).removeChild(j3dNiTriBasedGeom);
+				((Group) j3dNiTriBasedGeom.getParent()).removeChild(j3dNiTriBasedGeom);
 
 			//add it to scene 		
 			addChild(j3dNiTriBasedGeom);
@@ -148,6 +149,14 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 	{
 		if (model instanceof Fadable)
 			((Fadable) model).fade(percent);
+	}
+
+	@Override
+	public void setOutline(Color3f c)
+	{
+
+		if (model instanceof Fadable)
+			((Fadable) model).setOutline(c);
 	}
 
 	//deburner

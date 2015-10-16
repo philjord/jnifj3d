@@ -18,8 +18,7 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 	{
 		super(niTriShape, niToJ3dData, textureSource);
 
-		niToJ3dData.put(niTriShape, this);
-		data = (NiTriShapeData) niToJ3dData.get(niTriShape.data);
+		niToJ3dData.put(niTriShape, this);		
 
 		//am I a skin shape in which case I need to be uncompacted ready for animation
 		if (niTriShape.skin.ref != -1)
@@ -28,7 +27,8 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 		}
 		else
 		{
-			getShape().setGeometry(createGeometry(false));
+			currentGeometryArray = createGeometry(false);
+			getShape().setGeometry(currentGeometryArray);
 		}
 
 	}

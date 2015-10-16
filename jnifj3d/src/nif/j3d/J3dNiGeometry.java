@@ -535,10 +535,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						}
 
 						if (nsp.isStencilEnable())
-						{
-							if ((nsp.stencilMask & J3dNiTriBasedGeom.OUTLINE_STENCIL_MASK) != 0)
-								System.out.println("j3dgeometry using outline stencil mask");
-
+						{							
 							ra.setStencilEnable(true);
 							ra.setStencilWriteMask(nsp.stencilMask);
 							ra.setStencilFunction(NifOpenGLToJava3D.convertStencilFunction(nsp.stencilFunction()), nsp.stencilRef,

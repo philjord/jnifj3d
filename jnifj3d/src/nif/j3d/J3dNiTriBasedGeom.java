@@ -1,14 +1,17 @@
 package nif.j3d;
 
 import javax.media.j3d.Appearance;
+import javax.media.j3d.BranchGroup;
 import javax.media.j3d.ColoringAttributes;
 import javax.media.j3d.GeometryArray;
+import javax.media.j3d.Group;
 import javax.media.j3d.IndexedGeometryArray;
 import javax.media.j3d.J3DBuffer;
 import javax.media.j3d.LineAttributes;
 import javax.media.j3d.PolygonAttributes;
 import javax.media.j3d.RenderingAttributes;
 import javax.media.j3d.Shape3D;
+import javax.vecmath.Color3f;
 
 import nif.niobject.NiTriBasedGeom;
 import nif.niobject.NiTriBasedGeomData;
@@ -34,15 +37,21 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 	public static boolean OUTLINE_MORPHS_DEMO = true;
 
-	public static int OUTLINE_STENCIL_MASK = 0x0f;
+	private int outlineStencilMask = -1;
 
-	protected GeometryArray baseGeometryArray;
+	private GeometryArray baseGeometryArray;
 
 	protected GeometryArray currentGeometryArray;
 
 	protected NiTriBasedGeomData data;
 
-	protected boolean isMorphable = false;
+	private boolean isMorphable = false;
+
+	private Shape3D outliner = null;
+
+	private BranchGroup outlinerBG1 = null;
+
+	private BranchGroup outlinerBG2 = null;
 
 	public J3dNiTriBasedGeom(NiTriBasedGeom niTriBasedGeom, NiToJ3dData niToJ3dData, TextureSource textureSource)
 	{
@@ -67,69 +76,114 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 			currentGeometryArray = createGeometry(true);
 			getShape().setGeometry(currentGeometryArray);
 			isMorphable = true;
-
-			if (OUTLINE_MORPHS_DEMO)
-			{
-				setUpOutline();
-			}
 		}
 	}
 
-	private void setUpOutline()
+	@Override
+	/**
+	 * If you will ever call this it must be done at least once before compile time
+	 * and it must be called with a color to set a stencil mask (but can be called again with null)
+	 * null color disables outlines
+	 * @see tools3d.utils.scenegraph.Fadable#setOutline(javax.vecmath.Color3f)
+	 */
+	public void setOutline(Color3f c)
 	{
-		//-Dj3d.stencilClear=true  
+		// must be called before compile time
+		if (outlinerBG1 == null)
+		{
+			// prepare a root for outline to be added to
+			outlinerBG1 = new BranchGroup();
+			outlinerBG1.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+			outlinerBG1.setCapability(Group.ALLOW_CHILDREN_WRITE);
+			addChild(outlinerBG1);
 
-		//possibly isseue 249 https://java.net/jira/browse/JAVA3D-224
-		// transparency buggers with stencils https://java.net/jira/browse/JAVA3D-314
-		
-		//Notice issues with transparent textures not working well, the "filled in" part must be being run after the line 
+			// prep the real appearance
 
-		Appearance sapp = getShape().getAppearance();
-		RenderingAttributes ra1 = sapp.getRenderingAttributes();
-		//RAISE_BUG:
-		// note ra1 must not be null ever, for stencils all apps should have ras
+			//-Dj3d.stencilClear=true  
 
-		ra1.setStencilEnable(true);
-		ra1.setStencilWriteMask(OUTLINE_STENCIL_MASK);
-		ra1.setStencilFunction(RenderingAttributes.ALWAYS, OUTLINE_STENCIL_MASK, OUTLINE_STENCIL_MASK);
-		ra1.setStencilOp(RenderingAttributes.STENCIL_REPLACE, //
-				RenderingAttributes.STENCIL_REPLACE,//
-				RenderingAttributes.STENCIL_REPLACE);
+			//possibly isseue 249 https://java.net/jira/browse/JAVA3D-224
+			// transparency buggers with stencils https://java.net/jira/browse/JAVA3D-314
 
-		sapp.setRenderingAttributes(ra1);
+			//Notice issues with transparent textures not working well, the "filled in" part must be being run after the line 
 
-		Shape3D outliner = new Shape3D();
-		outliner.setGeometry(currentGeometryArray);
-		Appearance app = new Appearance();
-		// lineAntialiasing MUST be true, to force this to be done during rendering pass (otherwise it's hidden)
-		LineAttributes la = new LineAttributes(4, LineAttributes.PATTERN_SOLID, true);
-		app.setLineAttributes(la);
-		PolygonAttributes pa = new PolygonAttributes(PolygonAttributes.POLYGON_LINE, PolygonAttributes.CULL_BACK, 0.0f, true, 0.0f);
-		app.setPolygonAttributes(pa);
-		ColoringAttributes colorAtt = new ColoringAttributes(1.0f, 1.0f, 0.0f, ColoringAttributes.FASTEST);
-		app.setColoringAttributes(colorAtt);
+			Appearance sapp = getShape().getAppearance();
+			RenderingAttributes ra1 = sapp.getRenderingAttributes();
+			//RAISE_BUG:
+			// note ra1 must not be null ever, for stencils all apps should have ras
 
-		RenderingAttributes ra2 = new RenderingAttributes();
-		ra2.setStencilEnable(true);
-		ra2.setStencilWriteMask(OUTLINE_STENCIL_MASK);
-		ra2.setStencilFunction(RenderingAttributes.NOT_EQUAL, OUTLINE_STENCIL_MASK, OUTLINE_STENCIL_MASK);
-		ra2.setStencilOp(RenderingAttributes.STENCIL_KEEP, //
-				RenderingAttributes.STENCIL_KEEP,//
-				RenderingAttributes.STENCIL_KEEP);
+			outlineStencilMask = (int) (c.x * 255) + (int) (c.y * 255) + (int) (c.z * 255);
 
-		//geoms often have colors in verts
-		ra2.setIgnoreVertexColors(true);
-		
-		// draw it even when hidden
-		ra2.setDepthBufferEnable(false);
-		ra2.setDepthTestFunction(RenderingAttributes.ALWAYS);
-		
-		
-		app.setRenderingAttributes(ra2);
+			ra1.setStencilEnable(true);
+			ra1.setStencilWriteMask(outlineStencilMask);
+			ra1.setStencilFunction(RenderingAttributes.ALWAYS, outlineStencilMask, outlineStencilMask);
+			ra1.setStencilOp(RenderingAttributes.STENCIL_REPLACE, //
+					RenderingAttributes.STENCIL_REPLACE,//
+					RenderingAttributes.STENCIL_REPLACE);
 
-		outliner.setAppearance(app);
-		addChild(outliner);
+			sapp.setRenderingAttributes(ra1);
+		}
 
+		if (c == null)
+		{
+			if (outliner != null)
+			{
+				outlinerBG2.detach();
+				outlinerBG2 = null;
+				outliner = null;
+			}
+		}
+		else
+		{
+			if (outliner == null)
+			{
+				outliner = new Shape3D();
+
+				////////////////////////////////
+				//Outliner gear, note empty geom should be ignored
+				Appearance app = new Appearance();
+				// lineAntialiasing MUST be true, to force this to be done during rendering pass (otherwise it's hidden)
+				LineAttributes la = new LineAttributes(4, LineAttributes.PATTERN_SOLID, true);
+				app.setLineAttributes(la);
+				PolygonAttributes pa = new PolygonAttributes(PolygonAttributes.POLYGON_LINE, PolygonAttributes.CULL_BACK, 0.0f, true, 0.0f);
+				app.setPolygonAttributes(pa);
+				ColoringAttributes colorAtt = new ColoringAttributes(c, ColoringAttributes.FASTEST);
+				app.setColoringAttributes(colorAtt);
+
+				RenderingAttributes ra2 = new RenderingAttributes();
+				ra2.setStencilEnable(true);
+				ra2.setStencilWriteMask(outlineStencilMask);
+				ra2.setStencilFunction(RenderingAttributes.NOT_EQUAL, outlineStencilMask, outlineStencilMask);
+				ra2.setStencilOp(RenderingAttributes.STENCIL_KEEP, //
+						RenderingAttributes.STENCIL_KEEP,//
+						RenderingAttributes.STENCIL_KEEP);
+
+				//geoms often have colors in verts
+				ra2.setIgnoreVertexColors(true);
+
+				// draw it even when hidden
+				ra2.setDepthBufferEnable(false);
+				ra2.setDepthTestFunction(RenderingAttributes.ALWAYS);
+
+				app.setRenderingAttributes(ra2);
+
+				outliner.setAppearance(app);
+				outliner.setGeometry(currentGeometryArray);
+
+				outliner.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
+				app.setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_READ);
+				colorAtt.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
+
+				outlinerBG2 = new BranchGroup();
+				outlinerBG2.setCapability(BranchGroup.ALLOW_DETACH);
+				outlinerBG2.addChild(outliner);
+				outlinerBG1.addChild(outlinerBG2);
+
+			}
+			else
+			{
+				outliner.getAppearance().getColoringAttributes().setColor(c);
+			}
+		}
 	}
 
 	public GeometryArray getBaseGeometryArray()
@@ -172,18 +226,6 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 		if (data.hasVertexColors)
 		{
 			colors4 = data.vertexColorsOpt;
-		}
-		else
-		{
-			//TODO: do I really need a default white color set on everything?
-			/*colors4 = new float[data.numVertices * 4];
-			for (int i = 0; i < data.numVertices; i++)
-			{
-				colors4[i * 4 + 0] = 1;
-				colors4[i * 4 + 1] = 1;
-				colors4[i * 4 + 2] = 1;
-				colors4[i * 4 + 3] = 1;
-			}*/
 		}
 
 		int texCoordDim = 2;

@@ -1,6 +1,7 @@
 package nif.j3d;
 
 import javax.media.j3d.BranchGroup;
+import javax.vecmath.Color3f;
 
 import tools3d.utils.scenegraph.Fadable;
 
@@ -24,6 +25,15 @@ public class J3dRootNode extends BranchGroup implements Fadable
 		if (j3dNiAVObject instanceof Fadable)
 		{
 			((Fadable) j3dNiAVObject).fade(percent);
+		}
+	}
+
+	@Override
+	public void setOutline(Color3f c)
+	{
+		if (j3dNiAVObject instanceof Fadable)
+		{
+			((Fadable) j3dNiAVObject).setOutline(c);
 		}
 	}
 }

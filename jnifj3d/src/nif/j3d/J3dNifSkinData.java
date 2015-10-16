@@ -7,6 +7,7 @@ import javax.media.j3d.GeometryArray;
 import javax.media.j3d.GeometryUpdater;
 import javax.media.j3d.Group;
 import javax.media.j3d.Transform3D;
+import javax.vecmath.Color3f;
 
 import nif.compound.NifSkinData;
 import nif.compound.NifSkinTransform;
@@ -79,6 +80,12 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 	public void fade(float percent)
 	{
 		j3dNiTriShape.fade(percent);
+	}
+	
+	@Override
+	public void setOutline(Color3f c)
+	{
+		j3dNiTriShape.setOutline(c);
 	}
 
 	public void updateSkin()

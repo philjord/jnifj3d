@@ -12,6 +12,7 @@ import javax.media.j3d.Geometry;
 import javax.media.j3d.GeometryUpdater;
 import javax.media.j3d.Shape3D;
 import javax.media.j3d.TransformGroup;
+import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
 
@@ -88,11 +89,10 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 			addChild(billTrans);
 		}
 
-		
 		//TODO: is this a good idea? thread show blocked on update bounds
 		getShape().setBoundsAutoCompute(false);
 		getShape().setBounds(new BoundingSphere(new Point3d(0, 0, 0), 10));
-		
+
 		//for debug
 		if (SHOW_DEBUG_LINES)
 		{
@@ -256,6 +256,12 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		}
 
 		return j3dNiPSysModiferCtlrsByNi.get(niPSysModifierCtlr);
+	}
+
+	@Override
+	public void setOutline(Color3f c)
+	{
+		// TODO: wierd, but possible
 	}
 
 }

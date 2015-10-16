@@ -14,14 +14,13 @@ import utils.source.TextureSource;
  */
 public class J3dNiTriStrips extends J3dNiTriBasedGeom
 {
-
 	public J3dNiTriStrips(NiTriStrips niTriStrips, NiToJ3dData niToJ3dData, TextureSource textureSource)
 	{
 		super(niTriStrips, niToJ3dData, textureSource);
 		niToJ3dData.put(niTriStrips, this);
 
-		getShape().setGeometry(createGeometry(false));
-
+		currentGeometryArray = createGeometry(false);
+		getShape().setGeometry(currentGeometryArray);
 	}
 
 	@Override
