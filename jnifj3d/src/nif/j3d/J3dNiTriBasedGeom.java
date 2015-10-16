@@ -34,7 +34,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 	public static boolean OUTLINE_MORPHS_DEMO = true;
 
-	public static int OUTLINE_STENCIL_MASK = 0x3C;
+	public static int OUTLINE_STENCIL_MASK = 0x0f;
 
 	protected GeometryArray baseGeometryArray;
 
@@ -70,67 +70,66 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 			if (OUTLINE_MORPHS_DEMO)
 			{
-
-				//-Dj3d.stencilClear=true still required??
-
-				// transparency buggers with stencils https://java.net/jira/browse/JAVA3D-314
-
-				// and doesn't show in morrowind at all only aginst the sky, I wonder how it relates to transparency
-				// does that explain slowness in morrowind somehow? but it doesn't appear even against the ground
-
-				//looks like if the last thing rendered somehow stops teh stencil work happening, look upwards through water at
-				// a person
-
-				//if I remove ras from below then all line drawing is fine
-
-				// in fact it looks like transparent rendering stop altogether (transparent things no appear when lines disappear)
-				// when I extend actor fade out, (and therefore increase distance one of these turns up
-				// I notice the tranparent stuff stops rendering (so these stop the render chain somehow)
-				// I notice a semi transparent crab does show the lines and stencil
-
-				Appearance sapp = getShape().getAppearance();
-				RenderingAttributes ra1 = sapp.getRenderingAttributes();
-				//if I use the current then I get teh morrowind effect of only agains tthe sky?? and transparent objects
-				// NO in fact I thinks it's random based on the general scene graph as to when this failure of rendering 
-				// occurs(what order), toddland seems to be ok with either way though it blinks off a bit
-				
-				//I notice that my line attribute on teh outliner are being set to white by something? the character system?
-				 
-				if (ra1 == null)
-					ra1 = new RenderingAttributes();
-				ra1.setStencilEnable(true);
-				ra1.setStencilWriteMask(OUTLINE_STENCIL_MASK);
-				ra1.setStencilFunction(RenderingAttributes.ALWAYS, OUTLINE_STENCIL_MASK, OUTLINE_STENCIL_MASK);
-				ra1.setStencilOp(RenderingAttributes.STENCIL_REPLACE, //
-						RenderingAttributes.STENCIL_REPLACE,//
-						RenderingAttributes.STENCIL_REPLACE);
-				sapp.setRenderingAttributes(ra1);
-
-				Shape3D outliner = new Shape3D();
-				outliner.setGeometry(currentGeometryArray);
-				Appearance app = new Appearance();
-				LineAttributes la = new LineAttributes(4, LineAttributes.PATTERN_SOLID, true);
-				app.setLineAttributes(la);
-				PolygonAttributes pa = new PolygonAttributes(PolygonAttributes.POLYGON_LINE, PolygonAttributes.CULL_BACK, 0.0f, true, 0.0f);
-				app.setPolygonAttributes(pa);
-				ColoringAttributes colorAtt = new ColoringAttributes(1.0f, 1.0f, 0.0f, ColoringAttributes.FASTEST);
-				app.setColoringAttributes(colorAtt);
-
-				RenderingAttributes ra2 = new RenderingAttributes();
-				ra2.setStencilEnable(true);
-				ra2.setStencilWriteMask(OUTLINE_STENCIL_MASK);
-				ra2.setStencilFunction(RenderingAttributes.NOT_EQUAL, OUTLINE_STENCIL_MASK, OUTLINE_STENCIL_MASK);
-				ra2.setStencilOp(RenderingAttributes.STENCIL_KEEP, //
-						RenderingAttributes.STENCIL_KEEP,//
-						RenderingAttributes.STENCIL_KEEP);
-
-				ra2.setDepthBufferEnable(false);
-
-				app.setRenderingAttributes(ra2);
-				outliner.setAppearance(app);
-				addChild(outliner);
+				setUpOutline();
 			}
 		}
+	}
+
+	private void setUpOutline()
+	{
+		//-Dj3d.stencilClear=true  
+
+		//possibly isseue 249 https://java.net/jira/browse/JAVA3D-224
+		// transparency buggers with stencils https://java.net/jira/browse/JAVA3D-314
+		
+		//Notice issues with transparent textures not working well, the "filled in" part must be being run after the line 
+
+		Appearance sapp = getShape().getAppearance();
+		RenderingAttributes ra1 = sapp.getRenderingAttributes();
+		//RAISE_BUG:
+		// note ra1 must not be null ever, for stencils all apps should have ras
+
+		ra1.setStencilEnable(true);
+		ra1.setStencilWriteMask(OUTLINE_STENCIL_MASK);
+		ra1.setStencilFunction(RenderingAttributes.ALWAYS, OUTLINE_STENCIL_MASK, OUTLINE_STENCIL_MASK);
+		ra1.setStencilOp(RenderingAttributes.STENCIL_REPLACE, //
+				RenderingAttributes.STENCIL_REPLACE,//
+				RenderingAttributes.STENCIL_REPLACE);
+
+		sapp.setRenderingAttributes(ra1);
+
+		Shape3D outliner = new Shape3D();
+		outliner.setGeometry(currentGeometryArray);
+		Appearance app = new Appearance();
+		// lineAntialiasing MUST be true, to force this to be done during rendering pass (otherwise it's hidden)
+		LineAttributes la = new LineAttributes(4, LineAttributes.PATTERN_SOLID, true);
+		app.setLineAttributes(la);
+		PolygonAttributes pa = new PolygonAttributes(PolygonAttributes.POLYGON_LINE, PolygonAttributes.CULL_BACK, 0.0f, true, 0.0f);
+		app.setPolygonAttributes(pa);
+		ColoringAttributes colorAtt = new ColoringAttributes(1.0f, 1.0f, 0.0f, ColoringAttributes.FASTEST);
+		app.setColoringAttributes(colorAtt);
+
+		RenderingAttributes ra2 = new RenderingAttributes();
+		ra2.setStencilEnable(true);
+		ra2.setStencilWriteMask(OUTLINE_STENCIL_MASK);
+		ra2.setStencilFunction(RenderingAttributes.NOT_EQUAL, OUTLINE_STENCIL_MASK, OUTLINE_STENCIL_MASK);
+		ra2.setStencilOp(RenderingAttributes.STENCIL_KEEP, //
+				RenderingAttributes.STENCIL_KEEP,//
+				RenderingAttributes.STENCIL_KEEP);
+
+		//geoms often have colors in verts
+		ra2.setIgnoreVertexColors(true);
+		
+		// draw it even when hidden
+		ra2.setDepthBufferEnable(false);
+		ra2.setDepthTestFunction(RenderingAttributes.ALWAYS);
+		
+		
+		app.setRenderingAttributes(ra2);
+
+		outliner.setAppearance(app);
+		addChild(outliner);
+
 	}
 
 	public GeometryArray getBaseGeometryArray()

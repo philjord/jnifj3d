@@ -143,19 +143,16 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 				normalApp = new ShaderAppearance();
 			}
 			configureAppearance(niGeometry, niToJ3dData, normalApp);
-	
-			
-		/*	System.out.println("niGeometry " +niGeometry.nVer.fileName);
-			System.out.println("normalApp.getTransparencyAttributes() " + normalApp.getTransparencyAttributes());
-			System.out.println("normalApp.getRenderingAttributes() " + normalApp.getRenderingAttributes());
-			System.out.println("normalApp.getColoringAttributes() " + normalApp.getColoringAttributes());
-			System.out.println("normalApp.getLineAttributes() " + normalApp.getLineAttributes());
-			System.out.println("normalApp.getTextureUnitCount() " + normalApp.getTextureUnitCount());
-			System.out.println("normalApp.getMaterial() " + normalApp.getMaterial());
-			System.out.println("normalApp.getPolygonAttributes() " + normalApp.getPolygonAttributes());*/
-			 
-			
-			
+
+			/*	System.out.println("niGeometry " +niGeometry.nVer.fileName);
+				System.out.println("normalApp.getTransparencyAttributes() " + normalApp.getTransparencyAttributes());
+				System.out.println("normalApp.getRenderingAttributes() " + normalApp.getRenderingAttributes());
+				System.out.println("normalApp.getColoringAttributes() " + normalApp.getColoringAttributes());
+				System.out.println("normalApp.getLineAttributes() " + normalApp.getLineAttributes());
+				System.out.println("normalApp.getTextureUnitCount() " + normalApp.getTextureUnitCount());
+				System.out.println("normalApp.getMaterial() " + normalApp.getMaterial());
+				System.out.println("normalApp.getPolygonAttributes() " + normalApp.getPolygonAttributes());*/
+
 			//Some times the nif just has no texture, odd. see BSShaderNoLightingProperty
 
 			// Various parts to allow fading in and out
@@ -241,7 +238,12 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		mat.setColorTarget(Material.AMBIENT_AND_DIFFUSE);
 		app.setMaterial(mat);
 
+		//NOTE must set these as teh default behavior with null breaks stenciling
+		//TODO:  raise a bug about this and stencils in the bugzilla
+		//RAISE_BUG:
 		RenderingAttributes ra = new RenderingAttributes();
+		app.setRenderingAttributes(ra);
+
 		TextureUnitState[] tus = new TextureUnitState[1];
 		TextureUnitState tus0 = new TextureUnitState();
 		tus[0] = tus0;
@@ -391,7 +393,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 								|| bsspplp.shaderFlags.isBitSet(BSShaderFlags.SF_FIRE_REFRACTION) || bbsts.numTextures == 0)
 						{
 							ra.setVisible(false);
-							app.setRenderingAttributes(ra);
+
 						}
 						//configureShader(bsspplp);
 
@@ -413,7 +415,6 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 								|| bssnlp.shaderFlags.isBitSet(BSShaderFlags.SF_FIRE_REFRACTION) || bssnlp.fileName.length() == 0)
 						{
 							ra.setVisible(false);
-							app.setRenderingAttributes(ra);
 						}
 
 						// glow map texture
@@ -495,7 +496,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 							ta.setTransparencyMode(TransparencyAttributes.BLENDED);
 							ta.setSrcBlendFunction(NifOpenGLToJava3D.convertBlendMode(nap.sourceBlendMode(), true));
 							ta.setDstBlendFunction(NifOpenGLToJava3D.convertBlendMode(nap.destinationBlendMode(), false));
-							app.setTransparencyAttributes(ta);							
+							app.setTransparencyAttributes(ta);
 						}
 						else
 						{
@@ -516,16 +517,12 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 							ra.setAlphaTestFunction(alphaTestMode);
 
 							float threshold = ((nap.threshold) / 255f);//threshold range of 255 to 0  comfirmed empirically
-
 							ra.setAlphaTestValue(threshold);
-
-							app.setRenderingAttributes(ra);
 						}
 
 					}
 					else if (property instanceof NiStencilProperty)
 					{
-
 						NiStencilProperty nsp = (NiStencilProperty) property;
 
 						// - this dictates the two sided polygon (e.g. butterfly)			
@@ -533,23 +530,22 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						{
 							PolygonAttributes pa = new PolygonAttributes();
 							pa.setCullFace(PolygonAttributes.CULL_NONE);
+							pa.setBackFaceNormalFlip(true);
 							app.setPolygonAttributes(pa);
 						}
 
 						if (nsp.isStencilEnable())
-						{						
-							ra.setStencilEnable(true);
-							if ((nsp.stencilMask & J3dNiTriBasedGeom.OUTLINE_STENCIL_MASK)!=0)
+						{
+							if ((nsp.stencilMask & J3dNiTriBasedGeom.OUTLINE_STENCIL_MASK) != 0)
 								System.out.println("j3dgeometry using outline stencil mask");
-							ra.setStencilWriteMask(nsp.stencilMask);
 
+							ra.setStencilEnable(true);
+							ra.setStencilWriteMask(nsp.stencilMask);
 							ra.setStencilFunction(NifOpenGLToJava3D.convertStencilFunction(nsp.stencilFunction()), nsp.stencilRef,
 									nsp.stencilMask);
 							ra.setStencilOp(NifOpenGLToJava3D.convertStencilAction(nsp.failAction()), //
 									NifOpenGLToJava3D.convertStencilAction(nsp.zFailAction()),//
 									NifOpenGLToJava3D.convertStencilAction(nsp.passAction()));
-
-							app.setRenderingAttributes(ra);
 						}
 					}
 					else if (property instanceof BSEffectShaderProperty)
@@ -566,7 +562,6 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 							if (bsesp.UVOffSet.u != 0 || bsesp.UVOffSet.v != 0 || bsesp.UVScale.u != 1 || bsesp.UVScale.v != 1
 									|| bsesp.controller.ref != -1)
 							{
-
 								Transform3D transform = new Transform3D();
 								transform.setTranslation(new Vector3d(-bsesp.UVOffSet.u, -bsesp.UVOffSet.v, 0));
 								transform.setScale(new Vector3d(bsesp.UVScale.u, bsesp.UVScale.v, 0));
@@ -591,10 +586,37 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						mat.setEmissiveColor(bsesp.EmissiveColor.r, bsesp.EmissiveColor.g, bsesp.EmissiveColor.b);
 
 					}
+					else if (property instanceof BSSkyShaderProperty)
+					{
+						BSSkyShaderProperty bsssp = (BSSkyShaderProperty) property;
+
+						Texture tex = loadTexture(bsssp.SourceTexture, textureSource);
+						if (tex != null)
+						{
+							tus0.setTexture(tex);
+						}
+					}
 					else if (property instanceof NiZBufferProperty)
 					{
 						//uncommon
 						// RenderingAttributes  
+						//TODO: NiZBufferProperty
+						//System.out.println("NiZBufferProperty");
+					}
+					else if (property instanceof BSWaterShaderProperty)
+					{
+						//TODO: BSWaterShaderProperty
+						//System.out.println("BSWaterShaderProperty");
+					}
+					else if (property instanceof WaterShaderProperty)
+					{
+						//TODO: WaterShaderProperty	
+						//System.out.println("WaterShaderProperty");
+					}
+					else if (property instanceof SkyShaderProperty)
+					{
+						//TODO: SkyShaderProperty	
+						//System.out.println("SkyShaderProperty");
 					}
 					else if (property instanceof NiShadeProperty)
 					{
@@ -628,29 +650,6 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 					{
 						//only in ver3.0 to 3.1?				
 					}
-					else if (property instanceof BSWaterShaderProperty)
-					{
-						//TODO: BSWaterShaderProperty
-						//System.out.println("BSWaterShaderProperty");
-					}
-					else if (property instanceof BSSkyShaderProperty)
-					{
-						BSSkyShaderProperty bsssp = (BSSkyShaderProperty) property;
-
-						Texture tex = loadTexture(bsssp.SourceTexture, textureSource);
-						if (tex != null)
-						{
-							tus0.setTexture(tex);
-						}
-					}
-					else if (property instanceof WaterShaderProperty)
-					{
-						//TODO: WaterShaderProperty	
-					}
-					else if (property instanceof SkyShaderProperty)
-					{
-						//TODO: SkyShaderProperty				
-					}
 					else
 					{
 						System.out.println("J3dNiGeometry - unhandled property " + property);
@@ -659,7 +658,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 				else if (prop instanceof BSLightingShaderProperty)
 				{
 					BSLightingShaderProperty bslsp = (BSLightingShaderProperty) prop;
-					//				System.out.println("BSLightingShaderProperty!!!!!!!!!!!!!!!");
+					//System.out.println("BSLightingShaderProperty!!!");
 
 					// have we already constructed it?
 					if (bsLightingShaderPropertyLookup.get(bslsp) != null)
@@ -675,7 +674,6 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 							transform.setTranslation(new Vector3d(-bslsp.UVOffSet.u, -bslsp.UVOffSet.v, 0));
 							transform.setScale(new Vector3d(bslsp.UVScale.u, bslsp.UVScale.v, 0));
 							textureAttributes.setTextureTransform(transform);
-
 						}
 
 						NiSingleInterpController controller = (NiSingleInterpController) niToJ3dData.get(bslsp.controller);
@@ -694,7 +692,6 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						{
 							tus0.setTexture(tex);
 						}
-
 					}
 
 					float specStrength = (bslsp.SpecularStrength / 999f);
@@ -750,9 +747,9 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 	/**
 	 * NOTE This is not like the J3dNiObjectNET controller set up as the J3dNiGeometry uses it to control only it's appearance parts 
 	 * So it only handles time controller that will appear in NiAVObject.properties for NiGeometry types
-	 * Notice that teh controller comes off a NiObjectNET object not a J3dNiObjectNET objects, hence J3dNiObjectNET.setupController is
+	 * Notice that the controller comes off a NiObjectNET object not a J3dNiObjectNET objects, hence J3dNiObjectNET.setupController is
 	 * never called on the object so we don't get double creation
-	 * I should however at some point mere this with NiObjectNET set up controllers, the nodeTarget is all that differs now
+	 * I should however at some point merge this with NiObjectNET set up controllers, the nodeTarget is all that differs now
 	 * @param parent
 	 * @param niObjectNET
 	 * @param app
@@ -851,7 +848,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		}
 	}
 
-	private void configureShader(BSShaderProperty bssp)
+	protected void configureShader(BSShaderProperty bssp)
 	{
 
 		if (bssp instanceof BSShaderLightingProperty)
