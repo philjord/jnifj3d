@@ -106,6 +106,27 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 	 */
 	public void setFrameName(String action)
 	{
+
+		//possibly I've got 2 animations busting on the same char??
+		// might explain the shaking of techpods
+
+		// I see it clearly todd land long distance actors and frame updates every second frame
+		// look at horsey
+
+		//possibly only when 2 process kick off togehrer?
+
+		// looks like alll geommorph links are firing and causing havok!
+		// the idle.kf has a contreoller for all 7 of them! how do I decide which happens?
+		// base has no data for float interpolator but all 6 other have data and so will run
+		// h2h block also has 7 of them!
+
+		// horse idles show the same randomness, for both head and bridle note :0 appears to indicate something here?
+
+		// now wolf attack?
+
+		// I see geommorphs have a base set of data from which the morph can be taken, but helps not really
+		// it does suggest only one morph at a time?
+
 		//only set if different
 		if (currentNifMorph == null || !currentNifMorph.frameName.equals(action))
 		{
@@ -276,7 +297,7 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 		// and morph 2 is the changes; morph 2 is the same length as the toatal kf file
 		// and each piece of it corresponds to tke kf animation track
 		//(e.g. attack has the mouth open and close at teh right time)
-		
+
 		// there is a fully geomorph animated create r\\xkwama forager.nif it has 10 morphs 
 		//and is interesting it has a kf file that has one bone transform track	
 		// each fo teh 10 morphs is the full 13 seonds long and each touchs all 370 verts

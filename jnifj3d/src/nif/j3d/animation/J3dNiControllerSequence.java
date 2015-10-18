@@ -62,7 +62,7 @@ public class J3dNiControllerSequence extends Group
 		sequenceBehavior.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
 		addChild(sequenceBehavior);
 	}
-	
+
 	public J3dNiControllerSequence(NiControllerSequence niControllerSequence, NiToJ3dData niToJ3dData)
 	{
 		this.niControllerSequence = niControllerSequence;
@@ -125,6 +125,10 @@ public class J3dNiControllerSequence extends Group
 
 	}
 
+	// temp clean up until I work out how to fire the right geommorph
+	// only the last one will fire
+	private J3dControllerLink singleGeomMorpher = null;
+
 	public void setAnimatedNodes(J3dNiDefaultAVObjectPalette allBonesInSkeleton, ArrayList<NifJ3dVisRoot> allOtherModels)
 	{
 		controlledBlocks = new J3dControllerLink[niControllerSequence.numControlledBlocks];
@@ -137,6 +141,9 @@ public class J3dNiControllerSequence extends Group
 						startTimeS, stopTimeS, allBonesInSkeleton, allOtherModels);
 				controlledBlocks[i] = j3dControllerLink;
 				addChild(j3dControllerLink);
+
+				if (j3dControllerLink.isControlsGeomMorpher())
+					singleGeomMorpher = j3dControllerLink;
 			}
 		}
 	}
@@ -279,7 +286,9 @@ public class J3dNiControllerSequence extends Group
 	{
 		for (J3dControllerLink j3dControllerLink : controlledBlocks)
 		{
-			j3dControllerLink.process(alphaValue);
+			//stupid geommorph test
+			if (!j3dControllerLink.isControlsGeomMorpher() || j3dControllerLink == singleGeomMorpher)
+				j3dControllerLink.process(alphaValue);
 		}
 	}
 

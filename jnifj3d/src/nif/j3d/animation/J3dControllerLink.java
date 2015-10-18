@@ -34,6 +34,8 @@ public class J3dControllerLink extends Group
 
 	private String variable2 = "";
 
+	private boolean controlsGeomMorpher = false;
+
 	// for TES3
 	protected J3dControllerLink()
 	{
@@ -118,6 +120,7 @@ public class J3dControllerLink extends Group
 							niToJ3dData, startTimeS, stopTimeS);
 
 					addChild(j3dNiInterpolator);
+					controlsGeomMorpher = true;
 				}
 				else
 				{
@@ -145,6 +148,13 @@ public class J3dControllerLink extends Group
 		}
 	}
 
+
+	public boolean isControlsGeomMorpher()
+	{
+		return controlsGeomMorpher;
+	}
+
+
 	@Override
 	public Bounds getBounds()
 	{
@@ -159,13 +169,12 @@ public class J3dControllerLink extends Group
 	{
 		// because we need to ensure the controller is running our frame (could be set by another link at some point)
 		if (j3dNiGeomMorpherController != null)
-		{
-
+		{		
 			j3dNiGeomMorpherController.setFrameName(variable2);
 		}
 
 		if (j3dNiInterpolator != null)
-		{
+		{			
 			j3dNiInterpolator.process(alphaValue);
 		}
 	}

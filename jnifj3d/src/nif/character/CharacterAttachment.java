@@ -42,6 +42,17 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 	//TODO: this doesn't have to be a branchgroup if it a dog face is stuck on permanently,
 	//posssiby make skins seperate from gear that can be removed?
 
+	//TODO: I still need the head attachements uprighter in oblivion any more? 
+	// odd fix up here still (characters needs ignoring)
+	// perhaps teh bip 01 is related to bad rotation direction?
+	// I see animations going teh wrong way ? still
+	// I see bip01 head being bum
+	// I see hair being attached wrong as well, though the head skin itself is ok? so perhaps in teh attachement file itself
+	
+	// I see from oblivion that it appears to be teh same REFR adn teh same attachemnt that 
+	//ends up on the ground everytime, odd. Not running heaps of animations appears to have decreased it hugely
+	
+	
 	public CharacterAttachment(J3dNiNode attachBone, J3dNiAVObject model)
 	{
 		this(attachBone, model, false);
@@ -105,11 +116,6 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 				niAVObject = niAVObject.parent;
 			}
 
-			//TODO: do I need this any more? odd fix up here still (characters needs ignoring)
-			// perhaps teh bip 01 is related to bad rotation direction?
-			// I see animations going teh wrong way ? still
-			// I see bip01 head being bum
-			// I see hair being attached wrong as well
 
 			//blank the j3dNiTriBasedGeom transform as this is now embedded above
 			j3dNiTriBasedGeom.getTransformGroup().setTransform(new Transform3D());
@@ -165,9 +171,10 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 	@Override
 	public void updateData(Geometry geometry)
 	{
-		// add teh bone trans into teh root
+		// add the bone trans into the root
 		Transform3D trans = transformMap.get(geometry);
 		temp.mul(skeletonBoneVWTrans, trans);
+		
 		// holder of the transform data to speed up transform (possibly)
 		double[] accTransMat = new double[16];
 		// get accumulatorTrans out to a stright float [] to speed up transform (possibly)
@@ -187,7 +194,7 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 		else
 		{
 			// need to start from base as no geommorph has done a reset for us
-			srcVs = j3dNiTriBasedGeom.getBaseGeometryArray().getCoordRefFloat();
+			srcVs = j3dNiTriBasedGeom.getBaseGeometryArray().getCoordRefFloat();			
 		}
 
 		float[] vs = ((GeometryArray) geometry).getCoordRefFloat();
