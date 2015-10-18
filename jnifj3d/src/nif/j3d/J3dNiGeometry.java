@@ -1,9 +1,5 @@
 package nif.j3d;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.WeakHashMap;
 
@@ -61,14 +57,11 @@ import nif.niobject.NiZBufferProperty;
 import nif.niobject.bs.BSEffectShaderProperty;
 import nif.niobject.bs.BSLightingShaderProperty;
 import nif.niobject.bs.BSRefractionFirePeriodController;
-import nif.niobject.bs.BSShaderLightingProperty;
 import nif.niobject.bs.BSShaderNoLightingProperty;
 import nif.niobject.bs.BSShaderPPLightingProperty;
-import nif.niobject.bs.BSShaderProperty;
 import nif.niobject.bs.BSShaderTextureSet;
 import nif.niobject.bs.BSSkyShaderProperty;
 import nif.niobject.bs.BSWaterShaderProperty;
-import nif.niobject.bs.Lighting30ShaderProperty;
 import nif.niobject.bs.SkyShaderProperty;
 import nif.niobject.bs.TallGrassShaderProperty;
 import nif.niobject.bs.TileShaderProperty;
@@ -164,65 +157,12 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 
 			if (NifToJ3d.USE_SHADERS)
 			{
-
-				if (shaderProgram == null)
-				{
-					try
-					{
-						vertexProgram = StringIO.readFully("./fixedpipeline.vert");
-						fragmentProgram = StringIO.readFully("./fixedpipeline.frag");
-					}
-					catch (IOException e)
-					{
-						System.err.println(e);
-					}
-
-					Shader[] shaders = new Shader[2];
-					shaders[0] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_VERTEX, vertexProgram);
-					shaders[1] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_FRAGMENT, fragmentProgram);
-					final String[] shaderAttrNames =
-					{ "tex" };
-					final Object[] shaderAttrValues =
-					{ new Integer(0) };
-					shaderProgram = new GLSLShaderProgram();
-					shaderProgram.setShaders(shaders);
-					shaderProgram.setShaderAttrNames(shaderAttrNames);
-
-					// Create the shader attribute set
-					shaderAttributeSet = new ShaderAttributeSet();
-					for (int i = 0; i < shaderAttrNames.length; i++)
-					{
-						ShaderAttribute shaderAttribute = new ShaderAttributeValue(shaderAttrNames[i], shaderAttrValues[i]);
-						shaderAttributeSet.put(shaderAttribute);
-					}
-
-					// Create shader appearance to hold the shader program and
-					// shader attributes
-				}
-				((ShaderAppearance) normalApp).setShaderProgram(shaderProgram);
-				((ShaderAppearance) normalApp).setShaderAttributeSet(shaderAttributeSet);
-
-				//transparency
-				//fog
-				//lights (4?)
-
-				//then bump and glow maps
-
-				//land multi texturing(fixed should work too)
-				//lod why no nigeometry?
+				playWithShaders();
 
 			}
 		}
 
 	}
-
-	private static ShaderProgram shaderProgram = null;
-
-	private static ShaderAttributeSet shaderAttributeSet = null;
-
-	private static String vertexProgram = null;
-
-	private static String fragmentProgram = null;
 
 	public Shape3D getShape()
 	{
@@ -244,12 +184,16 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		RenderingAttributes ra = new RenderingAttributes();
 		app.setRenderingAttributes(ra);
 
+		PolygonAttributes pa = new PolygonAttributes();		
+		app.setPolygonAttributes(pa);
+		
+		TransparencyAttributes ta = new TransparencyAttributes(TransparencyAttributes.NONE, 0f);
+		app.setTransparencyAttributes(ta);
+
 		TextureUnitState[] tus = new TextureUnitState[1];
 		TextureUnitState tus0 = new TextureUnitState();
 		tus[0] = tus0;
 		TextureAttributes textureAttributes = new TextureAttributes();
-
-		//TODO: this might be set by the texturing and the ppshader properties?
 
 		textureAttributes.setTextureMode(TextureAttributes.MODULATE);
 
@@ -259,9 +203,6 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 
 		// note time controllers below need appearance set on the shape now
 		shape.setAppearance(normalApp);
-
-		//don't set unless needed
-		TransparencyAttributes ta = new TransparencyAttributes(TransparencyAttributes.BLENDED, 0f);
 
 		//apply various apperance properties
 		for (int i = 0; i < properties.length; i++)
@@ -468,7 +409,6 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						{
 							ta.setTransparency(1 - nmp.alpha);
 							ta.setTransparencyMode(TransparencyAttributes.BLENDED);
-							app.setTransparencyAttributes(ta);
 						}
 
 					}
@@ -496,7 +436,6 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 							ta.setTransparencyMode(TransparencyAttributes.BLENDED);
 							ta.setSrcBlendFunction(NifOpenGLToJava3D.convertBlendMode(nap.sourceBlendMode(), true));
 							ta.setDstBlendFunction(NifOpenGLToJava3D.convertBlendMode(nap.destinationBlendMode(), false));
-							app.setTransparencyAttributes(ta);
 						}
 						else
 						{
@@ -507,11 +446,10 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						{
 							//I think the PolygonAttributes.CULL_NONE should be applied to anything 
 							//with an alphaTestEnabled(), flat_lod trees from skyrim prove it 
-							//obviously transparent stuff can be seen from the back quite often
-							PolygonAttributes pa = new PolygonAttributes();
+							//obviously transparent stuff can be seen from the back quite often							
 							pa.setCullFace(PolygonAttributes.CULL_NONE);
 							pa.setBackFaceNormalFlip(true);
-							app.setPolygonAttributes(pa);
+
 
 							int alphaTestMode = NifOpenGLToJava3D.convertAlphaTestMode(nap.alphaTestMode());
 							ra.setAlphaTestFunction(alphaTestMode);
@@ -528,14 +466,12 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						// - this dictates the two sided polygon (e.g. butterfly)			
 						if (nsp.getDrawMode() == FaceDrawMode.DRAW_BOTH)
 						{
-							PolygonAttributes pa = new PolygonAttributes();
 							pa.setCullFace(PolygonAttributes.CULL_NONE);
 							pa.setBackFaceNormalFlip(true);
-							app.setPolygonAttributes(pa);
 						}
 
 						if (nsp.isStencilEnable())
-						{							
+						{
 							ra.setStencilEnable(true);
 							ra.setStencilWriteMask(nsp.stencilMask);
 							ra.setStencilFunction(NifOpenGLToJava3D.convertStencilFunction(nsp.stencilFunction()), nsp.stencilRef,
@@ -704,7 +640,6 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 					{
 						ta.setTransparency(1f - bslsp.Alpha);
 						ta.setTransparencyMode(TransparencyAttributes.BLENDED);
-						app.setTransparencyAttributes(ta);
 					}
 
 					// apparently the The vertex colors are used as well, just not the alpha component when SF_Vertex_Animation is present
@@ -845,7 +780,65 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		}
 	}
 
-	protected void configureShader(BSShaderProperty bssp)
+	private void playWithShaders()
+	{
+		if (shaderProgram == null)
+		{
+			try
+			{
+				vertexProgram = StringIO.readFully("./fixedpipeline.vert");
+				fragmentProgram = StringIO.readFully("./fixedpipeline.frag");
+			}
+			catch (IOException e)
+			{
+				System.err.println(e);
+			}
+
+			Shader[] shaders = new Shader[2];
+			shaders[0] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_VERTEX, vertexProgram);
+			shaders[1] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_FRAGMENT, fragmentProgram);
+			final String[] shaderAttrNames =
+			{ "tex" };
+			final Object[] shaderAttrValues =
+			{ new Integer(0) };
+			shaderProgram = new GLSLShaderProgram();
+			shaderProgram.setShaders(shaders);
+			shaderProgram.setShaderAttrNames(shaderAttrNames);
+
+			// Create the shader attribute set
+			shaderAttributeSet = new ShaderAttributeSet();
+			for (int i = 0; i < shaderAttrNames.length; i++)
+			{
+				ShaderAttribute shaderAttribute = new ShaderAttributeValue(shaderAttrNames[i], shaderAttrValues[i]);
+				shaderAttributeSet.put(shaderAttribute);
+			}
+
+			// Create shader appearance to hold the shader program and
+			// shader attributes
+		}
+		((ShaderAppearance) normalApp).setShaderProgram(shaderProgram);
+		((ShaderAppearance) normalApp).setShaderAttributeSet(shaderAttributeSet);
+
+		//transparency
+		//fog
+		//lights (4?)
+
+		//then bump and glow maps
+
+		//land multi texturing(fixed should work too)
+		//lod why no nigeometry?
+
+	}
+
+	private static ShaderProgram shaderProgram = null;
+
+	private static ShaderAttributeSet shaderAttributeSet = null;
+
+	private static String vertexProgram = null;
+
+	private static String fragmentProgram = null;
+
+/*	private void configureShader(BSShaderProperty bssp)
 	{
 
 		if (bssp instanceof BSShaderLightingProperty)
@@ -873,7 +866,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 				SHADER_LIGHTING30 SL*
 				SHADER_TILE =  
 				SHADER_NOLIGHTING  =
-				 */
+				 /
 
 				//bsspplp.unknownInt2 values like 0, 1, 9, 16385, 32769, 40961 looks like bit flags 2,4,36 found in landscape
 				//bsspplp.unknownInt3 value 3, 0 0 on some robot files, 0 on some landscape				
@@ -938,5 +931,5 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 			}
 		}
 
-	}
+	}*/
 }
