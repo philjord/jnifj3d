@@ -32,6 +32,7 @@ import nif.compound.NifTexDesc;
 import nif.enums.BSShaderFlags;
 import nif.enums.BSShaderType;
 import nif.enums.FaceDrawMode;
+import nif.enums.SkyrimShaderPropertyFlags1;
 import nif.enums.SkyrimShaderPropertyFlags2;
 import nif.enums.VertMode;
 import nif.j3d.animation.J3dNiTimeController;
@@ -184,9 +185,9 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		RenderingAttributes ra = new RenderingAttributes();
 		app.setRenderingAttributes(ra);
 
-		PolygonAttributes pa = new PolygonAttributes();		
+		PolygonAttributes pa = new PolygonAttributes();
 		app.setPolygonAttributes(pa);
-		
+
 		TransparencyAttributes ta = new TransparencyAttributes(TransparencyAttributes.NONE, 0f);
 		app.setTransparencyAttributes(ta);
 
@@ -409,6 +410,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						{
 							ta.setTransparency(1 - nmp.alpha);
 							ta.setTransparencyMode(TransparencyAttributes.BLENDED);
+							//app.setTransparencyAttributes(ta);
 						}
 
 					}
@@ -441,6 +443,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						{
 							ta.setTransparencyMode(TransparencyAttributes.SCREEN_DOOR);
 						}
+						//app.setTransparencyAttributes(ta);
 
 						if (nap.alphaTestEnabled())
 						{
@@ -449,7 +452,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 							//obviously transparent stuff can be seen from the back quite often							
 							pa.setCullFace(PolygonAttributes.CULL_NONE);
 							pa.setBackFaceNormalFlip(true);
-
+							//app.setPolygonAttributes(pa);
 
 							int alphaTestMode = NifOpenGLToJava3D.convertAlphaTestMode(nap.alphaTestMode());
 							ra.setAlphaTestFunction(alphaTestMode);
@@ -468,6 +471,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						{
 							pa.setCullFace(PolygonAttributes.CULL_NONE);
 							pa.setBackFaceNormalFlip(true);
+							//app.setPolygonAttributes(pa);
 						}
 
 						if (nsp.isStencilEnable())
@@ -648,7 +652,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 					{
 						textureAttributes.setTextureMode(TextureAttributes.COMBINE);
 						textureAttributes.setCombineAlphaMode(TextureAttributes.COMBINE_REPLACE);
-					}
+					}					
 				}
 				else
 				{
@@ -763,10 +767,13 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		//setting transparency is expensive early out it if possible
 		if (currentTrans != percent)
 		{
-			if (percent <= 0 || percent >= 1.0f && normalApp.getTransparencyAttributes() != normalTA)
+			if (percent <= 0 || percent >= 1.0f)
 			{
-				//System.out.println("set normal");
-				normalApp.setTransparencyAttributes(normalTA);
+				if (normalApp.getTransparencyAttributes() != normalTA)
+				{
+					//System.out.println("set normal");
+					normalApp.setTransparencyAttributes(normalTA);
+				}
 			}
 			else
 			{
@@ -838,98 +845,98 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 
 	private static String fragmentProgram = null;
 
-/*	private void configureShader(BSShaderProperty bssp)
-	{
-
-		if (bssp instanceof BSShaderLightingProperty)
+	/*	private void configureShader(BSShaderProperty bssp)
 		{
-			BSShaderLightingProperty bsslp = (BSShaderLightingProperty) bssp;
-			if (bsslp instanceof BSShaderPPLightingProperty)
+
+			if (bssp instanceof BSShaderLightingProperty)
 			{
-				BSShaderPPLightingProperty bsspplp = (BSShaderPPLightingProperty) bsslp;
-
-				if (bsspplp instanceof Lighting30ShaderProperty)
+				BSShaderLightingProperty bsslp = (BSShaderLightingProperty) bssp;
+				if (bsslp instanceof BSShaderPPLightingProperty)
 				{
-					Lighting30ShaderProperty lsp = (Lighting30ShaderProperty) bsspplp;
-				}
+					BSShaderPPLightingProperty bsspplp = (BSShaderPPLightingProperty) bsslp;
 
-				/*
-				 * ST<*> stands from shader tree with STB=branch STFROND = frond STLEAF=leaf
-				 * SL<*> stand for lighting S for standard?
-				 * GRASS = tall grass
-				 * 
-				 * 
-				SHADER_TALL_GRASS = GRASS*
-				SHADER_DEFAULT = ?
-				SHADER_SKY =  SKY*
-				SHADER_WATER =  
-				SHADER_LIGHTING30 SL*
-				SHADER_TILE =  
-				SHADER_NOLIGHTING  =
-				 /
-
-				//bsspplp.unknownInt2 values like 0, 1, 9, 16385, 32769, 40961 looks like bit flags 2,4,36 found in landscape
-				//bsspplp.unknownInt3 value 3, 0 0 on some robot files, 0 on some landscape				
-				String shaderProgName = "";
-
-				if (bssp.shaderType.type == BSShaderType.SHADER_DEFAULT)
-				{
-					shaderProgName += "";
-				}
-
-				//File sf = new File(".\\simple_fp.cg");
-				File sf = new File(".\\multitex_fp.cg");
-
-				try
-				{
-					BufferedReader fr = new BufferedReader(new FileReader(sf));
-
-					String fragmentProgram = "";
-					String line = fr.readLine();
-					while (line != null)
+					if (bsspplp instanceof Lighting30ShaderProperty)
 					{
-						fragmentProgram += line + "\n";
-						line = fr.readLine();
+						Lighting30ShaderProperty lsp = (Lighting30ShaderProperty) bsspplp;
 					}
 
-					fr.close();
+					/*
+					 * ST<*> stands from shader tree with STB=branch STFROND = frond STLEAF=leaf
+					 * SL<*> stand for lighting S for standard?
+					 * GRASS = tall grass
+					 * 
+					 * 
+					SHADER_TALL_GRASS = GRASS*
+					SHADER_DEFAULT = ?
+					SHADER_SKY =  SKY*
+					SHADER_WATER =  
+					SHADER_LIGHTING30 SL*
+					SHADER_TILE =  
+					SHADER_NOLIGHTING  =
+					 /
 
-					Shader[] shaders = new Shader[1];
-					shaders[0] = new SourceCodeShader(Shader.SHADING_LANGUAGE_CG, Shader.SHADER_TYPE_FRAGMENT, fragmentProgram);
-					final String[] shaderAttrNames =
-					{ "cloudFactor" };
-					final Object[] shaderAttrValues =
-					{ new Float(0.6f), };
-					//ShaderProgram shaderProgram = new CgShaderProgram();
-					//shaderProgram.setShaders(shaders);
-					//shaderProgram.setShaderAttrNames(shaderAttrNames);
+					//bsspplp.unknownInt2 values like 0, 1, 9, 16385, 32769, 40961 looks like bit flags 2,4,36 found in landscape
+					//bsspplp.unknownInt3 value 3, 0 0 on some robot files, 0 on some landscape				
+					String shaderProgName = "";
 
-					// Create the shader attribute set
-					ShaderAttributeSet shaderAttributeSet = new ShaderAttributeSet();
-					for (int i = 0; i < shaderAttrNames.length; i++)
+					if (bssp.shaderType.type == BSShaderType.SHADER_DEFAULT)
 					{
-						ShaderAttribute shaderAttribute = new ShaderAttributeValue(shaderAttrNames[i], shaderAttrValues[i]);
-						shaderAttributeSet.put(shaderAttribute);
+						shaderProgName += "";
 					}
 
-					// Create shader appearance to hold the shader program and
-					// shader attributes
+					//File sf = new File(".\\simple_fp.cg");
+					File sf = new File(".\\multitex_fp.cg");
 
-					//app.setShaderProgram(shaderProgram);
-					//app.setShaderAttributeSet(shaderAttributeSet);
+					try
+					{
+						BufferedReader fr = new BufferedReader(new FileReader(sf));
+
+						String fragmentProgram = "";
+						String line = fr.readLine();
+						while (line != null)
+						{
+							fragmentProgram += line + "\n";
+							line = fr.readLine();
+						}
+
+						fr.close();
+
+						Shader[] shaders = new Shader[1];
+						shaders[0] = new SourceCodeShader(Shader.SHADING_LANGUAGE_CG, Shader.SHADER_TYPE_FRAGMENT, fragmentProgram);
+						final String[] shaderAttrNames =
+						{ "cloudFactor" };
+						final Object[] shaderAttrValues =
+						{ new Float(0.6f), };
+						//ShaderProgram shaderProgram = new CgShaderProgram();
+						//shaderProgram.setShaders(shaders);
+						//shaderProgram.setShaderAttrNames(shaderAttrNames);
+
+						// Create the shader attribute set
+						ShaderAttributeSet shaderAttributeSet = new ShaderAttributeSet();
+						for (int i = 0; i < shaderAttrNames.length; i++)
+						{
+							ShaderAttribute shaderAttribute = new ShaderAttributeValue(shaderAttrNames[i], shaderAttrValues[i]);
+							shaderAttributeSet.put(shaderAttribute);
+						}
+
+						// Create shader appearance to hold the shader program and
+						// shader attributes
+
+						//app.setShaderProgram(shaderProgram);
+						//app.setShaderAttributeSet(shaderAttributeSet);
+
+					}
+					catch (FileNotFoundException e)
+					{
+						e.printStackTrace();
+					}
+					catch (IOException e)
+					{
+						e.printStackTrace();
+					}
 
 				}
-				catch (FileNotFoundException e)
-				{
-					e.printStackTrace();
-				}
-				catch (IOException e)
-				{
-					e.printStackTrace();
-				}
-
 			}
-		}
 
-	}*/
+		}*/
 }

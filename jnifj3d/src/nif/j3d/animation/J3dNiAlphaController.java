@@ -35,7 +35,19 @@ public class J3dNiAlphaController extends J3dNiTimeController implements FloatIn
 	@Override
 	public void update(float value)
 	{
-		transparencyAttributes.setTransparency(value);
+		//TODO: constants hand this to me, should do the divide at construction time
+		if (value > 1)
+			value = value / 255f;
+		
+		if (value < 0 || value > 1)
+		{
+			System.out.println("bum alpha " + value);
+			new Throwable().printStackTrace();
+		}
+		else
+		{
+			transparencyAttributes.setTransparency(value);
+		}
 	}
 
 }

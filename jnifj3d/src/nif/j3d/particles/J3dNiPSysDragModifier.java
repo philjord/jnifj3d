@@ -55,7 +55,16 @@ public class J3dNiPSysDragModifier extends J3dNiPSysModifier
 	public void updatePSys(long elapsedMillisec)
 	{
 		dragLoc.set(0, 0, 0);
-		dragNode.getLocalToVworld(trans);
+		if (dragNode.isCompiled() && !dragNode.isLive())
+		{
+			System.out
+					.println("dragNode that can't be used " + dragJ3dNiNode.getName() + " " + dragJ3dNiNode.getNiAVObject().nVer.fileName);
+			// something something getBone Accum Node, then add root??
+		}
+		else
+		{
+			dragNode.getLocalToVworld(trans);
+		}
 		dragApplied.set(dragAxis);
 		trans.transform(dragApplied);
 		trans.transform(dragLoc);

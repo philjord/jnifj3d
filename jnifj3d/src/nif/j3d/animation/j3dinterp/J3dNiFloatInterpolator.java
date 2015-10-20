@@ -56,7 +56,7 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 		}
 		else if (constantFloat != Float.NEGATIVE_INFINITY)
 		{
-			// otherwise it just a  constant value set once now
+			// otherwise it just a constant value set once now
 			callBack.update(constantFloat);
 		}
 	}
