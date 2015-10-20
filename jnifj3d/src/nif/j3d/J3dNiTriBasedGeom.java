@@ -101,12 +101,14 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 			//-Dj3d.stencilClear=true  
 
-			//possibly isseue 249 https://java.net/jira/browse/JAVA3D-224
+			// this is generally working now, below are earlier notes, it doesn't play 
+			// badly with transparencey once everthing has renderattributes
+			//possibly issue 249 https://java.net/jira/browse/JAVA3D-224
 			// transparency buggers with stencils https://java.net/jira/browse/JAVA3D-314
-
 			//Notice issues with transparent textures not working well, the "filled in" part must be being run after the line 
 
 			Appearance sapp = getShape().getAppearance();
+				
 			RenderingAttributes ra1 = sapp.getRenderingAttributes();
 			//RAISE_BUG:
 			// note ra1 must not be null ever, for stencils all apps should have ras

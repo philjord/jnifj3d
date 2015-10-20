@@ -32,7 +32,6 @@ import nif.compound.NifTexDesc;
 import nif.enums.BSShaderFlags;
 import nif.enums.BSShaderType;
 import nif.enums.FaceDrawMode;
-import nif.enums.SkyrimShaderPropertyFlags1;
 import nif.enums.SkyrimShaderPropertyFlags2;
 import nif.enums.VertMode;
 import nif.j3d.animation.J3dNiTimeController;
@@ -235,83 +234,70 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 
 						}
 
-						//now set the texture
-						if (ntp.hasBaseTexture && ntp.baseTexture.source.ref != -1 && textureSource != null)
-						{
-							NiSourceTexture nst = (NiSourceTexture) niToJ3dData.get(ntp.baseTexture.source);
-							if (nst.useExternal != 0)
-							{
-								Texture tex = loadTexture(nst.fileName.string, textureSource);
-								if (tex != null)
-								{
-									tus0.setTexture(tex);
-								}
-
-							}
-						}
-
-						//Black Prophecy textures order?
-						// engines sometimes only have 1 or 2  
-						//occulsion (occ_blank.dds) - optional?
-						//color	(diff_blank.dds)
-						//bump
-						//specular
-						//glow (glow_blank.dds)
-						//cubemap, for reflections? - optional
-
 						NiSourceTexture niSourceTexture = null;
 
-						if (ntp.shaderTextures != null)
+						//now set the texture
+						if (ntp.hasBaseTexture && ntp.baseTexture.source.ref != -1)
 						{
-							// use it if there's only 1
-							if (ntp.shaderTextures.length == 1)
+							niSourceTexture = (NiSourceTexture) niToJ3dData.get(ntp.baseTexture.source);
+						}
+						else
+						{
+							//Black Prophecy textures order?
+							// engines sometimes only have 1 or 2  
+							//occulsion (occ_blank.dds) - optional?
+							//color	(diff_blank.dds)
+							//bump
+							//specular
+							//glow (glow_blank.dds)
+							//cubemap, for reflections? - optional
+
+							if (ntp.shaderTextures != null)
 							{
-								NifTexDesc textureData = ntp.shaderTextures[0].textureData;
-								if (textureData.source.ref != -1)
+								// use it if there's only 1
+								if (ntp.shaderTextures.length == 1)
 								{
-									niSourceTexture = (NiSourceTexture) niToJ3dData.get(textureData.source);
-								}
-							}
-							else if (ntp.shaderTextures.length > 1)
-							{
-								// use 0 unless occulsion, in which case use 1
-								NifTexDesc textureData = ntp.shaderTextures[0].textureData;
-								if (textureData.source.ref != -1)
-								{
-									niSourceTexture = (NiSourceTexture) niToJ3dData.get(textureData.source);
-									if (niSourceTexture.fileName.string.contains("_lod")
-											|| niSourceTexture.fileName.string.equals("occ_blank.dds")
-											|| niSourceTexture.fileName.string.contains("_occ"))
+									NifTexDesc textureData = ntp.shaderTextures[0].textureData;
+									if (textureData.source.ref != -1)
 									{
-										textureData = ntp.shaderTextures[1].textureData;
-										if (textureData.source.ref != -1)
+										niSourceTexture = (NiSourceTexture) niToJ3dData.get(textureData.source);
+									}
+								}
+								else if (ntp.shaderTextures.length > 1)
+								{
+									// use 0 unless occulsion, in which case use 1
+									NifTexDesc textureData = ntp.shaderTextures[0].textureData;
+									if (textureData.source.ref != -1)
+									{
+										niSourceTexture = (NiSourceTexture) niToJ3dData.get(textureData.source);
+										if (niSourceTexture.fileName.string.contains("_lod")
+												|| niSourceTexture.fileName.string.equals("occ_blank.dds")
+												|| niSourceTexture.fileName.string.contains("_occ"))
 										{
-											niSourceTexture = (NiSourceTexture) niToJ3dData.get(textureData.source);
+											textureData = ntp.shaderTextures[1].textureData;
+											if (textureData.source.ref != -1)
+											{
+												niSourceTexture = (NiSourceTexture) niToJ3dData.get(textureData.source);
+											}
 										}
 									}
 								}
 							}
 						}
-						else
-						{
-							//just use base?
-							NifTexDesc textureData = ntp.baseTexture;
-							if (textureData.source.ref != -1)
-							{
-								niSourceTexture = (NiSourceTexture) niToJ3dData.get(textureData.source);
-
-							}
-						}
 
 						if (niSourceTexture != null)
 						{
+							if (niSourceTexture.useExternal == 0)
+							{
+								new Throwable("niSourceTexture.useExternal == 0!!").printStackTrace();
+							}
+
 							Texture tex = loadTexture(niSourceTexture.fileName.string, textureSource);
 
 							if (tex != null)
 							{
 								tus0.setTexture(tex);
 							}
-
 						}
 
 					}
@@ -652,7 +638,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 					{
 						textureAttributes.setTextureMode(TextureAttributes.COMBINE);
 						textureAttributes.setCombineAlphaMode(TextureAttributes.COMBINE_REPLACE);
-					}					
+					}
 				}
 				else
 				{
