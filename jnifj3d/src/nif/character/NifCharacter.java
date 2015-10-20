@@ -159,7 +159,6 @@ public class NifCharacter extends BranchGroup implements Fadable
 			}
 		}
 
-		
 		//set us up with the idle anim
 		updateAnimation();
 	}
@@ -187,7 +186,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 	 */
 	protected void updateAnimation()
 	{
-		if (nextAnimation.length() > 0)
+		if (nextAnimation.length() > 0 && nextAnimation.endsWith(".kf"))
 		{
 			currentAnimation = nextAnimation;
 			nextAnimation = "";
@@ -237,6 +236,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 			// The above measures time in idle and changes from once it's been 10 seconds in case of looping idle
 			//otherwise drop back to idle if the current has finished 
 			int r = (int) (Math.random() * idleAnimations.size() - 1);
+
 			nextAnimation = idleAnimations.get(r);
 			if (nextAnimation.length() > 0 && nextAnimation.endsWith(".kf"))
 				updateAnimation();

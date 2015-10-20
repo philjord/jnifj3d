@@ -10,6 +10,7 @@ import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.BranchGroup;
 import javax.media.j3d.Geometry;
 import javax.media.j3d.GeometryUpdater;
+import javax.media.j3d.Group;
 import javax.media.j3d.Shape3D;
 import javax.media.j3d.TransformGroup;
 import javax.vecmath.Color3f;
@@ -27,6 +28,7 @@ import nif.niobject.particle.NiPSysData;
 import nif.niobject.particle.NiPSysModifier;
 import nif.niobject.particle.NiPSysModifierCtlr;
 import nif.niobject.particle.NiParticleSystem;
+import tools.WeakListenerList;
 import tools3d.utils.PhysAppearance;
 import tools3d.utils.Utils3D;
 import tools3d.utils.scenegraph.Billboard2;
@@ -35,7 +37,7 @@ import utils.source.TextureSource;
 
 public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdater
 {
-	public static boolean SHOW_DEBUG_LINES = true;
+	private static boolean SHOW_DEBUG_LINES = false;
 
 	private ArrayList<J3dNiPSysModifier> modifiersInOrder = new ArrayList<J3dNiPSysModifier>();
 
@@ -50,6 +52,12 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 	private NiParticleSystem niParticleSystem;
 
 	private TransformGroup billTrans = new TransformGroup();
+
+	private static WeakListenerList<J3dNiParticleSystem> allParticleSystems = new WeakListenerList<J3dNiParticleSystem>();
+
+	private BranchGroup outlinerBG1 = null;
+
+	private BranchGroup outlinerBG2 = null;
 
 	public J3dNiParticleSystem(NiParticleSystem niParticleSystem, NiToJ3dData niToJ3dData, TextureSource textureSource)
 	{
@@ -91,20 +99,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 
 		//TODO: is this a good idea? thread show blocked on update bounds
 		getShape().setBoundsAutoCompute(false);
-		getShape().setBounds(new BoundingSphere(new Point3d(0, 0, 0), 10));
-
-		//for debug
-		if (SHOW_DEBUG_LINES)
-		{
-			//TODO: textures and debug shapes are WAY off from each other
-			BranchGroup debugGroup = new BranchGroup();
-			debugGroup.setCapability(BranchGroup.ALLOW_DETACH);
-			Shape3D debugShape = new Shape3D();
-			debugShape.setGeometry(j3dPSysData.ga);
-			debugShape.setAppearance(new PhysAppearance());
-			debugGroup.addChild(debugShape);
-			addChild(debugGroup);
-		}
+		getShape().setBounds(new BoundingSphere(new Point3d(0, 0, 0), 100));
 
 		// get updated every 50 milliseconds
 		addChild(new PerTimeUpdateBehavior(50, new PerTimeUpdateBehavior.CallBack()
@@ -125,6 +120,38 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		else if (niParticleSystem instanceof NiMeshParticleSystem)
 		{
 			//TODO: do I care?
+		}
+
+		// prepare a root for outline to be added to
+		outlinerBG1 = new BranchGroup();
+		outlinerBG1.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+		outlinerBG1.setCapability(Group.ALLOW_CHILDREN_WRITE);
+		addChild(outlinerBG1);
+		configureOutLines();
+
+		allParticleSystems.add(this);
+	}
+
+	private void configureOutLines()
+	{
+		//for debug
+		if (SHOW_DEBUG_LINES && outlinerBG2 == null)
+		{
+			//TODO: textures and debug shapes are WAY off from each other
+
+			Shape3D outliner = new Shape3D();
+			outliner.setGeometry(j3dPSysData.ga);
+			outliner.setAppearance(new PhysAppearance());
+
+			outlinerBG2 = new BranchGroup();
+			outlinerBG2.setCapability(BranchGroup.ALLOW_DETACH);
+			outlinerBG2.addChild(outliner);
+			outlinerBG1.addChild(outlinerBG2);
+		}
+		else if (!SHOW_DEBUG_LINES && outlinerBG2 != null)
+		{
+			outlinerBG2.detach();
+			outlinerBG2 = null;
 		}
 
 	}
@@ -261,7 +288,22 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 	@Override
 	public void setOutline(Color3f c)
 	{
-		// TODO: wierd, but possible
+		// TODO: needs an indicatr color for particles to use, note J3dNiParticleSystem.SHOW_DEBUG_LINES is the system for now
+
+	}
+
+	public static boolean isSHOW_DEBUG_LINES()
+	{
+		return SHOW_DEBUG_LINES;
+	}
+
+	public static void setSHOW_DEBUG_LINES(boolean sHOW_DEBUG_LINES)
+	{
+		SHOW_DEBUG_LINES = sHOW_DEBUG_LINES;
+		for (J3dNiParticleSystem ps : allParticleSystems)
+		{
+			ps.configureOutLines();
+		}
 	}
 
 }
