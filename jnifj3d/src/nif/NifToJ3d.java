@@ -40,6 +40,8 @@ public class NifToJ3d
 		loadedFiles.clear();
 	}
 
+	//private static RequestStats requestStats = new RequestStats(loadedFiles);
+
 	/**
 	 * This is a caching sytem and should generally be the ONLY class to call getNifFile on a MeshSource or else trouble
 	 * @param nifFilename
@@ -48,6 +50,9 @@ public class NifToJ3d
 	 */
 	public static NifFile loadNiObjects(String nifFilename, MeshSource meshSource)
 	{
+		//enable to test is caching is good
+		//requestStats.request(nifFilename);
+
 		NifFile nifFile = loadedFiles.get(nifFilename);
 
 		if (nifFile == null)
@@ -62,7 +67,6 @@ public class NifToJ3d
 	/** 
 	 * loads both nif vis and nif havok into the root
 	 */
-
 	public static NifJ3dVisPhysRoot loadNif(String modelFileName, MeshSource meshSource, TextureSource textureSource)
 	{
 		NifFile nifFile = loadNiObjects(modelFileName, meshSource);
