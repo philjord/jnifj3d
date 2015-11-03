@@ -7,6 +7,7 @@ import javax.vecmath.Vector4d;
 
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiNode;
+import nif.j3d.J3dNiTriShape;
 import nif.j3d.animation.j3dinterp.interp.BoolInterpolator;
 import nif.j3d.particles.J3dNiParticleSystem;
 import nif.niobject.controller.NiVisController;
@@ -17,10 +18,12 @@ public class J3dNiVisController extends J3dNiTimeController implements BoolInter
 
 	private boolean currentVis = true;
 
+	//TODO: this is not being called and I don't know if it works
+	// F:\game media\Morrowind\Meshes\r\xascendedsleeper.nif good example
 	public J3dNiVisController(NiVisController controller, J3dNiAVObject nodeTarget)
 	{
 		super(controller, nodeTarget);
-		if (nodeTarget instanceof J3dNiNode || nodeTarget instanceof J3dNiParticleSystem)
+		if (nodeTarget instanceof J3dNiNode || nodeTarget instanceof J3dNiParticleSystem || nodeTarget instanceof J3dNiTriShape)
 		{
 
 			Vector4d[] planes = new Vector4d[6];
@@ -38,13 +41,15 @@ public class J3dNiVisController extends J3dNiTimeController implements BoolInter
 		}
 		else
 		{
-			new Throwable("node target is not J3dNiNode or J3dNiParticleSystem? " + nodeTarget).printStackTrace();
+			new Throwable("node target is not allowed for vis controller " + nodeTarget + " in " + controller.nVer.fileName)
+					.printStackTrace();
 		}
 
 	}
 
 	private void setVis(boolean isVis)
 	{
+		System.out.println("isVis " + isVis);
 		if (isVis && !currentVis)
 		{
 			modelClip.setInfluencingBounds(null);

@@ -28,13 +28,17 @@ import javax.vecmath.Vector3d;
 import nif.NifToJ3d;
 import nif.NifVer;
 import nif.basic.NifRef;
+import nif.compound.NifKeyGroup;
 import nif.compound.NifTexDesc;
 import nif.enums.BSShaderFlags;
 import nif.enums.BSShaderType;
 import nif.enums.FaceDrawMode;
 import nif.enums.SkyrimShaderPropertyFlags2;
+import nif.enums.TexTransform;
 import nif.enums.VertMode;
+import nif.j3d.animation.J3dNiTextureTransformController;
 import nif.j3d.animation.J3dNiTimeController;
+import nif.j3d.animation.j3dinterp.J3dNiFloatInterpolator;
 import nif.j3d.animation.j3dinterp.J3dNiInterpolator;
 import nif.niobject.NiAlphaProperty;
 import nif.niobject.NiDitherProperty;
@@ -51,6 +55,7 @@ import nif.niobject.NiStencilProperty;
 import nif.niobject.NiTextureModeProperty;
 import nif.niobject.NiTextureProperty;
 import nif.niobject.NiTexturingProperty;
+import nif.niobject.NiUVData;
 import nif.niobject.NiVertexColorProperty;
 import nif.niobject.NiWireframeProperty;
 import nif.niobject.NiZBufferProperty;
@@ -66,9 +71,11 @@ import nif.niobject.bs.SkyShaderProperty;
 import nif.niobject.bs.TallGrassShaderProperty;
 import nif.niobject.bs.TileShaderProperty;
 import nif.niobject.bs.WaterShaderProperty;
+import nif.niobject.controller.NiGeomMorpherController;
 import nif.niobject.controller.NiMultiTargetTransformController;
 import nif.niobject.controller.NiSingleInterpController;
 import nif.niobject.controller.NiTimeController;
+import nif.niobject.controller.NiUVController;
 import nif.niobject.interpolator.NiInterpolator;
 import tools3d.utils.scenegraph.Fadable;
 import utils.convert.NifOpenGLToJava3D;
@@ -204,6 +211,12 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		// note time controllers below need appearance set on the shape now
 		shape.setAppearance(normalApp);
 
+		//Seen in morrowind, but possibly not the others? 
+		if (niGeometry.controller.ref != -1)
+		{
+			setUpTimeController((NiTimeController) niToJ3dData.get(niGeometry.controller), niToJ3dData);
+		}
+
 		//apply various apperance properties
 		for (int i = 0; i < properties.length; i++)
 		{
@@ -243,6 +256,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						}
 						else
 						{
+							//TODO: this black prophecy is messy rubbish, put it in a speerte method with a isBP() test on nifver
 							//Black Prophecy textures order?
 							// engines sometimes only have 1 or 2  
 							//occulsion (occ_blank.dds) - optional?
@@ -693,14 +707,13 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 				float startTimeS = controller.startTime;
 				float stopTimeS = controller.stopTime;
 
-				NiInterpolator niInterpolator = (NiInterpolator) niToJ3dData.get(niSingleInterpController.interpolator);
-
 				J3dNiTimeController j3dNiTimeController = J3dNiTimeController.createJ3dNiTimeController(controller, niToJ3dData, this,
 						textureSource);
 
 				J3dNiInterpolator j3dNiInterpolator = null;
 				if (j3dNiTimeController != null)
 				{
+					NiInterpolator niInterpolator = (NiInterpolator) niToJ3dData.get(niSingleInterpController.interpolator);
 					j3dNiInterpolator = J3dNiTimeController.createInterpForController(j3dNiTimeController, niInterpolator, niToJ3dData,
 							startTimeS, stopTimeS);
 				}
@@ -713,30 +726,65 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 					j3dNiInterpolator.fire(baseAlpha);
 				}
 
-				NiTimeController nextController = (NiTimeController) niToJ3dData.get(controller.nextController);
-				if (nextController != null)
-				{
-					if (nextController instanceof NiMultiTargetTransformController)
-					{
-						//this is an object palette ignore
-					}
-					else
-					{
-						//TODO: this is used by the particle modifer controller system, see J3dParticleSystem
-						//I've also seen texturetransform controllers U then V use this						
-						setUpTimeController(nextController, niToJ3dData);
-					}
-
-				}
-
 			}
 			else if (controller instanceof BSRefractionFirePeriodController)
 			{
 
 			}
+			else if (controller instanceof NiUVController)
+			{
+				//TODO: more morrowind controllers needed? move these soemwhere useful?
+				NiUVController niUVController = (NiUVController) controller;
+
+				float startTimeS = controller.startTime;
+				float stopTimeS = controller.stopTime;
+
+				float totalLengthS = stopTimeS - startTimeS;
+
+				NiUVData niUVData = (NiUVData) niToJ3dData.get(niUVController.data);
+
+				// 4 ops in the group
+				int[] ops = new int[]
+				{ TexTransform.TT_TRANSLATE_U, TexTransform.TT_TRANSLATE_V, TexTransform.TT_SCALE_U, TexTransform.TT_SCALE_V };
+
+				for (int i = 0; i < 4; i++)
+				{
+					NifKeyGroup keyGroup = niUVData.uVGroups[i];
+					if (keyGroup.keys != null)
+					{
+						J3dNiTimeController j3dNiTimeController = new J3dNiTextureTransformController(niUVController, this, ops[i]);
+						J3dNiInterpolator j3dNiInterpolator = new J3dNiFloatInterpolator(keyGroup, startTimeS, totalLengthS,
+								j3dNiTimeController);
+						addChild(j3dNiInterpolator);
+						Alpha baseAlpha = J3dNiTimeController.createLoopingAlpha(startTimeS, stopTimeS);
+						j3dNiInterpolator.fire(baseAlpha);
+					}
+				}
+
+			}
+			else if (controller instanceof NiGeomMorpherController)
+			{
+				//These are fine handled by attachment system
+			}
 			else
 			{
-				System.out.println("non NiSingleInterpController for j3dgeometry " + controller);
+				System.out.println("non NiSingleInterpController for j3dgeometry " + controller + " in " + controller.nVer.fileName);
+			}
+
+			NiTimeController nextController = (NiTimeController) niToJ3dData.get(controller.nextController);
+			if (nextController != null)
+			{
+				if (nextController instanceof NiMultiTargetTransformController)
+				{
+					//this is an object palette ignore
+				}
+				else
+				{
+					//TODO: this is used by the particle modifer controller system, see J3dParticleSystem
+					//I've also seen texturetransform controllers U then V use this						
+					setUpTimeController(nextController, niToJ3dData);
+				}
+
 			}
 		}
 	}

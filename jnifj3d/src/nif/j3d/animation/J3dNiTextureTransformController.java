@@ -12,25 +12,48 @@ import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiGeometry;
 import nif.j3d.animation.j3dinterp.interp.FloatInterpolator;
 import nif.niobject.controller.NiTextureTransformController;
+import nif.niobject.controller.NiTimeController;
 
 public class J3dNiTextureTransformController extends J3dNiTimeController implements FloatInterpolator.Listener
 {
 	private TextureAttributes textureAttributes;
 
-	private TexTransform operation;
+	private int operation;
 
 	private Transform3D transform = new Transform3D();
 
+	/**
+	 * 
+	 * @param controller
+	 * @param nodeTarget
+	 */
 	public J3dNiTextureTransformController(NiTextureTransformController controller, J3dNiAVObject nodeTarget)
 	{
 		super(controller, nodeTarget);
+		operation = controller.operation.transformType;
+		config();
+	}
+
+	/**
+	 * FOR TES3 only 
+	 * @param controller
+	 * @param nodeTarget
+	 */
+	public J3dNiTextureTransformController(NiTimeController controller, J3dNiAVObject nodeTarget, int operation)
+	{
+		super(controller, nodeTarget);
+		this.operation = operation;
+		config();
+	}
+
+	private void config()
+	{
 		if (nodeTarget instanceof J3dNiGeometry)
 		{
 			J3dNiGeometry j3dNiGeometry = (J3dNiGeometry) nodeTarget;
 			Appearance app = j3dNiGeometry.getShape().getAppearance();
 			if (app.getTextureUnitCount() > 0)
 			{
-				operation = controller.operation;
 
 				textureAttributes = app.getTextureUnitState(0).getTextureAttributes();
 				if (textureAttributes == null)
@@ -42,21 +65,21 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 				{
 					textureAttributes.setCapability(TextureAttributes.ALLOW_TRANSFORM_WRITE);
 				}
-				
+
 				// for those special cases output the incomplete operation suport
-				if (operation.transform == TexTransform.TT_SCALE_U)
+				if (operation == TexTransform.TT_SCALE_U)
 				{
 					System.out.println("texture transform.setScale(u) spotted in " + niTimeController.nVer.fileName);
 				}
-				else if (operation.transform == TexTransform.TT_SCALE_V)
+				else if (operation == TexTransform.TT_SCALE_V)
 				{
 					System.out.println("texture transform.setScale(v) spotted in  " + niTimeController.nVer.fileName);
 				}
-				else if (operation.transform == TexTransform.TT_ROTATE)
+				else if (operation == TexTransform.TT_ROTATE)
 				{
 					System.out.println("rotate in spotted " + niTimeController.nVer.fileName);
 				}
-				
+
 			}
 		}
 		else
@@ -73,31 +96,31 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 	{
 		if (textureAttributes != null)
 		{
-			if (operation.transform == TexTransform.TT_TRANSLATE_U)
+			if (operation == TexTransform.TT_TRANSLATE_U)
 			{
 				transform.get(t);
 				t.x = -value;
 				transform.setTranslation(t);
 			}
-			else if (operation.transform == TexTransform.TT_TRANSLATE_V)
+			else if (operation == TexTransform.TT_TRANSLATE_V)
 			{
 				transform.get(t);
 				t.y = value;
 				transform.setTranslation(t);
 			}
-			else if (operation.transform == TexTransform.TT_SCALE_U)
+			else if (operation == TexTransform.TT_SCALE_U)
 			{
 				//TODO: removed as particle atlas animated textures don't like being interpolated by non powers of 2
 				transform.setScale(new Vector3d(0d, value, 0d));
-				
+
 			}
-			else if (operation.transform == TexTransform.TT_SCALE_V)
+			else if (operation == TexTransform.TT_SCALE_V)
 			{
 				//TODO: removed as particle atlas animated textures don't like being interpolated by non powers of 2
 				transform.setScale(new Vector3d(value, 0d, 0d));
-				
+
 			}
-			else if (operation.transform == TexTransform.TT_ROTATE)
+			else if (operation == TexTransform.TT_ROTATE)
 			{
 				AxisAngle4f aa = new AxisAngle4f(0, 0, -1, value);
 				transform.setRotation(aa);
@@ -109,7 +132,7 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 				t.x = -0.5f;
 				t.y = -0.5f;
 				transform.setTranslation(t);
-				
+
 			}
 			else
 			{

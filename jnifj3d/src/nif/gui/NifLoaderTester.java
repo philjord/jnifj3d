@@ -3,11 +3,9 @@ package nif.gui;
 import java.io.File;
 import java.util.prefs.Preferences;
 
-import javax.media.j3d.BoundingSphere;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 
-import nif.NifJ3dVisRoot;
 import nif.NifToJ3d;
 import tools.ddstexture.DDSTextureLoader;
 import utils.source.DummyTextureSource;
@@ -72,10 +70,11 @@ public class NifLoaderTester
 			else
 			{
 				NifToJ3d.loadHavok(f.getCanonicalPath(), new FileMeshSource());
-				NifJ3dVisRoot r = NifToJ3d.loadShapes(f.getCanonicalPath(), new FileMeshSource(), new DummyTextureSource());
+				//NifJ3dVisRoot r = 
+						NifToJ3d.loadShapes(f.getCanonicalPath(), new FileMeshSource(), new DummyTextureSource());
 
-				System.out.println("modelSizes.put(\"\\" + f.getParent().substring(f.getParent().lastIndexOf("\\")) + "\\\\" + f.getName() + "\", "
-						+ ((BoundingSphere) r.getVisualRoot().getBounds()).getRadius() + "f);");
+		//		System.out.println("modelSizes.put(\"\\" + f.getParent().substring(f.getParent().lastIndexOf("\\")) + "\\\\" + f.getName() + "\", "
+		//				+ ((BoundingSphere) r.getVisualRoot().getBounds()).getRadius() + "f);");
 
 			}
 

@@ -25,7 +25,16 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 	public J3dNiFloatInterpolator(NiFloatInterpolator niFloatInterpolator, NiToJ3dData niToJ3dData, float startTimeS, float lengthS,
 			FloatInterpolator.Listener callBack)
 	{
-		makeKnotsFloats(niFloatInterpolator, niToJ3dData, startTimeS, lengthS);
+		if (niFloatInterpolator.data.ref != -1)
+		{
+			NifKeyGroup floatData = ((NiFloatData) niToJ3dData.get(niFloatInterpolator.data)).data;
+
+			makeKnotsFloats(floatData.keys, startTimeS, lengthS);
+		}
+		else
+		{
+			constantFloat = niFloatInterpolator.floatValue;
+		}
 
 		if (callBack != null)
 			createInterpolator(callBack);
@@ -46,6 +55,18 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 
 	}
 
+	//FOR TES3 (true??)
+	public J3dNiFloatInterpolator(NifKeyGroup keyGroup, float startTimeS, float lengthS, FloatInterpolator.Listener callBack)
+	{
+		makeKnotsFloats(keyGroup.keys, startTimeS, lengthS);
+
+		if (callBack != null)
+			createInterpolator(callBack);
+		else
+			new Throwable("null callback in NifKeyGroup ").printStackTrace();
+
+	}
+
 	//TODO: make this add interp so many can be called back from one
 	private void createInterpolator(FloatInterpolator.Listener callBack)
 	{
@@ -58,20 +79,6 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 		{
 			// otherwise it just a constant value set once now
 			callBack.update(constantFloat);
-		}
-	}
-
-	private void makeKnotsFloats(NiFloatInterpolator niFloatInterpolator, NiToJ3dData niToJ3dData, float startTimeS, float lengthS)
-	{
-		if (niFloatInterpolator.data.ref != -1)
-		{
-			NifKeyGroup floatData = ((NiFloatData) niToJ3dData.get(niFloatInterpolator.data)).data;
-
-			makeKnotsFloats(floatData.keys, startTimeS, lengthS);
-		}
-		else
-		{
-			constantFloat = niFloatInterpolator.floatValue;
 		}
 	}
 
