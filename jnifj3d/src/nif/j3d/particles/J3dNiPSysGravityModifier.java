@@ -67,6 +67,16 @@ public class J3dNiPSysGravityModifier extends J3dNiPSysModifier
 		if (forceType == NiPSysGravityModifier.FORCE_PLANAR)
 		{
 			gravityLoc.set(0, 0, 0);
+			if (gravityNode.isCompiled() && !gravityNode.isLive())
+			{
+				System.out.println("gravityNode that can't be used " + gravityJ3dNiNode.getName() + " "
+						+ gravityJ3dNiNode.getNiAVObject().nVer.fileName);
+			}
+			else
+			{
+				gravityNode.getLocalToVworld(trans);
+			}
+			
 			gravityNode.getLocalToVworld(trans);
 			gravityApplied.set(gravityAxis);
 			trans.transform(gravityApplied);

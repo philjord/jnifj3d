@@ -11,6 +11,8 @@ import nif.j3d.animation.J3dNiSingleInterpController;
 import nif.j3d.animation.J3dNiTimeController;
 import nif.j3d.animation.J3dNiUVController;
 import nif.niobject.NiExtraData;
+import nif.niobject.bs.BSFrustumFOVController;
+import nif.niobject.bs.BSLagBoneController;
 import nif.niobject.controller.NiControllerManager;
 import nif.niobject.controller.NiGeomMorpherController;
 import nif.niobject.controller.NiKeyframeController;
@@ -137,9 +139,17 @@ public abstract class J3dNiObjectNET extends Group
 			{
 				ret = new J3dNiUVController((NiUVController) controller, niToJ3dData);
 			}
+			else if (controller instanceof BSFrustumFOVController)
+			{
+				// from skyrim BlacksmithForgeMarkerMeshes\Furniture\BlacksmithForgeMarker.nif
+			}
+			else if (controller instanceof BSLagBoneController)
+			{
+				// from skyrim Meshes\Actors\Spriggan\Character Assets\skeleton.nif
+			}
 			else
 			{
-				System.out.println("Unknown controller set up " + controller + " in " + controller.nVer.fileName);
+				System.out.println("J3dNiObjectNET Unknown controller set up " + controller + " in " + controller.nVer.fileName);
 			}
 
 			if (ret != null)
