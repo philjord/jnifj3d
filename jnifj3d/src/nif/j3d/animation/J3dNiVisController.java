@@ -20,6 +20,7 @@ public class J3dNiVisController extends J3dNiTimeController implements BoolInter
 
 	//TODO: this is not being called and I don't know if it works
 	// F:\game media\Morrowind\Meshes\r\xascendedsleeper.nif good example
+	// but seems to be set in FO3 wasteland
 	public J3dNiVisController(NiVisController controller, J3dNiAVObject nodeTarget)
 	{
 		super(controller, nodeTarget);
@@ -49,7 +50,7 @@ public class J3dNiVisController extends J3dNiTimeController implements BoolInter
 
 	private void setVis(boolean isVis)
 	{
-		System.out.println("isVis " + isVis);
+		 
 		if (isVis && !currentVis)
 		{
 			modelClip.setInfluencingBounds(null);

@@ -9,14 +9,17 @@ import nif.j3d.animation.J3dNiControllerManager;
 import nif.j3d.animation.J3dNiGeomMorpherController;
 import nif.j3d.animation.J3dNiSingleInterpController;
 import nif.j3d.animation.J3dNiTimeController;
+import nif.j3d.animation.J3dNiUVController;
 import nif.niobject.NiExtraData;
 import nif.niobject.controller.NiControllerManager;
 import nif.niobject.controller.NiGeomMorpherController;
 import nif.niobject.controller.NiKeyframeController;
 import nif.niobject.controller.NiMultiTargetTransformController;
 import nif.niobject.controller.NiObjectNET;
+import nif.niobject.controller.NiPathController;
 import nif.niobject.controller.NiSingleInterpController;
 import nif.niobject.controller.NiTimeController;
+import nif.niobject.controller.NiUVController;
 
 public abstract class J3dNiObjectNET extends Group
 {
@@ -119,11 +122,24 @@ public abstract class J3dNiObjectNET extends Group
 			}
 			else if (controller instanceof NiKeyframeController)
 			{
-				// ignored as we don't have a target yet for this (which is a controllerlink type thing anyway)			
+				// ignored as we don't have a target yet for this (which is a controllerlink type thing anyway)
+				// this gets sorted out as a special operation
 			}
 			else if (controller instanceof NiMultiTargetTransformController)
 			{
 				// this looks like it is just an object palette for optomisation ignore?? controller link uses its single node target
+			}
+			else if (controller instanceof NiPathController)
+			{
+				// TODO: handle NiPathController, much like the UV controller below
+			}
+			else if (controller instanceof NiUVController)
+			{
+				ret = new J3dNiUVController((NiUVController) controller, niToJ3dData);
+			}
+			else
+			{
+				System.out.println("Unknown controller set up " + controller + " in " + controller.nVer.fileName);
 			}
 
 			if (ret != null)

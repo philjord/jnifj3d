@@ -72,15 +72,23 @@ public class NifToJ3d
 		NifFile nifFile = loadNiObjects(modelFileName, meshSource);
 		if (nifFile != null)
 		{
-			NifJ3dVisRoot root = extractShapes(nifFile, textureSource, false);
-			NifJ3dHavokRoot phys = extractHavok(nifFile);
-
-			if (root != null)
+			try
 			{
-				NifJ3dVisPhysRoot nifJ3dVisPhysRoot = new NifJ3dVisPhysRoot(root.getVisualRoot(),
-						phys == null ? null : phys.getHavokRoot(), new NiToJ3dData(nifFile.blocks));
-				return nifJ3dVisPhysRoot;
+				NifJ3dVisRoot root = extractShapes(nifFile, textureSource, false);
+				NifJ3dHavokRoot phys = extractHavok(nifFile);
+				if (root != null)
+				{
+					NifJ3dVisPhysRoot nifJ3dVisPhysRoot = new NifJ3dVisPhysRoot(root.getVisualRoot(), phys == null ? null
+							: phys.getHavokRoot(), new NiToJ3dData(nifFile.blocks));
+					return nifJ3dVisPhysRoot;
+				}
 			}
+			catch (RuntimeException e)
+			{
+				System.out.println("RuntimeException " + e.toString() + " extracting shapes from " + modelFileName);
+				throw e;
+			}
+
 		}
 		return null;
 	}
@@ -90,7 +98,15 @@ public class NifToJ3d
 		NifFile nifFile = loadNiObjects(filename, meshSource);
 		if (nifFile != null)
 		{
-			return extractShapes(nifFile, textureSource, false);
+			try
+			{
+				return extractShapes(nifFile, textureSource, false);
+			}
+			catch (RuntimeException e)
+			{
+				System.out.println("RuntimeException " + e.toString() + " extracting shapes from " + filename);
+				throw e;
+			}
 		}
 		return null;
 	}
@@ -129,6 +145,7 @@ public class NifToJ3d
 	{
 		if (nifFile != null)
 		{
+
 			NiObject root = nifFile.blocks.root();
 			//sometimes in tes3 nif files are just a nitrishape
 			if (root instanceof NiNode || root instanceof BSTreeNode || root instanceof NiTriShape)
