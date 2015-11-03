@@ -3,32 +3,33 @@ package nif.j3d;
 import java.util.Enumeration;
 
 import javax.media.j3d.Billboard;
-import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.Node;
-import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
-import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
-import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
 
 import nif.NifVer;
 import nif.enums.BillboardMode;
 import nif.niobject.NiBillboardNode;
+import tools3d.utils.Utils3D;
+import tools3d.utils.scenegraph.Billboard2;
 import utils.source.TextureSource;
 
 /**
+ * NiTrishapeNodes below NiBillboardNodes in nif files (at least in obliv) are built with X and Y being the "flat" components
+ * which is not the usual format, as normally in nif Z is up.
+ * 
+ * Then in world placement witht eh refr they are set down on their sides
+ * so so they are "upright". All this means that teh local coordinates around which the billboard must spin is
+ * Z, which is not allowed so we spin just off Z and get teh effect we want. To see this in action uncomments
+ * the placement cubes
  * @author Administrator
  *
  */
 public class J3dNiBillboardNode extends J3dNiNode
 {
-	private static BoundingSphere defaultBounds = new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY);
-
 	//Note super will call addchild before this node is inited, so must be constructed on first addchild call
 	private TransformGroup billboardGroup;
-
-	private TransformGroup uprighterGroup;
 
 	//NOTE uncompactable as this screws with things J3dNiAVObject does
 	protected J3dNiBillboardNode(NiBillboardNode niBillboardNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes)
@@ -39,7 +40,7 @@ public class J3dNiBillboardNode extends J3dNiNode
 
 		setupGroups();
 
-		Billboard billBehave = null;
+		Billboard2 billBehave = null;
 		int mode = BillboardMode.ROTATE_ABOUT_UP;
 		if (niBillboardNode.nVer.LOAD_VER >= NifVer.VER_10_1_0_0)
 		{
@@ -58,16 +59,43 @@ public class J3dNiBillboardNode extends J3dNiNode
 
 		if (mode == BillboardMode.ROTATE_ABOUT_UP || mode == BillboardMode.ROTATE_ABOUT_UP2)
 		{
-			billBehave = new Billboard(billboardGroup, Billboard.ROTATE_ABOUT_AXIS, new Vector3f(0, 1, 0));
+
+			billBehave = new Billboard2(billboardGroup, Billboard.ROTATE_ABOUT_AXIS, new Vector3f(0, -0.1f, 1f));
+
 		}
 		else
 		{
-			billBehave = new Billboard(billboardGroup, Billboard.ROTATE_ABOUT_POINT, new Point3f(0, 0, 0));
+			billBehave = new Billboard2(billboardGroup, Billboard.ROTATE_ABOUT_POINT, new Point3f(0, 0, 1));
 		}
 
-		billBehave.setSchedulingBounds(defaultBounds);
+		billBehave.setSchedulingBounds(Utils3D.defaultBounds);
 		billBehave.setEnable(true);
 		addChild(billBehave);
+
+		// test nodes to show the truth of transforms
+		/*TransformGroup tg = new TransformGroup();
+		Transform3D t = new Transform3D();
+		t.setTranslation(new Vector3f(0, 1, 0));
+		tg.setTransform(t);
+		super.addChild(tg);
+
+		ColorCube cc = new ColorCube(0.05);
+		tg.addChild(cc);
+		ColorCube cc2 = new ColorCube(0.025);
+		super.addChild(cc2);
+
+		// let's add a testy
+		TransformGroup tg2 = new TransformGroup();
+		Transform3D t2 = new Transform3D();
+		t2.setTranslation(new Vector3f(0, 1, 0));
+		tg2.setTransform(t2);
+		addChild(tg2);
+
+		ColorCube cc4 = new ColorCube(0.025);
+		tg2.addChild(cc4);
+		ColorCube cc5 = new ColorCube(0.025);
+		addChild(cc5);*/
+
 	}
 
 	private void setupGroups()
@@ -76,33 +104,10 @@ public class J3dNiBillboardNode extends J3dNiNode
 		{
 			setUncompactable();
 
-			//TODO: fires in oblivion are still sideways
-
-			// billboard blanks out the translation , but I really wwant it left
-			// so I'll try clearing out the rotation at the root so there is none, but leave teh trans alone
-			Transform3D rot = new Transform3D();
-			this.getTransformGroup().getTransform(rot);
-			rot.setRotation(new Quat4f(0, 0, 0, 1));
-			this.getTransformGroup().setTransform(rot);
-
 			billboardGroup = new TransformGroup();
 			billboardGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
 			billboardGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-
-			// the billboard in the nif files are often (always?) in the xy plane which in j3d is xz plane, 
-			// and we can't rotate an xz plane around y to make it upright, so we finish by flipping up to xy
-
-			uprighterGroup = new TransformGroup();
-			// turn z to be our y up (-z to y)  
-
-			rot.rotX(Math.PI / 2f); // this works for oblivion fires but not in the explorer? sometime - works better
-			// in explorer fires are lying on their sides, like horses
-
-			uprighterGroup.setTransform(rot);
-
 			super.addChild(billboardGroup);
-			billboardGroup.addChild(uprighterGroup);
-
 		}
 	}
 
@@ -114,7 +119,7 @@ public class J3dNiBillboardNode extends J3dNiNode
 			setupGroups();
 		}
 
-		uprighterGroup.addChild(child);
+		billboardGroup.addChild(child);
 
 	}
 
@@ -122,54 +127,54 @@ public class J3dNiBillboardNode extends J3dNiNode
 	@SuppressWarnings("unchecked")
 	public Enumeration<Node> getAllChildren()
 	{
-		return uprighterGroup.getAllChildren();
+		return billboardGroup.getAllChildren();
 	}
 
 	@Override
 	public Node getChild(int index)
 	{
-		return uprighterGroup.getChild(index);
+		return billboardGroup.getChild(index);
 	}
 
 	@Override
 	public int indexOfChild(Node child)
 	{
-		return uprighterGroup.indexOfChild(child);
+		return billboardGroup.indexOfChild(child);
 	}
 
 	@Override
 	public void insertChild(Node child, int index)
 	{
-		uprighterGroup.insertChild(child, index);
+		billboardGroup.insertChild(child, index);
 	}
 
 	@Override
 	public int numChildren()
 	{
-		return uprighterGroup.numChildren();
+		return billboardGroup.numChildren();
 	}
 
 	@Override
 	public void removeAllChildren()
 	{
-		uprighterGroup.removeAllChildren();
+		billboardGroup.removeAllChildren();
 	}
 
 	@Override
 	public void removeChild(int index)
 	{
-		uprighterGroup.removeChild(index);
+		billboardGroup.removeChild(index);
 	}
 
 	@Override
 	public void removeChild(Node child)
 	{
-		uprighterGroup.removeChild(child);
+		billboardGroup.removeChild(child);
 	}
 
 	@Override
 	public void setChild(Node child, int index)
 	{
-		uprighterGroup.setChild(child, index);
+		billboardGroup.setChild(child, index);
 	}
 }

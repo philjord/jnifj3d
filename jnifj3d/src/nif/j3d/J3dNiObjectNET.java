@@ -11,8 +11,10 @@ import nif.j3d.animation.J3dNiSingleInterpController;
 import nif.j3d.animation.J3dNiTimeController;
 import nif.j3d.animation.J3dNiUVController;
 import nif.niobject.NiExtraData;
+import nif.niobject.bhk.bhkBlendController;
 import nif.niobject.bs.BSFrustumFOVController;
 import nif.niobject.bs.BSLagBoneController;
+import nif.niobject.controller.NiBSBoneLODController;
 import nif.niobject.controller.NiControllerManager;
 import nif.niobject.controller.NiGeomMorpherController;
 import nif.niobject.controller.NiKeyframeController;
@@ -146,6 +148,14 @@ public abstract class J3dNiObjectNET extends Group
 			else if (controller instanceof BSLagBoneController)
 			{
 				// from skyrim Meshes\Actors\Spriggan\Character Assets\skeleton.nif
+			}
+			else if (controller instanceof bhkBlendController)
+			{
+				// from obliv Meshes\Creatures\Deer\Skeleton.NIF ignore
+			}
+			else if (controller instanceof NiBSBoneLODController)
+			{
+				// from obliv Meshes\Creatures\Deer\Skeleton.NIF ignore
 			}
 			else
 			{
