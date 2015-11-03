@@ -410,7 +410,6 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						{
 							ta.setTransparency(1 - nmp.alpha);
 							ta.setTransparencyMode(TransparencyAttributes.BLENDED);
-							//app.setTransparencyAttributes(ta);
 						}
 
 					}
@@ -443,7 +442,6 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 						{
 							ta.setTransparencyMode(TransparencyAttributes.SCREEN_DOOR);
 						}
-						//app.setTransparencyAttributes(ta);
 
 						if (nap.alphaTestEnabled())
 						{
@@ -452,7 +450,6 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 							//obviously transparent stuff can be seen from the back quite often							
 							pa.setCullFace(PolygonAttributes.CULL_NONE);
 							pa.setBackFaceNormalFlip(true);
-							//app.setPolygonAttributes(pa);
 
 							int alphaTestMode = NifOpenGLToJava3D.convertAlphaTestMode(nap.alphaTestMode());
 							ra.setAlphaTestFunction(alphaTestMode);

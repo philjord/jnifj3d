@@ -45,8 +45,10 @@ public class NifOpenGLToJava3D
 
 	public static int convertAlphaTestMode(int in)
 	{
+		//Note possiblyflags in morrowind are different, only time I get 000
 		if (in == NiAlphaProperty.GL_ALWAYS)
-			return RenderingAttributes.ALWAYS;
+			return RenderingAttributes.LESS;//ALWAYS would be mental, disables Z buffer
+			//return RenderingAttributes.ALWAYS;
 		else if (in == NiAlphaProperty.GL_LESS)
 			return RenderingAttributes.LESS;
 		else if (in == NiAlphaProperty.GL_EQUAL)
