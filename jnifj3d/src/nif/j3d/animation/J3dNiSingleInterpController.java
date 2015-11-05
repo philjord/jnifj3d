@@ -53,9 +53,8 @@ public class J3dNiSingleInterpController extends J3dNiTimeController
 				if (j3dNiInterpolator != null)
 				{
 					addChild(j3dNiInterpolator);
-
 					baseAlpha = J3dNiTimeController.createLoopingAlpha(startTimeS, stopTimeS);
-					//TODO:: this should only fire when asked to by something ?? is there a trigger condition for these?
+					// single interp controllers are just animations they always run, they are not controller links
 					j3dNiInterpolator.fire(baseAlpha);
 				}
 			}

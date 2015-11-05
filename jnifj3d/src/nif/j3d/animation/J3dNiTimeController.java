@@ -50,7 +50,6 @@ import utils.source.TextureSource;
 
 public abstract class J3dNiTimeController extends Group implements InterpolatorListener
 {
-
 	private J3dNiTimeController j3dNiTimeController;
 
 	protected NiTimeController niTimeController;
@@ -65,10 +64,8 @@ public abstract class J3dNiTimeController extends Group implements InterpolatorL
 	 */
 	public J3dNiTimeController(NiTimeController niTimeController, Node nodeTarget)
 	{
-		 
 		this.niTimeController = niTimeController;
 		this.nodeTarget = nodeTarget;
-
 	}
 
 	public J3dNiTimeController getJ3dNiTimeController()

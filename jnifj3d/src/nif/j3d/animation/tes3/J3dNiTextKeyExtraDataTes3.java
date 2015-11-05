@@ -24,7 +24,7 @@ public class J3dNiTextKeyExtraDataTes3 extends J3dNiTextKeyExtraData
 			for (KeyValue keyValue : timeKeyValue.keyValues)
 			{
 				//is it "for us"
-				if (keyValue.key.equals(fireName))
+				if (keyValue.key.equalsIgnoreCase(fireName))
 				{
 					TextKeyExtraDataKey tked = new TextKeyExtraDataKey(keyValue.value, timeKeyValue.time);
 					// note not the same as supers keys

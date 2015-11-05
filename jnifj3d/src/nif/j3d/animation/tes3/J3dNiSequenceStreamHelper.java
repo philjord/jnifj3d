@@ -74,7 +74,7 @@ public class J3dNiSequenceStreamHelper extends J3dNiAVObject
 
 		// now from text string build all animations as sequences, give each sequence all interps
 
-		// find all unique animation names
+		// find all unique animation names, ignore case in all cases
 		HashSet<String> namesFound = new HashSet<String>();
 		TimeKeyValue[] tkvs = parseTimeKeyValues(ntked);
 		for (TimeKeyValue tkv : tkvs)
@@ -84,9 +84,8 @@ public class J3dNiSequenceStreamHelper extends J3dNiAVObject
 				// skip sounds for now (can be mixed case)
 				if (!kv.key.toLowerCase().equals("soundgen") //
 						&& !kv.key.toLowerCase().equals("sound"))
-				{
-					// TODO: issue I've seen Knockout and KnockOut in xgreatbonewalker.nif
-					namesFound.add(kv.key);
+				{					
+					namesFound.add(kv.key.toLowerCase());
 				}
 			}
 		}

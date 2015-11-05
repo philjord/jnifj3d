@@ -10,6 +10,7 @@ import nif.j3d.animation.J3dNiGeomMorpherController;
 import nif.j3d.animation.J3dNiSingleInterpController;
 import nif.j3d.animation.J3dNiTimeController;
 import nif.j3d.animation.J3dNiUVController;
+import nif.j3d.animation.tes3.J3dNiKeyframeController;
 import nif.niobject.NiExtraData;
 import nif.niobject.bhk.bhkBlendController;
 import nif.niobject.bs.BSFrustumFOVController;
@@ -93,10 +94,6 @@ public abstract class J3dNiObjectNET extends Group
 		return extraDataList;
 	}
 
-	/**
-	 * 
-	 * return true if a controller exists
-	 */
 	public void setupController(NiToJ3dData niToJ3dData)
 	{
 		NiTimeController controller = (NiTimeController) niToJ3dData.get(niObjectNET.controller);
@@ -122,24 +119,22 @@ public abstract class J3dNiObjectNET extends Group
 			}
 			else if (controller instanceof NiSingleInterpController)
 			{
-				ret = new J3dNiSingleInterpController((NiSingleInterpController) controller, niToJ3dData);
-			}
-			else if (controller instanceof NiKeyframeController)
-			{
-				// ignored as we don't have a target yet for this (which is a controllerlink type thing anyway)
-				// this gets sorted out as a special operation
-			}
-			else if (controller instanceof NiMultiTargetTransformController)
-			{
-				// this looks like it is just an object palette for optomisation ignore?? controller link uses its single node target
-			}
-			else if (controller instanceof NiPathController)
-			{
-				// TODO: handle NiPathController, much like the UV controller below
+				if (controller instanceof NiKeyframeController)
+				{
+					ret = new J3dNiKeyframeController((NiKeyframeController) controller, niToJ3dData);
+				}
+				else
+				{
+					ret = new J3dNiSingleInterpController((NiSingleInterpController) controller, niToJ3dData);
+				}
 			}
 			else if (controller instanceof NiUVController)
 			{
 				ret = new J3dNiUVController((NiUVController) controller, niToJ3dData);
+			}
+			else if (controller instanceof NiPathController)
+			{
+				// TODO: handle NiPathController, much like the UV controller above
 			}
 			else if (controller instanceof BSFrustumFOVController)
 			{
@@ -156,6 +151,10 @@ public abstract class J3dNiObjectNET extends Group
 			else if (controller instanceof NiBSBoneLODController)
 			{
 				// from obliv Meshes\Creatures\Deer\Skeleton.NIF ignore
+			}
+			else if (controller instanceof NiMultiTargetTransformController)
+			{
+				// this looks like it is just an object palette for optomisation ignore?? controller link uses its single node target
 			}
 			else
 			{
