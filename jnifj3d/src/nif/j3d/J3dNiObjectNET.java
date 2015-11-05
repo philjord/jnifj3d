@@ -119,7 +119,8 @@ public abstract class J3dNiObjectNET extends Group
 			}
 			else if (controller instanceof NiSingleInterpController)
 			{
-				if (controller instanceof NiKeyframeController)
+				// special handler for TES3 version of these!
+				if (controller.nVer.LOAD_VER < NifVer.VER_10_0_1_0 && controller instanceof NiKeyframeController)
 				{
 					ret = new J3dNiKeyframeController((NiKeyframeController) controller, niToJ3dData);
 				}
