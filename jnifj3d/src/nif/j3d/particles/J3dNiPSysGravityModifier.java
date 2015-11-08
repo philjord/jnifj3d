@@ -76,8 +76,7 @@ public class J3dNiPSysGravityModifier extends J3dNiPSysModifier
 			{
 				gravityNode.getLocalToVworld(trans);
 			}
-			
-			gravityNode.getLocalToVworld(trans);
+
 			gravityApplied.set(gravityAxis);
 			trans.transform(gravityApplied);
 			trans.transform(gravityLoc);
