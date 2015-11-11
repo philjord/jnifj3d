@@ -97,7 +97,7 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 			NiAVObject niAVObject = j3dNiTriBasedGeom.getNiAVObject();
 			while (niAVObject != null)
 			{
-				if (!J3dNiAVObject.ignoreTopTransform(niAVObject))
+				if (!J3dNiAVObject.ignoreTopTransformRot(niAVObject))
 				{
 					temp1.setRotation(ConvertFromNif.toJ3d(niAVObject.rotation));
 				}
