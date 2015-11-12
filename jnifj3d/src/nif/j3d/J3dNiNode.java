@@ -69,6 +69,22 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 						continue;//skip these as they are picked up by havok pass later like bhk nodes
 					}
 
+					//SPECIAL Accum Node handling!!!!
+					// see http://gamebryo32docchs.googlecode.com/svn/trunk/gamebryo3_2_doc_chs/HTML/Convert/Previous/NiAnimation_Conversion.htm
+					if (child.name.endsWith(" NonAccum"))
+					{
+						if (child.name.equals(niNode.name + " NonAccum"))
+						{
+							// we are an accum node! we take on movements etc of the model
+							this.getTransformGroup().setTransform(new Transform3D());
+						}
+						else
+						{
+							System.out.println("accum not parent of child!! " + child.name + " " + niNode.nVer.fileName);
+						}
+
+					}
+
 					J3dNiNode j3dNiNode = createNiNode((NiNode) child, niToJ3dData, textureSource, onlyNiNodes);
 					j3dNiNodes.add(j3dNiNode);
 					addChild(j3dNiNode);
@@ -249,7 +265,7 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 				f.fade(percent);
 		}
 	}
-	
+
 	@Override
 	public void setOutline(Color3f c)
 	{
@@ -257,7 +273,7 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 		{
 			if (f != null)
 				f.setOutline(c);
-		}	
+		}
 	}
 
 	//NOTE do not use, for bones only, sorry 

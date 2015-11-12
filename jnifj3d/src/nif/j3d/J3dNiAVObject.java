@@ -5,8 +5,11 @@ import java.util.Enumeration;
 import javax.media.j3d.Node;
 import javax.media.j3d.Transform3D;
 
+import nif.NifVer;
 import nif.niobject.NiAVObject;
+import nif.niobject.NiNode;
 import nif.niobject.NiSequenceStreamHelper;
+import nif.niobject.bs.BSFadeNode;
 import utils.convert.ConvertFromNif;
 
 import com.sun.j3d.utils.geometry.ColorCube;
@@ -37,14 +40,13 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 		if (!ignoreTopTransformRot(niAVObject))
 		{
 			t1.setRotation(ConvertFromNif.toJ3d(niAVObject.rotation));
-
 		}
-
-		//the determinant should be near 1 now! otherwise all transforms will be crap			 
-		//	if (Math.abs(1 - t1.determinant()) > 0.2)
-		{
-			//		System.out.println("Determinant problem in " + niAVObject.name);
-		}
+		/*
+				//the determinant should be near 1 now! otherwise all transforms will be crap			 
+					if (Math.abs(1 - t1.determinant()) > 0.2)
+				{
+							System.out.println("Determinant problem in " + niAVObject.name);
+				}*/
 		t1.setTranslation(ConvertFromNif.toJ3d(niAVObject.translation));
 		t1.setScale(niAVObject.scale);
 
@@ -52,14 +54,14 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 		super.addChild(transformGroup);
 	}
 
-	// I don't know anymore, I think this is the truth, Oblivion seems fine with this
+	//  Oblivion does not ignore root rotations (will return false here
+	// all other games assume the placement type operations happen on the root node
 	public static boolean ignoreTopTransformRot(NiAVObject niAVObject)
 	{
-	/*	boolean ignoreTopTransform = (niAVObject instanceof BSFadeNode) || //fallout and upwards
-				(niAVObject.nVer.LOAD_VER >= NifVer.VER_10_0_1_0 && // morrowind
+		boolean ignoreTopTransform = (niAVObject instanceof BSFadeNode) || //fallout and upwards
+				(niAVObject.nVer.LOAD_VER < NifVer.VER_10_0_1_0 && // morrowind
 						niAVObject instanceof NiNode && niAVObject.parent == null); // check for root
-		return ignoreTopTransform;*/
-		return  niAVObject.parent == null;
+		return ignoreTopTransform;
 	}
 
 	//for Tes3 kf files they are subs of NiObjectNET but I can't risk altering everything in the univers
