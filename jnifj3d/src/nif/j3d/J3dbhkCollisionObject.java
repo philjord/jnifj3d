@@ -10,6 +10,7 @@ import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
 import javax.media.j3d.TriangleStripArray;
 import javax.vecmath.Color3f;
+import javax.vecmath.Matrix4f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
@@ -220,11 +221,9 @@ public class J3dbhkCollisionObject extends Group
 		TransformGroup transformGroup = new TransformGroup();
 		Transform3D transform = new Transform3D();
 
-		Quat4f q = ConvertFromHavok.toJ3dQ4f(data.transform);
+		Matrix4f m = ConvertFromHavok.toJ3dM4(data.transform, niToJ3dData.nifVer);
+		transform.set(m);
 
-		Vector3f t = ConvertFromHavok.toJ3dV3f(data.transform, niToJ3dData.nifVer);
-
-		transform.set(q, t, 1);
 		transformGroup.setTransform(transform);
 
 		if (data.shape.ref != -1)

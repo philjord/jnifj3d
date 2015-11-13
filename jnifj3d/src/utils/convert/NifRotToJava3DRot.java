@@ -18,6 +18,26 @@ public class NifRotToJava3DRot
 	 */
 	public static Quat4f makeJ3dQ4f(NifMatrix33 mat)
 	{
+		// ConvertFromHavok NifMatrix44 FAILED badly with this call, see oblivion lowerlass clutter
+		// however testing showen below proves the sames math is not corect for 33 matrix!
+
+	/*	if (true)
+		{
+			Matrix3f m = new Matrix3f(mat.m11, mat.m13, -mat.m12, //
+					mat.m31, mat.m33, mat.m32, //
+					-mat.m21, -mat.m23, mat.m22);
+
+			Matrix3f m2 = new Matrix3f(mat.m11, mat.m12, mat.m13, //
+					mat.m21, mat.m22, mat.m23, //
+					mat.m31, mat.m32, mat.m33);
+
+			Quat4f q = new Quat4f();
+			q.set(m2);
+			NifRotToJava3DRot.flipAxis(q);
+
+			return q;
+		}*/
+
 		Quat4f quat = new Quat4f();
 		float[][] m = new float[3][3];
 

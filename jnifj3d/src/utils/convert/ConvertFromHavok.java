@@ -1,16 +1,17 @@
 package utils.convert;
 
+import javax.vecmath.Matrix4f;
 import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
 
-import utils.ESConfig;
 import nif.NifVer;
 import nif.compound.NifMatrix33;
 import nif.compound.NifMatrix44;
 import nif.compound.NifQuaternionXYZW;
 import nif.compound.NifVector3;
 import nif.compound.NifVector4;
+import utils.ESConfig;
 
 public class ConvertFromHavok
 {
@@ -32,6 +33,42 @@ public class ConvertFromHavok
 	public static Quat4f toJ3d(NifQuaternionXYZW rotation)
 	{
 		return NifRotToJava3DRot.makeJ3dQ4f(rotation.x, rotation.y, rotation.z, rotation.w);
+	}
+
+
+	public static Matrix4f toJ3dM4(NifMatrix44 mIn, NifVer nifVer)
+	{
+		//Future phil look!!!! empirically decided
+		// the set q and flip appears very strongly correct
+		/*		Matrix4f m4 = new Matrix4f(mIn.m11, mIn.m12, mIn.m13, //
+						0, //
+						mIn.m21, mIn.m22, mIn.m23, //
+						0, //
+						mIn.m31, mIn.m32, mIn.m33, //
+						0,//
+						mIn.m41, mIn.m42, mIn.m43, mIn.m44);
+
+				q.set(m4);
+				NifRotToJava3DRot.flipAxis(q);
+
+				Matrix4f mo = new Matrix4f();
+				mo.set(q);*/
+
+		// In flipping I see empirically
+		// 00->00 -01->02  02->01  03->03(t)
+		// -?  10->20  11->22 -12->21  13->13(t)
+		// 20->10  21->12? 22->11  23->23(t)?0
+		// 30-32 all 0 33,0.94->33,1
+
+		float hs = getHavokScale(nifVer);
+		Matrix4f m = new Matrix4f(mIn.m11, mIn.m13, -mIn.m12, //
+				mIn.m14 * hs, //x
+				mIn.m31, mIn.m33, mIn.m32, //
+				mIn.m34 * hs, //z
+				-mIn.m21, -mIn.m23, mIn.m22, //
+				-mIn.m24 * hs,//-y
+				0, 0, 0, 1);
+		return m;
 	}
 
 	public static Quat4f toJ3dQ4f(NifMatrix33 rotation)
