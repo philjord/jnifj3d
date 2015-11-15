@@ -46,7 +46,7 @@ public class NifLoaderTester
 	{
 		try
 		{
-			//System.out.print("\tFile: " + f);
+			System.out.println("\tFile: " + f);
 			//long start = System.currentTimeMillis();
 			if (f.getName().endsWith(".kf"))
 			{
