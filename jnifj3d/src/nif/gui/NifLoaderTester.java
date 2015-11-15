@@ -3,11 +3,11 @@ package nif.gui;
 import java.io.File;
 import java.util.prefs.Preferences;
 
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import nif.NifToJ3d;
 import tools.ddstexture.DDSTextureLoader;
+import tools.swing.DetailsFileChooser;
 import utils.source.DummyTextureSource;
 import utils.source.file.FileMeshSource;
 
@@ -20,36 +20,26 @@ public class NifLoaderTester
 		prefs = Preferences.userNodeForPackage(NifLoaderTester.class);
 		String baseDir = prefs.get("NifToJ3dTester.baseDir", System.getProperty("user.dir"));
 
-		JFileChooser fc = new JFileChooser(baseDir);
-		fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-
-		fc.showOpenDialog(new JFrame());
-
-		if (fc.getSelectedFile() != null)
+		DetailsFileChooser dfc = new DetailsFileChooser(baseDir, new DetailsFileChooser.Listener()
 		{
-			File f = fc.getSelectedFile();
-			prefs.put("NifToJ3dTester.baseDir", f.getPath());
-			System.out.println("Selected file: " + f);
-
-			if (f.isDirectory())
+			@Override
+			public void directorySelected(File dir)
 			{
-				processDir(f);
-			}
-			else if (f.isFile())
-			{
-				try
-				{
-					processFile(f);
-				}
-				catch (Exception ex)
-				{
-					ex.printStackTrace();
-				}
+				prefs.put("NifToJ3dTester.baseDir", dir.getPath());
+				processDir(dir);
 			}
 
-			System.out.println("done");
-		}
-		System.exit(0);
+			@Override
+			public void fileSelected(File file)
+			{
+				prefs.put("NifToJ3dTester.baseDir", file.getPath());
+				processFile(file);
+			}
+		});
+
+		dfc.setFileFilter(new FileNameExtensionFilter("Nif", "nif"));
+
+		
 	}
 
 	private static void processFile(File f)

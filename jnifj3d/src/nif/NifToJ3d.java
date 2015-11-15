@@ -86,7 +86,7 @@ public class NifToJ3d
 			catch (RuntimeException e)
 			{
 				System.out.println("RuntimeException " + e.toString() + " extracting shapes from " + modelFileName);
-				throw e;
+				//throw e;
 			}
 
 		}
@@ -105,7 +105,7 @@ public class NifToJ3d
 			catch (RuntimeException e)
 			{
 				System.out.println("RuntimeException " + e.toString() + " extracting shapes from " + filename);
-				throw e;
+				//throw e;
 			}
 		}
 		return null;
