@@ -23,10 +23,17 @@ public class NifLoaderTester
 		DetailsFileChooser dfc = new DetailsFileChooser(baseDir, new DetailsFileChooser.Listener()
 		{
 			@Override
-			public void directorySelected(File dir)
+			public void directorySelected(final File dir)
 			{
 				prefs.put("NifToJ3dTester.baseDir", dir.getPath());
-				processDir(dir);
+				Thread t = new Thread()
+				{
+					public void run()
+					{
+						processDir(dir);
+					}
+				};
+				t.start();
 			}
 
 			@Override
@@ -45,7 +52,7 @@ public class NifLoaderTester
 	{
 		try
 		{
-			System.out.println("\tFile: " + f);
+			//	System.out.println("\tFile: " + f);
 			//long start = System.currentTimeMillis();
 			if (f.getName().endsWith(".kf"))
 			{
@@ -77,41 +84,35 @@ public class NifLoaderTester
 		}
 	}
 
-	private static void processDir(final File dir)
+	private static void processDir(File dir)
 	{
-		Thread t = new Thread()
+		//	System.out.println("Processing directory " + dir);
+		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+		File[] fs = dir.listFiles();
+		for (int i = 0; i < fs.length; i++)
 		{
-			public void run()
+			try
 			{
-				System.out.println("Processing directory " + dir);
-				Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
-				File[] fs = dir.listFiles();
-				for (int i = 0; i < fs.length; i++)
+				if (fs[i].isFile()
+						&& (fs[i].getName().endsWith(".nif") || fs[i].getName().endsWith(".kf") || fs[i].getName().endsWith(".dds")))
 				{
-					try
-					{
-						if (fs[i].isFile()
-								&& (fs[i].getName().endsWith(".nif") || fs[i].getName().endsWith(".kf") || fs[i].getName().endsWith(".dds")))
-						{
 
-							//only skels
-							//if(!fs[i].getName().toLowerCase().contains("skeleton"))
-							//	continue;
+					//only skels
+					//if(!fs[i].getName().toLowerCase().contains("skeleton"))
+					//	continue;
 
-							processFile(fs[i]);
-						}
-						else if (fs[i].isDirectory())
-						{
-							processDir(fs[i]);
-						}
-					}
-					catch (Exception ex)
-					{
-						ex.printStackTrace();
-					}
+					processFile(fs[i]);
+				}
+				else if (fs[i].isDirectory())
+				{
+					processDir(fs[i]);
 				}
 			}
-		};
-		t.start();
+			catch (Exception ex)
+			{
+				ex.printStackTrace();
+			}
+		}
 	}
+
 }
