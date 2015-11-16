@@ -31,6 +31,7 @@ import nif.niobject.bs.BSLeafAnimNode;
 import nif.niobject.bs.BSMasterParticleSystem;
 import nif.niobject.bs.BSMultiBoundNode;
 import nif.niobject.bs.BSOrderedNode;
+import nif.niobject.bs.BSTriShape;
 import nif.niobject.particle.NiParticleSystem;
 import tools3d.utils.scenegraph.Fadable;
 import utils.source.TextureSource;
@@ -120,6 +121,11 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 								NiTriStrips niTriStrips = (NiTriStrips) niTriBasedGeom;
 								ntbg = new J3dNiTriStrips(niTriStrips, niToJ3dData, textureSource);
 							}
+						}
+						else if (niTriBasedGeom instanceof BSTriShape)
+						{
+							BSTriShape bsTriShape = (BSTriShape) niTriBasedGeom;
+							ntbg = new J3dBSTriShape(bsTriShape, niToJ3dData, textureSource);
 						}
 						j3dNiNodes.add(ntbg);
 						addChild(ntbg);

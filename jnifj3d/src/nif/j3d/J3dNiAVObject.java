@@ -18,7 +18,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 {
 	private NifTransformGroup transformGroup;
 
-	private NiAVObject niAVObject;
+	protected NiAVObject niAVObject;
 
 	private boolean compactable = true;
 

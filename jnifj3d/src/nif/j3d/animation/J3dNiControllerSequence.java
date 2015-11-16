@@ -86,7 +86,8 @@ public class J3dNiControllerSequence extends Group
 			// just for saftey sake
 			if (j3dNiTextKeyExtraData.getStartTime() != startTimeS || j3dNiTextKeyExtraData.getEndTime() != stopTimeS)
 			{
-				new Throwable("niTextKeyExtraData don't agree with niControllerSequence!").printStackTrace();
+				//TODO: removed during parse of FO4 lots don't agree
+				//new Throwable("niTextKeyExtraData don't agree with niControllerSequence!").printStackTrace();
 			}
 		}
 		else

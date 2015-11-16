@@ -31,6 +31,7 @@ public class NifLoaderTester
 					public void run()
 					{
 						processDir(dir);
+						System.out.println("Processing " + dir + "complete");
 					}
 				};
 				t.start();
@@ -52,7 +53,7 @@ public class NifLoaderTester
 	{
 		try
 		{
-			//	System.out.println("\tFile: " + f);
+			System.out.println("\tFile: " + f);
 			//long start = System.currentTimeMillis();
 			if (f.getName().endsWith(".kf"))
 			{
@@ -86,7 +87,7 @@ public class NifLoaderTester
 
 	private static void processDir(File dir)
 	{
-		//	System.out.println("Processing directory " + dir);
+		System.out.println("Processing directory " + dir);
 		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
 		File[] fs = dir.listFiles();
 		for (int i = 0; i < fs.length; i++)

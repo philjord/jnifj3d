@@ -31,7 +31,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 	//skyrim wants true false false
 	public static boolean INTERLEAVE = true;
 
-	public static boolean STRIPIFY = false;// relavant to shape only
+	public static boolean STRIPIFY = false;// Relevant to shape only
 
 	public static boolean BUFFERS = false;
 
