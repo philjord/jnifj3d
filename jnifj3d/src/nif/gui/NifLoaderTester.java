@@ -39,7 +39,6 @@ public class NifLoaderTester
 
 		dfc.setFileFilter(new FileNameExtensionFilter("Nif", "nif"));
 
-		
 	}
 
 	private static void processFile(File f)
@@ -61,10 +60,10 @@ public class NifLoaderTester
 			{
 				NifToJ3d.loadHavok(f.getCanonicalPath(), new FileMeshSource());
 				//NifJ3dVisRoot r = 
-						NifToJ3d.loadShapes(f.getCanonicalPath(), new FileMeshSource(), new DummyTextureSource());
+				NifToJ3d.loadShapes(f.getCanonicalPath(), new FileMeshSource(), new DummyTextureSource());
 
-		//		System.out.println("modelSizes.put(\"\\" + f.getParent().substring(f.getParent().lastIndexOf("\\")) + "\\\\" + f.getName() + "\", "
-		//				+ ((BoundingSphere) r.getVisualRoot().getBounds()).getRadius() + "f);");
+				//		System.out.println("modelSizes.put(\"\\" + f.getParent().substring(f.getParent().lastIndexOf("\\")) + "\\\\" + f.getName() + "\", "
+				//				+ ((BoundingSphere) r.getVisualRoot().getBounds()).getRadius() + "f);");
 
 			}
 
@@ -78,34 +77,41 @@ public class NifLoaderTester
 		}
 	}
 
-	private static void processDir(File dir)
+	private static void processDir(final File dir)
 	{
-		System.out.println("Processing directory " + dir);
-		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
-		File[] fs = dir.listFiles();
-		for (int i = 0; i < fs.length; i++)
+		Thread t = new Thread()
 		{
-			try
+			public void run()
 			{
-				if (fs[i].isFile()
-						&& (fs[i].getName().endsWith(".nif") || fs[i].getName().endsWith(".kf") || fs[i].getName().endsWith(".dds")))
+				System.out.println("Processing directory " + dir);
+				Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+				File[] fs = dir.listFiles();
+				for (int i = 0; i < fs.length; i++)
 				{
+					try
+					{
+						if (fs[i].isFile()
+								&& (fs[i].getName().endsWith(".nif") || fs[i].getName().endsWith(".kf") || fs[i].getName().endsWith(".dds")))
+						{
 
-					//only skels
-					//if(!fs[i].getName().toLowerCase().contains("skeleton"))
-					//	continue;
+							//only skels
+							//if(!fs[i].getName().toLowerCase().contains("skeleton"))
+							//	continue;
 
-					processFile(fs[i]);
-				}
-				else if (fs[i].isDirectory())
-				{
-					processDir(fs[i]);
+							processFile(fs[i]);
+						}
+						else if (fs[i].isDirectory())
+						{
+							processDir(fs[i]);
+						}
+					}
+					catch (Exception ex)
+					{
+						ex.printStackTrace();
+					}
 				}
 			}
-			catch (Exception ex)
-			{
-				ex.printStackTrace();
-			}
-		}
+		};
+		t.start();
 	}
 }
