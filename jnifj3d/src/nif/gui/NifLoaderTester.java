@@ -5,6 +5,7 @@ import java.util.prefs.Preferences;
 
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import nif.BgsmSource;
 import nif.NifToJ3d;
 import tools.ddstexture.DDSTextureLoader;
 import tools.swing.DetailsFileChooser;
@@ -20,14 +21,12 @@ public class NifLoaderTester
 		prefs = Preferences.userNodeForPackage(NifLoaderTester.class);
 		String baseDir = prefs.get("NifToJ3dTester.baseDir", System.getProperty("user.dir"));
 
-		DetailsFileChooser dfc = new DetailsFileChooser(baseDir, new DetailsFileChooser.Listener()
-		{
+		DetailsFileChooser dfc = new DetailsFileChooser(baseDir, new DetailsFileChooser.Listener() {
 			@Override
 			public void directorySelected(final File dir)
 			{
 				prefs.put("NifToJ3dTester.baseDir", dir.getPath());
-				Thread t = new Thread()
-				{
+				Thread t = new Thread() {
 					public void run()
 					{
 						processDir(dir);
@@ -54,7 +53,7 @@ public class NifLoaderTester
 		try
 		{
 			System.out.println("\tFile: " + f);
-			//long start = System.currentTimeMillis();
+			// long start = System.currentTimeMillis();
 			if (f.getName().endsWith(".kf"))
 			{
 				NifToJ3d.loadKf(f.getCanonicalPath(), new FileMeshSource());
@@ -66,18 +65,21 @@ public class NifLoaderTester
 			}
 			else
 			{
-				NifToJ3d.loadHavok(f.getCanonicalPath(), new FileMeshSource());
-				//NifJ3dVisRoot r = 
-				NifToJ3d.loadShapes(f.getCanonicalPath(), new FileMeshSource(), new DummyTextureSource());
+				FileMeshSource fileMeshSource = new FileMeshSource();
+				BgsmSource.setBgsmSource(fileMeshSource);
+				NifToJ3d.loadHavok(f.getCanonicalPath(), fileMeshSource);
+				// NifJ3dVisRoot r =
+				NifToJ3d.loadShapes(f.getCanonicalPath(), fileMeshSource, new DummyTextureSource());
 
-				//		System.out.println("modelSizes.put(\"\\" + f.getParent().substring(f.getParent().lastIndexOf("\\")) + "\\\\" + f.getName() + "\", "
-				//				+ ((BoundingSphere) r.getVisualRoot().getBounds()).getRadius() + "f);");
+				// System.out.println("modelSizes.put(\"\\" + f.getParent().substring(f.getParent().lastIndexOf("\\")) +
+				// "\\\\" + f.getName() + "\", "
+				// + ((BoundingSphere) r.getVisualRoot().getBounds()).getRadius() + "f);");
 
 			}
 
 			NifToJ3d.clearCache();
 
-			//System.out.println(" in " + (System.currentTimeMillis() - start));
+			// System.out.println(" in " + (System.currentTimeMillis() - start));
 		}
 		catch (Exception ex)
 		{
@@ -94,13 +96,12 @@ public class NifLoaderTester
 		{
 			try
 			{
-				if (fs[i].isFile()
-						&& (fs[i].getName().endsWith(".nif") || fs[i].getName().endsWith(".kf") || fs[i].getName().endsWith(".dds")))
+				if (fs[i].isFile() && (fs[i].getName().endsWith(".nif") || fs[i].getName().endsWith(".kf") || fs[i].getName().endsWith(".dds")))
 				{
 
-					//only skels
-					//if(!fs[i].getName().toLowerCase().contains("skeleton"))
-					//	continue;
+					// only skels
+					// if(!fs[i].getName().toLowerCase().contains("skeleton"))
+					// continue;
 
 					processFile(fs[i]);
 				}

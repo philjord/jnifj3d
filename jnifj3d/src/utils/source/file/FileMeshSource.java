@@ -81,4 +81,30 @@ public class FileMeshSource implements MeshSource
 
 		return ret;
 	}
+
+	@Override
+	public InputStream getInputStreamForFile(String fileName)
+	{
+		String[] parts = FileMediaRoots.splitOffMediaRoot(fileName);
+		File file = new File(parts[0] + parts[1]);
+
+		if (file.exists())
+		{
+			try
+			{
+				return new BufferedInputStream(new FileInputStream(file));
+
+			}
+			catch (IOException e)
+			{
+				System.out.println("FileMeshSource:  " + fileName + " " + e + " " + e.getStackTrace()[0]);
+			}
+
+		}
+
+		System.out.println("FileMeshSource - Problem with loading niffile: " + fileName + "||" + parts[0] + "|" + parts[1]);
+
+		return null;
+	}
+
 }

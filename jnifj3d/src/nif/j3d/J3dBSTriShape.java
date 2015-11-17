@@ -61,8 +61,28 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 			verticesOpt[i * 3 + 1] = bsTriShape.vertexData[i].vertex.z * ESConfig.ES_TO_METERS_SCALE;
 		}
 		gi.setCoordinates(verticesOpt);
-		// gi.setColors4(data.vertexColorsOpt);
-		// gi.setNormals(data.normalsOpt);
+
+		if ((bsTriShape.vertexFormatFlags & 0x2) != 0)
+		{
+			float[] vertexColorsOpt = new float[bsTriShape.numVertices * 4];
+			for (int i = 0; i < bsTriShape.numVertices; i++)
+			{
+				vertexColorsOpt[i * 4 + 0] = bsTriShape.vertexData[i].color.r;
+				vertexColorsOpt[i * 4 + 1] = bsTriShape.vertexData[i].color.g;
+				vertexColorsOpt[i * 4 + 2] = bsTriShape.vertexData[i].color.b;
+				vertexColorsOpt[i * 4 + 3] = bsTriShape.vertexData[i].color.a;
+			}
+			//gi.setColors4(vertexColorsOpt);
+		}
+
+		float[] normalsOpt = new float[bsTriShape.numVertices * 3];
+		for (int i = 0; i < bsTriShape.numVertices; i++)
+		{
+			normalsOpt[i * 3 + 0] = bsTriShape.vertexData[i].normal.x;
+			normalsOpt[i * 3 + 2] = -bsTriShape.vertexData[i].normal.y;
+			normalsOpt[i * 3 + 1] = bsTriShape.vertexData[i].normal.z;
+		}
+		// gi.setNormals(normalsOpt);
 
 		float[] uVSetsOpt = new float[bsTriShape.numVertices * 2];
 		for (int i = 0; i < bsTriShape.numVertices; i++)

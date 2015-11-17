@@ -36,6 +36,7 @@ import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3f;
 
+import nif.BgsmSource;
 import nif.NifJ3dVisPhysRoot;
 import nif.NifToJ3d;
 import nif.gui.util.ControllerInvokerThread;
@@ -367,6 +368,7 @@ public class NifDisplayTester
 
 	public void showNif(String filename, MeshSource meshSource, TextureSource textureSource)
 	{
+		BgsmSource.setBgsmSource(meshSource);
 		display(NifToJ3d.loadNif(filename, meshSource, textureSource));
 	}
 
