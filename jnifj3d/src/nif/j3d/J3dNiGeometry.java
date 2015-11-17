@@ -609,13 +609,8 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 					// FO4 has material files pointed at by name
 					if (bslsp.Name.toLowerCase().endsWith(".bgsm"))
 					{
-						// materials\Landscape\Rocks\BlastedForestRocksMoss.BGSM
-						// I think these are bad tga file in all cases
-						if (bslsp.TextureSet.ref != -1)
-						{
-							BSShaderTextureSet texSet = (BSShaderTextureSet) niToJ3dData.get(bslsp.TextureSet);
-							System.out.println("bgsm file name exists, is this a bad tga file? " + texSet.textures[0]);
-						}
+						// if the bgsm file exists the textureset may have bad .tga files in it (or good .dds ones)
+						// but the bgsm definitely has good textures
 
 						try
 						{

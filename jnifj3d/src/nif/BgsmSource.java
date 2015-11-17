@@ -27,6 +27,14 @@ public class BgsmSource
 	{
 		if (MESH_SOURCE != null)
 		{
+			// e.g. materials\Landscape\Rocks\BlastedForestRocksMoss.BGSM
+			// e.g. here is a bad name C:\Projects\Fallout4\Build\PC\Data\materials\Vehicles\Frame01.BGSM
+			
+			if(fileName.toLowerCase().indexOf("materials") > 0)
+			{
+				fileName = fileName.toLowerCase().substring(fileName.toLowerCase().indexOf("materials"));
+			}
+			
 			BgsmFile bgsmFile = bgsmFiles.get(fileName);
 
 			if (bgsmFile == null)
