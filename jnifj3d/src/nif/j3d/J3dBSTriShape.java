@@ -5,7 +5,6 @@ import javax.media.j3d.IndexedGeometryArray;
 import com.sun.j3d.utils.geometry.GeometryInfo;
 import com.sun.j3d.utils.geometry.Stripifier;
 
-import nif.ByteConvert;
 import nif.niobject.bs.BSTriShape;
 import utils.ESConfig;
 import utils.source.TextureSource;
@@ -72,17 +71,20 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 				vertexColorsOpt[i * 4 + 2] = bsTriShape.vertexData[i].color.b;
 				vertexColorsOpt[i * 4 + 3] = bsTriShape.vertexData[i].color.a;
 			}
-			//gi.setColors4(vertexColorsOpt);
+			// gi.setColors4(vertexColorsOpt);
 		}
 
-		float[] normalsOpt = new float[bsTriShape.numVertices * 3];
-		for (int i = 0; i < bsTriShape.numVertices; i++)
+		if ((bsTriShape.vertexFormatFlags & 0x4) != 0)
 		{
-			normalsOpt[i * 3 + 0] = bsTriShape.vertexData[i].normal.x;
-			normalsOpt[i * 3 + 2] = -bsTriShape.vertexData[i].normal.y;
-			normalsOpt[i * 3 + 1] = bsTriShape.vertexData[i].normal.z;
+			float[] normalsOpt = new float[bsTriShape.numVertices * 3];
+			for (int i = 0; i < bsTriShape.numVertices; i++)
+			{
+				normalsOpt[i * 3 + 0] = bsTriShape.vertexData[i].normal.x;
+				normalsOpt[i * 3 + 2] = -bsTriShape.vertexData[i].normal.y;
+				normalsOpt[i * 3 + 1] = bsTriShape.vertexData[i].normal.z;
+			}
+			gi.setNormals(normalsOpt);
 		}
-		// gi.setNormals(normalsOpt);
 
 		float[] uVSetsOpt = new float[bsTriShape.numVertices * 2];
 		for (int i = 0; i < bsTriShape.numVertices; i++)
