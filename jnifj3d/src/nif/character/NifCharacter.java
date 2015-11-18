@@ -147,7 +147,6 @@ public class NifCharacter extends BranchGroup implements Fadable
 									if (attachnode.getNiAVObject().name.equals("Bip01 Head") && skeletonNifFilename.contains("characters\\_male"))
 									{
 										headAttachRotNeeded = mediaSources.getMeshSource().nifFileExists(skinNifModelFilename.substring(0, skinNifModelFilename.length() - 3) + "egm");
-										System.out.println("headAttachRotNeeded " + headAttachRotNeeded + " for " + skinNifModelFilename);
 									}
 
 									// For Oblivion heads
