@@ -9,8 +9,6 @@ import javax.media.j3d.TransformGroup;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
 
-import com.sun.j3d.utils.geometry.ColorCube;
-
 import nif.NifVer;
 import nif.enums.BillboardMode;
 import nif.niobject.NiBillboardNode;
@@ -136,7 +134,6 @@ public class J3dNiBillboardNode extends J3dNiNode
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public Enumeration<Node> getAllChildren()
 	{
 		return up.getAllChildren();

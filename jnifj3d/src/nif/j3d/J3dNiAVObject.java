@@ -124,7 +124,6 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private void recreateTransformGroup()
 	{
 		if (transformGroup == null)
@@ -187,7 +186,6 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public Enumeration<Node> getAllChildren()
 	{
 		if (transformGroup != null)
