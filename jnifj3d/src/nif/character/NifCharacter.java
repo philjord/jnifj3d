@@ -45,16 +45,17 @@ import utils.source.MediaSources;
 >   synchronize view dependent scene graph updates.*/
 
 /**
- * Because of teh above limitations all parts of teh scenegraph below character 
- * must not use transformgroup but rework the same change into a geometryupdate call
+ * Because of the above limitations all parts of the scenegraph below character must not use transformgroup but rework
+ * the same change into a geometryupdate call
+ * 
  * @author phil
  *
  */
 
-//TODO: look into this for the fustum work
-//The ViewInfo utility class (somewhere in com.sun.j3d.utils.universe)
-//will give you view info that is up-to-date with respect to the current
-//state of the scene graph.
+// TODO: look into this for the fustum work
+// The ViewInfo utility class (somewhere in com.sun.j3d.utils.universe)
+// will give you view info that is up-to-date with respect to the current
+// state of the scene graph.
 
 public class NifCharacter extends BranchGroup implements Fadable
 {
@@ -82,8 +83,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 
 	protected ArrayList<CharacterAttachment> attachments = new ArrayList<CharacterAttachment>();
 
-	public NifCharacter(String skeletonNifFilename, List<String> skinNifModelFilenames, MediaSources mediaSources,
-			List<String> idleAnimations)
+	public NifCharacter(String skeletonNifFilename, List<String> skinNifModelFilenames, MediaSources mediaSources, List<String> idleAnimations)
 	{
 		this.mediaSources = mediaSources;
 
@@ -92,9 +92,8 @@ public class NifCharacter extends BranchGroup implements Fadable
 		this.setCapability(Group.ALLOW_CHILDREN_WRITE);
 		this.setCapability(Group.ALLOW_CHILDREN_EXTEND);
 
-		//note node must be in scene graph
-		updateBehavior = new NifCharUpdateBehavior(this, new float[]
-		{ 60f, 120f, 180f });
+		// note node must be in scene graph
+		updateBehavior = new NifCharUpdateBehavior(this, new float[] { 60f, 120f, 180f });
 		addChild(updateBehavior);
 		updateBehavior.setEnable(true);
 
@@ -112,12 +111,10 @@ public class NifCharacter extends BranchGroup implements Fadable
 		{
 			if (skinNifModelFilename != null && skinNifModelFilename.length() > 0)
 			{
-				NifJ3dVisRoot model = NifToJ3d.loadShapes(skinNifModelFilename, mediaSources.getMeshSource(),
-						mediaSources.getTextureSource());
+				NifJ3dVisRoot model = NifToJ3d.loadShapes(skinNifModelFilename, mediaSources.getMeshSource(), mediaSources.getTextureSource());
 
 				// create skins from the skeleton and skin nif
-				ArrayList<J3dNiSkinInstance> skins = J3dNiSkinInstance.createSkins(model.getNiToJ3dData(),
-						blendedSkeletons.getOutputSkeleton());
+				ArrayList<J3dNiSkinInstance> skins = J3dNiSkinInstance.createSkins(model.getNiToJ3dData(), blendedSkeletons.getOutputSkeleton());
 
 				if (skins.size() > 0)
 				{
@@ -131,7 +128,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 				}
 				else
 				{
-					// add any non skin based gear from other files like hats!!	
+					// add any non skin based gear from other files like hats!!
 					allOtherModels.add(model);
 
 					// use an nistringextra of weapon and shield, node name of prn for extra data
@@ -142,11 +139,26 @@ public class NifCharacter extends BranchGroup implements Fadable
 							NiStringExtraData nsed = (NiStringExtraData) ned;
 							if (nsed.name.equalsIgnoreCase("PRN"))
 							{
-								J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton()
-										.get(nsed.stringData);
+								J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton().get(nsed.stringData);
 								if (attachnode != null)
 								{
-									CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, model.getVisualRoot());
+
+									boolean headAttachRotNeeded = false;
+									if (attachnode.getNiAVObject().name.equals("Bip01 Head") && skeletonNifFilename.contains("characters\\_male"))
+									{
+										headAttachRotNeeded = mediaSources.getMeshSource().nifFileExists(skinNifModelFilename.substring(0, skinNifModelFilename.length() - 3) + "egm");
+										System.out.println("headAttachRotNeeded " + headAttachRotNeeded + " for " + skinNifModelFilename);
+									}
+
+									// For Oblivion heads
+									// head gear in oblivion has an egm file next to it
+									// hair attached badly, imperial iron helmet (and steel) attached badly,
+									// chainmail helmet attached good, chain mail has bone nodes and is nicely placed,
+									// not really attachment style, just a regular body part
+									// I notice helmet.egm file next to helmet.nif?? egm starts with FREGM002
+									// F:\game media\Oblivion\meshes\armor\iron\m
+
+									CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, headAttachRotNeeded, model.getVisualRoot());
 									this.addChild(ca);
 									attachments.add(ca);
 									break;
@@ -159,12 +171,13 @@ public class NifCharacter extends BranchGroup implements Fadable
 			}
 		}
 
-		//set us up with the idle anim
+		// set us up with the idle anim
 		updateAnimation();
 	}
 
 	/**
 	 * This keep the head pointing toward the rotation and the body upright
+	 * 
 	 * @param pitch
 	 */
 	public void setHeadPitch(double pitch)
@@ -172,11 +185,11 @@ public class NifCharacter extends BranchGroup implements Fadable
 		Transform3D t = new Transform3D();
 		t.rotX(pitch);
 
-		//if (nifJ3dSkeletonRoot.getHeadJ3dNiNode() != null)
+		// if (nifJ3dSkeletonRoot.getHeadJ3dNiNode() != null)
 		{
-			//TODO: some animations include head movement so this needs to add into or override
-			//causes crazy head movements
-			//nifJ3dSkeletonRoot.getHeadJ3dNiNode().getTransformGroup().getQuatRotTransformGroup().setTransform(t);
+			// TODO: some animations include head movement so this needs to add into or override
+			// causes crazy head movements
+			// nifJ3dSkeletonRoot.getHeadJ3dNiNode().getTransformGroup().getQuatRotTransformGroup().setTransform(t);
 		}
 
 	}
@@ -234,7 +247,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 				System.currentTimeMillis() - prevAnimTime > 10000))
 		{
 			// The above measures time in idle and changes from once it's been 10 seconds in case of looping idle
-			//otherwise drop back to idle if the current has finished 
+			// otherwise drop back to idle if the current has finished
 			int r = (int) (Math.random() * idleAnimations.size() - 1);
 
 			nextAnimation = idleAnimations.get(r);
@@ -251,6 +264,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 
 	/**
 	 * This only sets teh new animation if it is different from our current, otherwise ignore
+	 * 
 	 * @param fileName
 	 * @param returnToIdle
 	 */
@@ -263,31 +277,30 @@ public class NifCharacter extends BranchGroup implements Fadable
 		}
 	}
 
-	//TODO: this and the sound sequence listener below should be generic'ed
+	// TODO: this and the sound sequence listener below should be generic'ed
 	protected void addObjectSound(PointSound sound, String soundKey, float edge)
 	{
-		//Create the media container to load the sound
+		// Create the media container to load the sound
 		MediaContainer soundContainer = mediaSources.getSoundSource().getMediaContainer(soundKey);
-		//Use the loaded data in the sound
+		// Use the loaded data in the sound
 		sound.setSoundData(soundContainer);
 		sound.setInitialGain(1.0f);
 		sound.setPosition(new Point3f(0, 0, 0));
 
-		//Allow use to switch the sound on and off
+		// Allow use to switch the sound on and off
 		sound.setCapability(Sound.ALLOW_ENABLE_READ);
 		sound.setCapability(Sound.ALLOW_ENABLE_WRITE);
 		sound.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
 
-		//Set it to loop 1
-		sound.setLoop(0);//Sound.INFINITE_LOOPS);
-		//Use the edge value to set to extent of the sound
-		Point2f[] attenuation =
-		{ new Point2f(0.0f, 1.0f), new Point2f(edge, 0.1f) };
+		// Set it to loop 1
+		sound.setLoop(0);// Sound.INFINITE_LOOPS);
+		// Use the edge value to set to extent of the sound
+		Point2f[] attenuation = { new Point2f(0.0f, 1.0f), new Point2f(edge, 0.1f) };
 		sound.setDistanceGain(attenuation);
 
 		sound.setEnable(true);
 
-		//Add the sound to the   group
+		// Add the sound to the group
 		BranchGroup bg = new BranchGroup();
 		bg.addChild(sound);
 		this.addChild(bg);
@@ -303,10 +316,10 @@ public class NifCharacter extends BranchGroup implements Fadable
 			{
 				try
 				{
-					//PointSound sound1 = new PointSound();
-					//TODO: stop previous sound perhaps, walk sounds? use teh animation end event
-					//FIXME: fallout gets major bad wav formats
-					//addObjectSound(sound1, params[0], 10.0f);
+					// PointSound sound1 = new PointSound();
+					// TODO: stop previous sound perhaps, walk sounds? use teh animation end event
+					// FIXME: fallout gets major bad wav formats
+					// addObjectSound(sound1, params[0], 10.0f);
 
 				}
 				catch (SoundException e)

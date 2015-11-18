@@ -31,7 +31,7 @@ public class NifJ3dSkeletonRoot extends Group
 	public NifJ3dSkeletonRoot(String skeletonNifModelFile, MeshSource meshSource)
 	{
 		NifJ3dVisRoot skeleton = NifToJ3d.loadShapes(skeletonNifModelFile, meshSource, true);
-		//NifFile sNifFile = NifToJ3d.loadNiObjects(skeletonNifModelFile, meshSource);
+		// NifFile sNifFile = NifToJ3d.loadNiObjects(skeletonNifModelFile, meshSource);
 
 		this.root = skeleton.getVisualRoot();
 		niToJ3dData = skeleton.getNiToJ3dData();
@@ -44,7 +44,7 @@ public class NifJ3dSkeletonRoot extends Group
 				J3dNiNode j3dNiNode = (J3dNiNode) j3dNiAVObject;
 				NiNode niNode = (NiNode) j3dNiNode.getNiAVObject();
 
-				if (niNode.name.equals("Bip01 Head") || niNode.name.indexOf("[HEAD]") != -1)
+				if (niNode.name.equals("Bip01 Head") || niNode.name.equals("Bip02 Head") || niNode.name.indexOf("[HEAD]") != -1)
 				{
 					headJ3dNiNode = j3dNiNode;
 				}
@@ -52,8 +52,8 @@ public class NifJ3dSkeletonRoot extends Group
 				j3dNiNode.setUncompactable();
 				j3dNiNode.setVisualMarker(showBoneMarkers);
 
-				//Non accum mean node above is the accum node, means rotr above needs to be pushed down to non accum
-				//http://gamebryo32docchs.googlecode.com/svn/trunk/gamebryo3_2_doc_chs/HTML/Convert/Previous/NiAnimation_Conversion.htm
+				// Non accum mean node above is the accum node, means rotr above needs to be pushed down to non accum
+				// http://gamebryo32docchs.googlecode.com/svn/trunk/gamebryo3_2_doc_chs/HTML/Convert/Previous/NiAnimation_Conversion.htm
 
 				// note extra space character
 				if (niNode.name.indexOf("NonAccum") != -1 || niNode.name.indexOf("[COM ]") != -1 || niNode.name.indexOf("Main Bone") != -1)
@@ -61,18 +61,18 @@ public class NifJ3dSkeletonRoot extends Group
 					if (nonAccumRoot != null)
 						System.out.println("setting nonAccumRoot more than once!!");
 
-					//TODO: if there is trans or rot above tis node I need to accumulate some how
+					// TODO: if there is trans or rot above tis node I need to accumulate some how
 					nonAccumRoot = j3dNiNode;
 				}
 
-				if (niNode.name.equals("Bip01") || niNode.name.indexOf("[Root]") != -1 || niNode.name.indexOf("Root Bone") != -1)
+				if (niNode.name.equals("Bip01") || niNode.name.equals("Bip02") || niNode.name.indexOf("[Root]") != -1 || niNode.name.indexOf("Root Bone") != -1)
 				{
 					if (skeletonRoot != null)
 						System.out.println("setting skeletonRoot more than once!!");
 					skeletonRoot = j3dNiNode;
 
 					// clear the bone root of it's rot and trans as these are Y trans for height and y rots for yaw
-					// because in the real Gamebryo this is the node that is transformed by movement, where as we simply 
+					// because in the real Gamebryo this is the node that is transformed by movement, where as we simply
 					// do it one up from the root.
 
 					skeletonRoot.getTransformGroup().setTransform(new Transform3D());
@@ -84,8 +84,8 @@ public class NifJ3dSkeletonRoot extends Group
 
 		if (nonAccumRoot == null)
 		{
-			//TES3 often has not these, let's see if the parent of Bip01 will do
-			//new Throwable("nonAccumRoot == null").printStackTrace();
+			// TES3 often has not these, let's see if the parent of Bip01 will do
+			// new Throwable("nonAccumRoot == null").printStackTrace();
 			nonAccumRoot = skeleton.getVisualRoot();
 		}
 

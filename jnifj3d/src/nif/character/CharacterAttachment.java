@@ -22,8 +22,9 @@ import tools3d.utils.scenegraph.Fadable;
 import utils.convert.ConvertFromNif;
 
 /**
- * NOTE no transformGroups can be used under a character, hence the madness below
- * Attachments can be faces or weapons, so some are removable, some are not
+ * NOTE no transformGroups can be used under a character, hence the madness below Attachments can be faces or weapons,
+ * so some are removable, some are not
+ * 
  * @author philip
  *
  */
@@ -39,36 +40,35 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 
 	private HashMap<GeometryArray, Transform3D> transformMap = new HashMap<GeometryArray, Transform3D>();
 
-	//TODO: this doesn't have to be a branchgroup if it a dog face is stuck on permanently,
-	//posssiby make skins seperate from gear that can be removed?
+	// TODO: this doesn't have to be a branchgroup if it a dog face is stuck on permanently,
+	// possibly make skins separate from gear that can be removed?
 
-	//TODO: I still need the head attachements uprighter in oblivion any more? 
-	// odd fix up here still (characters needs ignoring)
-	// perhaps teh bip 01 is related to bad rotation direction?
-	// I see animations going teh wrong way ? still
-	// I see bip01 head being bum
-	// I see hair being attached wrong as well, though the head skin itself is ok? so perhaps in teh attachement file itself
-	
-	// I see from oblivion that it appears to be teh same REFR adn teh same attachemnt that 
-	//ends up on the ground everytime, odd. Not running heaps of animations appears to have decreased it hugely
-	
-	
-	public CharacterAttachment(J3dNiNode attachBone, J3dNiAVObject model)
+	// TODO:  I see animations going the wrong way ? still
+
+	// I see from oblivion that it appears to be the same REFR and the same attachment that
+	// ends up on the ground everytime, odd. Not running heaps of animations appears to have decreased it hugely
+
+	public CharacterAttachment(J3dNiNode attachBone, boolean headAttachRotNeeded, J3dNiAVObject model)
 	{
-		this(attachBone, model, false);
+		this(attachBone, headAttachRotNeeded, model, false);
 	}
 
-	// for TES3 if attachement is from "inside" the skin file ignore parents (which are actually the bone)
+	// for TES3 if attachment is from "inside" the skin file ignore parents (which are actually the bone)
 	public CharacterAttachment(J3dNiNode attachBone, J3dNiAVObject model, boolean noParents)
+	{
+		this(attachBone, false, model, noParents);
+	}
+
+	private CharacterAttachment(J3dNiNode attachBone, boolean headAttachRotNeeded, J3dNiAVObject model, boolean noParents)
 	{
 		this.setCapability(BranchGroup.ALLOW_DETACH);
 		this.attachBone = attachBone;
 		this.model = model;
 
-		getAndAttachAllGeom(model, noParents);
+		getAndAttachAllGeom(model, headAttachRotNeeded, noParents);
 	}
 
-	private void getAndAttachAllGeom(J3dNiAVObject node, boolean noParents)
+	private void getAndAttachAllGeom(J3dNiAVObject node, boolean headAttachRotNeeded, boolean noParents)
 	{
 		if (node instanceof J3dNiNode)
 		{
@@ -77,7 +77,7 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 			{
 				Node n = j3dNiNode.getChild(i);
 				if (n instanceof J3dNiAVObject)
-					getAndAttachAllGeom((J3dNiAVObject) n, noParents);
+					getAndAttachAllGeom((J3dNiAVObject) n, headAttachRotNeeded, noParents);
 			}
 		}
 		else if (node instanceof J3dNiTriBasedGeom)
@@ -88,10 +88,10 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 			j3dNiTriBasedGeom.makeMorphable();
 			GeometryArray geoArray = j3dNiTriBasedGeom.getCurrentGeometryArray();
 
-			// record the geom for use in the updateDAta call 
+			// record the geom for use in the updateDAta call
 			arrayToGeomMap.put(geoArray, j3dNiTriBasedGeom);
 
-			// make a transform up to the root		
+			// make a transform up to the root
 			Transform3D trans = new Transform3D();
 			Transform3D temp1 = new Transform3D();
 			NiAVObject niAVObject = j3dNiTriBasedGeom.getNiAVObject();
@@ -99,7 +99,18 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 			{
 				if (!J3dNiAVObject.ignoreTopTransformRot(niAVObject))
 				{
-					temp1.setRotation(ConvertFromNif.toJ3d(niAVObject.rotation));
+					if (headAttachRotNeeded)
+					{
+						Transform3D upright = new Transform3D();
+						upright.rotZ(-Math.PI / 4f);
+						Quat4f up = new Quat4f();
+						upright.get(up);
+						temp1.setRotation(up);
+					}
+					else
+					{
+						temp1.setRotation(ConvertFromNif.toJ3d(niAVObject.rotation));
+					}
 				}
 				else
 				{
@@ -116,8 +127,7 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 				niAVObject = niAVObject.parent;
 			}
 
-
-			//blank the j3dNiTriBasedGeom transform as this is now embedded above
+			// blank the j3dNiTriBasedGeom transform as this is now embedded above
 			j3dNiTriBasedGeom.getTransformGroup().setTransform(new Transform3D());
 
 			// record teh transform for use in updateData
@@ -127,11 +137,11 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 			if (j3dNiTriBasedGeom.topOfParent != null)
 				j3dNiTriBasedGeom.topOfParent.removeChild(j3dNiTriBasedGeom);
 
-			//TODO: see Meshes\Weapons\Hand2Hand\PowerFistRigid.NIF for interesting setup that topofparent misses
+			// TODO: see Meshes\Weapons\Hand2Hand\PowerFistRigid.NIF for interesting setup that topofparent misses
 			if (j3dNiTriBasedGeom.getParent() != null)
 				((Group) j3dNiTriBasedGeom.getParent()).removeChild(j3dNiTriBasedGeom);
 
-			//add it to scene 		
+			// add it to scene
 			addChild(j3dNiTriBasedGeom);
 			geoms.add(j3dNiTriBasedGeom);
 		}
@@ -165,7 +175,7 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 			((Fadable) model).setOutline(c);
 	}
 
-	//deburner
+	// deburner
 	private Transform3D temp = new Transform3D();
 
 	@Override
@@ -174,7 +184,7 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 		// add the bone trans into the root
 		Transform3D trans = transformMap.get(geometry);
 		temp.mul(skeletonBoneVWTrans, trans);
-		
+
 		// holder of the transform data to speed up transform (possibly)
 		double[] accTransMat = new double[16];
 		// get accumulatorTrans out to a stright float [] to speed up transform (possibly)
@@ -188,13 +198,13 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 		if (geoMorph != null && geoMorph.isVertsResetOffBase())
 		{
 			srcVs = j3dNiTriBasedGeom.getCurrentGeometryArray().getCoordRefFloat();
-			// recall that this has now screwed with them and will look to see if geo  reset again
+			// recall that this has now screwed with them and will look to see if geo reset again
 			geoMorph.setVertsResetOffBase(false);
 		}
 		else
 		{
 			// need to start from base as no geommorph has done a reset for us
-			srcVs = j3dNiTriBasedGeom.getBaseGeometryArray().getCoordRefFloat();			
+			srcVs = j3dNiTriBasedGeom.getBaseGeometryArray().getCoordRefFloat();
 		}
 
 		float[] vs = ((GeometryArray) geometry).getCoordRefFloat();
