@@ -3,6 +3,7 @@ package nif.j3d;
 import javax.media.j3d.IndexedGeometryArray;
 
 import com.sun.j3d.utils.geometry.GeometryInfo;
+import com.sun.j3d.utils.geometry.NormalGenerator;
 import com.sun.j3d.utils.geometry.Stripifier;
 
 import nif.niobject.bs.BSTriShape;
@@ -98,9 +99,16 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 
 		gi.setTexCoordSetMap(texMap);
 		gi.setTextureCoordinates(0, uVSetsOpt);
-
+		
+		if (!((bsTriShape.vertexFormatFlags & 0x4) != 0))
+		{
+			NormalGenerator normGen = new NormalGenerator();
+			normGen.generateNormals(gi);
+		}
+		
 		Stripifier stripifer = new Stripifier();
 		stripifer.stripify(gi);
+	
 
 		IndexedGeometryArray ita = gi.getIndexedGeometryArray(false, false, INTERLEAVE, true, BUFFERS);
 
