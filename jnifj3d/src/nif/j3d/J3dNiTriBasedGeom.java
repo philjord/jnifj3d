@@ -35,8 +35,6 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 	public static boolean BUFFERS = false;
 
-	public static boolean OUTLINE_MORPHS_DEMO = true;
-
 	private int outlineStencilMask = -1;
 
 	private GeometryArray baseGeometryArray;
