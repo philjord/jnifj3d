@@ -50,12 +50,12 @@ public class NiTriShapeData extends NiTriBasedGeomData
 			trianglesOpt = new int[numTriangles * 3];
 			for (int i = 0; i < numTriangles; i++)
 			{
-				trianglesOpt[i * 3 + 0] = ByteConvert.readShort(stream);
-				trianglesOpt[i * 3 + 0] += trianglesOpt[i * 3 + 0] < 0 ? 65536 : 0;
-				trianglesOpt[i * 3 + 1] = ByteConvert.readShort(stream);
-				trianglesOpt[i * 3 + 1] += trianglesOpt[i * 3 + 1] < 0 ? 65536 : 0;
-				trianglesOpt[i * 3 + 2] = ByteConvert.readShort(stream);
-				trianglesOpt[i * 3 + 2] += trianglesOpt[i * 3 + 2] < 0 ? 65536 : 0;
+				trianglesOpt[i * 3 + 0] = ByteConvert.readUnsignedShort(stream);
+				//trianglesOpt[i * 3 + 0] += trianglesOpt[i * 3 + 0] < 0 ? 65536 : 0;
+				trianglesOpt[i * 3 + 1] = ByteConvert.readUnsignedShort(stream);
+				//trianglesOpt[i * 3 + 1] += trianglesOpt[i * 3 + 1] < 0 ? 65536 : 0;
+				trianglesOpt[i * 3 + 2] = ByteConvert.readUnsignedShort(stream);
+				//trianglesOpt[i * 3 + 2] += trianglesOpt[i * 3 + 2] < 0 ? 65536 : 0;
 			}
 		}
 		//OPTOMISATION
