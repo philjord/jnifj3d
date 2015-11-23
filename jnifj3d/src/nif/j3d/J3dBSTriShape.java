@@ -7,7 +7,6 @@ import com.sun.j3d.utils.geometry.NormalGenerator;
 import com.sun.j3d.utils.geometry.Stripifier;
 
 import nif.niobject.bs.BSTriShape;
-import utils.ESConfig;
 import utils.source.TextureSource;
 
 public class J3dBSTriShape extends J3dNiTriBasedGeom
@@ -62,7 +61,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 		}*/
 		gi.setCoordinates(bsTriShape.verticesOpt);
 
-		if ((bsTriShape.vertexFormatFlags & 0x2) != 0)
+		if ((bsTriShape.vertexFormatFlags2 & 0x2) != 0)
 		{
 			/*float[] vertexColorsOpt = new float[bsTriShape.numVertices * 4];
 			for (int i = 0; i < bsTriShape.numVertices; i++)
@@ -75,7 +74,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 			// gi.setColors4(vertexColorsOpt);
 		}
 
-		if ((bsTriShape.vertexFormatFlags & 0x4) != 0)
+		if ((bsTriShape.vertexFormatFlags2 & 0x4) != 0)
 		{
 			/*float[] normalsOpt = new float[bsTriShape.numVertices * 3];
 			for (int i = 0; i < bsTriShape.numVertices; i++)
@@ -100,7 +99,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 		gi.setTexCoordSetMap(texMap);
 		gi.setTextureCoordinates(0, bsTriShape.uVSetOpt);
 
-		if (!((bsTriShape.vertexFormatFlags & 0x4) != 0))
+		if (!((bsTriShape.vertexFormatFlags2 & 0x4) != 0))
 		{
 			NormalGenerator normGen = new NormalGenerator();
 			normGen.generateNormals(gi);
