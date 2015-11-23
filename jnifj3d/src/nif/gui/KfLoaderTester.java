@@ -11,6 +11,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import nif.NifFile;
 import nif.NifFileReader;
+import nif.NifToJ3d;
 import nif.character.KfJ3dRoot;
 import nif.character.NifJ3dSkeletonRoot;
 import nif.j3d.NiToJ3dData;
@@ -26,7 +27,7 @@ public class KfLoaderTester
 
 	public static void main(String[] args)
 	{
-
+		NifToJ3d.SUPPRESS_EXCEPTIONS = false;
 		prefs = Preferences.userNodeForPackage(KfLoaderTester.class);
 		String baseDir = prefs.get("KfLoaderTester.baseDir", System.getProperty("user.dir"));
 

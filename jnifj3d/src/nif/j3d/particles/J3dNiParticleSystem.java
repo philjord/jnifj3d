@@ -70,66 +70,69 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 
 		NiPSysData niPSysData = (NiPSysData) niToJ3dData.get(niParticleSystem.data);
 
-		//TODO: this orients teh trans at the root, but in fact every particle want to be oriented
-		// personally, other wise they don't truely face the camera! pull billboard apart
-		// the further away smoke gets the odder the facing code works OrientedShape3D os3d;
-
-		// bill board to orient every quad to cameras proper like
-		billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-		billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-		Billboard2 billBehave = new Billboard2(billTrans, Billboard.ROTATE_ABOUT_POINT, new Point3f(0, 0, 0));
-		billBehave.setEnable(true);
-		billBehave.setSchedulingBounds(Utils3D.defaultBounds);
-		addChild(billBehave);
-
-		j3dPSysData = new J3dPSysData(niPSysData, billTrans);
-
-		getShape().setGeometry(j3dPSysData.ga);
-
-		if (niParticleSystem.worldSpace)
+		if (niPSysData != null)
 		{
-			niToJ3dData.getJ3dRoot().addChildBeforeTrans(getShape());
-			niToJ3dData.getJ3dRoot().addChildBeforeTrans(billTrans);
-		}
-		else
-		{
-			addChild(getShape());
-			addChild(billTrans);
-		}
 
-		//TODO: is this a good idea? thread show blocked on update bounds
-		getShape().setBoundsAutoCompute(false);
-		getShape().setBounds(new BoundingSphere(new Point3d(0, 0, 0), 100));
+			//TODO: this orients teh trans at the root, but in fact every particle want to be oriented
+			// personally, other wise they don't truely face the camera! pull billboard apart
+			// the further away smoke gets the odder the facing code works OrientedShape3D os3d;
 
-		// get updated every 50 milliseconds
-		addChild(new PerTimeUpdateBehavior(50, new PerTimeUpdateBehavior.CallBack()
-		{
-			@Override
-			public void update()
+			// bill board to orient every quad to cameras proper like
+			billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+			billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+			Billboard2 billBehave = new Billboard2(billTrans, Billboard.ROTATE_ABOUT_POINT, new Point3f(0, 0, 0));
+			billBehave.setEnable(true);
+			billBehave.setSchedulingBounds(Utils3D.defaultBounds);
+			addChild(billBehave);
+
+			j3dPSysData = new J3dPSysData(niPSysData, billTrans);
+
+			getShape().setGeometry(j3dPSysData.ga);
+
+			if (niParticleSystem.worldSpace)
 			{
-				// set this as the geom updater and do the updates when called back (again)
-				j3dPSysData.ga.updateData(J3dNiParticleSystem.this);
+				niToJ3dData.getJ3dRoot().addChildBeforeTrans(getShape());
+				niToJ3dData.getJ3dRoot().addChildBeforeTrans(billTrans);
 			}
-		}));
+			else
+			{
+				addChild(getShape());
+				addChild(billTrans);
+			}
 
-		//2 types of sub classes with no extra data
-		if (niParticleSystem instanceof BSStripParticleSystem)
-		{
-			//TODO: do I care?
+			//TODO: is this a good idea? thread show blocked on update bounds
+			getShape().setBoundsAutoCompute(false);
+			getShape().setBounds(new BoundingSphere(new Point3d(0, 0, 0), 100));
+
+			// get updated every 50 milliseconds
+			addChild(new PerTimeUpdateBehavior(50, new PerTimeUpdateBehavior.CallBack() {
+				@Override
+				public void update()
+				{
+					// set this as the geom updater and do the updates when called back (again)
+					j3dPSysData.ga.updateData(J3dNiParticleSystem.this);
+				}
+			}));
+
+			//2 types of sub classes with no extra data
+			if (niParticleSystem instanceof BSStripParticleSystem)
+			{
+				//TODO: do I care?
+			}
+			else if (niParticleSystem instanceof NiMeshParticleSystem)
+			{
+				//TODO: do I care?
+			}
+
+			// prepare a root for outline to be added to
+			outlinerBG1 = new BranchGroup();
+			outlinerBG1.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+			outlinerBG1.setCapability(Group.ALLOW_CHILDREN_WRITE);
+			addChild(outlinerBG1);
+			configureOutLines();
+
+			allParticleSystems.add(this);
 		}
-		else if (niParticleSystem instanceof NiMeshParticleSystem)
-		{
-			//TODO: do I care?
-		}
-
-		// prepare a root for outline to be added to
-		outlinerBG1 = new BranchGroup();
-		outlinerBG1.setCapability(Group.ALLOW_CHILDREN_EXTEND);
-		outlinerBG1.setCapability(Group.ALLOW_CHILDREN_WRITE);
-		addChild(outlinerBG1);
-		configureOutLines();
-
-		allParticleSystems.add(this);
 	}
 
 	private void configureOutLines()
@@ -220,8 +223,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 			// sort by the order number
 			modifiersInOrder.clear();
 			modifiersInOrder.addAll(modifiersByName.values());
-			Collections.sort(modifiersInOrder, new Comparator<J3dNiPSysModifier>()
-			{
+			Collections.sort(modifiersInOrder, new Comparator<J3dNiPSysModifier>() {
 				@Override
 				public int compare(J3dNiPSysModifier o1, J3dNiPSysModifier o2)
 				{

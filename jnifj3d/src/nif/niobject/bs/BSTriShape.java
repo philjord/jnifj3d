@@ -58,70 +58,72 @@ public class BSTriShape extends NiTriBasedGeom
 			//fix unoptimized first!!
 		}
 
-		verticesOpt = new float[numVertices * 3];
-		if ((vertexFormatFlags2 & 0x4) != 0)
+		if (vertexFormatFlags1 != 0)
 		{
-			normalsOpt = new float[numVertices * 3];
-		}
-		if ((vertexFormatFlags2 & 0x1) != 0)
-		{
-			vertexColorsOpt = new float[numVertices * 4];
-		}
-		if (vertexFormatFlags1 > 2)
-		{
-			uVSetOpt = new float[numVertices * 2];
-		}
-
-		for (int i = 0; i < numVertices; i++)
-		{
-			verticesOpt[i * 3 + 0] = MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream)) * ESConfig.ES_TO_METERS_SCALE;
-			verticesOpt[i * 3 + 2] = -MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream)) * ESConfig.ES_TO_METERS_SCALE;
-			verticesOpt[i * 3 + 1] = MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream)) * ESConfig.ES_TO_METERS_SCALE;
-
-			ByteConvert.readUnsignedShort(stream);
-
-			if (vertexFormatFlags1 > 2)
-			{
-				uVSetOpt[i * 2 + 0] = MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream));
-				uVSetOpt[i * 2 + 1] = MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream));
-			}
-
-			if ((vertexFormatFlags2 & 0x1) != 0)
-			{
-				vertexColorsOpt[i * 4 + 0] = MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream));
-				vertexColorsOpt[i * 4 + 1] = MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream));
-				vertexColorsOpt[i * 4 + 2] = MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream));
-				vertexColorsOpt[i * 4 + 3] = MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream));
-			}
-
-			if ((vertexFormatFlags2 & 0x2) != 0)
-			{
-				ByteConvert.readBytes(4, stream);
-			}
-
+			verticesOpt = new float[numVertices * 3];
 			if ((vertexFormatFlags2 & 0x4) != 0)
 			{
-				normalsOpt[i * 3 + 0] = MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream));
-				normalsOpt[i * 3 + 2] = -MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream));
-				normalsOpt[i * 3 + 1] = MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream));
-
-				ByteConvert.readBytes(6, stream);
+				normalsOpt = new float[numVertices * 3];
 			}
-
-			if ((vertexFormatFlags2 & 0x40) != 0)
+			if ((vertexFormatFlags2 & 0x1) != 0)
 			{
-				ByteConvert.readBytes(8, stream);
+				vertexColorsOpt = new float[numVertices * 4];
+			}
+			if (vertexFormatFlags1 > 2)
+			{
+				uVSetOpt = new float[numVertices * 2];
+			}
+
+			for (int i = 0; i < numVertices; i++)
+			{
+				verticesOpt[i * 3 + 0] = MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream)) * ESConfig.ES_TO_METERS_SCALE;
+				verticesOpt[i * 3 + 2] = -MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream)) * ESConfig.ES_TO_METERS_SCALE;
+				verticesOpt[i * 3 + 1] = MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream)) * ESConfig.ES_TO_METERS_SCALE;
+
+				ByteConvert.readUnsignedShort(stream);
+
+				if (vertexFormatFlags1 > 2)
+				{
+					uVSetOpt[i * 2 + 0] = MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream));
+					uVSetOpt[i * 2 + 1] = MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream));
+				}
+
+				if ((vertexFormatFlags2 & 0x1) != 0)
+				{
+					vertexColorsOpt[i * 4 + 0] = MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream));
+					vertexColorsOpt[i * 4 + 1] = MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream));
+					vertexColorsOpt[i * 4 + 2] = MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream));
+					vertexColorsOpt[i * 4 + 3] = MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream));
+				}
+
+				if ((vertexFormatFlags2 & 0x2) != 0)
+				{
+					ByteConvert.readBytes(4, stream);
+				}
+
+				if ((vertexFormatFlags2 & 0x4) != 0)
+				{
+					normalsOpt[i * 3 + 0] = MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream));
+					normalsOpt[i * 3 + 2] = -MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream));
+					normalsOpt[i * 3 + 1] = MiniFloat.toFloat(ByteConvert.readUnsignedShort(stream));
+
+					ByteConvert.readBytes(6, stream);
+				}
+
+				if ((vertexFormatFlags2 & 0x40) != 0)
+				{
+					ByteConvert.readBytes(8, stream);
+				}
+			}
+
+			trianglesOpt = new int[numTriangles * 3];
+			for (int i = 0; i < numTriangles; i++)
+			{
+				trianglesOpt[i * 3 + 0] = ByteConvert.readUnsignedShort(stream);
+				trianglesOpt[i * 3 + 1] = ByteConvert.readUnsignedShort(stream);
+				trianglesOpt[i * 3 + 2] = ByteConvert.readUnsignedShort(stream);
 			}
 		}
-
-		trianglesOpt = new int[numTriangles * 3];
-		for (int i = 0; i < numTriangles; i++)
-		{
-			trianglesOpt[i * 3 + 0] = ByteConvert.readUnsignedShort(stream);
-			trianglesOpt[i * 3 + 1] = ByteConvert.readUnsignedShort(stream);
-			trianglesOpt[i * 3 + 2] = ByteConvert.readUnsignedShort(stream);
-		}
-
 		return success;
 	}
 

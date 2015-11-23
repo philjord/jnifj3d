@@ -18,6 +18,7 @@ public class NifLoaderTester
 
 	public static void main(String[] args)
 	{
+		NifToJ3d.SUPPRESS_EXCEPTIONS = false;
 		prefs = Preferences.userNodeForPackage(NifLoaderTester.class);
 		String baseDir = prefs.get("NifToJ3dTester.baseDir", System.getProperty("user.dir"));
 

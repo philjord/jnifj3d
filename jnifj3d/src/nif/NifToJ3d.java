@@ -27,6 +27,8 @@ import utils.source.TextureSource;
 
 public class NifToJ3d
 {
+	public static boolean SUPPRESS_EXCEPTIONS = true;
+
 	public static boolean HIDE_EDITORS = true;
 
 	public static boolean USE_SHADERS = false;
@@ -78,15 +80,15 @@ public class NifToJ3d
 				NifJ3dHavokRoot phys = extractHavok(nifFile);
 				if (root != null)
 				{
-					NifJ3dVisPhysRoot nifJ3dVisPhysRoot = new NifJ3dVisPhysRoot(root.getVisualRoot(), phys == null ? null
-							: phys.getHavokRoot(), new NiToJ3dData(nifFile.blocks));
+					NifJ3dVisPhysRoot nifJ3dVisPhysRoot = new NifJ3dVisPhysRoot(root.getVisualRoot(), phys == null ? null : phys.getHavokRoot(), new NiToJ3dData(nifFile.blocks));
 					return nifJ3dVisPhysRoot;
 				}
 			}
 			catch (RuntimeException e)
 			{
 				System.out.println("RuntimeException " + e.toString() + " extracting shapes from " + modelFileName);
-				//throw e;
+				if (!SUPPRESS_EXCEPTIONS)
+					throw e;
 			}
 
 		}
@@ -105,7 +107,8 @@ public class NifToJ3d
 			catch (RuntimeException e)
 			{
 				System.out.println("RuntimeException " + e.toString() + " extracting shapes from " + filename);
-				//throw e;
+				if (!SUPPRESS_EXCEPTIONS)
+					throw e;
 			}
 		}
 		return null;

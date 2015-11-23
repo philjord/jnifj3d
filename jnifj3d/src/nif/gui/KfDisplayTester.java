@@ -36,6 +36,7 @@ import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
+import nif.NifToJ3d;
 import nif.character.NifCharacter;
 import nif.character.NifCharacterTes3;
 import nif.character.NifJ3dSkeletonRoot;
@@ -71,6 +72,7 @@ public class KfDisplayTester
 
 	public static void main(String[] args)
 	{
+		NifToJ3d.SUPPRESS_EXCEPTIONS = false;
 		prefs = Preferences.userNodeForPackage(KfDisplayTester.class);
 
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
