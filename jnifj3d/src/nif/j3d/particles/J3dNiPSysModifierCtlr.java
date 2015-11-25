@@ -4,7 +4,6 @@ import javax.media.j3d.Alpha;
 import javax.media.j3d.Bounds;
 import javax.vecmath.Point3f;
 
-import tools3d.utils.Utils3D;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.animation.J3dNiTimeController;
 import nif.j3d.animation.j3dinterp.J3dNiInterpolator;
@@ -22,9 +21,11 @@ import nif.niobject.particle.NiPSysEmitterSpeedCtlr;
 import nif.niobject.particle.NiPSysFieldMagnitudeCtlr;
 import nif.niobject.particle.NiPSysGravityStrengthCtlr;
 import nif.niobject.particle.NiPSysInitialRotSpeedCtlr;
+import nif.niobject.particle.NiPSysInitialRotSpeedVarCtlr;
 import nif.niobject.particle.NiPSysModifierActiveCtlr;
 import nif.niobject.particle.NiPSysModifierCtlr;
 import nif.niobject.particle.NiPSysUpdateCtlr;
+import tools3d.utils.Utils3D;
 
 public abstract class J3dNiPSysModifierCtlr extends J3dNiTimeController
 {
@@ -99,7 +100,8 @@ public abstract class J3dNiPSysModifierCtlr extends J3dNiTimeController
 			// we must construct then set inperpolator then set next in that order! not as one hit in the constructor
 			if (niPSysModifierCtlr instanceof NiPSysEmitterCtlr)
 			{
-				j3dNiTimeController = new J3dNiPSysEmitterCtlr((NiPSysEmitterCtlr) niPSysModifierCtlr, (J3dNiPSysEmitter) j3dNiPSysModifier);
+				j3dNiTimeController = new J3dNiPSysEmitterCtlr((NiPSysEmitterCtlr) niPSysModifierCtlr,
+						(J3dNiPSysEmitter) j3dNiPSysModifier);
 			}
 			else if (niPSysModifierCtlr instanceof NiPSysModifierActiveCtlr)
 			{
@@ -143,6 +145,11 @@ public abstract class J3dNiPSysModifierCtlr extends J3dNiTimeController
 			else if (niPSysModifierCtlr instanceof NiPSysInitialRotSpeedCtlr)
 			{
 				j3dNiTimeController = new J3dNiPSysInitialRotSpeedCtlr((NiPSysInitialRotSpeedCtlr) niPSysModifierCtlr,
+						(J3dNiPSysRotationModifier) j3dNiPSysModifier);
+			}
+			else if (niPSysModifierCtlr instanceof NiPSysInitialRotSpeedVarCtlr)
+			{
+				j3dNiTimeController = new J3dNiPSysInitialRotSpeedVarCtlr((NiPSysInitialRotSpeedVarCtlr) niPSysModifierCtlr,
 						(J3dNiPSysRotationModifier) j3dNiPSysModifier);
 			}
 			else if (niPSysModifierCtlr instanceof NiPSysFieldMagnitudeCtlr)

@@ -6,7 +6,6 @@ import javax.media.j3d.Transform3D;
 import javax.vecmath.Color3f;
 
 import nif.NifToJ3d;
-import nif.NifVer;
 import nif.j3d.particles.J3dNiParticleSystem;
 import nif.niobject.NiAVObject;
 import nif.niobject.NiAmbientLight;
@@ -131,15 +130,8 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 					}
 					else if (child instanceof NiParticleSystem)
 					{
-						if ((niNode.nVer.LOAD_VER >= NifVer.VER_20_2_0_7 && niNode.nVer.LOAD_USER_VER == 12 && niNode.nVer.LOAD_USER_VER2 == 130))
-						{
-							System.out.println("FO4 skipping child type NiParticleSystem - for now");
-						}
-						else
-						{
-							J3dNiParticleSystem j3dNiParticleSystem = new J3dNiParticleSystem((NiParticleSystem) child, niToJ3dData, textureSource);
-							addChild(j3dNiParticleSystem);
-						}
+						J3dNiParticleSystem j3dNiParticleSystem = new J3dNiParticleSystem((NiParticleSystem) child, niToJ3dData, textureSource);
+						addChild(j3dNiParticleSystem);
 					}
 					else if (child instanceof NiCamera)
 					{
@@ -256,7 +248,7 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 
 	}
 
-	private boolean isEditorMarker(String niNodeName)
+	public static boolean isEditorMarker(String niNodeName)
 	{
 		// the string data of sgoKeep=1 is some sort of optomisation flag, not a editor marker flag		
 		// is it's name is editor maker

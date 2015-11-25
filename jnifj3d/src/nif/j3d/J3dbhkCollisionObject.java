@@ -113,7 +113,16 @@ public class J3dbhkCollisionObject extends Group
 			}
 			else
 			{
-				System.out.println("J3dbhkCollisionObject - bhkCollisionObject.body is not bhkRigidBody " + niToJ3dData.get(object.body));
+				if ((object.nVer.LOAD_VER >= NifVer.VER_20_2_0_7 && object.nVer.LOAD_USER_VER == 12 && object.nVer.LOAD_USER_VER2 == 130))
+				{
+					//TODO: for FO4 physics
+					//System.out.println("FO4 skipping child type NiParticleSystem - for now");
+				}
+				else
+				{
+					System.out
+							.println("J3dbhkCollisionObject - bhkCollisionObject.body is not bhkRigidBody " + niToJ3dData.get(object.body));
+				}
 			}
 		}
 	}
@@ -376,8 +385,7 @@ public class J3dbhkCollisionObject extends Group
 
 		QuadArray cube = new QuadArray(24, GeometryArray.COORDINATES | GeometryArray.COLOR_3);
 
-		float scaledVerts[] = new float[]
-		{
+		float scaledVerts[] = new float[] {
 				// front face
 				x, -y, z, x, y, z, -x, y, z, -x, -y, z,
 				// back face
@@ -571,8 +579,8 @@ public class J3dbhkCollisionObject extends Group
 			for (int i = 0; i < data.BigVerts.length; i++)
 			{
 				vertices[i] = ConvertFromHavok.toJ3dP3f(//
-						(data.BigVerts[i].x),//
-						(data.BigVerts[i].y),//
+						(data.BigVerts[i].x), //
+						(data.BigVerts[i].y), //
 						(data.BigVerts[i].z), nifVer);
 			}
 
@@ -603,8 +611,8 @@ public class J3dbhkCollisionObject extends Group
 			for (int i = 0; i < chunk.Vertices.length / 3; i++)
 			{
 				vertices[i] = ConvertFromHavok.toJ3dP3f(//
-						((chunk.Vertices[(i * 3) + 0]) * CMD_VERT_SCALE) + chunk.translation.x,//
-						((chunk.Vertices[(i * 3) + 1]) * CMD_VERT_SCALE) + chunk.translation.y,//
+						((chunk.Vertices[(i * 3) + 0]) * CMD_VERT_SCALE) + chunk.translation.x, //
+						((chunk.Vertices[(i * 3) + 1]) * CMD_VERT_SCALE) + chunk.translation.y, //
 						((chunk.Vertices[(i * 3) + 2]) * CMD_VERT_SCALE) + chunk.translation.z, nifVer);
 			}
 

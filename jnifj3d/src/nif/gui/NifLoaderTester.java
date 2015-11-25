@@ -90,30 +90,44 @@ public class NifLoaderTester
 
 	private static void processDir(File dir)
 	{
-		System.out.println("Processing directory " + dir);
-		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+		// is this dir full of any files we want
 		File[] fs = dir.listFiles();
+		boolean hasFileOfInterest = false;
 		for (int i = 0; i < fs.length; i++)
 		{
-			try
+			if (fs[i].isFile() && (fs[i].getName().endsWith(".nif") || fs[i].getName().endsWith(".kf") || fs[i].getName().endsWith(".dds")))
 			{
-				if (fs[i].isFile() && (fs[i].getName().endsWith(".nif") || fs[i].getName().endsWith(".kf") || fs[i].getName().endsWith(".dds")))
-				{
-
-					// only skels
-					// if(!fs[i].getName().toLowerCase().contains("skeleton"))
-					// continue;
-
-					processFile(fs[i]);
-				}
-				else if (fs[i].isDirectory())
-				{
-					processDir(fs[i]);
-				}
+				hasFileOfInterest = true;
+				break;
 			}
-			catch (Exception ex)
+		}
+		if (hasFileOfInterest)
+		{
+			System.out.println("Processing directory " + dir);
+			Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+
+			for (int i = 0; i < fs.length; i++)
 			{
-				ex.printStackTrace();
+				try
+				{
+					if (fs[i].isFile() && (fs[i].getName().endsWith(".nif") || fs[i].getName().endsWith(".kf") || fs[i].getName().endsWith(".dds")))
+					{
+
+						// only skels
+						// if(!fs[i].getName().toLowerCase().contains("skeleton"))
+						// continue;
+
+						processFile(fs[i]);
+					}
+					else if (fs[i].isDirectory())
+					{
+						processDir(fs[i]);
+					}
+				}
+				catch (Exception ex)
+				{
+					ex.printStackTrace();
+				}
 			}
 		}
 	}
