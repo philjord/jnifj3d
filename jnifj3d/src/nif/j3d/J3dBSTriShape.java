@@ -1,5 +1,6 @@
 package nif.j3d;
 
+import javax.media.j3d.GeometryArray;
 import javax.media.j3d.IndexedGeometryArray;
 
 import com.sun.j3d.utils.geometry.GeometryInfo;
@@ -37,11 +38,16 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 		return createGeometry((BSTriShape) this.niAVObject, morphable);
 	}
 
-	private static IndexedGeometryArray createGeometry(BSTriShape bsTriShape, boolean morphable)
+	public static IndexedGeometryArray createGeometry(BSTriShape bsTriShape, boolean morphable)
 	{
-		// TODO: go back to J3dNiTriShape and set it up the same
+		// TODO: go back to J3dNiTriShape and set it up the same cache and optimized
 
 		GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
+
+		//TODO: remove check once not broken
+		if ((bsTriShape.vertexFormatFlags7 & 0x40) != 0)
+			return null;
+
 		if (bsTriShape.dataSize > 0)
 		{
 			int[] trianglesOpt = new int[bsTriShape.numTriangles * 3];
@@ -188,13 +194,19 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 				}
 
 			}
-			if (STRIPIFY)
+			if (STRIPIFY && !morphable)
 			{
 				Stripifier stripifer = new Stripifier();
 				stripifer.stripify(gi);
 			}
 
-			IndexedGeometryArray ita = gi.getIndexedGeometryArray(false, false, INTERLEAVE, true, BUFFERS);
+			IndexedGeometryArray ita = gi.getIndexedGeometryArray(false, true, INTERLEAVE && !morphable, true, BUFFERS && !morphable);
+
+			if (morphable)
+			{
+				ita.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+				ita.setCapability(GeometryArray.ALLOW_REF_DATA_WRITE);
+			}
 			return ita;
 		}
 
