@@ -5,15 +5,9 @@ import javax.media.j3d.IndexedGeometryArray;
 import com.sun.j3d.utils.geometry.GeometryInfo;
 import com.sun.j3d.utils.geometry.Stripifier;
 
-import nif.ByteConvert;
-import nif.compound.BSByteColor4;
-import nif.compound.BSByteVector3;
-import nif.compound.BSHalfFloatTexCoord2;
-import nif.compound.BSHalfFloatVector3;
 import nif.compound.BSVertexDataOther;
 import nif.compound.BSVertexDataRigid;
 import nif.niobject.bs.BSTriShape;
-import tools.MiniFloat;
 import utils.ESConfig;
 import utils.source.TextureSource;
 
@@ -126,18 +120,18 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 						//gi.setColors4(0, bsTriShape.colorOpt);
 					}
 
-					
 				}
 				else
 				{
 					System.out.println("vertexDataRigid == null " + bsTriShape + " " + bsTriShape.nVer.fileName);
+					return null;
 				}
 			}
 			else
 			{
-				BSVertexDataOther[]  vertexData = bsTriShape.vertexDataOther;
+				BSVertexDataOther[] vertexData = bsTriShape.vertexDataOther;
 				int vertexFormatFlags = bsTriShape.vertexFormatFlags5;
-				
+
 				float[] verticesOpt = new float[bsTriShape.numVertices * 3];
 				for (int i = 0; i < bsTriShape.numVertices; i++)
 				{
@@ -147,9 +141,8 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 				}
 				gi.setCoordinates(verticesOpt);
 				//gi.setCoordinates(bsTriShape.verticesOpt);
-				
-				 
-				if (vertexFormatFlags > 4)					
+
+				if (vertexFormatFlags > 4)
 				{
 					gi.setTextureCoordinateParams(1, 2);
 					int[] texMap = new int[] { 0 };
@@ -193,17 +186,16 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 					gi.setColors4(vertexColorsOpt);
 					//gi.setColors4(0, bsTriShape.colorOpt);
 				}
-				
-				if (STRIPIFY)
-				{
-					Stripifier stripifer = new Stripifier();
-					stripifer.stripify(gi);
-				}
 
-				IndexedGeometryArray ita = gi.getIndexedGeometryArray(false, false, INTERLEAVE, true, BUFFERS);
-				return ita;
+			}
+			if (STRIPIFY)
+			{
+				Stripifier stripifer = new Stripifier();
+				stripifer.stripify(gi);
 			}
 
+			IndexedGeometryArray ita = gi.getIndexedGeometryArray(false, false, INTERLEAVE, true, BUFFERS);
+			return ita;
 		}
 
 		return null;
