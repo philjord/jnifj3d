@@ -56,7 +56,7 @@ public class BSTriShape extends NiTriBasedGeom
 
 		dataSize = ByteConvert.readInt(stream);
 
-		if ((vertexFormatFlags7 & 0x8) != 0 || (vertexFormatFlags7 & 0x10) != 0 || (vertexFormatFlags7 & 0x20) != 0)
+		if ((vertexFormatFlags7 & 0x8) != 0 || (vertexFormatFlags7 & 0x20) != 0)
 		{
 			System.out.println("NEW VERTEX FORMAT TO DEAL WITH! " + vertexFormatFlags7);
 			//fix unoptimized first!!
@@ -159,12 +159,9 @@ public class BSTriShape extends NiTriBasedGeom
 
 		dataSize = ByteConvert.readInt(stream);
 
-		if ((vertexFormatFlags7 & 0x8) != 0 || (vertexFormatFlags7 & 0x10) != 0 || (vertexFormatFlags7 & 0x20) != 0)
+		if ((vertexFormatFlags7 & 0x8) != 0 || (vertexFormatFlags7 & 0x20) != 0)
 		{
 			System.out.println("NEW VERTEX FORMAT TO DEAL WITH! " + vertexFormatFlags7);
-			//23 to deal with =  16,4,2,1
-			//NEW VERTEX FORMAT TO DEAL WITH! 23
-			//vertexDataRigid == null [BSSubIndexTriShape] MaleEyes:0 f:\game media\fallout4\meshes\actors\character\characterassets\faceparts\maleeyes.nif
 		}
 		if ((vertexFormatFlags7 & 0x40) != 0)
 		{

@@ -62,7 +62,8 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 
 			gi.setUseCoordIndexOnly(true);
 
-			if ((bsTriShape.vertexFormatFlags7 & 0x1) != 0)
+			if ((bsTriShape.vertexFormatFlags7 & 0x1) != 0 && ((bsTriShape.vertexFormatFlags7 & 0x4) == 0
+					|| bsTriShape.vertexFormatFlags5 == 0))
 			{
 				BSVertexDataRigid[] vertexData = null;
 
@@ -133,7 +134,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 					return null;
 				}
 			}
-			else
+			else if ((bsTriShape.vertexFormatFlags7 & 0x1) == 0 || bsTriShape.vertexFormatFlags5 > 0)
 			{
 				BSVertexDataOther[] vertexData = bsTriShape.vertexDataOther;
 				int vertexFormatFlags = bsTriShape.vertexFormatFlags1;
@@ -194,6 +195,12 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 				}
 
 			}
+			else
+			{
+				return null;
+			}
+			
+			
 			if (STRIPIFY && !morphable)
 			{
 				Stripifier stripifer = new Stripifier();
