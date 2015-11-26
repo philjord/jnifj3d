@@ -141,7 +141,8 @@ public class NifDisplayTester
 
 		win.getContentPane().add(canvas3D);
 		simpleUniverse = new SimpleUniverse(canvas3D);
-		GraphicsSettings gs = ScreenResolution.organiseResolution(Preferences.userNodeForPackage(NifDisplayTester.class), win, false, true, true);
+		GraphicsSettings gs = ScreenResolution.organiseResolution(Preferences.userNodeForPackage(NifDisplayTester.class), win, false, true,
+				true);
 
 		canvas3D.getView().setSceneAntialiasingEnable(gs.isAaRequired());
 		DDSTextureLoader.setAnisotropicFilterDegree(gs.getAnisotropicFilterDegree());
@@ -165,7 +166,8 @@ public class NifDisplayTester
 
 		spinTransformGroup.addChild(rotateTransformGroup);
 		rotateTransformGroup.addChild(modelGroup);
-		simpleCameraHandler = new SimpleCameraHandler(simpleUniverse.getViewingPlatform(), simpleUniverse.getCanvas(), modelGroup, rotateTransformGroup, false);
+		simpleCameraHandler = new SimpleCameraHandler(simpleUniverse.getViewingPlatform(), simpleUniverse.getCanvas(), modelGroup,
+				rotateTransformGroup, false);
 
 		splitterV.setDividerLocation(0.5d);
 		splitterH.setDividerLocation(0.5d);
@@ -225,7 +227,8 @@ public class NifDisplayTester
 			@Override
 			public void actionPerformed(ActionEvent arg0)
 			{
-				GraphicsSettings gs2 = ScreenResolution.organiseResolution(Preferences.userNodeForPackage(NifDisplayTester.class), win, false, true, true);
+				GraphicsSettings gs2 = ScreenResolution.organiseResolution(Preferences.userNodeForPackage(NifDisplayTester.class), win,
+						false, true, true);
 
 				simpleUniverse.getCanvas().getView().setSceneAntialiasingEnable(gs2.isAaRequired());
 				DDSTextureLoader.setAnisotropicFilterDegree(gs2.getAnisotropicFilterDegree());
@@ -395,8 +398,8 @@ public class NifDisplayTester
 			if (nif.getVisualRoot().getJ3dNiControllerManager() != null && animateModel)
 			{
 				//note self cleaning uping
-				ControllerInvokerThread controllerInvokerThread = new ControllerInvokerThread(nif.getVisualRoot().getName(), nif.getVisualRoot().getJ3dNiControllerManager(),
-						havok.getJ3dNiControllerManager());
+				ControllerInvokerThread controllerInvokerThread = new ControllerInvokerThread(nif.getVisualRoot().getName(),
+						nif.getVisualRoot().getJ3dNiControllerManager(), havok.getJ3dNiControllerManager());
 				controllerInvokerThread.start();
 			}
 
@@ -459,7 +462,7 @@ public class NifDisplayTester
 			}
 		});
 
-		dfc.setFileFilter(new FileNameExtensionFilter("Nif", "nif"));
+		dfc.setFileFilter(new FileNameExtensionFilter("Nif", "nif", "btr"));
 
 	}
 
@@ -480,7 +483,7 @@ public class NifDisplayTester
 			wakeupOn(FPSCriterion);
 		}
 
-		@SuppressWarnings({ "unchecked", "rawtypes" })
+		@SuppressWarnings("rawtypes")
 		public void processStimulus(Enumeration criteria)
 		{
 			process();

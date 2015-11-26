@@ -95,12 +95,14 @@ public class NifLoaderTester
 		boolean hasFileOfInterest = false;
 		for (int i = 0; i < fs.length; i++)
 		{
-			if (fs[i].isFile() && (fs[i].getName().endsWith(".nif") || fs[i].getName().endsWith(".kf") || fs[i].getName().endsWith(".dds")))
+			String fn = fs[i].getName().toLowerCase();
+			if (fs[i].isFile() && (fn.endsWith(".nif") || fn.endsWith(".kf") || fn.endsWith(".dds") || fn.endsWith(".btr")))
 			{
 				hasFileOfInterest = true;
 				break;
 			}
 		}
+
 		if (hasFileOfInterest)
 		{
 			System.out.println("Processing directory " + dir);
@@ -110,7 +112,8 @@ public class NifLoaderTester
 			{
 				try
 				{
-					if (fs[i].isFile() && (fs[i].getName().endsWith(".nif") || fs[i].getName().endsWith(".kf") || fs[i].getName().endsWith(".dds")))
+					String fn = fs[i].getName().toLowerCase();
+					if (fs[i].isFile() && (fn.endsWith(".nif") || fn.endsWith(".kf") || fn.endsWith(".dds") || fn.endsWith(".btr")))
 					{
 
 						// only skels
@@ -119,15 +122,26 @@ public class NifLoaderTester
 
 						processFile(fs[i]);
 					}
-					else if (fs[i].isDirectory())
-					{
-						processDir(fs[i]);
-					}
 				}
 				catch (Exception ex)
 				{
 					ex.printStackTrace();
 				}
+			}
+		}
+
+		for (int i = 0; i < fs.length; i++)
+		{
+			try
+			{
+				if (fs[i].isDirectory())
+				{
+					processDir(fs[i]);
+				}
+			}
+			catch (Exception ex)
+			{
+				ex.printStackTrace();
 			}
 		}
 	}

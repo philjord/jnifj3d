@@ -136,7 +136,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 			else
 			{
 				BSVertexDataOther[] vertexData = bsTriShape.vertexDataOther;
-				int vertexFormatFlags = bsTriShape.vertexFormatFlags5;
+				int vertexFormatFlags = bsTriShape.vertexFormatFlags1;
 
 				float[] verticesOpt = new float[bsTriShape.numVertices * 3];
 				for (int i = 0; i < bsTriShape.numVertices; i++)
@@ -148,7 +148,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 				gi.setCoordinates(verticesOpt);
 				//gi.setCoordinates(bsTriShape.verticesOpt);
 
-				if (vertexFormatFlags > 4)
+				if (vertexFormatFlags == 3)
 				{
 					gi.setTextureCoordinateParams(1, 2);
 					int[] texMap = new int[] { 0 };
