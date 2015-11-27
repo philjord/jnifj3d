@@ -82,14 +82,14 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 				gi.setCoordinates(verticesOpt);
 			}
 
-			gi.setTextureCoordinateParams(1, 2);
-			int[] texMap = new int[] { 0 };
-
 			if (BSTriShape.LOAD_OPTIMIZED)
 			{
 				if (bsTriShape.uVSetOpt != null)
 				{
+					gi.setTextureCoordinateParams(1, 2);
+					int[] texMap = new int[] { 0 };
 					gi.setTexCoordSetMap(texMap);
+					
 					gi.setTextureCoordinates(0, bsTriShape.uVSetOpt);
 				}
 			}
@@ -97,6 +97,8 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 			{
 				if (vertexData[0].texCoord != null)
 				{
+					gi.setTextureCoordinateParams(1, 2);
+					int[] texMap = new int[] { 0 };
 					gi.setTexCoordSetMap(texMap);
 
 					float[] uVSetOpt = new float[bsTriShape.numVertices * 2];
@@ -134,9 +136,9 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 
 			if (BSTriShape.LOAD_OPTIMIZED)
 			{
-				if (bsTriShape.vertexColorsOpt != null)
+				if (bsTriShape.colorsOpt != null)
 				{
-					gi.setColors4(bsTriShape.vertexColorsOpt);
+					gi.setColors4(bsTriShape.colorsOpt);
 				}
 			}
 			else
