@@ -36,6 +36,8 @@ public class NifLoaderTester
 				};
 				t.start();
 			}
+			
+
 
 			@Override
 			public void fileSelected(File file)
@@ -53,7 +55,7 @@ public class NifLoaderTester
 	{
 		try
 		{
-			System.out.println("\tFile: " + f);
+			//System.out.println("\tFile: " + f);
 			// long start = System.currentTimeMillis();
 			if (f.getName().endsWith(".kf"))
 			{
@@ -89,7 +91,7 @@ public class NifLoaderTester
 	}
 
 	private static void processDir(File dir)
-	{
+	{			
 		// is this dir full of any files we want
 		File[] fs = dir.listFiles();
 		boolean hasFileOfInterest = false;

@@ -11,16 +11,14 @@ import nif.enums.ConsistencyType;
 import nif.niobject.particle.NiPSysData;
 import utils.ESConfig;
 
-/** Optomised version, Always alter jnif version FIRST, then optomize here
+/** Optimised version, Always alter jnif version FIRST, then optomize here
  * @author philip
  *
  */
 public abstract class NiGeometryData extends NiObject
 {
-	static
-	{
-		System.out.println("Optomised NiGeometryData in use");
-	}
+	public static boolean LOAD_OPTIMIZED = false;
+	public static final float ES_TO_METERS_SCALE = 0.02f;
 
 	public int unknownInt1;
 
