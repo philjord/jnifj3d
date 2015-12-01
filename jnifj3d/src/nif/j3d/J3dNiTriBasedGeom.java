@@ -34,6 +34,8 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 	public static boolean STRIPIFY = false;// Relevant to shape only
 
 	public static boolean BUFFERS = false;
+	
+	public static boolean TANGENTS_BITANGENTS = true;
 
 	private int outlineStencilMask = -1;
 
