@@ -5,7 +5,7 @@ import javax.media.j3d.Shape3D;
 import javax.media.j3d.Texture;
 import javax.media.j3d.TransparencyAttributes;
 
-import nif.appearance.NiGeomteryAppearanceFactory;
+import nif.appearance.NiGeometryAppearanceFactory;
 import nif.niobject.NiGeometry;
 import tools3d.utils.scenegraph.Fadable;
 import utils.source.TextureSource;
@@ -55,7 +55,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		if (textureSource != null)
 		{
 
-			normalApp = NiGeomteryAppearanceFactory.getNiGeometryAppearance().configureAppearance(niGeometry, niToJ3dData, textureSource,
+			normalApp = NiGeometryAppearanceFactory.getNiGeometryAppearance().configureAppearance(niGeometry, niToJ3dData, textureSource,
 					shape, this);
 
 			/*

@@ -22,20 +22,20 @@ import utils.source.TextureSource;
 /**
  * This class has a base geometry and a current to allow skin instances to deform the base
  * @author philip
- *
+ * assa
  */
 public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 {
 	//morrowind wants true false false
 	//oblivion wants true false false
 	//skyrim wants true false false
-	public static boolean INTERLEAVE = true;
+	public static boolean INTERLEAVE = false;
 
 	public static boolean STRIPIFY = false;// Relevant to shape only
 
 	public static boolean BUFFERS = false;
-	
-	public static boolean TANGENTS_BITANGENTS = true;
+
+	public static boolean TANGENTS_BITANGENTS = false;
 
 	private int outlineStencilMask = -1;
 
@@ -102,13 +102,13 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 			//-Dj3d.stencilClear=true  
 
 			// this is generally working now, below are earlier notes, it doesn't play 
-			// badly with transparencey once everthing has renderattributes
+			// badly with transparency once everything has renderingattributes
 			//possibly issue 249 https://java.net/jira/browse/JAVA3D-224
 			// transparency buggers with stencils https://java.net/jira/browse/JAVA3D-314
 			//Notice issues with transparent textures not working well, the "filled in" part must be being run after the line 
 
 			Appearance sapp = getShape().getAppearance();
-				
+
 			RenderingAttributes ra1 = sapp.getRenderingAttributes();
 			//RAISE_BUG:
 			// note ra1 must not be null ever, for stencils all apps should have ras
@@ -119,7 +119,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 			ra1.setStencilWriteMask(outlineStencilMask);
 			ra1.setStencilFunction(RenderingAttributes.ALWAYS, outlineStencilMask, outlineStencilMask);
 			ra1.setStencilOp(RenderingAttributes.STENCIL_REPLACE, //
-					RenderingAttributes.STENCIL_REPLACE,//
+					RenderingAttributes.STENCIL_REPLACE, //
 					RenderingAttributes.STENCIL_REPLACE);
 
 			sapp.setRenderingAttributes(ra1);
@@ -156,7 +156,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 				ra2.setStencilWriteMask(outlineStencilMask);
 				ra2.setStencilFunction(RenderingAttributes.NOT_EQUAL, outlineStencilMask, outlineStencilMask);
 				ra2.setStencilOp(RenderingAttributes.STENCIL_KEEP, //
-						RenderingAttributes.STENCIL_KEEP,//
+						RenderingAttributes.STENCIL_KEEP, //
 						RenderingAttributes.STENCIL_KEEP);
 
 				//geoms often have colors in verts
@@ -205,7 +205,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 	{
 		int vertexFormat = (data.hasVertices ? GeometryArray.COORDINATES : 0) //
 				| (data.hasNormals ? GeometryArray.NORMALS : 0) //
-				| (data.actNumUVSets > 0 ? GeometryArray.TEXTURE_COORDINATE_2 : 0) //
+				| (data.actNumUVSets > 0 ? GeometryArray.TEXTURE_COORDINATE_3 : 0) //
 				| (data.vertexColorsOpt != null ? GeometryArray.COLOR_4 : 0) //
 				| GeometryArray.USE_COORD_INDEX_ONLY //
 				| ((morphable || interleave || BUFFERS) ? GeometryArray.BY_REFERENCE_INDICES : 0)//				
@@ -217,6 +217,10 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 	protected static void fillIn(GeometryArray ga, NiTriBasedGeomData data, boolean morphable, boolean interleave)
 	{
+
+		//TODO: I REALLY want the tangents and binormals to be vertex attributes! 
+
+		//TODO: I MUST swap the opts back into jnifj3d!
 		//Note consistency type in nif file also dictates morphable
 		float[] normals = null;
 		if (data.hasNormals)
@@ -230,22 +234,33 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 			colors4 = data.vertexColorsOpt;
 		}
 
-		int texCoordDim = 2;
+		//I load tagent and bitangents into texturecoords, for the shaders to use
+		// has to be 3 as I'm not using vertex attributes yet
+		int texCoordDim = 3;
 		float[][] texCoordSets = null;
-		// process UVsets hasUV or UVset2?? Num UV Sets 2
-		int texCoordSetCount = data.actNumUVSets;
 
-		if (texCoordSetCount > 0)
+		if (data.actNumUVSets > 0)
 		{
-			texCoordSets = data.uVSetsOpt;
+			texCoordSets = new float[1][];
+
+			// Notice I skip tangents in the no texcoords case
+			if (data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS)
+			{
+				texCoordSets = new float[3][];
+				texCoordSets[1] = data.tangentsOpt;
+				texCoordSets[2] = data.binormalsOpt;
+			}
+
+			texCoordSets[0] = data.uVSetsOpt[0];//others ignored
+
 		}
 
 		if (!morphable)
 		{
 			if (interleave)
 			{
-				float[] vertexData = J3dNiTriBasedGeom.interleave(texCoordSetCount, texCoordDim, texCoordSets, null, colors4, normals,
-						data.verticesOpt);
+
+				float[] vertexData = J3dNiTriBasedGeom.interleave(texCoordDim, texCoordSets, null, colors4, normals, data.verticesOpt);
 				if (!BUFFERS)
 				{
 					ga.setInterleavedVertices(vertexData);
@@ -266,11 +281,12 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 					if (data.hasVertexColors)
 						ga.setColors(0, colors4);
-
-					for (int i = 0; i < texCoordSetCount; i++)
+					if (texCoordSets != null)
 					{
-						ga.setTextureCoordinates(i, 0, texCoordSets[i]);
+						for (int i = 0; i < texCoordSets.length; i++)
+							ga.setTextureCoordinates(i, 0, texCoordSets[i]);
 					}
+
 				}
 				else
 				{
@@ -278,9 +294,12 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 					ga.setNormalRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(normals)));
 					ga.setColorRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(colors4)));
-					for (int i = 0; i < texCoordSetCount; i++)
+					if (texCoordSets != null)
 					{
-						ga.setTexCoordRefBuffer(i, new J3DBuffer(Utils3D.makeFloatBuffer(texCoordSets[i])));
+						for (int i = 0; i < texCoordSets.length; i++)
+						{
+							ga.setTexCoordRefBuffer(i, new J3DBuffer(Utils3D.makeFloatBuffer(texCoordSets[i])));
+						}
 					}
 				}
 			}
@@ -297,9 +316,12 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 			ga.setColorRefFloat(colors4);
 
-			for (int i = 0; i < texCoordSetCount; i++)
+			if (texCoordSets != null)
 			{
-				ga.setTexCoordRefFloat(i, texCoordSets[i]);
+				for (int i = 0; i < texCoordSets.length; i++)
+				{
+					ga.setTexCoordRefFloat(i, texCoordSets[i]);
+				}
 			}
 
 			ga.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
@@ -313,8 +335,8 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 	 * //GeometryInfo.fillIn(GeometryArray ga, boolean byRef, boolean interleaved, boolean nio)
 	 * 
 	 */
-	public static float[] interleave(int texCoordSetCount, int texCoordDim, float[][] texCoordSets, float[] colors3, float[] colors4,
-			float[] normals, float[] coordinates)
+	public static float[] interleave(int texCoordDim, float[][] texCoordSets, float[] colors3, float[] colors4, float[] normals,
+			float[] coordinates)
 	{
 		// Calculate number of words per vertex
 		int wpv = 3; // Always have coordinate data
@@ -324,7 +346,9 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 			wpv += 3;
 		else if (colors4 != null)
 			wpv += 4;
-		wpv += (texCoordSetCount * texCoordDim);
+
+		if (texCoordSets != null)
+			wpv += (texCoordSets.length * texCoordDim);
 
 		int coordCount = coordinates.length / 3;
 		// Build array of interleaved data
@@ -334,31 +358,34 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 		int offset = 0;
 		for (int i = 0; i < coordCount; i++)
 		{
-			if (texCoordDim == 2)
+			if (texCoordSets != null)
 			{
-				for (int j = 0; j < texCoordSetCount; j++)
+				if (texCoordDim == 2)
 				{
-					d[offset++] = texCoordSets[j][i * 2 + 0];
-					d[offset++] = texCoordSets[j][i * 2 + 1];
+					for (int j = 0; j < texCoordSets.length; j++)
+					{
+						d[offset++] = texCoordSets[j][i * 2 + 0];
+						d[offset++] = texCoordSets[j][i * 2 + 1];
+					}
 				}
-			}
-			else if (texCoordDim == 3)
-			{
-				for (int j = 0; j < texCoordSetCount; j++)
+				else if (texCoordDim == 3)
 				{
-					d[offset++] = texCoordSets[j][i * 3 + 0];
-					d[offset++] = texCoordSets[j][i * 3 + 1];
-					d[offset++] = texCoordSets[j][i * 3 + 2];
+					for (int j = 0; j < texCoordSets.length; j++)
+					{
+						d[offset++] = texCoordSets[j][i * 3 + 0];
+						d[offset++] = texCoordSets[j][i * 3 + 1];
+						d[offset++] = texCoordSets[j][i * 3 + 2];
+					}
 				}
-			}
-			else if (texCoordDim == 4)
-			{
-				for (int j = 0; j < texCoordSetCount; j++)
+				else if (texCoordDim == 4)
 				{
-					d[offset++] = texCoordSets[j][i * 4 + 0];
-					d[offset++] = texCoordSets[j][i * 4 + 1];
-					d[offset++] = texCoordSets[j][i * 4 + 2];
-					d[offset++] = texCoordSets[j][i * 4 + 3];
+					for (int j = 0; j < texCoordSets.length; j++)
+					{
+						d[offset++] = texCoordSets[j][i * 4 + 0];
+						d[offset++] = texCoordSets[j][i * 4 + 1];
+						d[offset++] = texCoordSets[j][i * 4 + 2];
+						d[offset++] = texCoordSets[j][i * 4 + 3];
+					}
 				}
 			}
 

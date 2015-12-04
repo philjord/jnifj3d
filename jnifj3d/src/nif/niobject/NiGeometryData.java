@@ -52,7 +52,9 @@ public abstract class NiGeometryData extends NiObject
 
 	//OPTOMISATION
 	//public NifVector3[] binormals;
+	public float[] binormalsOpt;
 	//public NifVector3[] tangents;
+	public float[] tangentsOpt;
 
 	public NifVector3 center;
 
@@ -154,9 +156,8 @@ public abstract class NiGeometryData extends NiObject
 			{
 				if ((numUVSets & 61440) != 0)
 				{
-					//OPTOMISATION
-					/*
-					binormals = new NifVector3[numVertices];
+					//OPTOMISATION					
+					/*binormals = new NifVector3[numVertices];
 					for (int i = 0; i < numVertices; i++)
 					{
 						binormals[i] = new NifVector3(stream);
@@ -166,14 +167,20 @@ public abstract class NiGeometryData extends NiObject
 					{
 						tangents[i] = new NifVector3(stream);
 					}*/
+					binormalsOpt = new float[numVertices * 3];
 					for (int i = 0; i < numVertices; i++)
 					{
-						ByteConvert.readBytes(3 * 4, stream);
+						binormalsOpt[i * 3 + 0] = ByteConvert.readFloat(stream);
+						binormalsOpt[i * 3 + 2] = -ByteConvert.readFloat(stream);
+						binormalsOpt[i * 3 + 1] = ByteConvert.readFloat(stream);
 					}
 
+					tangentsOpt = new float[numVertices * 3];
 					for (int i = 0; i < numVertices; i++)
 					{
-						ByteConvert.readBytes(3 * 4, stream);
+						tangentsOpt[i * 3 + 0] = ByteConvert.readFloat(stream);
+						tangentsOpt[i * 3 + 2] = -ByteConvert.readFloat(stream);
+						tangentsOpt[i * 3 + 1] = ByteConvert.readFloat(stream);
 					}
 				}
 			}
@@ -225,7 +232,7 @@ public abstract class NiGeometryData extends NiObject
 		{
 			actNumUVSets = numUVSets & 63;
 		}
-					
+
 		//OPTOMISATION
 		/*
 		uVSets = new NifTexCoord[actNumUVSets][numVertices];
@@ -236,13 +243,14 @@ public abstract class NiGeometryData extends NiObject
 				uVSets[j][i] = new NifTexCoord(stream);
 			}
 		}*/
-		uVSetsOpt = new float[actNumUVSets][numVertices * 2];
+		uVSetsOpt = new float[actNumUVSets][numVertices * 3];
 		for (int j = 0; j < actNumUVSets; j++)
 		{
 			for (int i = 0; i < numVertices; i++)
 			{
-				uVSetsOpt[j][i * 2 + 0] = ByteConvert.readFloat(stream);
-				uVSetsOpt[j][i * 2 + 1] = ByteConvert.readFloat(stream);
+				uVSetsOpt[j][i * 3 + 0] = ByteConvert.readFloat(stream);
+				uVSetsOpt[j][i * 3 + 1] = ByteConvert.readFloat(stream);
+				uVSetsOpt[j][i * 3 + 2] = 0f; // because of tangemts using tex coords
 			}
 		}
 

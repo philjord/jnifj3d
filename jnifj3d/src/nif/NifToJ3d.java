@@ -27,7 +27,7 @@ import utils.source.TextureSource;
 
 public class NifToJ3d
 {
-	public static boolean SUPPRESS_EXCEPTIONS = true;
+	public static boolean SUPPRESS_EXCEPTIONS = false;
 
 	public static boolean HIDE_EDITORS = true;
 

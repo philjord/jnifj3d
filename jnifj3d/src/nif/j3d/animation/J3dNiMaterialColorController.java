@@ -36,7 +36,6 @@ public class J3dNiMaterialColorController extends J3dNiTimeController
 				}
 				targetMaterial.setCapability(Material.ALLOW_COMPONENT_WRITE);
 				targetMaterials.add(targetMaterial);
-
 			}
 		}
 

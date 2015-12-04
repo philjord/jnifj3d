@@ -69,7 +69,7 @@ import nif.niobject.interpolator.NiInterpolator;
 import utils.convert.NifOpenGLToJava3D;
 import utils.source.TextureSource;
 
-public class NiGeometryAppearanceFixed implements NiGeomteryAppearance
+public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 {
 	private static WeakHashMap<NiProperty, NodeComponent> propertyLookup = new WeakHashMap<NiProperty, NodeComponent>();
 

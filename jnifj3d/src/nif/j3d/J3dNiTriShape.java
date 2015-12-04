@@ -11,14 +11,13 @@ import utils.source.TextureSource;
 import com.sun.j3d.utils.geometry.GeometryInfo;
 import com.sun.j3d.utils.geometry.Stripifier;
 
-
 public class J3dNiTriShape extends J3dNiTriBasedGeom
 {
 	public J3dNiTriShape(NiTriShape niTriShape, NiToJ3dData niToJ3dData, TextureSource textureSource)
 	{
 		super(niTriShape, niToJ3dData, textureSource);
 
-		niToJ3dData.put(niTriShape, this);		
+		niToJ3dData.put(niTriShape, this);
 
 		//am I a skin shape in which case I need to be uncompacted ready for animation
 		if (niTriShape.skin.ref != -1)
@@ -79,13 +78,20 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 
 		if (data.hasVertices && data.hasTriangles)
 		{
-			int[] texMap = new int[data.actNumUVSets];
-			for (int i = 0; i < data.actNumUVSets; i++)
-				texMap[i] = i;
+			int texCoordCount = 0;
+			if (data.actNumUVSets > 0 && data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS)
+				texCoordCount = 3;
+			else if (data.actNumUVSets > 0)
+				texCoordCount = 1;
+			// however all tex units use the 0ith one 2and 3 are tangents and bitangents for now
+			int[] texMap = new int[9];
+			for (int i = 0; i < 9; i++)
+				texMap[i] = 0;
+
 			if (!STRIPIFY || morphable)
 			{
-				IndexedGeometryArray ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, INTERLEAVE),
-						data.actNumUVSets, texMap, data.numTrianglePoints);
+				IndexedGeometryArray ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, INTERLEAVE), texCoordCount,
+						texMap, data.numTrianglePoints);
 				if (morphable || INTERLEAVE)
 					ita.setCoordIndicesRef(data.trianglesOpt);
 				else
