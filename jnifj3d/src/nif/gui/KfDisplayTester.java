@@ -1,56 +1,66 @@
 package nif.gui;
 
+import java.awt.GraphicsConfigTemplate;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.prefs.Preferences;
 
 import javax.media.j3d.AmbientLight;
+import javax.media.j3d.Background;
 import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.BranchGroup;
 import javax.media.j3d.Canvas3D;
 import javax.media.j3d.DirectionalLight;
 import javax.media.j3d.GraphicsConfigTemplate3D;
 import javax.media.j3d.Group;
-import javax.media.j3d.Transform3D;
+import javax.media.j3d.Light;
 import javax.media.j3d.TransformGroup;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
+
+import com.sun.j3d.utils.geometry.ColorCube;
+import com.sun.j3d.utils.universe.SimpleUniverse;
 
 import nif.NifToJ3d;
 import nif.character.NifCharacter;
 import nif.character.NifCharacterTes3;
 import nif.character.NifJ3dSkeletonRoot;
+import nif.gui.util.SpinTransform;
 import nif.j3d.J3dNiSkinInstance;
 import nif.j3d.animation.tes3.J3dNiSequenceStreamHelper;
+import tools.ddstexture.DDSTextureLoader;
 import tools.swing.DetailsFileChooser;
 import tools.swing.TitledJFileChooser;
+import tools3d.camera.simple.SimpleCameraHandler;
+import tools3d.resolution.GraphicsSettings;
+import tools3d.resolution.QueryProperties;
+import tools3d.resolution.ScreenResolution;
 import utils.source.MediaSources;
 import utils.source.file.FileMeshSource;
 import utils.source.file.FileSoundSource;
 import utils.source.file.FileTextureSource;
-
-import com.sun.j3d.utils.behaviors.mouse.MouseRotate;
-import com.sun.j3d.utils.universe.SimpleUniverse;
 
 /**
  * Usage note
@@ -62,7 +72,6 @@ import com.sun.j3d.utils.universe.SimpleUniverse;
  */
 public class KfDisplayTester
 {
-	private static Preferences prefs;
 
 	private static String skeletonNifModelFile;
 
@@ -70,19 +79,141 @@ public class KfDisplayTester
 
 	public static KfDisplayTester nifDisplay;
 
-	public static void main(String[] args)
+	private static Preferences prefs;
+
+	public JMenuItem setGraphics = new JMenuItem("Set Graphics");
+
+	private SimpleCameraHandler simpleCameraHandler;
+
+	private TransformGroup spinTransformGroup = new TransformGroup();
+
+	private TransformGroup rotateTransformGroup = new TransformGroup();
+
+	private BranchGroup modelGroup = new BranchGroup();
+
+	private SpinTransform spinTransform;
+
+	private SimpleUniverse simpleUniverse;
+
+	private Background background = new Background();
+
+	private JFrame win = new JFrame("Nif model");
+
+	private final GraphicsDevice gd;
+
+	public KfDisplayTester()
 	{
 		NifToJ3d.SUPPRESS_EXCEPTIONS = false;
-		prefs = Preferences.userNodeForPackage(KfDisplayTester.class);
+		//jogl recomends for non phones 
+		System.setProperty("jogl.disable.opengles", "true");
+
+		//DDS requires no installed java3D
+		if (QueryProperties.checkForInstalledJ3d())
+		{
+			System.exit(0);
+		}
+
+		//win.setVisible(true);
+		win.setLocation(400, 0);
+		win.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		GraphicsDevice gd = ge.getDefaultScreenDevice();
+		gd = ge.getDefaultScreenDevice();
 		GraphicsConfiguration[] gc = gd.getConfigurations();
 		GraphicsConfigTemplate3D template = new GraphicsConfigTemplate3D();
-		template.setStencilSize(8);
+		// antialiasing REQUIRED is good to have
+		template.setSceneAntialiasing(GraphicsConfigTemplate.REQUIRED);
 		GraphicsConfiguration config = template.getBestConfiguration(gc);
+		Canvas3D canvas3D = new Canvas3D(config);
 
-		nifDisplay = new KfDisplayTester(config);
+		win.getContentPane().add(canvas3D);
+		simpleUniverse = new SimpleUniverse(canvas3D);
+		GraphicsSettings gs = ScreenResolution.organiseResolution(Preferences.userNodeForPackage(NifDisplayTester.class), win, false, true,
+				true);
+
+		canvas3D.getView().setSceneAntialiasingEnable(gs.isAaRequired());
+		DDSTextureLoader.setAnisotropicFilterDegree(gs.getAnisotropicFilterDegree());
+
+		win.setVisible(true);
+
+		spinTransformGroup.addChild(rotateTransformGroup);
+		rotateTransformGroup.addChild(modelGroup);
+		simpleCameraHandler = new SimpleCameraHandler(simpleUniverse.getViewingPlatform(), simpleUniverse.getCanvas(), modelGroup,
+				rotateTransformGroup, false);
+
+		spinTransformGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+		spinTransformGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+
+		modelGroup.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+		modelGroup.setCapability(Group.ALLOW_CHILDREN_WRITE);
+
+		// Create ambient light	and add it
+		Color3f alColor = new Color3f(1f, 1f, 1f);
+		AmbientLight ambLight = new AmbientLight(true, alColor);
+		ambLight.setCapability(Light.ALLOW_INFLUENCING_BOUNDS_WRITE);
+		ambLight.setInfluencingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
+
+		Color3f dlColor = new Color3f(0.1f, 0.1f, 0.6f);
+		DirectionalLight dirLight = new DirectionalLight(true, dlColor, new Vector3f(0f, -1f, 0f));
+		dirLight.setCapability(Light.ALLOW_INFLUENCING_BOUNDS_WRITE);
+		dirLight.setInfluencingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
+
+		//Color3f plColor = new Color3f(0.6f, 0.6f, 0.6f);
+		//PointLight pLight = new PointLight(true, plColor, new Point3f(10f, 10f, 0f), new Point3f(1f, 0.1f, 0f));
+		//pLight.setCapability(Light.ALLOW_INFLUENCING_BOUNDS_WRITE);
+		//pLight.setInfluencingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
+
+		BranchGroup bg = new BranchGroup();
+
+		bg.addChild(ambLight);
+		bg.addChild(dirLight);
+		//bg.addChild(pLight);
+		bg.addChild(simpleCameraHandler);
+
+		//bg.addChild(fileManageBehavior);
+
+		bg.addChild(spinTransformGroup);
+		spinTransform = new SpinTransform(spinTransformGroup);
+		spinTransform.setEnable(false);
+		bg.addChild(spinTransform);
+
+		background.setColor(0.8f, 0.8f, 0.8f);
+		background.setApplicationBounds(null);
+		background.setCapability(Background.ALLOW_APPLICATION_BOUNDS_WRITE);
+		background.setCapability(Background.ALLOW_APPLICATION_BOUNDS_READ);
+		bg.addChild(background);
+
+		bg.addChild(new ColorCube(0.01f));
+
+		simpleUniverse.addBranchGraph(bg);
+
+		simpleUniverse.getViewer().getView().setBackClipDistance(50000);//big cos it's only 1 nif file anyway
+
+		simpleUniverse.getCanvas().addKeyListener(new KeyHandler());
+
+		JMenuBar menuBar = new JMenuBar();
+		menuBar.setOpaque(true);
+		JMenu menu = new JMenu("File");
+		menu.setMnemonic(70);
+		menuBar.add(menu);
+
+		menu.add(setGraphics);
+		setGraphics.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0)
+			{
+				GraphicsSettings gs2 = ScreenResolution.organiseResolution(Preferences.userNodeForPackage(NifDisplayTester.class), win,
+						false, true, true);
+
+				simpleUniverse.getCanvas().getView().setSceneAntialiasingEnable(gs2.isAaRequired());
+				DDSTextureLoader.setAnisotropicFilterDegree(gs2.getAnisotropicFilterDegree());
+				System.out.println("filtering will require newly loaded textures remember");
+			}
+		});
+
+		win.setJMenuBar(menuBar);
+		win.setVisible(true);
+
 		try
 		{
 			// pick the nif model
@@ -91,12 +222,12 @@ public class KfDisplayTester
 			skeletonFc.setDialogTitle("Select Skeleton");
 			skeletonFc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 			skeletonFc.setMultiSelectionEnabled(false);
-			skeletonFc.setFileFilter(new FileFilter()
-			{
+			skeletonFc.setFileFilter(new FileFilter() {
 				@Override
 				public boolean accept(File f)
 				{
-					return f.isDirectory() || f.getName().toLowerCase().contains("skeleton");
+					String fname = f.getName().toLowerCase();
+					return f.isDirectory() || fname.contains("skeleton") || (fname.contains("xbase_anim") && fname.endsWith(".nif"));
 				}
 
 				@Override
@@ -106,7 +237,7 @@ public class KfDisplayTester
 				}
 			});
 
-			skeletonFc.showOpenDialog(new JFrame());
+			skeletonFc.showOpenDialog(win);
 
 			if (skeletonFc.getSelectedFile() != null)
 			{
@@ -120,7 +251,7 @@ public class KfDisplayTester
 				skinFc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 				skinFc.setMultiSelectionEnabled(true);
 				skinFc.setFileFilter(new FileNameExtensionFilter("Nif files", "nif"));
-				skinFc.showOpenDialog(new JFrame());
+				skinFc.showOpenDialog(win);
 
 				if (skinFc.getSelectedFile() != null)
 				{
@@ -138,8 +269,7 @@ public class KfDisplayTester
 				}
 				if (!skeletonNifModelFile.toLowerCase().contains("morrowind"))
 				{
-					DetailsFileChooser dfc = new DetailsFileChooser(skeletonNifModelFile, new DetailsFileChooser.Listener()
-					{
+					DetailsFileChooser dfc = new DetailsFileChooser(skeletonNifModelFile, new DetailsFileChooser.Listener() {
 						@Override
 						public void fileSelected(File file)
 						{
@@ -182,9 +312,9 @@ public class KfDisplayTester
 		}
 	}
 
-	private static void display(String skeletonNifFile, ArrayList<String> skinNifFiles2, File kff)
+	private void display(String skeletonNifFile, ArrayList<String> skinNifFiles2, File kff)
 	{
-		transformGroup.removeAllChildren();
+		modelGroup.removeAllChildren();
 
 		BranchGroup bg = new BranchGroup();
 		bg.setCapability(BranchGroup.ALLOW_DETACH);
@@ -205,13 +335,15 @@ public class KfDisplayTester
 		NifCharacter nifCharacter = new NifCharacter(skeletonNifFile, skinNifFiles2, mediaSources, idleAnimations);
 		bg.addChild(nifCharacter);
 
-		transformGroup.addChild(bg);
+		modelGroup.addChild(bg);
+
+		simpleCameraHandler.viewBounds(nifCharacter.getBounds());
 
 	}
 
-	private static void displayTes3(String skeletonNifFile, ArrayList<String> skinNifFiles2)
+	private void displayTes3(String skeletonNifFile, ArrayList<String> skinNifFiles2)
 	{
-		transformGroup.removeAllChildren();
+		modelGroup.removeAllChildren();
 
 		BranchGroup bg = new BranchGroup();
 		bg.setCapability(BranchGroup.ALLOW_DETACH);
@@ -223,17 +355,17 @@ public class KfDisplayTester
 		final NifCharacterTes3 nifCharacter = new NifCharacterTes3(skeletonNifFile, skinNifFiles2, mediaSources);
 		bg.addChild(nifCharacter);
 
-		transformGroup.addChild(bg);
+		modelGroup.addChild(bg);
+		simpleCameraHandler.viewBounds(nifCharacter.getBounds());
 
 		// now display all sequences from the kf file for user to pickage
 		J3dNiSequenceStreamHelper j3dNiSequenceStreamHelper = nifCharacter.getJ3dNiSequenceStreamHelper();
 
-		JFrame frame = new JFrame("Select Sequence");
-		frame.setSize(200, 600);
+		JFrame seqFrame = new JFrame("Select Sequence");
+		seqFrame.setSize(200, 600);
+		seqFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-		final DefaultTableModel tableModel = new DefaultTableModel(new String[]
-		{ "FireName", "Length (ms)", }, 0)
-		{
+		final DefaultTableModel tableModel = new DefaultTableModel(new String[] { "FireName", "Length (ms)", }, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column)
 			{
@@ -241,7 +373,6 @@ public class KfDisplayTester
 			}
 
 			@Override
-			@SuppressWarnings("unchecked")
 			public Class<? extends Object> getColumnClass(int c)
 			{
 				return getValueAt(0, c).getClass();
@@ -251,12 +382,10 @@ public class KfDisplayTester
 		for (String fireName : j3dNiSequenceStreamHelper.getAllSequences())
 		{
 			long len = j3dNiSequenceStreamHelper.getSequence(fireName).getLengthMS();
-			tableModel.addRow(new Object[]
-			{ fireName, len });
+			tableModel.addRow(new Object[] { fireName, len });
 		}
 		final JTable table = new JTable(tableModel);
-		table.addMouseListener(new MouseAdapter()
-		{
+		table.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e)
 			{
@@ -269,160 +398,59 @@ public class KfDisplayTester
 
 		table.setRowSorter(new TableRowSorter<DefaultTableModel>(tableModel));
 
-		frame.getContentPane().add(new JScrollPane(table));
-		frame.setVisible(true);
+		seqFrame.getContentPane().add(new JScrollPane(table));
+		seqFrame.setVisible(true);
 	}
 
-	private static SimpleUniverse universe;
-
-	private static TransformGroup transformGroup;
-
-	private static long c = 0;
-
-	public KfDisplayTester(GraphicsConfiguration config)
+	public static void main(String[] args)
 	{
-		Canvas3D canvas = new Canvas3D(config)
-		{
-			public void postRender()
+		NifToJ3d.SUPPRESS_EXCEPTIONS = false;
+		prefs = Preferences.userNodeForPackage(KfDisplayTester.class);
+		nifDisplay = new KfDisplayTester();
+	}
+
+	private class KeyHandler extends KeyAdapter
+	{
+
+		/*	public KeyHandler()
 			{
-				//System.out.println("Count " + (c++));
-			}
-		};
+				System.out.println("H toggle havok display");
+				System.out.println("L toggle visual display");
+				System.out.println("J toggle spin");
+				System.out.println("K toggle animate model");
+				System.out.println("P toggle background color");
+				System.out.println("Space toggle cycle through files");
+			}*/
 
-		universe = new SimpleUniverse(canvas);
-
-		transformGroup = new TransformGroup();
-
-		JFrame f = new JFrame();
-		f.getContentPane().setLayout(new GridLayout(1, 1));
-
-		f.getContentPane().add(universe.getCanvas());
-
-		f.setSize(900, 900);
-		f.setLocation(400, 0);
-		f.setVisible(true);
-		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-		transformGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-		transformGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-
-		transformGroup.setCapability(Group.ALLOW_CHILDREN_EXTEND);
-		transformGroup.setCapability(Group.ALLOW_CHILDREN_WRITE);
-
-		// Create ambient light	and add it
-		Color3f alColor = new Color3f(1f, 1f, 1f);
-		AmbientLight ambLight = new AmbientLight(true, alColor);
-		ambLight.setInfluencingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
-
-		DirectionalLight dirLight1 = new DirectionalLight(true, alColor, new Vector3f(0f, -1f, 0f));
-		dirLight1.setInfluencingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
-		Vector3f v = new Vector3f(0f, 1f, 1f);
-		v.normalize();
-		DirectionalLight dirLight2 = new DirectionalLight(true, alColor, v);
-		dirLight2.setInfluencingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
-
-		BranchGroup lbg = new BranchGroup();
-		lbg.addChild(ambLight);
-		lbg.addChild(dirLight1);
-		lbg.addChild(dirLight2);
-		universe.addBranchGraph(lbg);
-
-		BranchGroup bg = new BranchGroup();
-		bg.addChild(transformGroup);
-
-		MouseRotate mr = new MouseRotate(transformGroup);
-		mr.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
-		mr.setEnable(true);
-		bg.addChild(mr);
-
-		universe.addBranchGraph(bg);
-
-		setEye();
-
-		universe.getViewer().getView().setBackClipDistance(5000);
-
-		universe.getCanvas().addMouseWheelListener(new MouseWheelListener()
-		{
-			public void mouseWheelMoved(MouseWheelEvent e)
-			{
-				if (e.getWheelRotation() < 0)
-				{
-					zoomIn();
-				}
-				else
-				{
-					zoomOut();
-				}
-			}
-		});
-
-		universe.getCanvas().addKeyListener(new KeyAdapter()
+		public void keyPressed(KeyEvent e)
 		{
 
-			public void keyPressed(KeyEvent e)
-			{
-				if (e.getKeyCode() == KeyEvent.VK_W)
+			/*	if (e.getKeyCode() == KeyEvent.VK_SPACE)
 				{
-					eye.z = eye.z - 10;
-					center.z = center.z - 10;
+					toggleCycling();
 				}
-				else if (e.getKeyCode() == KeyEvent.VK_S)
+				else if (e.getKeyCode() == KeyEvent.VK_H)
 				{
-					eye.z = eye.z + 10;
-					center.z = center.z + 10;
+					toggleHavok();
 				}
-				else if (e.getKeyCode() == KeyEvent.VK_A)
+				else if (e.getKeyCode() == KeyEvent.VK_J)
 				{
-					eye.x = eye.x - 10;
-					center.x = center.x - 10;
+					toggleSpin();
 				}
-				else if (e.getKeyCode() == KeyEvent.VK_D)
+				else if (e.getKeyCode() == KeyEvent.VK_K)
 				{
-					eye.x = eye.x + 10;
-					center.x = center.x + 10;
+					toggleAnimateModel();
 				}
-				else if (e.getKeyCode() == KeyEvent.VK_E)
+				else if (e.getKeyCode() == KeyEvent.VK_L)
 				{
-					center.z = center.z - 3;
-					center.y = -center.z / 20;
+					toggleVisual();
 				}
-				else if (e.getKeyCode() == KeyEvent.VK_C)
+				else if (e.getKeyCode() == KeyEvent.VK_P)
 				{
-					center.z = center.z + 3;
-					center.y = -center.z / 20;
-				}
+					toggleBackground();
+				}*/
+		}
 
-				setEye();
-			}
-
-		});
-
-	}
-
-	static Point3d eye = new Point3d(0, 10, 0);
-
-	static Point3d center = new Point3d(0, 0, 0);
-
-	private static void zoomOut()
-	{
-		eye.y = eye.y * 1.1d;
-		setEye();
-	}
-
-	private static void zoomIn()
-	{
-		eye.y = eye.y * 0.9d;
-		setEye();
-
-	}
-
-	private static void setEye()
-	{
-		TransformGroup tg = universe.getViewingPlatform().getViewPlatformTransform();
-		Transform3D t = new Transform3D();
-		t.lookAt(eye, center, new Vector3d(0, 0, -1));
-		t.invert();
-		tg.setTransform(t);
 	}
 
 }

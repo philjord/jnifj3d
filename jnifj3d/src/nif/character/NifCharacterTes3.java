@@ -6,12 +6,18 @@ import java.util.Random;
 
 import javax.media.j3d.Alpha;
 import javax.media.j3d.BranchGroup;
+import javax.media.j3d.GeometryArray;
+import javax.media.j3d.IndexedGeometryArray;
+import javax.media.j3d.IndexedTriangleArray;
+import javax.media.j3d.IndexedTriangleStripArray;
+import javax.media.j3d.PolygonAttributes;
 
 import nif.NifJ3dVisRoot;
 import nif.NifToJ3d;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiGeometry;
 import nif.j3d.J3dNiNode;
+import nif.j3d.J3dNiTriBasedGeom;
 import nif.j3d.animation.J3dNiGeomMorpherController;
 import nif.j3d.animation.SequenceAlpha;
 import nif.j3d.animation.tes3.J3dNiControllerSequenceTes3;
@@ -121,6 +127,7 @@ public class NifCharacterTes3 extends NifCharacter
 						if (j3dNiAVObject instanceof J3dNiGeometry)
 						{
 							J3dNiGeometry j3dNiGeometry = (J3dNiGeometry) j3dNiAVObject;
+
 							NiGeometry niGeometry = (NiGeometry) j3dNiGeometry.getNiAVObject();
 							if (niGeometry.skin.ref == -1)
 							{
@@ -146,11 +153,6 @@ public class NifCharacterTes3 extends NifCharacter
 								else if (attachNodeName.contains("_Wrist"))
 									attachNodeName = "Left Wrist";
 
-								//TODO in fact I want a mirrored object, all x value reversed to -x
-								//GeometryArray ga = (GeometryArray) j3dNiGeometry.getShape().getGeometry();
-								//if g is a geo arry then flips all x's?
-								//float[] cos = ga.getCoordRefFloat();
-
 								J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton().get(attachNodeName);
 								if (attachnode != null)
 								{
@@ -161,6 +163,8 @@ public class NifCharacterTes3 extends NifCharacter
 									CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, j3dNiAVObject, true);
 									this.addChild(ca);
 									attachments.add(ca);
+									//Note called after giving it to character attachment as this will make it morphable etc
+									reverse(j3dNiGeometry);
 								}
 							}
 						}
@@ -207,6 +211,58 @@ public class NifCharacterTes3 extends NifCharacter
 			System.out.println("No TES3 kf file for " + skeletonNifFilename + " (missing .nif)");
 		}
 
+	}
+
+	private static void reverse(J3dNiGeometry j3dNiGeometry)
+	{
+		if (j3dNiGeometry instanceof J3dNiTriBasedGeom)
+		{
+			J3dNiTriBasedGeom j3dNiTriBasedGeom = (J3dNiTriBasedGeom) j3dNiGeometry;
+			reverse(j3dNiTriBasedGeom, (IndexedGeometryArray) j3dNiTriBasedGeom.getBaseGeometryArray());
+			reverse(j3dNiTriBasedGeom, (IndexedGeometryArray) j3dNiTriBasedGeom.getCurrentGeometryArray());
+		}
+
+	}
+
+	private static void reverse(J3dNiTriBasedGeom j3dNiTriBasedGeom, IndexedGeometryArray ga)
+	{
+		if (ga != null)
+		{
+			if ((ga.getVertexFormat() & GeometryArray.BY_REFERENCE) != 0)
+			{
+
+				if ((ga.getVertexFormat() & GeometryArray.INTERLEAVED) != 0)
+				{
+					System.out.println("Unable to swap interleaved vertices for now");
+					//ga.getInterleavedVertices();
+				}
+				else
+				{
+					float[] coords = ga.getCoordRefFloat();
+					for (int v = 0; v < coords.length / 3; v++)
+					{
+						coords[v * 3 + 0] = -coords[v * 3 + 0];
+					}
+				}
+			}
+			else
+			{
+				float[] coords = new float[ga.getVertexCount() * 3];
+				ga.getCoordinates(0, coords);
+				for (int v = 0; v < coords.length / 3; v++)
+				{
+					coords[v * 3 + 0] = -coords[v * 3 + 0];
+				}
+				ga.setCoordinates(0, coords);
+				j3dNiTriBasedGeom.getShape().setGeometry(ga);
+			}
+
+			//Tri winding will be backwards now so flip faces
+			//Note can't touch the tri indexes as morpahbles still share them
+			PolygonAttributes pa = j3dNiTriBasedGeom.getShape().getAppearance().getPolygonAttributes();
+			pa.setBackFaceNormalFlip(true);
+			pa.setCullFace(PolygonAttributes.CULL_FRONT);
+		}
 	}
 
 	public J3dNiSequenceStreamHelper getJ3dNiSequenceStreamHelper()
@@ -256,7 +312,7 @@ public class NifCharacterTes3 extends NifCharacter
 				idleAnimations.size() > 0 && //
 				(currentSequence == null || //
 						(currentSequence.isNotRunning() && returnToIdleWhenDone) || //
-				System.currentTimeMillis() - prevAnimTime > 10000))
+						System.currentTimeMillis() - prevAnimTime > 10000))
 		{
 			int r = (int) (Math.random() * idleAnimations.size());
 			r = r == idleAnimations.size() ? 0 : r;

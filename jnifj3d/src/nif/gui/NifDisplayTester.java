@@ -19,10 +19,10 @@ import javax.media.j3d.Behavior;
 import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.BranchGroup;
 import javax.media.j3d.Canvas3D;
-import javax.media.j3d.DirectionalLight;
 import javax.media.j3d.GraphicsConfigTemplate3D;
 import javax.media.j3d.Group;
 import javax.media.j3d.Light;
+import javax.media.j3d.PointLight;
 import javax.media.j3d.TransformGroup;
 import javax.media.j3d.WakeupCondition;
 import javax.media.j3d.WakeupOnElapsedFrames;
@@ -31,10 +31,14 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JSplitPane;
+import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
-import javax.vecmath.Vector3f;
+import javax.vecmath.Point3f;
+
+import com.sun.j3d.utils.geometry.ColorCube;
+import com.sun.j3d.utils.universe.SimpleUniverse;
 
 import nif.BgsmSource;
 import nif.NifJ3dVisPhysRoot;
@@ -56,9 +60,6 @@ import utils.source.MeshSource;
 import utils.source.TextureSource;
 import utils.source.file.FileMeshSource;
 import utils.source.file.FileTextureSource;
-
-import com.sun.j3d.utils.geometry.ColorCube;
-import com.sun.j3d.utils.universe.SimpleUniverse;
 
 public class NifDisplayTester
 {
@@ -128,7 +129,7 @@ public class NifDisplayTester
 
 		//win.setVisible(true);
 		win.setLocation(400, 0);
-		//	win.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		win.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		gd = ge.getDefaultScreenDevice();
@@ -179,20 +180,26 @@ public class NifDisplayTester
 		modelGroup.setCapability(Group.ALLOW_CHILDREN_WRITE);
 
 		// Create ambient light	and add it
-		Color3f alColor = new Color3f(1f, 1f, 1f);
+		Color3f alColor = new Color3f(0.5f, 0.5f, 1f);
 		AmbientLight ambLight = new AmbientLight(true, alColor);
 		ambLight.setCapability(Light.ALLOW_INFLUENCING_BOUNDS_WRITE);
 		ambLight.setInfluencingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
 
-		Color3f dlColor = new Color3f(0.6f, 0.6f, 0.6f);
-		DirectionalLight dirLight = new DirectionalLight(true, dlColor, new Vector3f(0f, -1f, 0f));
-		dirLight.setCapability(Light.ALLOW_INFLUENCING_BOUNDS_WRITE);
-		dirLight.setInfluencingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
+		//Color3f dlColor = new Color3f(0.1f, 0.1f, 0.6f);
+		//DirectionalLight dirLight = new DirectionalLight(true, dlColor, new Vector3f(0f, -1f, 0f));
+		//dirLight.setCapability(Light.ALLOW_INFLUENCING_BOUNDS_WRITE);
+		//dirLight.setInfluencingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
+
+		Color3f plColor = new Color3f(0.2f, 0.2f, 0.6f);
+		PointLight pLight = new PointLight(true, plColor, new Point3f(10f, 10f, 0f), new Point3f(1f, 0.1f, 0f));
+		pLight.setCapability(Light.ALLOW_INFLUENCING_BOUNDS_WRITE);
+		pLight.setInfluencingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
 
 		BranchGroup bg = new BranchGroup();
 
-		bg.addChild(ambLight);
-		bg.addChild(dirLight);
+		//bg.addChild(ambLight);
+		//bg.addChild(dirLight);
+		bg.addChild(pLight);
 		bg.addChild(simpleCameraHandler);
 
 		bg.addChild(fileManageBehavior);
@@ -208,7 +215,7 @@ public class NifDisplayTester
 		background.setCapability(Background.ALLOW_APPLICATION_BOUNDS_READ);
 		bg.addChild(background);
 
-		bg.addChild(new ColorCube(0.1f));
+		bg.addChild(new ColorCube(0.01f));
 
 		simpleUniverse.addBranchGraph(bg);
 
