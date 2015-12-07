@@ -2,10 +2,12 @@ package nif.j3d;
 
 import javax.media.j3d.IndexedGeometryArray;
 import javax.media.j3d.IndexedTriangleArray;
+import javax.media.j3d.J3DBuffer;
 
 import nif.niobject.NiTriShape;
 import nif.niobject.NiTriShapeData;
 import nif.niobject.bs.BSLODTriShape;
+import tools3d.utils.Utils3D;
 import utils.source.TextureSource;
 
 import com.sun.j3d.utils.geometry.GeometryInfo;
@@ -78,21 +80,28 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 
 		if (data.hasVertices && data.hasTriangles)
 		{
-			int texCoordCount = 0;
-			if (data.actNumUVSets > 0 && data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS)
-				texCoordCount = 3;
-			else if (data.actNumUVSets > 0)
-				texCoordCount = 1;
-			// however all tex units use the 0ith one 2and 3 are tangents and bitangents for now
+			int texCoordCount = 1;
+
+			// All tex units use the 0ith , all others are ignored
 			int[] texMap = new int[9];
 			for (int i = 0; i < 9; i++)
 				texMap[i] = 0;
 
 			if (!STRIPIFY || morphable)
 			{
-				IndexedGeometryArray ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, INTERLEAVE), texCoordCount,
-						texMap, data.numTrianglePoints);
-				if (morphable || INTERLEAVE)
+				IndexedGeometryArray ita;
+				if (data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS)
+				{
+					ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, INTERLEAVE), texCoordCount, texMap, 2,
+							new int[] { 3, 3 }, data.numTrianglePoints);
+				}
+				else
+				{
+					ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, INTERLEAVE), texCoordCount, texMap,
+							data.numTrianglePoints);
+				}
+
+				if (morphable || INTERLEAVE || BUFFERS)
 					ita.setCoordIndicesRef(data.trianglesOpt);
 				else
 					ita.setCoordinateIndices(0, data.trianglesOpt);
@@ -117,11 +126,12 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 				gi.setCoordinates(data.verticesOpt);
 				gi.setColors4(data.vertexColorsOpt);
 				gi.setNormals(data.normalsOpt);
+
 				if (data.actNumUVSets > 0)
 				{
-					gi.setTextureCoordinateParams(data.actNumUVSets, 2);
+					gi.setTextureCoordinateParams(texCoordCount, 2);
 					gi.setTexCoordSetMap(texMap);
-					for (int i = 0; i < data.actNumUVSets; i++)
+					for (int i = 0; i < texCoordCount; i++)
 					{
 						gi.setTextureCoordinates(i, data.uVSetsOpt[i]);
 					}
@@ -130,7 +140,37 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 				Stripifier stripifer = new Stripifier();
 				stripifer.stripify(gi);
 
+				if (data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS)
+				{
+					gi.setVertexAttributes(2, new int[] { 3, 3 });
+				}
+
 				IndexedGeometryArray ita = gi.getIndexedGeometryArray(false, false, INTERLEAVE, true, BUFFERS);
+
+				if (data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS)
+				{
+					if (!morphable)
+					{
+						if (!INTERLEAVE)
+						{
+							if (!BUFFERS)
+							{
+								ita.setVertexAttrs(0, 0, data.tangentsOpt);
+								ita.setVertexAttrs(1, 0, data.binormalsOpt);
+							}
+							else
+							{
+								ita.setVertexAttrRefBuffer(0, new J3DBuffer(Utils3D.makeFloatBuffer(data.tangentsOpt)));
+								ita.setVertexAttrRefBuffer(1, new J3DBuffer(Utils3D.makeFloatBuffer(data.binormalsOpt)));
+							}
+						}
+					}
+					else
+					{
+						ita.setVertexAttrRefFloat(0, data.tangentsOpt);
+						ita.setVertexAttrRefFloat(1, data.binormalsOpt);
+					}
+				}
 
 				if (!morphable)
 				{

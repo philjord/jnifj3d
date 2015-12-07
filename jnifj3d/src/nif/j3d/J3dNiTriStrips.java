@@ -66,19 +66,25 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 				}
 			}
 
-			int texCoordCount = 0;
-			if (data.actNumUVSets > 0 && data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS)
-				texCoordCount = 3;
-			else if (data.actNumUVSets > 0)
-				texCoordCount = 1;
+			int texCoordCount = 1;
 
-			// however all tex units use the 0ith one 2and 3 are tangents and bitangents for now
+			// All tex units use the 0ith one  
 			int[] texMap = new int[9];
 			for (int i = 0; i < 9; i++)
 				texMap[i] = 0;
-
-			IndexedGeometryArray itsa = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable, INTERLEAVE),
-					texCoordCount, texMap, length, stripLengths);
+			 
+			IndexedGeometryArray itsa;
+			if (data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS)
+			{
+				itsa = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable, INTERLEAVE), texCoordCount, texMap, 2,
+						new int[] { 3, 3 }, length, stripLengths);
+			}
+			else
+			{
+				itsa = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable, INTERLEAVE),
+						texCoordCount, texMap, length, stripLengths);
+			}
+			
 			if (morphable || INTERLEAVE)
 				itsa.setCoordIndicesRef(points);
 			else

@@ -40,7 +40,10 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 	public static IndexedGeometryArray createGeometry(BSTriShape bsTriShape, boolean morphable)
 	{
 		// TODO: go back to J3dNiTriShape and set it up the same cache and optimized
-		//TODO: flip the other optimizers over to this cleaner system
+
+		//TODO: very much stop using the GI system
+		
+		
 		GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
 
 		if (bsTriShape.dataSize > 0)
@@ -116,7 +119,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 			{
 				if (bsTriShape.normalsOpt != null)
 				{
-					gi.setNormals(bsTriShape.normalsOpt);
+					gi.setNormals(bsTriShape.normalsOpt);					
 				}
 			}
 			else
@@ -170,6 +173,15 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 				ita.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
 				ita.setCapability(GeometryArray.ALLOW_REF_DATA_WRITE);
 			}
+			
+			
+			//  FO4 bitangents:
+			//auto t = nif->get<ByteVector3>( idx, "Tangent" );
+			//tangents += t;
+			//auto b = Vector3::crossproduct( n, t );
+			//bitangents += Vector3( dot, unk1f, unk2f );
+			
+			
 			return ita;
 		}
 

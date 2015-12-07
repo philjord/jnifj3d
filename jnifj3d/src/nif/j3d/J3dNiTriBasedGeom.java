@@ -29,13 +29,14 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 	//morrowind wants true false false
 	//oblivion wants true false false
 	//skyrim wants true false false
-	public static boolean INTERLEAVE = false;
 
-	public static boolean STRIPIFY = false;// Relevant to shape only
+	public static boolean TANGENTS_BITANGENTS = false;// turned on by shader code only
+
+	public static boolean INTERLEAVE = false;// FALSE if tangents and bitangents on!!!  
+
+	public static boolean STRIPIFY = false; //Relevant to shape only (no advantage with shaders?) doesn't currently work with vert attributes
 
 	public static boolean BUFFERS = false;
-
-	public static boolean TANGENTS_BITANGENTS = false;
 
 	private int outlineStencilMask = -1;
 
@@ -205,22 +206,19 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 	{
 		int vertexFormat = (data.hasVertices ? GeometryArray.COORDINATES : 0) //
 				| (data.hasNormals ? GeometryArray.NORMALS : 0) //
-				| (data.actNumUVSets > 0 ? GeometryArray.TEXTURE_COORDINATE_3 : 0) //
+				| (data.actNumUVSets > 0 ? GeometryArray.TEXTURE_COORDINATE_2 : 0) //
 				| (data.vertexColorsOpt != null ? GeometryArray.COLOR_4 : 0) //
 				| GeometryArray.USE_COORD_INDEX_ONLY //
 				| ((morphable || interleave || BUFFERS) ? GeometryArray.BY_REFERENCE_INDICES : 0)//				
 				| ((morphable || interleave || BUFFERS) ? GeometryArray.BY_REFERENCE : 0)//
 				| ((!morphable && interleave) ? GeometryArray.INTERLEAVED : 0)//
-				| ((!morphable && BUFFERS) ? GeometryArray.USE_NIO_BUFFER : 0);
+				| ((!morphable && BUFFERS) ? GeometryArray.USE_NIO_BUFFER : 0) //
+				| ((data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS) ? GeometryArray.VERTEX_ATTRIBUTES : 0);
 		return vertexFormat;
 	}
 
 	protected static void fillIn(GeometryArray ga, NiTriBasedGeomData data, boolean morphable, boolean interleave)
 	{
-
-		//TODO: I REALLY want the tangents and binormals to be vertex attributes! 
-
-		//TODO: I MUST swap the opts back into jnifj3d!
 		//Note consistency type in nif file also dictates morphable
 		float[] normals = null;
 		if (data.hasNormals)
@@ -234,36 +232,28 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 			colors4 = data.vertexColorsOpt;
 		}
 
-		//I load tagent and bitangents into texturecoords, for the shaders to use
-		// has to be 3 as I'm not using vertex attributes yet
-		int texCoordDim = 3;
+		int texCoordDim = 2;
 		float[][] texCoordSets = null;
 
 		if (data.actNumUVSets > 0)
 		{
 			texCoordSets = new float[1][];
-
-			// Notice I skip tangents in the no texcoords case
-			if (data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS)
-			{
-				texCoordSets = new float[3][];
-				texCoordSets[1] = data.tangentsOpt;
-				texCoordSets[2] = data.binormalsOpt;
-			}
-
 			texCoordSets[0] = data.uVSetsOpt[0];//others ignored
-
 		}
 
 		if (!morphable)
 		{
 			if (interleave)
 			{
-
 				float[] vertexData = J3dNiTriBasedGeom.interleave(texCoordDim, texCoordSets, null, colors4, normals, data.verticesOpt);
 				if (!BUFFERS)
 				{
 					ga.setInterleavedVertices(vertexData);
+					if (data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS)
+					{
+						ga.setVertexAttrs(0, 0, data.tangentsOpt);
+						ga.setVertexAttrs(1, 0, data.binormalsOpt);
+					}
 				}
 				else
 				{
@@ -281,19 +271,33 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 					if (data.hasVertexColors)
 						ga.setColors(0, colors4);
+
 					if (texCoordSets != null)
 					{
 						for (int i = 0; i < texCoordSets.length; i++)
 							ga.setTextureCoordinates(i, 0, texCoordSets[i]);
 					}
 
+					if (data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS)
+					{
+						//TODO: here https://www.opengl.org/sdk/docs/tutorials/ClockworkCoders/attributes.php
+						// says 6 and 7 are spare, I'm assuming java3d and openlGL sort this out?
+						// must test on nvidia hardware
+						ga.setVertexAttrs(0, 0, data.tangentsOpt);
+						ga.setVertexAttrs(1, 0, data.binormalsOpt);
+					}
 				}
 				else
 				{
+
 					ga.setCoordRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(data.verticesOpt)));
 
-					ga.setNormalRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(normals)));
-					ga.setColorRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(colors4)));
+					if (data.hasNormals)
+						ga.setNormalRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(normals)));
+
+					if (data.hasVertexColors)
+						ga.setColorRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(colors4)));
+
 					if (texCoordSets != null)
 					{
 						for (int i = 0; i < texCoordSets.length; i++)
@@ -301,7 +305,14 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 							ga.setTexCoordRefBuffer(i, new J3DBuffer(Utils3D.makeFloatBuffer(texCoordSets[i])));
 						}
 					}
+
+					if (data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS)
+					{
+						ga.setVertexAttrRefBuffer(0, new J3DBuffer(Utils3D.makeFloatBuffer(data.tangentsOpt)));
+						ga.setVertexAttrRefBuffer(1, new J3DBuffer(Utils3D.makeFloatBuffer(data.binormalsOpt)));
+					}
 				}
+
 			}
 		}
 		else
@@ -324,8 +335,15 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 				}
 			}
 
+			if (data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS)
+			{
+				ga.setVertexAttrRefFloat(0, data.tangentsOpt);
+				ga.setVertexAttrRefFloat(1, data.binormalsOpt);
+			}
+
 			ga.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
 			ga.setCapability(GeometryArray.ALLOW_REF_DATA_WRITE);
+
 		}
 
 	}
