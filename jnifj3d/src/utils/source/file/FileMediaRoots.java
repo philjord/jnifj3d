@@ -84,7 +84,7 @@ public class FileMediaRoots
 				}
 			}
 
-			System.out.println("No root found to split " + mediaFileName);
+			//System.out.println("No root found to split " + mediaFileName);
 			ret[0] = "";
 			ret[1] = mediaFileName;
 			return ret;
@@ -145,7 +145,7 @@ public class FileMediaRoots
 
 			}
 
-			System.out.println("No root found to split " + mediaFileName);
+			//System.out.println("No root found to split " + mediaFileName);
 			ret[0] = "";
 			ret[1] = mediaFileName;
 			return ret;

@@ -27,30 +27,34 @@ public class FileTextureSource implements TextureSource
 	@Override
 	public boolean textureFileExists(String texName)
 	{
-		texName = texName.toLowerCase();
-
-		if (texName.length() > 0)
+		if (texName != null && texName.length() > 0)
 		{
-			// remove incorrect file path prefix, if it exists
-			if (texName.startsWith("data\\"))
+			texName = texName.toLowerCase();
+
+			if (texName.length() > 0)
 			{
-				texName = texName.substring(5);
+				// remove incorrect file path prefix, if it exists
+				if (texName.startsWith("data\\"))
+				{
+					texName = texName.substring(5);
+				}
+
+				// add the textures path part
+				if (!texName.startsWith("textures"))
+				{
+					texName = "textures\\" + texName;
+				}
+
+				Texture tex = null;
+				//check cache hit
+				tex = DDSTextureLoader.checkCachedTexture(texName);
+				if (tex != null)
+					return true;
+
+				String[] parts = FileMediaRoots.splitOffMediaRoot(texName);
+				return new File(parts[0] + parts[1]).exists();
 			}
-
-			// add the textures path part
-			if (!texName.startsWith("textures"))
-			{
-				texName = "textures\\" + texName;
-			}
-
-			Texture tex = null;
-			//check cache hit
-			tex = DDSTextureLoader.checkCachedTexture(texName);
-			if (tex != null)
-				return true;
-
-			String[] parts = FileMediaRoots.splitOffMediaRoot(texName);
-			return new File(parts[0] + parts[1]).exists();
+			return false;
 		}
 		return false;
 
@@ -102,8 +106,8 @@ public class FileTextureSource implements TextureSource
 
 			if (tex == null)
 			{
-				System.out.println("FileTextureSource.getTexture - Problem with loading image: " + texName + "||" + parts[0] + "|"
-						+ parts[1]);
+				System.out.println(
+						"FileTextureSource.getTexture - Problem with loading image: " + texName + "||" + parts[0] + "|" + parts[1]);
 			}
 			return tex;
 		}
@@ -147,8 +151,8 @@ public class FileTextureSource implements TextureSource
 				}
 				else
 				{
-					System.out.println("FileTextureSource.getImage - Problem with loading image: " + imageName + "||" + parts[0] + "|"
-							+ parts[1]);
+					System.out.println(
+							"FileTextureSource.getImage - Problem with loading image: " + imageName + "||" + parts[0] + "|" + parts[1]);
 				}
 
 			}

@@ -87,6 +87,23 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		return shape;
 	}
 
+	public static boolean textureExists(String texName, TextureSource ts)
+	{
+		if (ts != null && texName != null && texName.length() > 0)
+		{
+			// morrowind has bmp and tga endings ?
+			texName = texName.toLowerCase().trim();
+			if (texName.endsWith(".bmp"))
+				texName = texName.substring(0, texName.indexOf(".bmp")) + ".dds";
+			else if (texName.endsWith(".tga"))
+				texName = texName.substring(0, texName.indexOf(".tga")) + ".dds";
+
+			return ts.textureFileExists(texName);
+		}
+
+		return false;
+	}
+
 	public static Texture loadTexture(String texName, TextureSource ts)
 	{
 		if (ts != null && texName != null && texName.length() > 0)

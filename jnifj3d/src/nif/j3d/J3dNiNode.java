@@ -97,22 +97,29 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 						NiTriBasedGeom niTriBasedGeom = (NiTriBasedGeom) child;
 						J3dNiTriBasedGeom ntbg = null;
 
+						J3dNiTriBasedGeom.mergeOblivionTanBiExtraData(niTriBasedGeom, niToJ3dData);
+
 						if (niTriBasedGeom instanceof NiTriShape)
+
 						{
 							//For now we skip meat caps and morrowind shadows
-							if (!(NifToJ3d.HIDE_EDITORS && isEditorMarker(niTriBasedGeom.name)) && niTriBasedGeom.name.toLowerCase().indexOf("meat") == -1
-									&& niTriBasedGeom.name.toLowerCase().indexOf("cap") == -1 && niTriBasedGeom.name.toLowerCase().indexOf("tri shadow") == -1)
+							if (!(NifToJ3d.HIDE_EDITORS && isEditorMarker(niTriBasedGeom.name))
+									&& niTriBasedGeom.name.toLowerCase().indexOf("meat") == -1
+									&& niTriBasedGeom.name.toLowerCase().indexOf("cap") == -1
+									&& niTriBasedGeom.name.toLowerCase().indexOf("tri shadow") == -1)
 							{
 								NiTriShape niTriShape = (NiTriShape) niTriBasedGeom;
 								ntbg = new J3dNiTriShape(niTriShape, niToJ3dData, textureSource);
 							}
 						}
 						else if (niTriBasedGeom instanceof BSLODTriShape)
+
 						{
 							BSLODTriShape bSLODTriShape = (BSLODTriShape) niTriBasedGeom;
 							ntbg = new J3dNiTriShape(bSLODTriShape, niToJ3dData, textureSource);
 						}
 						else if (niTriBasedGeom instanceof NiTriStrips)
+
 						{
 							if (!(NifToJ3d.HIDE_EDITORS && isEditorMarker(niTriBasedGeom.name)))
 							{
@@ -121,46 +128,57 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 							}
 						}
 						else if (niTriBasedGeom instanceof BSTriShape)
+
 						{
 							BSTriShape bsTriShape = (BSTriShape) niTriBasedGeom;
 							ntbg = new J3dBSTriShape(bsTriShape, niToJ3dData, textureSource);
 						}
 						j3dNiNodes.add(ntbg);
+
 						addChild(ntbg);
 					}
 					else if (child instanceof NiParticleSystem)
+
 					{
-						J3dNiParticleSystem j3dNiParticleSystem = new J3dNiParticleSystem((NiParticleSystem) child, niToJ3dData, textureSource);
+						J3dNiParticleSystem j3dNiParticleSystem = new J3dNiParticleSystem((NiParticleSystem) child, niToJ3dData,
+								textureSource);
 						addChild(j3dNiParticleSystem);
 					}
 					else if (child instanceof NiCamera)
+
 					{
 						J3dNiCamera j3dNiCamera = new J3dNiCamera((NiCamera) child, niToJ3dData);
 						addChild(j3dNiCamera);
 					}
 					else if (child instanceof NiAmbientLight)
+
 					{
 						J3dNiAmbientLight j3dNiAmbientLight = new J3dNiAmbientLight((NiAmbientLight) child, niToJ3dData);
 						addChild(j3dNiAmbientLight);
 					}
 					else if (child instanceof NiPointLight)
+
 					{
 						J3dNiPointLight j3dNiPointLight = new J3dNiPointLight((NiPointLight) child, niToJ3dData);
 						addChild(j3dNiPointLight);
 					}
 					else if (child instanceof NiDirectionalLight)
+
 					{
 						J3dNiDirectionalLight j3dNiDirectionalLight = new J3dNiDirectionalLight((NiDirectionalLight) child, niToJ3dData);
 						addChild(j3dNiDirectionalLight);
 					}
 					else if (child instanceof NiTextureEffect)
+
 					{
 						//TODO: NiTextureEffect
 					}
 					else
+
 					{
 						System.out.println("J3dNiNode - unhandled child NiAVObject " + child);
 					}
+
 				}
 			}
 		}

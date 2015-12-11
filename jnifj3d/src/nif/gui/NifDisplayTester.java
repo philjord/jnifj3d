@@ -181,6 +181,7 @@ public class NifDisplayTester
 
 		// Create ambient light	and add it
 		Color3f alColor = new Color3f(0.5f, 0.5f, 0.5f);
+		//Color3f alColor = new Color3f(0.5f, 0.5f, 0.5f);
 		AmbientLight ambLight = new AmbientLight(true, alColor);
 		ambLight.setCapability(Light.ALLOW_INFLUENCING_BOUNDS_WRITE);
 		ambLight.setInfluencingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
@@ -190,14 +191,15 @@ public class NifDisplayTester
 		//dirLight.setCapability(Light.ALLOW_INFLUENCING_BOUNDS_WRITE);
 		//dirLight.setInfluencingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
 
-		Color3f plColor = new Color3f(0.4f, 0.4f, 0.7f);
-		PointLight pLight = new PointLight(true, plColor, new Point3f(10f, 10f, 0f), new Point3f(1f, 0.1f, 0f));
+		Color3f plColor = new Color3f(0.8f, 0.8f, 0.75f);
+		//Color3f plColor = new Color3f(0.4f, 0.4f, 0.7f);
+		PointLight pLight = new PointLight(true, plColor, new Point3f(5f, 5f, 5f), new Point3f(1f, 0.01f, 0f));
 		pLight.setCapability(Light.ALLOW_INFLUENCING_BOUNDS_WRITE);
 		pLight.setInfluencingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
 
 		BranchGroup bg = new BranchGroup();
 
-	//	bg.addChild(ambLight);
+		bg.addChild(ambLight);
 		//bg.addChild(dirLight);
 		bg.addChild(pLight);
 		bg.addChild(simpleCameraHandler);

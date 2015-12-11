@@ -1,5 +1,8 @@
 package nif.j3d;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+
 import javax.media.j3d.Appearance;
 import javax.media.j3d.BranchGroup;
 import javax.media.j3d.ColoringAttributes;
@@ -13,6 +16,10 @@ import javax.media.j3d.RenderingAttributes;
 import javax.media.j3d.Shape3D;
 import javax.vecmath.Color3f;
 
+import nif.NifVer;
+import nif.basic.NifRef;
+import nif.niobject.NiBinaryExtraData;
+import nif.niobject.NiObject;
 import nif.niobject.NiTriBasedGeom;
 import nif.niobject.NiTriBasedGeomData;
 import tools.WeakValueHashMap;
@@ -30,7 +37,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 	//oblivion wants true false false
 	//skyrim wants true false false
 
-	public static boolean TANGENTS_BITANGENTS = false;// turned on by shader code only
+	public static boolean TANGENTS_BITANGENTS = false;//  shader code auto ons 
 
 	public static boolean INTERLEAVE = false;// FALSE if tangents and bitangents on!!!  
 
@@ -213,7 +220,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 				| ((morphable || interleave || BUFFERS) ? GeometryArray.BY_REFERENCE : 0)//
 				| ((!morphable && interleave) ? GeometryArray.INTERLEAVED : 0)//
 				| ((!morphable && BUFFERS) ? GeometryArray.USE_NIO_BUFFER : 0) //
-				| ((data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS) ? GeometryArray.VERTEX_ATTRIBUTES : 0);
+				| ((data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS) ? GeometryArray.VERTEX_ATTRIBUTES : 0);
 		return vertexFormat;
 	}
 
@@ -249,8 +256,9 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 				if (!BUFFERS)
 				{
 					ga.setInterleavedVertices(vertexData);
-					if (data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS)
+					if (data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS)
 					{
+
 						ga.setVertexAttrs(0, 0, data.tangentsOpt);
 						ga.setVertexAttrs(1, 0, data.binormalsOpt);
 					}
@@ -278,7 +286,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 							ga.setTextureCoordinates(i, 0, texCoordSets[i]);
 					}
 
-					if (data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS)
+					if (data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS)
 					{
 						//TODO: here https://www.opengl.org/sdk/docs/tutorials/ClockworkCoders/attributes.php
 						// says 6 and 7 are spare, I'm assuming java3d and openlGL sort this out?
@@ -306,7 +314,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 						}
 					}
 
-					if (data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS)
+					if (data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS)
 					{
 						ga.setVertexAttrRefBuffer(0, new J3DBuffer(Utils3D.makeFloatBuffer(data.tangentsOpt)));
 						ga.setVertexAttrRefBuffer(1, new J3DBuffer(Utils3D.makeFloatBuffer(data.binormalsOpt)));
@@ -335,7 +343,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 				}
 			}
 
-			if (data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS)
+			if (data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS)
 			{
 				ga.setVertexAttrRefFloat(0, data.tangentsOpt);
 				ga.setVertexAttrRefFloat(1, data.binormalsOpt);
@@ -434,5 +442,44 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 		}
 
 		return d;
+	}
+
+	public static void mergeOblivionTanBiExtraData(NiTriBasedGeom niTriBasedGeom, NiToJ3dData niToJ3dData)
+	{
+		boolean isOblivion = ((niTriBasedGeom.nVer.LOAD_VER == NifVer.VER_20_0_0_4 || niTriBasedGeom.nVer.LOAD_VER == NifVer.VER_20_0_0_5)
+				&& (niTriBasedGeom.nVer.LOAD_USER_VER == 11));
+		if (isOblivion)
+		{
+			NiTriBasedGeomData data = (NiTriBasedGeomData) niToJ3dData.get(niTriBasedGeom.data);
+			// this can be called many times, only set it up the first time
+			if (data.tangentsOpt == null)
+			{
+				NifRef[] properties = niTriBasedGeom.extraDataList;
+
+				for (int i = 0; i < properties.length; i++)
+				{
+					NiObject prop = niToJ3dData.get(properties[i]);
+					if (prop != null && prop instanceof NiBinaryExtraData)
+					{
+						NiBinaryExtraData niBinaryExtraData = (NiBinaryExtraData) prop;
+						if (niBinaryExtraData.name.equals("Tangent space (binormal & tangent vectors)"))
+						{
+							ByteArrayInputStream stream = new ByteArrayInputStream(niBinaryExtraData.binaryData.data);
+
+							try
+							{
+								data.loadTangentAndBinormalsFromExtraData(stream, data.nVer);
+							}
+							catch (IOException e)
+							{
+								e.printStackTrace();
+							}
+						}
+					}
+				}
+			}
+
+		}
+
 	}
 }

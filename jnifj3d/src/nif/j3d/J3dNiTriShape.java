@@ -68,6 +68,7 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 
 	public static IndexedGeometryArray createGeometry(NiTriShapeData data, boolean morphable)
 	{
+		 
 		if (!morphable)
 		{
 			IndexedGeometryArray iga = sharedIGAs.get(data);
@@ -90,7 +91,7 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 			if (!STRIPIFY || morphable)
 			{
 				IndexedGeometryArray ita;
-				if (data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS)
+				if (data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS)
 				{
 					ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, INTERLEAVE), texCoordCount, texMap, 2,
 							new int[] { 3, 3 }, data.numTrianglePoints);
@@ -140,14 +141,14 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 				Stripifier stripifer = new Stripifier();
 				stripifer.stripify(gi);
 
-				if (data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS)
+				if (data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS)
 				{
 					gi.setVertexAttributes(2, new int[] { 3, 3 });
 				}
 
 				IndexedGeometryArray ita = gi.getIndexedGeometryArray(false, false, INTERLEAVE, true, BUFFERS);
 
-				if (data.hasNormals && (data.numUVSets & 61440) != 0 && TANGENTS_BITANGENTS)
+				if (data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS)
 				{
 					if (!morphable)
 					{
