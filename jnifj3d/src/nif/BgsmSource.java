@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import nif.niobject.bgsm.BgsmFile;
+import nif.niobject.bgsm.BSMaterial;
 import utils.source.MeshSource;
 
 /**
@@ -14,40 +15,41 @@ import utils.source.MeshSource;
  */
 public class BgsmSource
 {
-
 	private static MeshSource MESH_SOURCE = null;
-	private static HashMap<String, BgsmFile> bgsmFiles = new HashMap<String, BgsmFile>();
+
+	private static HashMap<String, BSMaterial> materialFiles = new HashMap<String, BSMaterial>();
 
 	public static void setBgsmSource(MeshSource meshSource)
 	{
 		MESH_SOURCE = meshSource;
 	}
 
-	public static BgsmFile getBgsmFile(String fileName) throws IOException
+	public static BSMaterial getMaterial(String fileName) throws IOException
 	{
 		if (MESH_SOURCE != null)
 		{
 			// e.g. materials\Landscape\Rocks\BlastedForestRocksMoss.BGSM
 			// e.g. here is a bad name C:\Projects\Fallout4\Build\PC\Data\materials\Vehicles\Frame01.BGSM
-			
-			if(fileName.toLowerCase().indexOf("materials") > 0)
+
+			if (fileName.toLowerCase().indexOf("materials") > 0)
 			{
 				fileName = fileName.toLowerCase().substring(fileName.toLowerCase().indexOf("materials"));
 			}
-			
-			BgsmFile bgsmFile = bgsmFiles.get(fileName);
 
-			if (bgsmFile == null)
+			BSMaterial material = materialFiles.get(fileName);
+
+			if (material == null)
 			{
-				bgsmFile = BgsmFile.readBgsmFile(fileName, MESH_SOURCE.getInputStreamForFile(fileName));
-				bgsmFiles.put(fileName, bgsmFile);
+				material = BgsmFile.readMaterialFile(fileName, MESH_SOURCE.getInputStreamForFile(fileName));
+				materialFiles.put(fileName, material);
 			}
 
-			return bgsmFile;
+			return material;
 		}
 		else
 		{
-			new Throwable("Mesh Source must be set in BgsmSource using setBgsmSource(MeshSource meshSource) before requesting bgsm files").printStackTrace();
+			new Throwable("Mesh Source must be set in BgsmSource using setBgsmSource(MeshSource meshSource) before requesting bgsm files")
+					.printStackTrace();
 		}
 		return null;
 	}

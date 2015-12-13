@@ -49,7 +49,7 @@ import nif.niobject.NiTexturingProperty;
 import nif.niobject.NiVertexColorProperty;
 import nif.niobject.NiWireframeProperty;
 import nif.niobject.NiZBufferProperty;
-import nif.niobject.bgsm.BgsmFile;
+import nif.niobject.bgsm.BSMaterial;
 import nif.niobject.bs.BSEffectShaderProperty;
 import nif.niobject.bs.BSLightingShaderProperty;
 import nif.niobject.bs.BSRefractionFirePeriodController;
@@ -439,16 +439,16 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 
 					// now set the texture
 					// FO4 has material files pointed at by name
-					if (bslsp.Name.toLowerCase().endsWith(".bgsm"))
+					if (bslsp.Name.toLowerCase().endsWith(".bgsm") || bslsp.Name.toLowerCase().endsWith(".bgem"))
 					{
 						// if the bgsm file exists the textureset may have bad .tga files in it (or good .dds ones)
 						// but the bgsm definitely has good textures
 						try
 						{
-							BgsmFile bgsm = BgsmSource.getBgsmFile(bslsp.Name);
-							if (bgsm != null)
+							BSMaterial material = BgsmSource.getMaterial(bslsp.Name);
+							if (material != null)
 							{
-								Texture tex = J3dNiGeometry.loadTexture(bgsm.textures[0], textureSource);
+								Texture tex = J3dNiGeometry.loadTexture(material.textureList.get(0), textureSource);
 								tus0.setTexture(tex);
 							}
 						}
