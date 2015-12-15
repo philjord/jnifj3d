@@ -39,12 +39,24 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 
 	public static IndexedGeometryArray createGeometry(BSTriShape bsTriShape, boolean morphable)
 	{
-		// TODO: go back to J3dNiTriShape and set it up the same cache and optimized
 
 		//TODO: very much stop using the GI system
-		
-		
+
+		if (!morphable)
+		{
+			IndexedGeometryArray iga = sharedIGAs.get(bsTriShape);
+
+			if (iga != null)
+			{
+				return iga;
+			}
+		}
+
 		GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
+		if (TANGENTS_BITANGENTS)
+		{
+			gi.setVertexAttributes(2, new int[] { 3, 3 });
+		}
 
 		if (bsTriShape.dataSize > 0)
 		{
@@ -92,7 +104,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 					gi.setTextureCoordinateParams(1, 2);
 					int[] texMap = new int[] { 0 };
 					gi.setTexCoordSetMap(texMap);
-					
+
 					gi.setTextureCoordinates(0, bsTriShape.uVSetOpt);
 				}
 			}
@@ -119,7 +131,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 			{
 				if (bsTriShape.normalsOpt != null)
 				{
-					gi.setNormals(bsTriShape.normalsOpt);					
+					gi.setNormals(bsTriShape.normalsOpt);
 				}
 			}
 			else
@@ -166,22 +178,52 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 				stripifer.stripify(gi);
 			}
 
-			IndexedGeometryArray ita = gi.getIndexedGeometryArray(false, true, INTERLEAVE && !morphable, true, BUFFERS && !morphable);
+			IndexedGeometryArray ita = gi.getIndexedGeometryArray(false, false, INTERLEAVE && !morphable, true, BUFFERS && !morphable);
 
 			if (morphable)
 			{
 				ita.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
 				ita.setCapability(GeometryArray.ALLOW_REF_DATA_WRITE);
 			}
-			
-			
-			//  FO4 bitangents:
-			//auto t = nif->get<ByteVector3>( idx, "Tangent" );
-			//tangents += t;
-			//auto b = Vector3::crossproduct( n, t );
-			//bitangents += Vector3( dot, unk1f, unk2f );
-			
-			
+
+			if (TANGENTS_BITANGENTS)
+			{
+				if (BSTriShape.LOAD_OPTIMIZED)
+				{
+					if (bsTriShape.tangentsOpt != null)
+					{
+						ita.setVertexAttrs(0, 0, bsTriShape.tangentsOpt);
+						ita.setVertexAttrs(1, 0, bsTriShape.binormalsOpt);
+					}
+				}
+				else
+				{
+					if (vertexData[0].tangent != null)
+					{
+						float[] tangentsOpt = new float[bsTriShape.numVertices * 3];
+						for (int i = 0; i < bsTriShape.numVertices; i++)
+						{
+							tangentsOpt[i * 3 + 0] = vertexData[i].tangent.x;
+							tangentsOpt[i * 3 + 2] = -vertexData[i].tangent.y;
+							tangentsOpt[i * 3 + 1] = vertexData[i].tangent.z;
+						}
+						ita.setVertexAttrs(0, 0, tangentsOpt);
+
+						float[] bitangentsOpt = new float[bsTriShape.numVertices * 3];
+						for (int i = 0; i < bsTriShape.numVertices; i++)
+						{
+							bitangentsOpt[i * 3 + 0] = vertexData[i].bitangentX;
+							bitangentsOpt[i * 3 + 2] = -vertexData[i].bitangentY;
+							bitangentsOpt[i * 3 + 1] = vertexData[i].bitangentZ;
+						}
+						ita.setVertexAttrs(1, 0, bitangentsOpt);
+					}
+				}
+			}
+			if (!morphable)
+			{
+				sharedIGAs.put(bsTriShape, ita);
+			}
 			return ita;
 		}
 

@@ -1,12 +1,15 @@
 package nif.gui;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.prefs.Preferences;
 
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import nif.BgsmSource;
 import nif.NifToJ3d;
+import nif.niobject.bs.BSTriShape;
 import tools.ddstexture.DDSTextureLoader;
 import tools.swing.DetailsFileChooser;
 import utils.source.DummyTextureSource;
@@ -14,6 +17,7 @@ import utils.source.file.FileMeshSource;
 
 public class NifLoaderTester
 {
+	private static final boolean NO_J3D = true;
 	private static Preferences prefs;
 
 	public static void main(String[] args)
@@ -32,12 +36,25 @@ public class NifLoaderTester
 					{
 						processDir(dir);
 						System.out.println("Processing " + dir + "complete");
+
+					/*	System.out.println("formats");						 
+						for (Entry<String, Integer> e : BSTriShape.allFormatToCount.entrySet())
+						{
+							System.out.println("format " + e.getKey() + " count " + e.getValue());
+						}
+						
+						System.out.println("In the presence of 7 & 0x01 == 1");
+						System.out.println("flags7ToSizeDisagreements " + BSTriShape.flags7ToSizeDisagreements);
+						for (Entry<Integer, Integer> e : BSTriShape.flags7ToSize.entrySet())
+						{
+							System.out.println("flag " + e.getKey() + " size " + e.getValue());
+						}*/
+						
+
 					}
 				};
 				t.start();
 			}
-			
-
 
 			@Override
 			public void fileSelected(File file)
@@ -70,14 +87,21 @@ public class NifLoaderTester
 			{
 				FileMeshSource fileMeshSource = new FileMeshSource();
 				BgsmSource.setBgsmSource(fileMeshSource);
-				NifToJ3d.loadHavok(f.getCanonicalPath(), fileMeshSource);
-				// NifJ3dVisRoot r =
-				NifToJ3d.loadShapes(f.getCanonicalPath(), fileMeshSource, new DummyTextureSource());
 
-				// System.out.println("modelSizes.put(\"\\" + f.getParent().substring(f.getParent().lastIndexOf("\\")) +
-				// "\\\\" + f.getName() + "\", "
-				// + ((BoundingSphere) r.getVisualRoot().getBounds()).getRadius() + "f);");
+				if (NO_J3D)
+				{
+					NifToJ3d.loadNiObjects(f.getCanonicalPath(), fileMeshSource);
+				}
+				else
+				{
+					NifToJ3d.loadHavok(f.getCanonicalPath(), fileMeshSource);
+					// NifJ3dVisRoot r =
+					NifToJ3d.loadShapes(f.getCanonicalPath(), fileMeshSource, new DummyTextureSource());
 
+					// System.out.println("modelSizes.put(\"\\" + f.getParent().substring(f.getParent().lastIndexOf("\\")) +
+					// "\\\\" + f.getName() + "\", "
+					// + ((BoundingSphere) r.getVisualRoot().getBounds()).getRadius() + "f);");
+				}
 			}
 
 			NifToJ3d.clearCache();
@@ -91,7 +115,7 @@ public class NifLoaderTester
 	}
 
 	private static void processDir(File dir)
-	{			
+	{
 		// is this dir full of any files we want
 		File[] fs = dir.listFiles();
 		boolean hasFileOfInterest = false;
@@ -105,7 +129,8 @@ public class NifLoaderTester
 			}
 		}
 
-		if (hasFileOfInterest)
+		//precombined is 124k of 196k files! and I don't yet parse the geom data anyway
+		if (hasFileOfInterest && !dir.getAbsolutePath().toLowerCase().contains("precombined"))
 		{
 			System.out.println("Processing directory " + dir);
 			Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
