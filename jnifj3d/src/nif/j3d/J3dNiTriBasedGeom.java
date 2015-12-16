@@ -211,6 +211,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 	protected static int getFormat(NiTriBasedGeomData data, boolean morphable, boolean interleave)
 	{
+		//TODO: this is using the optomized arrays so will fail for normal
 		int vertexFormat = (data.hasVertices ? GeometryArray.COORDINATES : 0) //
 				| (data.hasNormals ? GeometryArray.NORMALS : 0) //
 				| (data.actNumUVSets > 0 ? GeometryArray.TEXTURE_COORDINATE_2 : 0) //
