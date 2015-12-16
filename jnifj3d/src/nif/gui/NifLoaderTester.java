@@ -37,7 +37,7 @@ public class NifLoaderTester
 						processDir(dir);
 						System.out.println("Processing " + dir + "complete");
 
-					/*	System.out.println("formats");						 
+						System.out.println("formats");						 
 						for (Entry<String, Integer> e : BSTriShape.allFormatToCount.entrySet())
 						{
 							System.out.println("format " + e.getKey() + " count " + e.getValue());
@@ -48,7 +48,7 @@ public class NifLoaderTester
 						for (Entry<Integer, Integer> e : BSTriShape.flags7ToSize.entrySet())
 						{
 							System.out.println("flag " + e.getKey() + " size " + e.getValue());
-						}*/
+						}
 						
 
 					}
@@ -130,7 +130,7 @@ public class NifLoaderTester
 		}
 
 		//precombined is 124k of 196k files! and I don't yet parse the geom data anyway
-		if (hasFileOfInterest && !dir.getAbsolutePath().toLowerCase().contains("precombined"))
+		if (hasFileOfInterest )//&& !dir.getAbsolutePath().toLowerCase().contains("precombined"))
 		{
 			System.out.println("Processing directory " + dir);
 			Thread.currentThread().setPriority(Thread.MIN_PRIORITY);

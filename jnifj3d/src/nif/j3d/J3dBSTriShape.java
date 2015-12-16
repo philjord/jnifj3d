@@ -178,7 +178,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 				stripifer.stripify(gi);
 			}
 
-			IndexedGeometryArray ita = gi.getIndexedGeometryArray(false, false, INTERLEAVE && !morphable, true, BUFFERS && !morphable);
+			IndexedGeometryArray ita = gi.getIndexedGeometryArray(false, morphable, INTERLEAVE && !morphable, true, BUFFERS && !morphable);
 
 			if (morphable)
 			{
