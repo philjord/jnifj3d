@@ -97,6 +97,7 @@ public class NifToJ3d
 
 	public static NifJ3dVisRoot loadShapes(String filename, MeshSource meshSource, TextureSource textureSource)
 	{
+		//System.out.println("filename " +filename);
 		NifFile nifFile = loadNiObjects(filename, meshSource);
 		if (nifFile != null)
 		{

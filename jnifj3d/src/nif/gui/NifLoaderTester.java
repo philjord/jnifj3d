@@ -1,15 +1,13 @@
 package nif.gui;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map.Entry;
 import java.util.prefs.Preferences;
 
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import nif.BgsmSource;
+import nif.NifFile;
 import nif.NifToJ3d;
-import nif.niobject.bs.BSTriShape;
 import tools.ddstexture.DDSTextureLoader;
 import tools.swing.DetailsFileChooser;
 import utils.source.DummyTextureSource;
@@ -19,6 +17,8 @@ public class NifLoaderTester
 {
 	private static final boolean NO_J3D = true;
 	private static Preferences prefs;
+
+	private static int filesProcessed = 0;
 
 	public static void main(String[] args)
 	{
@@ -37,21 +37,35 @@ public class NifLoaderTester
 						processDir(dir);
 						System.out.println("Processing " + dir + "complete");
 
-						System.out.println("formats");						 
-						for (Entry<String, Integer> e : BSTriShape.allFormatToCount.entrySet())
-						{
-							System.out.println("format " + e.getKey() + " count " + e.getValue());
-						}
-						
-						System.out.println("In the presence of 7 & 0x01 == 1");
-						System.out.println("flags7ToSizeDisagreements " + BSTriShape.flags7ToSizeDisagreements);
-						for (Entry<Integer, Integer> e : BSTriShape.flags7ToSize.entrySet())
-						{
-							System.out.println("flag " + e.getKey() + " size " + e.getValue());
-						}
-						
+						/*	System.out.println("formats");						 
+							for (Entry<String, Integer> e : BSTriShape.allFormatToCount.entrySet())
+							{
+								System.out.println("format " + e.getKey() + " count " + e.getValue());
+							}
+							
+							System.out.println("In the presence of 7 & 0x01 == 1");
+							System.out.println("flags7ToSizeDisagreements " + BSTriShape.flags7ToSizeDisagreements);
+							for (Entry<Integer, Integer> e : BSTriShape.flags7ToSize.entrySet())
+							{
+								System.out.println("flag " + e.getKey() + " size " + e.getValue());
+							}*/
 
+					/*	for (Entry<String, Vec3f> e : BSPackedCombinedSharedGeomDataExtra.fileHashToMin.entrySet())
+						{
+							Vec3f min = e.getValue();
+							Vec3f max = BSPackedCombinedSharedGeomDataExtra.fileHashToMax.get(e.getKey());
+							Vec3f diff = new Vec3f(max);
+							diff.sub(min);
+							System.out.println("name " + e.getKey() + " min " + min + "\tmax " + max + " " + diff);
+						}*/
+
+						/*System.out.println(" processed  " + filesProcessed + "total files");
+						System.out.println("countWithHavokRoot " + countWithHavokRoot);
+						System.out.println("sizeWithHavokRoot " + sizeWithHavokRoot);
+						System.out.println("countPhysics " + countPhysics);
+						System.out.println("sizePhysics " + sizePhysics);*/
 					}
+
 				};
 				t.start();
 			}
@@ -67,6 +81,11 @@ public class NifLoaderTester
 		dfc.setFileFilter(new FileNameExtensionFilter("Nif", "nif"));
 
 	}
+
+	public static int countWithHavokRoot = 0;
+	public static long sizeWithHavokRoot = 0;
+	public static int countPhysics = 0;
+	public static long sizePhysics = 0;
 
 	private static void processFile(File f)
 	{
@@ -90,7 +109,30 @@ public class NifLoaderTester
 
 				if (NO_J3D)
 				{
-					NifToJ3d.loadNiObjects(f.getCanonicalPath(), fileMeshSource);
+					if (f.getName().contains("Physics.NIF"))
+					{
+						countPhysics++;
+						sizePhysics += f.length();
+					}
+					else
+					{
+						NifFile o = NifToJ3d.loadNiObjects(f.getCanonicalPath(), fileMeshSource);
+
+					/*	for (NiObject nio : o.blocks)
+						{
+							if (nio instanceof NiNode)
+							{
+								NiNode nn = (NiNode) nio;
+								if (nn.name.equals("HavokRoot"))
+								{
+									countWithHavokRoot++;
+									sizeWithHavokRoot += f.length();
+									break;
+								}
+							}
+						}*/
+					}
+
 				}
 				else
 				{
@@ -105,6 +147,10 @@ public class NifLoaderTester
 			}
 
 			NifToJ3d.clearCache();
+
+			filesProcessed++;
+			if (filesProcessed % 1000 == 0)
+				System.out.println("FilesProcessed " + filesProcessed);
 
 			// System.out.println(" in " + (System.currentTimeMillis() - start));
 		}
@@ -130,7 +176,7 @@ public class NifLoaderTester
 		}
 
 		//precombined is 124k of 196k files! and I don't yet parse the geom data anyway
-		if (hasFileOfInterest )//&& !dir.getAbsolutePath().toLowerCase().contains("precombined"))
+		if (hasFileOfInterest)//&& !dir.getAbsolutePath().toLowerCase().contains("precombined"))
 		{
 			System.out.println("Processing directory " + dir);
 			Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
