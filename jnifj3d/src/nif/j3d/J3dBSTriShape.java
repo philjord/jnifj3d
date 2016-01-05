@@ -12,6 +12,7 @@ import javax.media.j3d.TextureAttributes;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
 import javax.vecmath.Color3f;
+import javax.vecmath.Matrix3f;
 import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
 import javax.vecmath.TexCoord2f;
@@ -25,6 +26,7 @@ import nif.niobject.bs.BSPackedCombinedSharedGeomDataExtra.Combined;
 import nif.niobject.bs.BSPackedCombinedSharedGeomDataExtra.Data;
 import nif.niobject.bs.BSTriShape;
 import tools3d.utils.Utils3D;
+import tools3d.utils.YawPitch;
 import tools3d.utils.leafnode.Cube;
 import utils.ESConfig;
 import utils.convert.ConvertFromNif;
@@ -67,20 +69,21 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 			BSPackedCombinedSharedGeomDataExtra packed = (BSPackedCombinedSharedGeomDataExtra) niToJ3dData.get(extraDataList[0]);
 
 			Data[] datas = packed.data;
-			System.out.println("set of data below");
+			//System.out.println("set of data below");
 			for (int da = 0; da < datas.length; da++)
 			{
 				Data data = datas[da];
-				System.out.println("data " + da);
+				//System.out.println("data " + da);
 
-				System.out.println("set of combined below");
+				//System.out.println("set of combined below");
 				for (int c = 0; c < data.NumCombined; c++)
 				{
-					System.out.println("combined " + c);
+					//	System.out.println("combined " + c);
 					Combined combined = data.Combined[c];
 
 					// reverse it all!
 					NifMatrix33 m = combined.rot;
+					
 					float[] d = m.data();
 					m.m33 = d[0];
 					m.m23 = d[1];
@@ -92,19 +95,43 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 					m.m21 = d[7];
 					m.m11 = d[8];
 
+					Matrix3f m2 = new Matrix3f(m.data());
+					//m2.invert();
+					Quat4f q2 = new Quat4f();
+					q2.set(m2);
+					YawPitch yp = new YawPitch(q2);
+					System.out.println("yp = " + yp);
+
 					Quat4f q = ConvertFromNif.toJ3d(m);
+					//q= new Quat4f(0,0,0,1);// I think my q is not forming as I would have it form
+					// I think I need to round the values off or something like nifskope
+
+				
+
+					
+
 					Vector3f t = ConvertFromNif.toJ3d(combined.trans);
 					float s = combined.scale;
 
-					Transform3D t4p = new Transform3D(q, t, s);
+					Transform3D t4p = new Transform3D(q2, t, s);
 
-					Point3f p0 = new Point3f(1.0f, 1.0f, 0);
+					float x = 5.12f;
+					float y = 0;
+					float z = 5.12f;
+
+					if (Math.abs(packed.fs[da][2]) < 0.01)
+					{
+						y = 5.12f;
+						z = 0;
+					}
+
+					Point3f p0 = new Point3f(x, y, z);
 					t4p.transform(p0);
-					Point3f p1 = new Point3f(0.0f, 1.0f, 0);
+					Point3f p1 = new Point3f(0.0f, y, z);
 					t4p.transform(p1);
 					Point3f p2 = new Point3f(0.0f, 0.0f, 0);
 					t4p.transform(p2);
-					Point3f p3 = new Point3f(1.0f, 0.0f, 0);
+					Point3f p3 = new Point3f(x, 0.0f, 0);
 					t4p.transform(p3);
 
 					shape.addGeometry(createQuad(p0, p1, p2, p3));

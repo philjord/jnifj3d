@@ -1,6 +1,7 @@
 package nif.gui;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.prefs.Preferences;
 
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -8,6 +9,11 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import nif.BgsmSource;
 import nif.NifFile;
 import nif.NifToJ3d;
+import nif.basic.NifRef;
+import nif.niobject.NiObject;
+import nif.niobject.bs.BSPackedCombinedSharedGeomDataExtra;
+import nif.niobject.bs.BSPackedCombinedSharedGeomDataExtra.Combined;
+import nif.niobject.bs.BSPackedCombinedSharedGeomDataExtra.Data;
 import tools.ddstexture.DDSTextureLoader;
 import tools.swing.DetailsFileChooser;
 import utils.source.DummyTextureSource;
@@ -50,20 +56,23 @@ public class NifLoaderTester
 								System.out.println("flag " + e.getKey() + " size " + e.getValue());
 							}*/
 
-					/*	for (Entry<String, Vec3f> e : BSPackedCombinedSharedGeomDataExtra.fileHashToMin.entrySet())
-						{
-							Vec3f min = e.getValue();
-							Vec3f max = BSPackedCombinedSharedGeomDataExtra.fileHashToMax.get(e.getKey());
-							Vec3f diff = new Vec3f(max);
-							diff.sub(min);
-							System.out.println("name " + e.getKey() + " min " + min + "\tmax " + max + " " + diff);
-						}*/
+						/*	for (Entry<String, Vec3f> e : BSPackedCombinedSharedGeomDataExtra.fileHashToMin.entrySet())
+							{
+								Vec3f min = e.getValue();
+								Vec3f max = BSPackedCombinedSharedGeomDataExtra.fileHashToMax.get(e.getKey());
+								Vec3f diff = new Vec3f(max);
+								diff.sub(min);
+								System.out.println("name " + e.getKey() + " min " + min + "\tmax " + max + " " + diff);
+							}*/
 
 						/*System.out.println(" processed  " + filesProcessed + "total files");
 						System.out.println("countWithHavokRoot " + countWithHavokRoot);
 						System.out.println("sizeWithHavokRoot " + sizeWithHavokRoot);
 						System.out.println("countPhysics " + countPhysics);
 						System.out.println("sizePhysics " + sizePhysics);*/
+						
+					//	System.out.println("files.size() " + files.size());
+						 
 					}
 
 				};
@@ -81,7 +90,7 @@ public class NifLoaderTester
 		dfc.setFileFilter(new FileNameExtensionFilter("Nif", "nif"));
 
 	}
-
+	public static HashSet<String> files = new HashSet<String>();
 	public static int countWithHavokRoot = 0;
 	public static long sizeWithHavokRoot = 0;
 	public static int countPhysics = 0;
@@ -118,17 +127,36 @@ public class NifLoaderTester
 					{
 						NifFile o = NifToJ3d.loadNiObjects(f.getCanonicalPath(), fileMeshSource);
 
-					/*	for (NiObject nio : o.blocks)
+						
+						
+				/*		for (NiObject nio : o.blocks)
 						{
-							if (nio instanceof NiNode)
+							if (nio instanceof BSPackedCombinedSharedGeomDataExtra)
 							{
-								NiNode nn = (NiNode) nio;
-								if (nn.name.equals("HavokRoot"))
+								BSPackedCombinedSharedGeomDataExtra packed = (BSPackedCombinedSharedGeomDataExtra) nio;
+
+								float prevValue = -9999;
+
+								Data[] datas = packed.data;
+
+								for (int da = 0; da < datas.length; da++)
 								{
-									countWithHavokRoot++;
-									sizeWithHavokRoot += f.length();
-									break;
+									Data data = datas[da];
+
+									for (int c = 0; c < data.NumCombined; c++)
+									{
+										Combined combined = data.Combined[c];
+										if (prevValue != -9999 && combined.f1 != prevValue)
+										{
+											System.out
+													.println("missed match " + prevValue + " " + combined.f1 + " " + f.getName());
+											files.add(f.getName());
+										}
+										prevValue = combined.f1;
+
+									}
 								}
+
 							}
 						}*/
 					}
