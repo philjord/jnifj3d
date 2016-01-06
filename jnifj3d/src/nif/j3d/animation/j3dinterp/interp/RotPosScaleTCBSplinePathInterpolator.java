@@ -8,8 +8,7 @@ import javax.vecmath.Vector3f;
 import nif.j3d.NifTransformGroup;
 import nif.j3d.animation.j3dinterp.interp.data.CubicSplineCurve;
 import nif.j3d.animation.j3dinterp.interp.data.CubicSplineSegment;
-
-import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
+import nif.j3d.animation.j3dinterp.interp.data.TCBKeyFrame;
 
 /**
  * RotPosScaleTCBSplinePathInterpolator behavior copied from the org j3d one

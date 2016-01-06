@@ -1,8 +1,7 @@
 package nif.j3d.animation.j3dinterp.interp;
 
 import nif.j3d.NifTransformGroup;
-
-import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
+import nif.j3d.animation.j3dinterp.interp.data.TCBKeyFrame;
 
 /**
  * TCBSplinePathInterpolator copied from orgj3d one, but supports multiple targets  

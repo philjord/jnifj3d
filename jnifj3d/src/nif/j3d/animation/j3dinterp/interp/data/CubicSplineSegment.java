@@ -5,8 +5,6 @@ import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
-import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
-
 /**
  * The CubicSplineSegment class creates the representation of a 
  * TCB (Kochanek-Bartels Spline).  This class takes 4 key frames as 

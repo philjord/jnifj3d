@@ -1,7 +1,6 @@
 package nif.j3d.animation.j3dinterp.interp.data;
 
 import com.sun.j3d.internal.J3dUtilsI18N;
-import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
 
 /**
  * CubicSplineCurve is a container class that holds a number of 

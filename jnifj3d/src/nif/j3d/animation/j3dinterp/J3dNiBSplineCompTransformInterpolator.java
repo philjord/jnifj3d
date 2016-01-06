@@ -11,13 +11,12 @@ import javax.vecmath.Vector3f;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.NifTransformGroup;
 import nif.j3d.animation.j3dinterp.interp.RotPosScaleTCBSplinePathInterpolator;
+import nif.j3d.animation.j3dinterp.interp.data.TCBKeyFrame;
 import nif.niobject.NiBSplineBasisData;
 import nif.niobject.NiBSplineData;
 import nif.niobject.interpolator.NiBSplineCompTransformInterpolator;
 import utils.convert.ConvertFromNif;
 import utils.convert.NifRotToJava3DRot;
-
-import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
 
 public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 {
