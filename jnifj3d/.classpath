@@ -6,11 +6,10 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/jnif"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/jbullet1.1"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="/external_jars/external jars/j3d/j3d-org-java3d-all.jar"/>
 	<classpathentry kind="lib" path="/external_jars/external jars/jogamp/jar/gluegen-rt.jar"/>
 	<classpathentry kind="lib" path="/external_jars/external jars/jogamp/jar/jogl-all.jar"/>
-	<classpathentry kind="lib" path="/external_jars/external jars/java3d/1.6.0-pre12/j3dcore.jar" sourcepath="/java3d-core"/>
-	<classpathentry kind="lib" path="/external_jars/external jars/java3d/1.6.0-pre12/j3dutils.jar" sourcepath="/java3d-utils"/>
-	<classpathentry kind="lib" path="/external_jars/external jars/java3d/1.6.0-pre12/vecmath.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/java3d-core-and"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/java3d-utils-and"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/vecmath"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>
