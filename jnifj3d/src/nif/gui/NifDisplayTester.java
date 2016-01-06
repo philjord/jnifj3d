@@ -40,7 +40,6 @@ import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
 
-import com.sun.j3d.utils.geometry.ColorCube;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 
 import nif.BgsmSource;
@@ -59,6 +58,7 @@ import tools3d.resolution.GraphicsSettings;
 import tools3d.resolution.QueryProperties;
 import tools3d.resolution.ScreenResolution;
 import tools3d.utils.Utils3D;
+import tools3d.utils.leafnode.Cube;
 import utils.source.MeshSource;
 import utils.source.TextureSource;
 import utils.source.file.FileMeshSource;
@@ -208,7 +208,7 @@ public class NifDisplayTester
 		TransformGroup tg = new TransformGroup();
 		Transform3D t = new Transform3D(new Quat4f(0, 0, 0, 1), new Vector3f(10, 10, 10), 1);
 		tg.setTransform(t);
-		tg.addChild(new ColorCube(0.1f));
+		tg.addChild(new Cube(0.1f));
 		tg.addChild(pLight);
 		bg.addChild(tg);
 
@@ -227,7 +227,7 @@ public class NifDisplayTester
 		background.setCapability(Background.ALLOW_APPLICATION_BOUNDS_READ);
 		bg.addChild(background);
 
-		bg.addChild(new ColorCube(0.01f));
+		bg.addChild(new Cube(0.01f));
 
 		simpleUniverse.addBranchGraph(bg);
 

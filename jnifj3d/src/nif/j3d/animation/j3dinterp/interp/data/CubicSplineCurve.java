@@ -1,12 +1,9 @@
 package nif.j3d.animation.j3dinterp.interp.data;
 
-import com.sun.j3d.internal.J3dUtilsI18N;
-
 /**
  * CubicSplineCurve is a container class that holds a number of 
  * cubicSplineSegments 
  * 
- * @since Java3D 1.1
  */
 
 public class CubicSplineCurve
@@ -40,12 +37,12 @@ public class CubicSplineCurve
 		int keyLength = keys.length;
 		// Require at least 4 key frames for cubic spline curve 
 		if (keyLength < 4)
-			throw new IllegalArgumentException(J3dUtilsI18N.getString("CubicSplineCurve0"));
+			throw new IllegalArgumentException("keyLength < 4");
 
 		numSegments = keyLength - 3;
 		this.cubicSplineSegment = new CubicSplineSegment[numSegments];
 
-		// intialize and calculate coefficients for each segment 
+		// Initialize and calculate coefficients for each segment 
 		int k0 = 0;
 		int k1 = 1;
 		int k2 = 2;

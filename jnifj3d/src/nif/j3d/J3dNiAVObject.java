@@ -10,9 +10,8 @@ import nif.niobject.NiAVObject;
 import nif.niobject.NiNode;
 import nif.niobject.NiSequenceStreamHelper;
 import nif.niobject.bs.BSFadeNode;
+import tools3d.utils.leafnode.Cube;
 import utils.convert.ConvertFromNif;
-
-import com.sun.j3d.utils.geometry.ColorCube;
 
 public abstract class J3dNiAVObject extends J3dNiObjectNET
 {
@@ -22,7 +21,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 
 	private boolean compactable = true;
 
-	public ColorCube visualMarker;
+	public Cube visualMarker;
 
 	public J3dNiAVObject(NiAVObject niAVObject, NiToJ3dData niToJ3dData)
 	{
@@ -366,7 +365,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 	{
 		if (visualMarkerOn && visualMarker == null)
 		{
-			visualMarker = new ColorCube(0.01f);
+			visualMarker = new Cube(0.01f);
 			this.addChild(visualMarker);
 		}
 		else if (!visualMarkerOn && visualMarker != null)

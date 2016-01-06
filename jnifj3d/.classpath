@@ -9,7 +9,7 @@
 	<classpathentry kind="lib" path="/external_jars/external jars/jogamp/jar/gluegen-rt.jar"/>
 	<classpathentry kind="lib" path="/external_jars/external jars/jogamp/jar/jogl-all.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/java3d-core-and"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/java3d-utils-and"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/vecmath"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/java3d-utils-and"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>

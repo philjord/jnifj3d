@@ -40,7 +40,6 @@ import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3f;
 
-import com.sun.j3d.utils.geometry.ColorCube;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 
 import nif.NifToJ3d;
@@ -57,6 +56,7 @@ import tools3d.camera.simple.SimpleCameraHandler;
 import tools3d.resolution.GraphicsSettings;
 import tools3d.resolution.QueryProperties;
 import tools3d.resolution.ScreenResolution;
+import tools3d.utils.leafnode.Cube;
 import utils.source.MediaSources;
 import utils.source.file.FileMeshSource;
 import utils.source.file.FileSoundSource;
@@ -183,7 +183,7 @@ public class KfDisplayTester
 		background.setCapability(Background.ALLOW_APPLICATION_BOUNDS_READ);
 		bg.addChild(background);
 
-		bg.addChild(new ColorCube(0.01f));
+		bg.addChild(new Cube(0.01f));
 
 		simpleUniverse.addBranchGraph(bg);
 
