@@ -43,7 +43,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 	public static boolean STRIPIFY = false; //Relevant to shape only (no advantage with shaders?) doesn't currently work with vert attributes
 
-	public static boolean BUFFERS = false;
+	public static boolean BUFFERS = true;
 
 	private int outlineStencilMask = -1;
 
