@@ -64,6 +64,11 @@ import com.sun.j3d.utils.geometry.GeometryInfo;
  */
 public class J3dbhkCollisionObject extends Group
 {
+	private static final boolean COMPACT = false;
+	private static final boolean BY_REF = true;
+	private static final boolean INTERLEAVED = false;
+	private static final boolean NIO = true;
+	
 	//TODO: many more JBullet style conversions
 	public J3dbhkCollisionObject(bhkCollisionObject object, NiToJ3dData niToJ3dData)
 	{
@@ -452,7 +457,7 @@ public class J3dbhkCollisionObject extends Group
 			// Put geometry into Shape3d
 			Shape3D shape = new Shape3D();
 
-			shape.setGeometry(gi.getIndexedGeometryArray(true, true, true, true, false));
+			shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
 
 			shape.setAppearance(new PhysAppearance());
 			return shape;
@@ -501,7 +506,7 @@ public class J3dbhkCollisionObject extends Group
 		// Put geometry into Shape3d
 		Shape3D shape = new Shape3D();
 		shape.setName("hkPackedNiTriStripsData:");
-		shape.setGeometry(gi.getIndexedGeometryArray(true, true, true, true, false));
+		shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
 		shape.setAppearance(new PhysAppearance());
 		return shape;
 	}
@@ -554,7 +559,7 @@ public class J3dbhkCollisionObject extends Group
 
 		// Put geometry into Shape3d
 		Shape3D shape = new Shape3D();
-		shape.setGeometry(gi.getIndexedGeometryArray(true, true, true, true, false));
+		shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
 		shape.setAppearance(new PhysAppearance());
 		return shape;
 	}
@@ -598,7 +603,7 @@ public class J3dbhkCollisionObject extends Group
 			gi.setUseCoordIndexOnly(true);
 
 			Shape3D shape = new Shape3D();
-			shape.setGeometry(gi.getIndexedGeometryArray(true, true, true, true, false));
+			shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
 			shape.setAppearance(new PhysAppearance(new Color3f(0.5f, 0.5f, 0)));
 			group.addChild(shape);
 		}
@@ -669,7 +674,7 @@ public class J3dbhkCollisionObject extends Group
 				gi.setUseCoordIndexOnly(true);
 
 				Shape3D shape = new Shape3D();
-				shape.setGeometry(gi.getIndexedGeometryArray(true, true, true, true, false));
+				shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
 				shape.setAppearance(new PhysAppearance(new Color3f(0.5f, 1f, 0)));
 				tg.addChild(shape);
 
@@ -684,7 +689,7 @@ public class J3dbhkCollisionObject extends Group
 				gi.setUseCoordIndexOnly(true);
 
 				Shape3D shape = new Shape3D();
-				shape.setGeometry(gi.getIndexedGeometryArray(true, true, true, true, false));
+				shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
 				shape.setAppearance(new PhysAppearance(new Color3f(0.75f, 1f, 1f)));
 				tg.addChild(shape);
 
@@ -793,7 +798,7 @@ public class J3dbhkCollisionObject extends Group
 			// Put geometry into Shape3d
 			Shape3D shape = new Shape3D();
 
-			shape.setGeometry(gi.getIndexedGeometryArray(true, true, false, true, false));
+			shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
 
 			shape.setAppearance(new PhysAppearance());
 			return shape;

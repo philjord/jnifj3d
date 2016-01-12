@@ -83,7 +83,8 @@ public class NifCharacter extends BranchGroup implements Fadable
 
 	protected ArrayList<CharacterAttachment> attachments = new ArrayList<CharacterAttachment>();
 
-	public NifCharacter(String skeletonNifFilename, List<String> skinNifModelFilenames, MediaSources mediaSources, List<String> idleAnimations)
+	public NifCharacter(String skeletonNifFilename, List<String> skinNifModelFilenames, MediaSources mediaSources,
+			List<String> idleAnimations)
 	{
 		this.mediaSources = mediaSources;
 
@@ -111,10 +112,12 @@ public class NifCharacter extends BranchGroup implements Fadable
 		{
 			if (skinNifModelFilename != null && skinNifModelFilename.length() > 0)
 			{
-				NifJ3dVisRoot model = NifToJ3d.loadShapes(skinNifModelFilename, mediaSources.getMeshSource(), mediaSources.getTextureSource());
+				NifJ3dVisRoot model = NifToJ3d.loadShapes(skinNifModelFilename, mediaSources.getMeshSource(),
+						mediaSources.getTextureSource());
 
 				// create skins from the skeleton and skin nif
-				ArrayList<J3dNiSkinInstance> skins = J3dNiSkinInstance.createSkins(model.getNiToJ3dData(), blendedSkeletons.getOutputSkeleton());
+				ArrayList<J3dNiSkinInstance> skins = J3dNiSkinInstance.createSkins(model.getNiToJ3dData(),
+						blendedSkeletons.getOutputSkeleton());
 
 				if (skins.size() > 0)
 				{
@@ -139,14 +142,17 @@ public class NifCharacter extends BranchGroup implements Fadable
 							NiStringExtraData nsed = (NiStringExtraData) ned;
 							if (nsed.name.equalsIgnoreCase("PRN"))
 							{
-								J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton().get(nsed.stringData);
+								J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton()
+										.get(nsed.stringData);
 								if (attachnode != null)
 								{
 
 									boolean headAttachRotNeeded = false;
-									if (attachnode.getNiAVObject().name.equals("Bip01 Head") && skeletonNifFilename.contains("characters\\_male"))
+									if (attachnode.getNiAVObject().name.equals("Bip01 Head")
+											&& skeletonNifFilename.contains("characters\\_male"))
 									{
-										headAttachRotNeeded = mediaSources.getMeshSource().nifFileExists(skinNifModelFilename.substring(0, skinNifModelFilename.length() - 3) + "egm");
+										headAttachRotNeeded = mediaSources.getMeshSource().nifFileExists(
+												skinNifModelFilename.substring(0, skinNifModelFilename.length() - 3) + "egm");
 									}
 
 									// For Oblivion heads
@@ -157,7 +163,8 @@ public class NifCharacter extends BranchGroup implements Fadable
 									// I notice helmet.egm file next to helmet.nif?? egm starts with FREGM002
 									// F:\game media\Oblivion\meshes\armor\iron\m
 
-									CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, headAttachRotNeeded, model.getVisualRoot());
+									CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, headAttachRotNeeded,
+											model.getVisualRoot());
 									this.addChild(ca);
 									attachments.add(ca);
 									break;
@@ -357,7 +364,15 @@ public class NifCharacter extends BranchGroup implements Fadable
 
 			for (CharacterAttachment ca : attachments)
 			{
-				ca.process();
+				try
+				{
+					ca.process();
+				}
+				catch (NullPointerException e)
+				{
+					//not sure why these are happening sometimes
+					e.printStackTrace();
+				}
 			}
 
 		}
