@@ -253,8 +253,8 @@ public class J3dbhkCollisionObject extends Group
 
 		Shape3D shape = new Shape3D();
 
-		TriangleStripArray tsa = new TriangleStripArray(gd.vertexCount, GeometryArray.COORDINATES, gd.stripCounts);
-		tsa.setCoordinates(0, gd.coordinates);
+		TriangleStripArray tsa = new TriangleStripArray(gd.vertexCount, GeometryArray.COORDINATES| GeometryArray.BY_REFERENCE, gd.stripCounts);
+		tsa.setCoordRefFloat(gd.coordinates);
 
 		shape.setGeometry(tsa);
 
@@ -278,8 +278,8 @@ public class J3dbhkCollisionObject extends Group
 			gd.geometryType = GeometryData.TRIANGLE_STRIPS;
 			sg.generate(gd);
 			Shape3D shape = new Shape3D();
-			TriangleStripArray tsa = new TriangleStripArray(gd.vertexCount, GeometryArray.COORDINATES, gd.stripCounts);
-			tsa.setCoordinates(0, gd.coordinates);
+			TriangleStripArray tsa = new TriangleStripArray(gd.vertexCount, GeometryArray.COORDINATES| GeometryArray.BY_REFERENCE, gd.stripCounts);
+			tsa.setCoordRefFloat(gd.coordinates);
 
 			shape.setGeometry(tsa);
 
@@ -312,8 +312,8 @@ public class J3dbhkCollisionObject extends Group
 		gd.geometryType = GeometryData.TRIANGLE_STRIPS;
 		sg.generate(gd);
 		Shape3D shape = new Shape3D();
-		TriangleStripArray tsa = new TriangleStripArray(gd.vertexCount, GeometryArray.COORDINATES, gd.stripCounts);
-		tsa.setCoordinates(0, gd.coordinates);
+		TriangleStripArray tsa = new TriangleStripArray(gd.vertexCount, GeometryArray.COORDINATES| GeometryArray.BY_REFERENCE, gd.stripCounts);
+		tsa.setCoordRefFloat(gd.coordinates);
 
 		shape.setGeometry(tsa);
 		shape.setAppearance(new PhysAppearance());
@@ -329,8 +329,8 @@ public class J3dbhkCollisionObject extends Group
 		gd.geometryType = GeometryData.TRIANGLE_STRIPS;
 		sg.generate(gd);
 		shape = new Shape3D();
-		tsa = new TriangleStripArray(gd.vertexCount, GeometryArray.COORDINATES, gd.stripCounts);
-		tsa.setCoordinates(0, gd.coordinates);
+		tsa = new TriangleStripArray(gd.vertexCount, GeometryArray.COORDINATES| GeometryArray.BY_REFERENCE, gd.stripCounts);
+		tsa.setCoordRefFloat(gd.coordinates);
 
 		shape.setGeometry(tsa);
 		shape.setAppearance(new PhysAppearance());
@@ -347,8 +347,8 @@ public class J3dbhkCollisionObject extends Group
 		gd.geometryType = GeometryData.TRIANGLE_STRIPS;
 		cg.generate(gd);
 		shape = new Shape3D();
-		tsa = new TriangleStripArray(gd.vertexCount, GeometryArray.COORDINATES, gd.stripCounts);
-		tsa.setCoordinates(0, gd.coordinates);
+		tsa = new TriangleStripArray(gd.vertexCount, GeometryArray.COORDINATES| GeometryArray.BY_REFERENCE, gd.stripCounts);
+		tsa.setCoordRefFloat(gd.coordinates);
 
 		shape.setGeometry(tsa);
 		shape.setAppearance(new PhysAppearance());
@@ -383,7 +383,7 @@ public class J3dbhkCollisionObject extends Group
 		float y = ConvertFromHavok.toJ3d(data.dimensions.z, nifVer);
 		float z = ConvertFromHavok.toJ3d(data.dimensions.y, nifVer);
 
-		QuadArray cube = new QuadArray(24, GeometryArray.COORDINATES | GeometryArray.COLOR_3);
+		QuadArray cube = new QuadArray(24, GeometryArray.COORDINATES | GeometryArray.BY_REFERENCE);
 
 		float scaledVerts[] = new float[] {
 				// front face
@@ -399,7 +399,7 @@ public class J3dbhkCollisionObject extends Group
 				// bottom face
 				-x, -y, z, -x, -y, -z, x, -y, -z, x, -y, z, };
 
-		cube.setCoordinates(0, scaledVerts);
+		cube.setCoordRefFloat(scaledVerts);
 
 		// Put geometry into Shape3d
 		Shape3D shape = new Shape3D();
@@ -452,7 +452,7 @@ public class J3dbhkCollisionObject extends Group
 			// Put geometry into Shape3d
 			Shape3D shape = new Shape3D();
 
-			shape.setGeometry(gi.getIndexedGeometryArray(true, true, false, true, false));
+			shape.setGeometry(gi.getIndexedGeometryArray(true, true, true, true, false));
 
 			shape.setAppearance(new PhysAppearance());
 			return shape;
@@ -501,7 +501,7 @@ public class J3dbhkCollisionObject extends Group
 		// Put geometry into Shape3d
 		Shape3D shape = new Shape3D();
 		shape.setName("hkPackedNiTriStripsData:");
-		shape.setGeometry(gi.getIndexedGeometryArray(true, false, true, true, false));
+		shape.setGeometry(gi.getIndexedGeometryArray(true, true, true, true, false));
 		shape.setAppearance(new PhysAppearance());
 		return shape;
 	}
@@ -554,7 +554,7 @@ public class J3dbhkCollisionObject extends Group
 
 		// Put geometry into Shape3d
 		Shape3D shape = new Shape3D();
-		shape.setGeometry(gi.getIndexedGeometryArray(true, false, true, true, false));
+		shape.setGeometry(gi.getIndexedGeometryArray(true, true, true, true, false));
 		shape.setAppearance(new PhysAppearance());
 		return shape;
 	}
@@ -598,7 +598,7 @@ public class J3dbhkCollisionObject extends Group
 			gi.setUseCoordIndexOnly(true);
 
 			Shape3D shape = new Shape3D();
-			shape.setGeometry(gi.getIndexedGeometryArray(true, false, true, true, false));
+			shape.setGeometry(gi.getIndexedGeometryArray(true, true, true, true, false));
 			shape.setAppearance(new PhysAppearance(new Color3f(0.5f, 0.5f, 0)));
 			group.addChild(shape);
 		}
@@ -669,7 +669,7 @@ public class J3dbhkCollisionObject extends Group
 				gi.setUseCoordIndexOnly(true);
 
 				Shape3D shape = new Shape3D();
-				shape.setGeometry(gi.getIndexedGeometryArray(true, false, true, true, false));
+				shape.setGeometry(gi.getIndexedGeometryArray(true, true, true, true, false));
 				shape.setAppearance(new PhysAppearance(new Color3f(0.5f, 1f, 0)));
 				tg.addChild(shape);
 
@@ -684,7 +684,7 @@ public class J3dbhkCollisionObject extends Group
 				gi.setUseCoordIndexOnly(true);
 
 				Shape3D shape = new Shape3D();
-				shape.setGeometry(gi.getIndexedGeometryArray(true, false, true, true, false));
+				shape.setGeometry(gi.getIndexedGeometryArray(true, true, true, true, false));
 				shape.setAppearance(new PhysAppearance(new Color3f(0.75f, 1f, 1f)));
 				tg.addChild(shape);
 

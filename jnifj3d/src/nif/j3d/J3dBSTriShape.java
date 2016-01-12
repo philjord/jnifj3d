@@ -83,7 +83,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 
 					// reverse it all!
 					NifMatrix33 m = combined.rot;
-					
+
 					float[] d = m.data();
 					m.m33 = d[0];
 					m.m23 = d[1];
@@ -105,10 +105,6 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 					Quat4f q = ConvertFromNif.toJ3d(m);
 					//q= new Quat4f(0,0,0,1);// I think my q is not forming as I would have it form
 					// I think I need to round the values off or something like nifskope
-
-				
-
-					
 
 					Vector3f t = ConvertFromNif.toJ3d(combined.trans);
 					float s = combined.scale;
@@ -237,7 +233,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 				iga = new IndexedTriangleArray(bsTriShape.numVertices, vertexFormat, 1, texMap, bsTriShape.numTriangles * 3);
 			}
 
-			if (morphable)
+			if (morphable || BUFFERS)
 				iga.setCoordIndicesRef(bsTriShape.trianglesOpt);
 			else
 				iga.setCoordinateIndices(0, bsTriShape.trianglesOpt);

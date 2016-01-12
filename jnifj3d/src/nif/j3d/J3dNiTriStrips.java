@@ -85,7 +85,7 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 						texCoordCount, texMap, length, stripLengths);
 			}
 			
-			if (morphable || INTERLEAVE)
+			if (morphable || INTERLEAVE || BUFFERS)
 				itsa.setCoordIndicesRef(points);
 			else
 				itsa.setCoordinateIndices(0, points);
