@@ -8,7 +8,7 @@ import nif.niobject.AvoidNode;
 import nif.niobject.NiAVObject;
 import nif.niobject.NiTriShape;
 import nif.niobject.RootCollisionNode;
-import utils.PhysAppearance;
+import tools3d.utils.PhysAppearance;
 
 /**
  * NOTE for trival render only now, bullet does the hard work!
@@ -33,7 +33,7 @@ public class J3dRootCollisionNode extends Group
 				{
 					NiTriShape niTriShape = (NiTriShape) child;
 					J3dNiTriBasedGeom ntbg = new J3dNiTriShape(niTriShape, niToJ3dData, null);
-					ntbg.getShape().setAppearance(new PhysAppearance());
+					ntbg.getShape().setAppearance(PhysAppearance.makeAppearance());
 
 					j3dNiNodes.add(ntbg);
 					addChild(ntbg);

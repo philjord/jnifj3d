@@ -17,6 +17,16 @@ import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
+import org.j3d.geom.CylinderGenerator;
+import org.j3d.geom.GeometryData;
+import org.j3d.geom.SphereGenerator;
+
+import com.bulletphysics.collision.shapes.ConvexHullShape;
+import com.bulletphysics.collision.shapes.ShapeHull;
+import com.bulletphysics.util.IntArrayList;
+import com.bulletphysics.util.ObjectArrayList;
+import com.sun.j3d.utils.geometry.GeometryInfo;
+
 import nif.NifVer;
 import nif.compound.NifSphereBV;
 import nif.compound.NifbhkCMSDChunk;
@@ -42,19 +52,8 @@ import nif.niobject.bhk.bhkShape;
 import nif.niobject.bhk.bhkSphereShape;
 import nif.niobject.bhk.bhkTransformShape;
 import nif.niobject.bhk.hkPackedNiTriStripsData;
-
-import org.j3d.geom.CylinderGenerator;
-import org.j3d.geom.GeometryData;
-import org.j3d.geom.SphereGenerator;
-
-import utils.PhysAppearance;
+import tools3d.utils.PhysAppearance;
 import utils.convert.ConvertFromHavok;
-
-import com.bulletphysics.collision.shapes.ConvexHullShape;
-import com.bulletphysics.collision.shapes.ShapeHull;
-import com.bulletphysics.util.IntArrayList;
-import com.bulletphysics.util.ObjectArrayList;
-import com.sun.j3d.utils.geometry.GeometryInfo;
 
 /**
  * NOTE for trival render only now, bullet does teh hard work!
@@ -263,7 +262,7 @@ public class J3dbhkCollisionObject extends Group
 
 		shape.setGeometry(tsa);
 
-		shape.setAppearance(new PhysAppearance());
+		shape.setAppearance(PhysAppearance.makeAppearance());
 		return shape;
 	}
 
@@ -288,7 +287,7 @@ public class J3dbhkCollisionObject extends Group
 
 			shape.setGeometry(tsa);
 
-			shape.setAppearance(new PhysAppearance());
+			shape.setAppearance(PhysAppearance.makeAppearance());
 			TransformGroup tg = new TransformGroup();
 			Transform3D t = new Transform3D();
 			t.setTranslation(v1);
@@ -321,7 +320,7 @@ public class J3dbhkCollisionObject extends Group
 		tsa.setCoordRefFloat(gd.coordinates);
 
 		shape.setGeometry(tsa);
-		shape.setAppearance(new PhysAppearance());
+		shape.setAppearance(PhysAppearance.makeAppearance());
 		TransformGroup tg = new TransformGroup();
 		Transform3D t = new Transform3D();
 		t.setTranslation(v1);
@@ -338,7 +337,7 @@ public class J3dbhkCollisionObject extends Group
 		tsa.setCoordRefFloat(gd.coordinates);
 
 		shape.setGeometry(tsa);
-		shape.setAppearance(new PhysAppearance());
+		shape.setAppearance(PhysAppearance.makeAppearance());
 		tg = new TransformGroup();
 		t = new Transform3D();
 		t.setTranslation(v2);
@@ -356,7 +355,7 @@ public class J3dbhkCollisionObject extends Group
 		tsa.setCoordRefFloat(gd.coordinates);
 
 		shape.setGeometry(tsa);
-		shape.setAppearance(new PhysAppearance());
+		shape.setAppearance(PhysAppearance.makeAppearance());
 		tg = new TransformGroup();
 		Transform3D t1 = new Transform3D();
 		Transform3D t2 = new Transform3D();
@@ -411,7 +410,7 @@ public class J3dbhkCollisionObject extends Group
 
 		shape.setGeometry(cube);
 
-		shape.setAppearance(new PhysAppearance());
+		shape.setAppearance(PhysAppearance.makeAppearance());
 		return shape;
 	}
 
@@ -459,7 +458,7 @@ public class J3dbhkCollisionObject extends Group
 
 			shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
 
-			shape.setAppearance(new PhysAppearance());
+			shape.setAppearance(PhysAppearance.makeAppearance());
 			return shape;
 
 		}
@@ -507,7 +506,7 @@ public class J3dbhkCollisionObject extends Group
 		Shape3D shape = new Shape3D();
 		shape.setName("hkPackedNiTriStripsData:");
 		shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
-		shape.setAppearance(new PhysAppearance());
+		shape.setAppearance(PhysAppearance.makeAppearance());
 		return shape;
 	}
 
@@ -560,7 +559,7 @@ public class J3dbhkCollisionObject extends Group
 		// Put geometry into Shape3d
 		Shape3D shape = new Shape3D();
 		shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
-		shape.setAppearance(new PhysAppearance());
+		shape.setAppearance(PhysAppearance.makeAppearance());
 		return shape;
 	}
 
@@ -604,7 +603,7 @@ public class J3dbhkCollisionObject extends Group
 
 			Shape3D shape = new Shape3D();
 			shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
-			shape.setAppearance(new PhysAppearance(new Color3f(0.5f, 0.5f, 0)));
+			shape.setAppearance(PhysAppearance.makeAppearance(new Color3f(0.5f, 0.5f, 0)));
 			group.addChild(shape);
 		}
 
@@ -675,7 +674,7 @@ public class J3dbhkCollisionObject extends Group
 
 				Shape3D shape = new Shape3D();
 				shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
-				shape.setAppearance(new PhysAppearance(new Color3f(0.5f, 1f, 0)));
+				shape.setAppearance(PhysAppearance.makeAppearance(new Color3f(0.5f, 1f, 0)));
 				tg.addChild(shape);
 
 			}
@@ -690,7 +689,7 @@ public class J3dbhkCollisionObject extends Group
 
 				Shape3D shape = new Shape3D();
 				shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
-				shape.setAppearance(new PhysAppearance(new Color3f(0.75f, 1f, 1f)));
+				shape.setAppearance(PhysAppearance.makeAppearance(new Color3f(0.75f, 1f, 1f)));
 				tg.addChild(shape);
 
 			}
@@ -800,7 +799,7 @@ public class J3dbhkCollisionObject extends Group
 
 			shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
 
-			shape.setAppearance(new PhysAppearance());
+			shape.setAppearance(PhysAppearance.makeAppearance());
 			return shape;
 		}
 		else

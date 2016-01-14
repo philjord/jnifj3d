@@ -144,7 +144,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 
 			Shape3D outliner = new Shape3D();
 			outliner.setGeometry(j3dPSysData.ga);
-			outliner.setAppearance(new PhysAppearance());
+			outliner.setAppearance(PhysAppearance.makeAppearance());
 
 			outlinerBG2 = new BranchGroup();
 			outlinerBG2.setCapability(BranchGroup.ALLOW_DETACH);
