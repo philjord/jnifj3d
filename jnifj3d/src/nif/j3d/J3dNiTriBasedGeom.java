@@ -23,6 +23,7 @@ import nif.niobject.NiObject;
 import nif.niobject.NiTriBasedGeom;
 import nif.niobject.NiTriBasedGeomData;
 import tools.WeakValueHashMap;
+import tools3d.utils.SimpleShaderAppearance;
 import tools3d.utils.Utils3D;
 import utils.source.TextureSource;
 
@@ -150,7 +151,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 				////////////////////////////////
 				//Outliner gear, note empty geom should be ignored
-				Appearance app = new Appearance();
+				Appearance app = new SimpleShaderAppearance();
 				// lineAntialiasing MUST be true, to force this to be done during rendering pass (otherwise it's hidden)
 				LineAttributes la = new LineAttributes(4, LineAttributes.PATTERN_SOLID, true);
 				app.setLineAttributes(la);
