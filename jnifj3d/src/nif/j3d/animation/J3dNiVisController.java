@@ -1,10 +1,5 @@
 package nif.j3d.animation;
 
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.ModelClip;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector4d;
-
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiNode;
 import nif.j3d.J3dNiTriShape;
@@ -14,11 +9,12 @@ import nif.niobject.controller.NiVisController;
 
 public class J3dNiVisController extends J3dNiTimeController implements BoolInterpolator.Listener
 {
-	private ModelClip modelClip;
+	//private ModelClip modelClip;
 
 	private boolean currentVis = true;
 
-	//TODO: this is not being called and I don't know if it works
+	//TODO: ModelClip no longer supported called in FO3 for sure! find a new system 
+	// can't just disconnect as animation would stop, perhaps set a null appearance?
 	// F:\game media\Morrowind\Meshes\r\xascendedsleeper.nif good example
 	// but seems to be set in FO3 wasteland
 	public J3dNiVisController(NiVisController controller, J3dNiAVObject nodeTarget)
@@ -27,7 +23,7 @@ public class J3dNiVisController extends J3dNiTimeController implements BoolInter
 		if (nodeTarget instanceof J3dNiNode || nodeTarget instanceof J3dNiParticleSystem || nodeTarget instanceof J3dNiTriShape)
 		{
 
-			Vector4d[] planes = new Vector4d[6];
+		/*	Vector4d[] planes = new Vector4d[6];
 			for (int i = 0; i < 6; i++)
 			{//Ax + By + Cz + D <= 0
 				planes[i] = new Vector4d(0, 0, 0, Double.NEGATIVE_INFINITY);
@@ -37,7 +33,7 @@ public class J3dNiVisController extends J3dNiTimeController implements BoolInter
 			modelClip.setCapability(ModelClip.ALLOW_INFLUENCING_BOUNDS_WRITE);
 			modelClip.addScope(nodeTarget);
 
-			nodeTarget.addChild(modelClip);
+			nodeTarget.addChild(modelClip);*/
 
 		}
 		else
@@ -53,11 +49,11 @@ public class J3dNiVisController extends J3dNiTimeController implements BoolInter
 		 
 		if (isVis && !currentVis)
 		{
-			modelClip.setInfluencingBounds(null);
+//			modelClip.setInfluencingBounds(null);
 		}
 		else if (!isVis && currentVis)
 		{
-			modelClip.setInfluencingBounds(new BoundingSphere(new Point3d(), Double.POSITIVE_INFINITY));
+//			modelClip.setInfluencingBounds(new BoundingSphere(new Point3d(), Double.POSITIVE_INFINITY));
 		}
 		currentVis = isVis;
 	}

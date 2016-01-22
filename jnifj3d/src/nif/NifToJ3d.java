@@ -22,6 +22,7 @@ import nif.niobject.NiTriShape;
 import nif.niobject.RootCollisionNode;
 import nif.niobject.bhk.bhkCollisionObject;
 import nif.niobject.bs.BSTreeNode;
+import tools3d.utils.PhysAppearance;
 import utils.source.MeshSource;
 import utils.source.TextureSource;
 
@@ -80,7 +81,8 @@ public class NifToJ3d
 				NifJ3dHavokRoot phys = extractHavok(nifFile);
 				if (root != null)
 				{
-					NifJ3dVisPhysRoot nifJ3dVisPhysRoot = new NifJ3dVisPhysRoot(root.getVisualRoot(), phys == null ? null : phys.getHavokRoot(), new NiToJ3dData(nifFile.blocks));
+					NifJ3dVisPhysRoot nifJ3dVisPhysRoot = new NifJ3dVisPhysRoot(root.getVisualRoot(),
+							phys == null ? null : phys.getHavokRoot(), new NiToJ3dData(nifFile.blocks));
 					return nifJ3dVisPhysRoot;
 				}
 			}
@@ -224,7 +226,10 @@ public class NifToJ3d
 				}
 				else if (root instanceof NiTriShape)
 				{
-					j3dNiAVObjectRoot = new J3dNiTriShape((NiTriShape) root, niToJ3dData, null);
+					//in this case this is the only node so we need to make it phys looking
+					J3dNiTriShape s = new J3dNiTriShape((NiTriShape) root, niToJ3dData, null);
+					s.getShape().setAppearance(PhysAppearance.makeAppearance());
+					j3dNiAVObjectRoot = s;
 				}
 				else
 				{
