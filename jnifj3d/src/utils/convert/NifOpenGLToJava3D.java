@@ -70,6 +70,7 @@ public class NifOpenGLToJava3D
 		}
 	}
 
+	//For stencil OR depth functions
 	public static int convertStencilFunction(int in)
 	{
 		if (in == CompareMode.TEST_NEVER)

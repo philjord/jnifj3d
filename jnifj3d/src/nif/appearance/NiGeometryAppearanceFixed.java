@@ -6,7 +6,6 @@ import java.util.WeakHashMap;
 import javax.media.j3d.Alpha;
 import javax.media.j3d.Appearance;
 import javax.media.j3d.Material;
-import javax.media.j3d.NodeComponent;
 import javax.media.j3d.PolygonAttributes;
 import javax.media.j3d.RenderingAttributes;
 import javax.media.j3d.Shape3D;
@@ -515,8 +514,9 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 		NiTimeController controller = (NiTimeController) niToJ3dData.get(property.controller);
 		setUpTimeController(controller, niToJ3dData, textureSource, target);
 	}
-	
-	public static void setUpTimeController(BSLightingShaderProperty bslsp, NiToJ3dData niToJ3dData, TextureSource textureSource, J3dNiAVObject target)
+
+	public static void setUpTimeController(BSLightingShaderProperty bslsp, NiToJ3dData niToJ3dData, TextureSource textureSource,
+			J3dNiAVObject target)
 	{
 		NiTimeController controller = (NiTimeController) niToJ3dData.get(bslsp.controller);
 		setUpTimeController(controller, niToJ3dData, textureSource, target);
@@ -544,7 +544,8 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 							startTimeS, stopTimeS);
 				}
 
-				if (j3dNiInterpolator != null)
+				//interpolators are cached and shared where posssible
+				if (j3dNiInterpolator != null && j3dNiInterpolator.getParent() == null)
 				{
 					target.addChild(j3dNiInterpolator);
 

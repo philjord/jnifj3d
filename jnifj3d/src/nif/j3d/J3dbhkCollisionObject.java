@@ -70,6 +70,8 @@ public class J3dbhkCollisionObject extends Group
 	private static final boolean INTERLEAVED = false;
 	private static final boolean NIO = true;
 
+	private static final int defaultFormat = GeometryArray.COORDINATES | GeometryArray.BY_REFERENCE | GeometryArray.USE_NIO_BUFFER;
+
 	//TODO: many more JBullet style conversions
 	public J3dbhkCollisionObject(bhkCollisionObject object, NiToJ3dData niToJ3dData)
 	{
@@ -259,8 +261,7 @@ public class J3dbhkCollisionObject extends Group
 
 		Shape3D shape = new Shape3D();
 
-		TriangleStripArray tsa = new TriangleStripArray(gd.vertexCount,
-				GeometryArray.COORDINATES | GeometryArray.BY_REFERENCE | GeometryArray.USE_NIO_BUFFER, gd.stripCounts);
+		TriangleStripArray tsa = new TriangleStripArray(gd.vertexCount, defaultFormat, gd.stripCounts);
 		tsa.setCoordRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(gd.coordinates)));
 
 		shape.setGeometry(tsa);
@@ -285,8 +286,7 @@ public class J3dbhkCollisionObject extends Group
 			gd.geometryType = GeometryData.TRIANGLE_STRIPS;
 			sg.generate(gd);
 			Shape3D shape = new Shape3D();
-			TriangleStripArray tsa = new TriangleStripArray(gd.vertexCount,
-					GeometryArray.COORDINATES | GeometryArray.BY_REFERENCE | GeometryArray.USE_NIO_BUFFER, gd.stripCounts);
+			TriangleStripArray tsa = new TriangleStripArray(gd.vertexCount, defaultFormat, gd.stripCounts);
 			tsa.setCoordRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(gd.coordinates)));
 
 			shape.setGeometry(tsa);
@@ -320,8 +320,7 @@ public class J3dbhkCollisionObject extends Group
 		gd.geometryType = GeometryData.TRIANGLE_STRIPS;
 		sg.generate(gd);
 		Shape3D shape = new Shape3D();
-		TriangleStripArray tsa = new TriangleStripArray(gd.vertexCount,
-				GeometryArray.COORDINATES | GeometryArray.BY_REFERENCE | GeometryArray.USE_NIO_BUFFER, gd.stripCounts);
+		TriangleStripArray tsa = new TriangleStripArray(gd.vertexCount, defaultFormat, gd.stripCounts);
 		tsa.setCoordRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(gd.coordinates)));
 
 		shape.setGeometry(tsa);
@@ -338,8 +337,7 @@ public class J3dbhkCollisionObject extends Group
 		gd.geometryType = GeometryData.TRIANGLE_STRIPS;
 		sg.generate(gd);
 		shape = new Shape3D();
-		tsa = new TriangleStripArray(gd.vertexCount, GeometryArray.COORDINATES | GeometryArray.BY_REFERENCE | GeometryArray.USE_NIO_BUFFER,
-				gd.stripCounts);
+		tsa = new TriangleStripArray(gd.vertexCount, defaultFormat, gd.stripCounts);
 		tsa.setCoordRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(gd.coordinates)));
 
 		shape.setGeometry(tsa);
@@ -357,8 +355,7 @@ public class J3dbhkCollisionObject extends Group
 		gd.geometryType = GeometryData.TRIANGLE_STRIPS;
 		cg.generate(gd);
 		shape = new Shape3D();
-		tsa = new TriangleStripArray(gd.vertexCount, GeometryArray.COORDINATES | GeometryArray.BY_REFERENCE | GeometryArray.USE_NIO_BUFFER,
-				gd.stripCounts);
+		tsa = new TriangleStripArray(gd.vertexCount, defaultFormat, gd.stripCounts);
 		tsa.setCoordRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(gd.coordinates)));
 
 		shape.setGeometry(tsa);
@@ -394,7 +391,7 @@ public class J3dbhkCollisionObject extends Group
 		float y = ConvertFromHavok.toJ3d(data.dimensions.z, nifVer);
 		float z = ConvertFromHavok.toJ3d(data.dimensions.y, nifVer);
 
-		QuadArray cube = new QuadArray(24, GeometryArray.COORDINATES | GeometryArray.BY_REFERENCE | GeometryArray.USE_NIO_BUFFER);
+		QuadArray cube = new QuadArray(24, defaultFormat);
 
 		float scaledVerts[] = new float[] {
 				// front face
