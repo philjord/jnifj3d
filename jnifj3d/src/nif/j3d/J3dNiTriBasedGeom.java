@@ -151,7 +151,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 				////////////////////////////////
 				//Outliner gear, note empty geom should be ignored
-				Appearance app = new SimpleShaderAppearance();
+				Appearance app = new SimpleShaderAppearance(c);
 				// lineAntialiasing MUST be true, to force this to be done during rendering pass (otherwise it's hidden)
 				LineAttributes la = new LineAttributes(4, LineAttributes.PATTERN_SOLID, true);
 				app.setLineAttributes(la);
