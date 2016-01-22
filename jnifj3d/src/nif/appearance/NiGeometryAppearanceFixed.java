@@ -71,9 +71,7 @@ import utils.source.TextureSource;
 
 public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 {
-	private static WeakHashMap<NiProperty, NodeComponent> propertyLookup = new WeakHashMap<NiProperty, NodeComponent>();
-
-	private static WeakHashMap<BSLightingShaderProperty, NodeComponent> bsLightingShaderPropertyLookup = new WeakHashMap<BSLightingShaderProperty, NodeComponent>();
+	private static WeakHashMap<Object, TextureAttributes> textureAttributesLookup = new WeakHashMap<Object, TextureAttributes>();
 
 	public Appearance configureAppearance(NiGeometry niGeometry, NiToJ3dData niToJ3dData, TextureSource textureSource, Shape3D shape,
 			J3dNiAVObject target)
@@ -127,16 +125,16 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 						NiTexturingProperty ntp = (NiTexturingProperty) property;
 
 						// have we already constructed it?
-						if (propertyLookup.get(ntp) != null)
+						if (textureAttributesLookup.get(ntp) != null)
 						{
-							tus0.setTextureAttributes((TextureAttributes) propertyLookup.get(ntp));
+							tus0.setTextureAttributes(textureAttributesLookup.get(ntp));
 						}
 						else
 						{
 							textureAttributes.setTextureMode(ntp.isApplyReplace() ? TextureAttributes.REPLACE
 									: ntp.isApplyDecal() ? TextureAttributes.DECAL : TextureAttributes.MODULATE);
 							setUpTimeController(ntp, niToJ3dData, textureSource, target);
-							propertyLookup.put(ntp, textureAttributes);
+							textureAttributesLookup.put(ntp, textureAttributes);
 						}
 
 						NiSourceTexture niSourceTexture = null;
@@ -196,7 +194,6 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 								|| bsspplp.shaderFlags.isBitSet(BSShaderFlags.SF_FIRE_REFRACTION) || bbsts.numTextures == 0)
 						{
 							ra.setVisible(false);
-
 						}
 						setUpTimeController(bsspplp, niToJ3dData, textureSource, target);
 					}
@@ -333,9 +330,9 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 						BSEffectShaderProperty bsesp = (BSEffectShaderProperty) property;
 
 						// have we already constructed the texture attributes and time controller it?
-						if (propertyLookup.get(bsesp) != null)
+						if (textureAttributesLookup.get(bsesp) != null)
 						{
-							tus0.setTextureAttributes((TextureAttributes) propertyLookup.get(bsesp));
+							tus0.setTextureAttributes(textureAttributesLookup.get(bsesp));
 						}
 						else
 						{
@@ -350,7 +347,7 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 
 							setUpTimeController(bsesp, niToJ3dData, textureSource, target);
 
-							propertyLookup.put(bsesp, textureAttributes);
+							textureAttributesLookup.put(bsesp, textureAttributes);
 						}
 
 						// now set the texture
@@ -416,9 +413,9 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 					BSLightingShaderProperty bslsp = (BSLightingShaderProperty) prop;
 
 					// have we already constructed it?
-					if (bsLightingShaderPropertyLookup.get(bslsp) != null)
+					if (textureAttributesLookup.get(bslsp) != null)
 					{
-						tus0.setTextureAttributes((TextureAttributes) bsLightingShaderPropertyLookup.get(bslsp));
+						tus0.setTextureAttributes(textureAttributesLookup.get(bslsp));
 					}
 					else
 					{
@@ -434,7 +431,7 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 						NiSingleInterpController controller = (NiSingleInterpController) niToJ3dData.get(bslsp.controller);
 						setUpTimeController(controller, niToJ3dData, textureSource, target);
 
-						bsLightingShaderPropertyLookup.put(bslsp, textureAttributes);
+						textureAttributesLookup.put(bslsp, textureAttributes);
 					}
 
 					// now set the texture
@@ -513,9 +510,15 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 	 * @param app
 	 * @param blocks
 	 */
-	private static void setUpTimeController(NiProperty property, NiToJ3dData niToJ3dData, TextureSource textureSource, J3dNiAVObject target)
+	public static void setUpTimeController(NiProperty property, NiToJ3dData niToJ3dData, TextureSource textureSource, J3dNiAVObject target)
 	{
 		NiTimeController controller = (NiTimeController) niToJ3dData.get(property.controller);
+		setUpTimeController(controller, niToJ3dData, textureSource, target);
+	}
+	
+	public static void setUpTimeController(BSLightingShaderProperty bslsp, NiToJ3dData niToJ3dData, TextureSource textureSource, J3dNiAVObject target)
+	{
+		NiTimeController controller = (NiTimeController) niToJ3dData.get(bslsp.controller);
 		setUpTimeController(controller, niToJ3dData, textureSource, target);
 	}
 

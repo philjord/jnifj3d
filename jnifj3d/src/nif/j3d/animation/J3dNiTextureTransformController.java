@@ -54,11 +54,15 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 			Appearance app = j3dNiGeometry.getShape().getAppearance();
 			if (app.getTextureUnitCount() > 0)
 			{
-
+				// note these MUST be shared so updating one updates for all TUS
 				textureAttributes = app.getTextureUnitState(0).getTextureAttributes();
 				if (textureAttributes == null)
 				{
-					app.getTextureUnitState(0).setTextureAttributes(new TextureAttributes());
+					textureAttributes = new TextureAttributes();
+					for (int i = 0; i < app.getTextureUnitCount(); i++)
+					{
+						app.getTextureUnitState(i).setTextureAttributes(textureAttributes);
+					}
 				}
 
 				if (!textureAttributes.getCapability(TextureAttributes.ALLOW_TRANSFORM_WRITE))
@@ -66,7 +70,7 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 					textureAttributes.setCapability(TextureAttributes.ALLOW_TRANSFORM_WRITE);
 				}
 
-				// for those special cases output the incomplete operation suport
+				// for those special cases output the incomplete operation support
 				if (operation == TexTransform.TT_SCALE_U)
 				{
 					System.out.println("texture transform.setScale(u) spotted in " + niTimeController.nVer.fileName);
@@ -112,13 +116,11 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 			{
 				//TODO: removed as particle atlas animated textures don't like being interpolated by non powers of 2
 				transform.setScale(new Vector3d(0d, value, 0d));
-
 			}
 			else if (operation == TexTransform.TT_SCALE_V)
 			{
 				//TODO: removed as particle atlas animated textures don't like being interpolated by non powers of 2
 				transform.setScale(new Vector3d(value, 0d, 0d));
-
 			}
 			else if (operation == TexTransform.TT_ROTATE)
 			{
