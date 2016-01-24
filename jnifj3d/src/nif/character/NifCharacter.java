@@ -364,15 +364,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 
 			for (CharacterAttachment ca : attachments)
 			{
-				try
-				{
-					ca.process();
-				}
-				catch (NullPointerException e)
-				{
-					//not sure why these are happening sometimes
-					e.printStackTrace();
-				}
+				ca.process();
 			}
 
 		}
