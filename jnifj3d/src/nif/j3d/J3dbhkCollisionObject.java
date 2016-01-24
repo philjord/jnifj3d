@@ -4,12 +4,12 @@ import java.util.Vector;
 
 import javax.media.j3d.GeometryArray;
 import javax.media.j3d.Group;
-import javax.media.j3d.IndexedQuadArray;
-import javax.media.j3d.IndexedTriangleStripArray;
 import javax.media.j3d.J3DBuffer;
+import javax.media.j3d.QuadArray;
 import javax.media.j3d.Shape3D;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
+import javax.media.j3d.TriangleStripArray;
 import javax.vecmath.Color3f;
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Point3d;
@@ -256,14 +256,13 @@ public class J3dbhkCollisionObject extends Group
 		float radius = ConvertFromHavok.toJ3d(data.radius, nifVer);
 		SphereGenerator sg = new SphereGenerator(radius);
 		GeometryData gd = new GeometryData();
-		gd.geometryType = GeometryData.INDEXED_TRIANGLE_STRIPS;
+		gd.geometryType = GeometryData.TRIANGLE_STRIPS;
 		sg.generate(gd);
 
 		Shape3D shape = new Shape3D();
 
-		IndexedTriangleStripArray tsa = new IndexedTriangleStripArray(gd.vertexCount, defaultFormat, gd.indexesCount, gd.stripCounts);
+		TriangleStripArray tsa = new TriangleStripArray(gd.vertexCount, defaultFormat, gd.stripCounts);
 		tsa.setCoordRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(gd.coordinates)));
-		tsa.setCoordIndicesRef(gd.indexes);
 
 		shape.setGeometry(tsa);
 
@@ -284,12 +283,12 @@ public class J3dbhkCollisionObject extends Group
 
 			SphereGenerator sg = new SphereGenerator(radius);
 			GeometryData gd = new GeometryData();
-			gd.geometryType = GeometryData.INDEXED_TRIANGLE_STRIPS;
+			gd.geometryType = GeometryData.TRIANGLE_STRIPS;
 			sg.generate(gd);
 			Shape3D shape = new Shape3D();
-			IndexedTriangleStripArray tsa = new IndexedTriangleStripArray(gd.vertexCount, defaultFormat, gd.indexesCount, gd.stripCounts);
+			TriangleStripArray tsa = new TriangleStripArray(gd.vertexCount, defaultFormat, gd.stripCounts);
 			tsa.setCoordRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(gd.coordinates)));
-			tsa.setCoordIndicesRef(gd.indexes);
+
 			shape.setGeometry(tsa);
 
 			shape.setAppearance(PhysAppearance.makeAppearance());
@@ -318,12 +317,11 @@ public class J3dbhkCollisionObject extends Group
 
 		SphereGenerator sg = new SphereGenerator(radius1);
 		GeometryData gd = new GeometryData();
-		gd.geometryType = GeometryData.INDEXED_TRIANGLE_STRIPS;
+		gd.geometryType = GeometryData.TRIANGLE_STRIPS;
 		sg.generate(gd);
 		Shape3D shape = new Shape3D();
-		IndexedTriangleStripArray tsa = new IndexedTriangleStripArray(gd.vertexCount, defaultFormat, gd.indexesCount, gd.stripCounts);
+		TriangleStripArray tsa = new TriangleStripArray(gd.vertexCount, defaultFormat, gd.stripCounts);
 		tsa.setCoordRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(gd.coordinates)));
-		tsa.setCoordIndicesRef(gd.indexes);
 
 		shape.setGeometry(tsa);
 		shape.setAppearance(PhysAppearance.makeAppearance());
@@ -339,9 +337,8 @@ public class J3dbhkCollisionObject extends Group
 		gd.geometryType = GeometryData.TRIANGLE_STRIPS;
 		sg.generate(gd);
 		shape = new Shape3D();
-		tsa = new IndexedTriangleStripArray(gd.vertexCount, defaultFormat, gd.indexesCount, gd.stripCounts);
+		tsa = new TriangleStripArray(gd.vertexCount, defaultFormat, gd.stripCounts);
 		tsa.setCoordRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(gd.coordinates)));
-		tsa.setCoordIndicesRef(gd.indexes);
 
 		shape.setGeometry(tsa);
 		shape.setAppearance(PhysAppearance.makeAppearance());
@@ -358,9 +355,8 @@ public class J3dbhkCollisionObject extends Group
 		gd.geometryType = GeometryData.TRIANGLE_STRIPS;
 		cg.generate(gd);
 		shape = new Shape3D();
-		tsa = new IndexedTriangleStripArray(gd.vertexCount, defaultFormat, gd.indexesCount, gd.stripCounts);
+		tsa = new TriangleStripArray(gd.vertexCount, defaultFormat, gd.stripCounts);
 		tsa.setCoordRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(gd.coordinates)));
-		tsa.setCoordIndicesRef(gd.indexes);
 
 		shape.setGeometry(tsa);
 		shape.setAppearance(PhysAppearance.makeAppearance());
@@ -395,7 +391,7 @@ public class J3dbhkCollisionObject extends Group
 		float y = ConvertFromHavok.toJ3d(data.dimensions.z, nifVer);
 		float z = ConvertFromHavok.toJ3d(data.dimensions.y, nifVer);
 
-		IndexedQuadArray cube = new IndexedQuadArray(24, defaultFormat, 72);
+		QuadArray cube = new QuadArray(24, defaultFormat);
 
 		float scaledVerts[] = new float[] {
 				// front face
@@ -412,12 +408,6 @@ public class J3dbhkCollisionObject extends Group
 				-x, -y, z, -x, -y, -z, x, -y, -z, x, -y, z, };
 
 		cube.setCoordRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(scaledVerts)));
-		int[] coordIndices = new int[72];
-		for (int i = 0; i < 72; i++)
-		{
-			coordIndices[i] = i;
-		}
-		cube.setCoordIndicesRef(coordIndices);
 
 		// Put geometry into Shape3d
 		Shape3D shape = new Shape3D();
