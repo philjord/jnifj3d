@@ -68,7 +68,7 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 
 	public static IndexedGeometryArray createGeometry(NiTriShapeData data, boolean morphable)
 	{
-		 
+
 		if (!morphable)
 		{
 			IndexedGeometryArray iga = sharedIGAs.get(data);
@@ -101,6 +101,8 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 					ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, INTERLEAVE), texCoordCount, texMap,
 							data.numTrianglePoints);
 				}
+
+				ita.setName(data.toString() + ":" + data.nVer.fileName);
 
 				if (morphable || INTERLEAVE || BUFFERS)
 					ita.setCoordIndicesRef(data.trianglesOpt);
@@ -147,7 +149,7 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 				}
 
 				IndexedGeometryArray ita = gi.getIndexedGeometryArray(false, false, INTERLEAVE, true, BUFFERS);
-
+				ita.setName(data.toString() + ":" + data.nVer.fileName);
 				if (data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS)
 				{
 					if (!morphable)

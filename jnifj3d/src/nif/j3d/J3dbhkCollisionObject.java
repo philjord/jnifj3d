@@ -5,10 +5,10 @@ import java.util.Vector;
 import javax.media.j3d.GeometryArray;
 import javax.media.j3d.Group;
 import javax.media.j3d.J3DBuffer;
-import javax.media.j3d.QuadArray;
 import javax.media.j3d.Shape3D;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
+import javax.media.j3d.TriangleArray;
 import javax.media.j3d.TriangleStripArray;
 import javax.vecmath.Color3f;
 import javax.vecmath.Matrix4f;
@@ -391,21 +391,51 @@ public class J3dbhkCollisionObject extends Group
 		float y = ConvertFromHavok.toJ3d(data.dimensions.z, nifVer);
 		float z = ConvertFromHavok.toJ3d(data.dimensions.y, nifVer);
 
-		QuadArray cube = new QuadArray(24, defaultFormat);
+		TriangleArray cube = new TriangleArray(36, defaultFormat);
 
 		float scaledVerts[] = new float[] {
 				// front face
-				x, -y, z, x, y, z, -x, y, z, -x, -y, z,
+				x, -y, z, //1
+				x, y, z, //2
+				-x, y, z, //3
+				x, -y, z, //1
+				-x, y, z, //3
+				-x, -y, z, //4
 				// back face
-				-x, -y, -z, -x, y, -z, x, y, -z, x, -y, -z,
+				-x, -y, -z, //1
+				-x, y, -z, //2
+				x, y, -z, //3
+				-x, -y, -z, //1
+				x, y, -z, //3
+				x, -y, -z, //4
 				// right face
-				x, -y, -z, x, y, -z, x, y, z, x, -y, z,
+				x, -y, -z, //1
+				x, y, -z, //2
+				x, y, z, //3
+				x, -y, -z, //1
+				x, y, z, //3
+				x, -y, z, //4
 				// left face
-				-x, -y, z, -x, y, z, -x, y, -z, -x, -y, -z,
+				-x, -y, z, //1
+				-x, y, z, //2
+				-x, y, -z, //3
+				-x, -y, z, //1
+				-x, y, -z, //3
+				-x, -y, -z, //4
 				// top face
-				x, y, z, x, y, -z, -x, y, -z, -x, y, z,
+				x, y, z, //1
+				x, y, -z, //2
+				-x, y, -z, //3
+				x, y, z, //1
+				-x, y, -z, //3
+				-x, y, z, //4
 				// bottom face
-				-x, -y, z, -x, -y, -z, x, -y, -z, x, -y, z, };
+				-x, -y, z, //1
+				-x, -y, -z, //2
+				x, -y, -z, //3
+				-x, -y, z, //1
+				x, -y, -z, //3
+				x, -y, z, };//4
 
 		cube.setCoordRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(scaledVerts)));
 

@@ -1,7 +1,7 @@
 package nif.j3d.particles;
 
 import javax.media.j3d.GeometryArray;
-import javax.media.j3d.IndexedQuadArray;
+import javax.media.j3d.IndexedTriangleArray;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
 import javax.vecmath.AxisAngle4f;
@@ -11,7 +11,7 @@ import nif.niobject.particle.NiPSysData;
 
 public class J3dPSysData
 {
-	public static int vertsPerFace = 4;
+	public static int vertsPerFace = 6;
 
 	public static int gaCoordStride = vertsPerFace * 3;
 
@@ -51,7 +51,7 @@ public class J3dPSysData
 
 	public int[] particleImageIds;
 
-	public IndexedQuadArray ga;
+	public IndexedTriangleArray ga;
 
 	private int gaVertexCount;
 
@@ -94,9 +94,10 @@ public class J3dPSysData
 		maxParticleCount = Math.max(niPSysData.BSMaxVertices, niPSysData.numVertices);
 		gaVertexCount = maxParticleCount * vertsPerFace;
 
-		ga = new IndexedQuadArray(gaVertexCount, GeometryArray.BY_REFERENCE | GeometryArray.COORDINATES
-				| GeometryArray.TEXTURE_COORDINATE_2 | GeometryArray.COLOR_4  | GeometryArray.BY_REFERENCE_INDICES
-				| GeometryArray.USE_COORD_INDEX_ONLY, gaVertexCount);
+		ga = new IndexedTriangleArray(gaVertexCount,
+				GeometryArray.BY_REFERENCE | GeometryArray.COORDINATES | GeometryArray.TEXTURE_COORDINATE_2 | GeometryArray.COLOR_4
+						| GeometryArray.BY_REFERENCE_INDICES | GeometryArray.USE_COORD_INDEX_ONLY,
+				gaVertexCount);
 
 		ga.setCapability(GeometryArray.ALLOW_REF_DATA_WRITE);
 		ga.setCapability(GeometryArray.ALLOW_COUNT_WRITE);
@@ -121,10 +122,12 @@ public class J3dPSysData
 		//fixed for all time
 		for (int i = 0; i < maxParticleCount; i++)
 		{
-			gaCoordIndices[i * 4 + 0] = i * 4 + 0;
-			gaCoordIndices[i * 4 + 1] = i * 4 + 1;
-			gaCoordIndices[i * 4 + 2] = i * 4 + 2;
-			gaCoordIndices[i * 4 + 3] = i * 4 + 3;
+			gaCoordIndices[i * 4 + 0] = i * 4 + 0;//1
+			gaCoordIndices[i * 4 + 1] = i * 4 + 1;//2
+			gaCoordIndices[i * 4 + 2] = i * 4 + 2;//3
+			gaCoordIndices[i * 4 + 3] = i * 4 + 3;//1
+			gaCoordIndices[i * 4 + 4] = i * 4 + 4;//3
+			gaCoordIndices[i * 4 + 6] = i * 4 + 5;//4
 
 		}
 
@@ -220,7 +223,7 @@ public class J3dPSysData
 			particleTranslation[indx * 3 + 2] = z;
 
 			particleRotationAngle[indx] = 0f;
-			
+
 			billTG.getTransform(transF);
 			recalcGaCoords(indx);
 
@@ -330,35 +333,49 @@ public class J3dPSysData
 
 		//TODO: radius is naturally a half, why half again? Did game bryo say so
 		float halfRad = particleRadius[particle] / 2f;
+		// TODO: these are just 2 matrix operations, I could make it simpler no doubt
 
 		p.set(-halfRad, -halfRad, 0);
-		// TODO: these are just 2 matrix operations, I could make it simpler no doubt
 		transR.transform(p);
 		transF.transform(p);
-		gaCoords[particle * 4 * 3 + 0 + 0] = x + p.x;
-		gaCoords[particle * 4 * 3 + 0 + 1] = y + p.y;
-		gaCoords[particle * 4 * 3 + 0 + 2] = z + p.z;
+		gaCoords[particle * 6 * 3 + 0 + 0] = x + p.x;
+		gaCoords[particle * 6 * 3 + 0 + 1] = y + p.y;
+		gaCoords[particle * 6 * 3 + 0 + 2] = z + p.z;//1
 
 		p.set(halfRad, -halfRad, 0);
 		transR.transform(p);
 		transF.transform(p);
-		gaCoords[particle * 4 * 3 + 3 + 0] = x + p.x;
-		gaCoords[particle * 4 * 3 + 3 + 1] = y + p.y;
-		gaCoords[particle * 4 * 3 + 3 + 2] = z + p.z;
+		gaCoords[particle * 6 * 3 + 3 + 0] = x + p.x;
+		gaCoords[particle * 6 * 3 + 3 + 1] = y + p.y;
+		gaCoords[particle * 6 * 3 + 3 + 2] = z + p.z;//2
 
 		p.set(halfRad, halfRad, 0);
 		transR.transform(p);
 		transF.transform(p);
-		gaCoords[particle * 4 * 3 + 6 + 0] = x + p.x;
-		gaCoords[particle * 4 * 3 + 6 + 1] = y + p.y;
-		gaCoords[particle * 4 * 3 + 6 + 2] = z + p.z;
+		gaCoords[particle * 6 * 3 + 6 + 0] = x + p.x;
+		gaCoords[particle * 6 * 3 + 6 + 1] = y + p.y;
+		gaCoords[particle * 6 * 3 + 6 + 2] = z + p.z;//3
+
+		p.set(-halfRad, -halfRad, 0);
+		transR.transform(p);
+		transF.transform(p);
+		gaCoords[particle * 6 * 3 + 9 + 0] = x + p.x;
+		gaCoords[particle * 6 * 3 + 9 + 1] = y + p.y;
+		gaCoords[particle * 6 * 3 + 9 + 2] = z + p.z;//1
+
+		p.set(halfRad, halfRad, 0);
+		transR.transform(p);
+		transF.transform(p);
+		gaCoords[particle * 6 * 3 + 12 + 0] = x + p.x;
+		gaCoords[particle * 6 * 3 + 12 + 1] = y + p.y;
+		gaCoords[particle * 6 * 3 + 12 + 2] = z + p.z;//3
 
 		p.set(-halfRad, halfRad, 0);
 		transR.transform(p);
 		transF.transform(p);
-		gaCoords[particle * 4 * 3 + 9 + 0] = x + p.x;
-		gaCoords[particle * 4 * 3 + 9 + 1] = y + p.y;
-		gaCoords[particle * 4 * 3 + 9 + 2] = z + p.z;
+		gaCoords[particle * 6 * 3 + 15 + 0] = x + p.x;
+		gaCoords[particle * 6 * 3 + 15 + 1] = y + p.y;
+		gaCoords[particle * 6 * 3 + 15 + 2] = z + p.z;//4
 	}
 
 	/**

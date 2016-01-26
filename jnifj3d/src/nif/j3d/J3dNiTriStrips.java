@@ -84,7 +84,7 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 				itsa = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable, INTERLEAVE),
 						texCoordCount, texMap, length, stripLengths);
 			}
-			
+			itsa.setName(data.toString() + ":" + data.nVer.fileName);
 			if (morphable || INTERLEAVE || BUFFERS)
 				itsa.setCoordIndicesRef(points);
 			else
