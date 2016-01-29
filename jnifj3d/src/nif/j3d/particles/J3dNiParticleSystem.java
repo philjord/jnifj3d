@@ -78,12 +78,12 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 			// the further away smoke gets the odder the facing code works OrientedShape3D os3d;
 
 			// bill board to orient every quad to cameras proper like
-			billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-			billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-			Billboard2 billBehave = new Billboard2(billTrans, Billboard.ROTATE_ABOUT_POINT, new Point3f(0, 0, 0));
-			billBehave.setEnable(true);
-			billBehave.setSchedulingBounds(Utils3D.defaultBounds);
-			addChild(billBehave);
+		//	billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+		//	billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+		//	Billboard2 billBehave = new Billboard2(billTrans, Billboard.ROTATE_ABOUT_POINT, new Point3f(0, 0, 0));
+		//	billBehave.setEnable(true);
+		//	billBehave.setSchedulingBounds(Utils3D.defaultBounds);
+		//	addChild(billBehave);
 
 			j3dPSysData = new J3dPSysData(niPSysData, billTrans);
 
