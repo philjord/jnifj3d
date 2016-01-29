@@ -194,7 +194,7 @@ public class NifDisplayTester
 		//dirLight.setCapability(Light.ALLOW_INFLUENCING_BOUNDS_WRITE);
 		//dirLight.setInfluencingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
 
-		Color3f plColor = new Color3f(1.0f, 0.5f, 0.5f);
+		Color3f plColor = new Color3f(1.0f, 0.95f, 0.95f);
 		//Color3f plColor = new Color3f(0.4f, 0.4f, 0.7f);
 		PointLight pLight = new PointLight(true, plColor, new Point3f(0f, 0f, 0f), new Point3f(1f, 1f, 0f));
 		pLight.setCapability(Light.ALLOW_INFLUENCING_BOUNDS_WRITE);
@@ -206,7 +206,8 @@ public class NifDisplayTester
 		//bg.addChild(dirLight);
 
 		TransformGroup tg = new TransformGroup();
-		Transform3D t = new Transform3D(new Quat4f(0, 0, 0, 1), new Vector3f(10, 10, 10), 1);
+		// light is above like nifskope
+		Transform3D t = new Transform3D(new Quat4f(0, 0, 0, 1), new Vector3f(0, 10, 0), 1);
 		tg.setTransform(t);
 		tg.addChild(new Cube(0.1f));
 		tg.addChild(pLight);
@@ -231,7 +232,7 @@ public class NifDisplayTester
 
 		simpleUniverse.addBranchGraph(bg);
 
-		simpleUniverse.getViewer().getView().setBackClipDistance(50000);//big cos it's only 1 nif file anyway
+		simpleUniverse.getViewer().getView().setBackClipDistance(5000); 
 
 		simpleUniverse.getCanvas().addKeyListener(new KeyHandler());
 
