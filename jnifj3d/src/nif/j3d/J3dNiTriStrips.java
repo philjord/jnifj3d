@@ -20,6 +20,7 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 		niToJ3dData.put(niTriStrips, this);
 
 		currentGeometryArray = createGeometry(false);
+		currentGeometryArray.setName(niTriStrips.toString() + " : " + data.nVer.fileName);
 		getShape().setGeometry(currentGeometryArray);
 	}
 
@@ -84,7 +85,7 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 				itsa = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable, INTERLEAVE),
 						texCoordCount, texMap, length, stripLengths);
 			}
-			itsa.setName(data.toString() + ":" + data.nVer.fileName);
+
 			if (morphable || INTERLEAVE || BUFFERS)
 				itsa.setCoordIndicesRef(points);
 			else

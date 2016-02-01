@@ -29,6 +29,7 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 		else
 		{
 			currentGeometryArray = createGeometry(false);
+			currentGeometryArray.setName(niTriShape.toString() + " : " + data.nVer.fileName);
 			getShape().setGeometry(currentGeometryArray);
 		}
 
@@ -101,8 +102,6 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 					ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, INTERLEAVE), texCoordCount, texMap,
 							data.numTrianglePoints);
 				}
-
-				ita.setName(data.toString() + ":" + data.nVer.fileName);
 
 				if (morphable || INTERLEAVE || BUFFERS)
 					ita.setCoordIndicesRef(data.trianglesOpt);
