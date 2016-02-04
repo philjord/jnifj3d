@@ -42,6 +42,9 @@ import javax.vecmath.Vector3f;
 
 import com.sun.j3d.utils.universe.SimpleUniverse;
 
+import awt.tools3d.resolution.GraphicsSettings;
+import awt.tools3d.resolution.QueryProperties;
+import awt.tools3d.resolution.ScreenResolution;
 import nif.NifToJ3d;
 import nif.character.NifCharacter;
 import nif.character.NifCharacterTes3;
@@ -53,9 +56,6 @@ import tools.ddstexture.DDSTextureLoader;
 import tools.swing.DetailsFileChooser;
 import tools.swing.TitledJFileChooser;
 import tools3d.camera.simple.SimpleCameraHandler;
-import tools3d.resolution.GraphicsSettings;
-import tools3d.resolution.QueryProperties;
-import tools3d.resolution.ScreenResolution;
 import tools3d.utils.leafnode.Cube;
 import utils.source.MediaSources;
 import utils.source.file.FileMeshSource;

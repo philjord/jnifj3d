@@ -1,22 +1,13 @@
 package utils.source.file;
 
-import java.awt.Image;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.media.j3d.Texture;
 
-import tools.ddstexture.DDSImage;
 import tools.ddstexture.DDSTextureLoader;
-import tools.ddstexture.utils.DDSDecompressor;
-import tools.image.ImageFlip;
 import utils.source.TextureSource;
-
-import com.sun.j3d.utils.image.ImageException;
-import com.sun.j3d.utils.image.TextureLoader;
 
 public class FileTextureSource implements TextureSource
 {
@@ -93,7 +84,8 @@ public class FileTextureSource implements TextureSource
 			}
 			else
 			{
-				try
+				//FIXME: find a generic texture loading system!
+			/*	try
 				{
 					TextureLoader tl = new TextureLoader(parts[0] + parts[1], null);
 					tex = tl.getTexture();
@@ -101,7 +93,7 @@ public class FileTextureSource implements TextureSource
 				catch (ImageException e)
 				{
 					System.out.println("FileTextureSource.getTexture  " + texName + " " + e + " " + e.getStackTrace()[0]);
-				}
+				}*/
 			}
 
 			if (tex == null)
@@ -115,59 +107,7 @@ public class FileTextureSource implements TextureSource
 		return null;
 
 	}
-
-	@Override
-	public Image getImage(String imageName)
-	{
-
-		imageName = imageName.toLowerCase();
-
-		if (imageName.length() > 0)
-		{
-			// remove incorrect file path prefix, if it exists
-			if (imageName.startsWith("data\\"))
-			{
-				imageName = imageName.substring(5);
-			}
-
-			// add the textures path part
-			if (!imageName.startsWith("textures"))
-			{
-				imageName = "textures\\" + imageName;
-			}
-
-			String[] parts = FileMediaRoots.splitOffMediaRoot(imageName);
-
-			DDSImage ddsImage = null;
-			try
-			{
-
-				ddsImage = DDSImage.read(new File(parts[0] + parts[1]));
-				BufferedImage image = new DDSDecompressor(ddsImage, 0, imageName).convertImage();
-
-				if (image != null)
-				{
-					return ImageFlip.verticalflip(image);
-				}
-				else
-				{
-					System.out.println(
-							"FileTextureSource.getImage - Problem with loading image: " + imageName + "||" + parts[0] + "|" + parts[1]);
-				}
-
-			}
-			catch (IOException e)
-			{
-				System.out.println("FileTextureSource  " + imageName + " " + e + " " + e.getStackTrace()[0]);
-			}
-			if (ddsImage != null)
-				ddsImage.close();
-
-		}
-
-		return null;
-
-	}
+ 
 
 	@Override
 	public List<String> getFilesInFolder(String folderName)
