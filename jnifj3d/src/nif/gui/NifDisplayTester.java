@@ -7,8 +7,6 @@ import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.Enumeration;
 import java.util.prefs.Preferences;
@@ -40,6 +38,8 @@ import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
 
+import com.jogamp.newt.event.KeyAdapter;
+import com.jogamp.newt.event.KeyEvent;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 
 import awt.tools3d.resolution.GraphicsSettings;
@@ -234,7 +234,7 @@ public class NifDisplayTester
 
 		simpleUniverse.getViewer().getView().setBackClipDistance(5000); 
 
-		simpleUniverse.getCanvas().addKeyListener(new KeyHandler());
+		simpleUniverse.getCanvas().getGLWindow().addKeyListener(new KeyHandler());
 
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.setOpaque(true);
