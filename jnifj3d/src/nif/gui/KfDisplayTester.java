@@ -6,8 +6,6 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -40,6 +38,8 @@ import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3f;
 
+import com.jogamp.newt.event.KeyAdapter;
+import com.jogamp.newt.event.KeyEvent;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 
 import awt.tools3d.resolution.GraphicsSettings;
@@ -189,7 +189,7 @@ public class KfDisplayTester
 
 		simpleUniverse.getViewer().getView().setBackClipDistance(50000);//big cos it's only 1 nif file anyway
 
-		simpleUniverse.getCanvas().addKeyListener(new KeyHandler());
+		simpleUniverse.getCanvas().getGLWindow().addKeyListener(new KeyHandler());
 
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.setOpaque(true);
