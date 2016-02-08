@@ -1,9 +1,5 @@
 package nif.gui;
 
-import java.awt.GraphicsConfigTemplate;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -18,7 +14,6 @@ import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.BranchGroup;
 import javax.media.j3d.Canvas3D;
 import javax.media.j3d.DirectionalLight;
-import javax.media.j3d.GraphicsConfigTemplate3D;
 import javax.media.j3d.Group;
 import javax.media.j3d.Light;
 import javax.media.j3d.TransformGroup;
@@ -99,8 +94,6 @@ public class KfDisplayTester
 
 	private JFrame win = new JFrame("Nif model");
 
-	private final GraphicsDevice gd;
-
 	public KfDisplayTester()
 	{
 		NifToJ3d.SUPPRESS_EXCEPTIONS = false;
@@ -117,25 +110,20 @@ public class KfDisplayTester
 		win.setLocation(400, 0);
 		win.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		gd = ge.getDefaultScreenDevice();
-		GraphicsConfiguration[] gc = gd.getConfigurations();
-		GraphicsConfigTemplate3D template = new GraphicsConfigTemplate3D();
-		// antialiasing REQUIRED is good to have
-		template.setSceneAntialiasing(GraphicsConfigTemplate.REQUIRED);
-		GraphicsConfiguration config = template.getBestConfiguration(gc);
-		Canvas3D canvas3D = new Canvas3D(config);
+		Canvas3D canvas3D = new Canvas3D();
 
-		win.getContentPane().add(canvas3D);
+		//win.getContentPane().add(canvas3D);
+		 
 		simpleUniverse = new SimpleUniverse(canvas3D);
-		GraphicsSettings gs = ScreenResolution.organiseResolution(Preferences.userNodeForPackage(NifDisplayTester.class), win, false, true,
-				true);
+	//	GraphicsSettings gs = ScreenResolution.organiseResolution(Preferences.userNodeForPackage(NifDisplayTester.class), win, false, true,
+		//		true);
 
-		canvas3D.getView().setSceneAntialiasingEnable(gs.isAaRequired());
-		DDSTextureLoader.setAnisotropicFilterDegree(gs.getAnisotropicFilterDegree());
+		//canvas3D.getView().setSceneAntialiasingEnable(gs.isAaRequired());
+	//	DDSTextureLoader.setAnisotropicFilterDegree(gs.getAnisotropicFilterDegree());
 
-		win.setVisible(true);
-
+		//win.setVisible(true);
+		canvas3D.getGLWindow().setSize(800, 600);
+		canvas3D.addNotify();
 		spinTransformGroup.addChild(rotateTransformGroup);
 		rotateTransformGroup.addChild(modelGroup);
 		simpleCameraHandler = new SimpleCameraHandler(simpleUniverse.getViewingPlatform(), simpleUniverse.getCanvas(), modelGroup,

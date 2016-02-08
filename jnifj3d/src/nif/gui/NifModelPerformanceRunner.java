@@ -112,7 +112,9 @@ public class NifModelPerformanceRunner
 	{
 		universe = new SimpleUniverse();
 
-		SwingUtilities.getWindowAncestor(universe.getCanvas()).setSize(600, 600);
+		//SwingUtilities.getWindowAncestor(universe.getCanvas()).setSize(600, 600);
+		universe.getCanvas().getGLWindow().setSize(600, 600);
+		universe.getCanvas().addNotify();
 
 		transformGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 

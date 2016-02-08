@@ -1,9 +1,5 @@
 package nif.gui;
 
-import java.awt.GraphicsConfigTemplate;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -17,7 +13,6 @@ import javax.media.j3d.Behavior;
 import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.BranchGroup;
 import javax.media.j3d.Canvas3D;
-import javax.media.j3d.GraphicsConfigTemplate3D;
 import javax.media.j3d.Group;
 import javax.media.j3d.Light;
 import javax.media.j3d.PointLight;
@@ -114,9 +109,7 @@ public class NifDisplayTester
 
 	private Background background = new Background();
 
-	private JFrame win = new JFrame("Nif model");
-
-	private final GraphicsDevice gd;
+	//private JFrame win = new JFrame("Nif model");
 
 	public NifDisplayTester()
 	{
@@ -131,28 +124,26 @@ public class NifDisplayTester
 		}
 
 		//win.setVisible(true);
-		win.setLocation(400, 0);
-		win.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		//win.setLocation(400, 0);
+		//win.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		gd = ge.getDefaultScreenDevice();
-		GraphicsConfiguration[] gc = gd.getConfigurations();
-		GraphicsConfigTemplate3D template = new GraphicsConfigTemplate3D();
-		// antialiasing REQUIRED is good to have
-		template.setSceneAntialiasing(GraphicsConfigTemplate.REQUIRED);
-		GraphicsConfiguration config = template.getBestConfiguration(gc);
-		Canvas3D canvas3D = new Canvas3D(config);
+		Canvas3D canvas3D = new Canvas3D();
 
-		win.getContentPane().add(canvas3D);
+		//win.getContentPane().add(canvas3D);
+		
 		simpleUniverse = new SimpleUniverse(canvas3D);
-		GraphicsSettings gs = ScreenResolution.organiseResolution(Preferences.userNodeForPackage(NifDisplayTester.class), win, false, true,
-				true);
+		/*		GraphicsSettings gs = ScreenResolution.organiseResolution(Preferences.userNodeForPackage(NifDisplayTester.class), win, false, true,
+						true);
+		
+				canvas3D.getView().setSceneAntialiasingEnable(gs.isAaRequired());
+				DDSTextureLoader.setAnisotropicFilterDegree(gs.getAnisotropicFilterDegree());
+			*/
+		//TODO: these must come form a new one of those ^
+		canvas3D.getGLWindow().setSize(800, 600);
+		DDSTextureLoader.setAnisotropicFilterDegree(8);
 
-		canvas3D.getView().setSceneAntialiasingEnable(gs.isAaRequired());
-		DDSTextureLoader.setAnisotropicFilterDegree(gs.getAnisotropicFilterDegree());
-
-		win.setVisible(true);
-
+		//win.setVisible(true);
+		canvas3D.addNotify();
 		JFrame dataF = new JFrame();
 		dataF.getContentPane().setLayout(new GridLayout(1, 1));
 
@@ -232,11 +223,11 @@ public class NifDisplayTester
 
 		simpleUniverse.addBranchGraph(bg);
 
-		simpleUniverse.getViewer().getView().setBackClipDistance(5000); 
+		simpleUniverse.getViewer().getView().setBackClipDistance(5000);
 
 		simpleUniverse.getCanvas().getGLWindow().addKeyListener(new KeyHandler());
 
-		JMenuBar menuBar = new JMenuBar();
+	/*	JMenuBar menuBar = new JMenuBar();
 		menuBar.setOpaque(true);
 		JMenu menu = new JMenu("File");
 		menu.setMnemonic(70);
@@ -254,10 +245,10 @@ public class NifDisplayTester
 				DDSTextureLoader.setAnisotropicFilterDegree(gs2.getAnisotropicFilterDegree());
 				System.out.println("filtering will require newly loaded textures remember");
 			}
-		});
+		});*/
 
-		win.setJMenuBar(menuBar);
-		win.setVisible(true);
+		//win.setJMenuBar(menuBar);
+		//win.setVisible(true);
 	}
 
 	public void setNextFileTreeRoot(File nextFileTreeRoot)
