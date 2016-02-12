@@ -21,6 +21,7 @@ import javax.vecmath.Vector3f;
 import nif.basic.NifRef;
 import nif.compound.BSVertexData;
 import nif.compound.NifMatrix33;
+import nif.niobject.NiObject;
 import nif.niobject.bs.BSPackedCombinedSharedGeomDataExtra;
 import nif.niobject.bs.BSPackedCombinedSharedGeomDataExtra.Combined;
 import nif.niobject.bs.BSPackedCombinedSharedGeomDataExtra.Data;
@@ -34,6 +35,8 @@ import utils.source.TextureSource;
 
 public class J3dBSTriShape extends J3dNiTriBasedGeom
 {
+
+	private static boolean DISPLAY_FAR_QUADS = false;
 
 	/**
 	 * Note BSLODMeshTriShape also arrives here
@@ -50,7 +53,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 		currentGeometryArray = createGeometry(false);
 		getShape().setGeometry(currentGeometryArray);
 
-		if (bsTriShape.dataSize == 0)
+		if (bsTriShape.dataSize == 0 && DISPLAY_FAR_QUADS)
 		{
 			//  parent rotr as this is the center average so floor has this half way up, which is crazy talk
 			// attach the madness below directly to the root of everything
@@ -58,7 +61,8 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 			Appearance app = getShape().getAppearance();
 
 			app.getPolygonAttributes().setCullFace(PolygonAttributes.CULL_NONE);
-			app.getTextureUnitState(0).getTextureAttributes().setTextureMode(TextureAttributes.REPLACE);
+			if (app.getTextureUnitCount() > 0)
+				app.getTextureUnitState(0).getTextureAttributes().setTextureMode(TextureAttributes.REPLACE);
 
 			Shape3D shape = new Shape3D();
 			shape.setAppearance(app);
@@ -66,80 +70,86 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 
 			// find a BSPackedCombinedSharedGeomDataExtra child (always first one?)
 			NifRef[] extraDataList = bsTriShape.extraDataList;
-			BSPackedCombinedSharedGeomDataExtra packed = (BSPackedCombinedSharedGeomDataExtra) niToJ3dData.get(extraDataList[0]);
-
-			Data[] datas = packed.data;
-			//System.out.println("set of data below");
-			for (int da = 0; da < datas.length; da++)
+			NiObject extraData = niToJ3dData.get(extraDataList[0]);
+			//I have also seen BSPositionData
+			if (extraData instanceof BSPackedCombinedSharedGeomDataExtra)
 			{
-				Data data = datas[da];
-				//System.out.println("data " + da);
+				BSPackedCombinedSharedGeomDataExtra packed = (BSPackedCombinedSharedGeomDataExtra) extraData;
 
-				//System.out.println("set of combined below");
-				for (int c = 0; c < data.NumCombined; c++)
+				Data[] datas = packed.data;
+				//System.out.println("set of data below");
+				for (int da = 0; da < datas.length; da++)
 				{
-					//	System.out.println("combined " + c);
-					Combined combined = data.Combined[c];
+					Data data = datas[da];
+					//System.out.println("data " + da);
 
-					// reverse it all!
-					NifMatrix33 m = combined.rot;
-
-					float[] d = m.data();
-					m.m33 = d[0];
-					m.m23 = d[1];
-					m.m13 = d[2];
-					m.m32 = d[3];
-					m.m22 = d[4];
-					m.m12 = d[5];
-					m.m31 = d[6];
-					m.m21 = d[7];
-					m.m11 = d[8];
-
-					Matrix3f m2 = new Matrix3f(m.data());
-					//m2.invert();
-					Quat4f q2 = new Quat4f();
-					q2.set(m2);
-					YawPitch yp = new YawPitch(q2);
-					System.out.println("yp = " + yp);
-
-					Quat4f q = ConvertFromNif.toJ3d(m);
-					//q= new Quat4f(0,0,0,1);// I think my q is not forming as I would have it form
-					// I think I need to round the values off or something like nifskope
-
-					Vector3f t = ConvertFromNif.toJ3d(combined.trans);
-					float s = combined.scale;
-
-					Transform3D t4p = new Transform3D(q2, t, s);
-
-					float x = 5.12f;
-					float y = 0;
-					float z = 5.12f;
-
-					if (Math.abs(packed.fs[da][2]) < 0.01)
+					//System.out.println("set of combined below");
+					for (int c = 0; c < data.NumCombined; c++)
 					{
-						y = 5.12f;
-						z = 0;
+						//	System.out.println("combined " + c);
+						Combined combined = data.Combined[c];
+
+						// reverse it all!
+						NifMatrix33 m = combined.rot;
+
+						float[] d = m.data();
+						m.m33 = d[0];
+						m.m23 = d[1];
+						m.m13 = d[2];
+						m.m32 = d[3];
+						m.m22 = d[4];
+						m.m12 = d[5];
+						m.m31 = d[6];
+						m.m21 = d[7];
+						m.m11 = d[8];
+
+						Matrix3f m2 = new Matrix3f(m.data());
+						//m2.invert();
+						Quat4f q2 = new Quat4f();
+						q2.set(m2);
+						YawPitch yp = new YawPitch(q2);
+						System.out.println("yp = " + yp);
+
+						Quat4f q = ConvertFromNif.toJ3d(m);
+						//q= new Quat4f(0,0,0,1);// I think my q is not forming as I would have it form
+						// I think I need to round the values off or something like nifskope
+
+						Vector3f t = ConvertFromNif.toJ3d(combined.trans);
+						float s = combined.scale;
+
+						Transform3D t4p = new Transform3D(q2, t, s);
+
+						float x = 5.12f;
+						float y = 0;
+						float z = 5.12f;
+
+						if (Math.abs(packed.fs[da][2]) < 0.01)
+						{
+							y = 5.12f;
+							z = 0;
+						}
+
+						Point3f p0 = new Point3f(x, y, z);
+						t4p.transform(p0);
+						Point3f p1 = new Point3f(0.0f, y, z);
+						t4p.transform(p1);
+						Point3f p2 = new Point3f(0.0f, 0.0f, 0);
+						t4p.transform(p2);
+						Point3f p3 = new Point3f(x, 0.0f, 0);
+						t4p.transform(p3);
+
+						shape.addGeometry(createQuad(p0, p1, p2, p3));
+
+						TransformGroup tg = new TransformGroup();
+						Transform3D t3d = new Transform3D(new Quat4f(0, 0, 0, 1), ConvertFromNif.toJ3d(combined.bounds.center), 1);
+
+						tg.setTransform(t3d);
+
+						tg.addChild(
+								new Cube(0.25, (combined.trans.x / 100) % 1, (combined.trans.y / 100) % 1, (combined.trans.z / 100) % 1));
+						root.addChild(tg);
+
 					}
-
-					Point3f p0 = new Point3f(x, y, z);
-					t4p.transform(p0);
-					Point3f p1 = new Point3f(0.0f, y, z);
-					t4p.transform(p1);
-					Point3f p2 = new Point3f(0.0f, 0.0f, 0);
-					t4p.transform(p2);
-					Point3f p3 = new Point3f(x, 0.0f, 0);
-					t4p.transform(p3);
-
-					shape.addGeometry(createQuad(p0, p1, p2, p3));
-
-					TransformGroup tg = new TransformGroup();
-					Transform3D t3d = new Transform3D(new Quat4f(0, 0, 0, 1), ConvertFromNif.toJ3d(combined.bounds.center), 1);
-
-					tg.setTransform(t3d);
-
-					tg.addChild(new Cube(0.25, (combined.trans.x / 100) % 1, (combined.trans.y / 100) % 1, (combined.trans.z / 100) % 1));
-					root.addChild(tg);
-
 				}
 			}
 
