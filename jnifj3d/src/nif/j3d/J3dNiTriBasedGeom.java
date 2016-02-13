@@ -14,6 +14,7 @@ import javax.media.j3d.LineAttributes;
 import javax.media.j3d.PolygonAttributes;
 import javax.media.j3d.RenderingAttributes;
 import javax.media.j3d.Shape3D;
+import javax.media.j3d.TriangleArray;
 import javax.vecmath.Color3f;
 
 import nif.NifVer;
@@ -353,7 +354,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 			ga.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
 			ga.setCapability(GeometryArray.ALLOW_REF_DATA_WRITE);
-
+			ga.setCapability(GeometryArray.ALLOW_COORDINATE_WRITE);
 		}
 
 	}

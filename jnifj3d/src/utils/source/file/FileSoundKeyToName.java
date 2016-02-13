@@ -9,9 +9,7 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-import utils.source.SoundKeyToName;
-
-public class FileSoundKeyToName implements SoundKeyToName
+public class FileSoundKeyToName implements tools.SoundKeyToName
 {
 	public static HashMap<String, String> soundNameToFile = null;
 
