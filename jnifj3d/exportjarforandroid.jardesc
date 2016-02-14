@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="WINDOWS-1252" standalone="no"?>
+<jardesc>
+    <jar path="E:/Java/jarsforandroid/jnifj3d.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/jnifj3d/exportjarforandroid.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="true" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="true" manifestLocation="/ElderScrollsExplorer/META-INF/MANIFEST.MF" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <javaElement handleIdentifier="=jnifj3d/src&lt;nif.other"/>
+        <javaElement handleIdentifier="=jnifj3d/src&lt;nif.j3d.animation"/>
+        <javaElement handleIdentifier="=jnifj3d/src&lt;nif"/>
+        <javaElement handleIdentifier="=jnifj3d/src&lt;nif.j3d"/>
+        <javaElement handleIdentifier="=jnifj3d/src&lt;nif.j3d.animation.j3dinterp"/>
+        <javaElement handleIdentifier="=jnifj3d/src&lt;utils.source"/>
+        <javaElement handleIdentifier="=jnifj3d/src&lt;nif.j3d.animation.tes3"/>
+        <javaElement handleIdentifier="=jnifj3d/src&lt;nif.j3d.animation.j3dinterp.interp.data"/>
+        <javaElement handleIdentifier="=jnifj3d/src&lt;utils.convert"/>
+        <javaElement handleIdentifier="=jnifj3d/src&lt;utils"/>
+        <javaElement handleIdentifier="=jnifj3d/src&lt;nif.j3d.particles"/>
+        <javaElement handleIdentifier="=jnifj3d/src&lt;nif.character"/>
+        <javaElement handleIdentifier="=jnifj3d/src&lt;nif.j3d.animation.j3dinterp.interp"/>
+        <javaElement handleIdentifier="=jnifj3d/src&lt;utils.source.file"/>
+    </selectedElements>
+</jardesc>
