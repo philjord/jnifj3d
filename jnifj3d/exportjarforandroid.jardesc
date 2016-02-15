@@ -11,19 +11,6 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
-        <javaElement handleIdentifier="=jnifj3d/src&lt;nif.other"/>
-        <javaElement handleIdentifier="=jnifj3d/src&lt;nif.j3d.animation"/>
-        <javaElement handleIdentifier="=jnifj3d/src&lt;nif"/>
-        <javaElement handleIdentifier="=jnifj3d/src&lt;nif.j3d"/>
-        <javaElement handleIdentifier="=jnifj3d/src&lt;nif.j3d.animation.j3dinterp"/>
-        <javaElement handleIdentifier="=jnifj3d/src&lt;utils.source"/>
-        <javaElement handleIdentifier="=jnifj3d/src&lt;nif.j3d.animation.tes3"/>
-        <javaElement handleIdentifier="=jnifj3d/src&lt;nif.j3d.animation.j3dinterp.interp.data"/>
-        <javaElement handleIdentifier="=jnifj3d/src&lt;utils.convert"/>
-        <javaElement handleIdentifier="=jnifj3d/src&lt;utils"/>
-        <javaElement handleIdentifier="=jnifj3d/src&lt;nif.j3d.particles"/>
-        <javaElement handleIdentifier="=jnifj3d/src&lt;nif.character"/>
-        <javaElement handleIdentifier="=jnifj3d/src&lt;nif.j3d.animation.j3dinterp.interp"/>
-        <javaElement handleIdentifier="=jnifj3d/src&lt;utils.source.file"/>
+        <javaElement handleIdentifier="=jnifj3d/src"/>
     </selectedElements>
 </jardesc>
