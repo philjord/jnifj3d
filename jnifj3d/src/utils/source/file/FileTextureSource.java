@@ -6,11 +6,21 @@ import java.util.List;
 
 import javax.media.j3d.Texture;
 
-import tools.ddstexture.DDSTextureLoader;
+import tools.compressedtexture.CompressedTextureLoader;
+import tools.compressedtexture.astc.ASTCTextureLoader;
+import tools.compressedtexture.dds.DDSTextureLoader;
 import utils.source.TextureSource;
 
 public class FileTextureSource implements TextureSource
 {
+
+	public enum CompressionType
+	{
+		DDS, ASTC
+	};
+
+	public static CompressionType compressionType = CompressionType.DDS;
+
 	public FileTextureSource()
 	{
 	}
@@ -36,9 +46,14 @@ public class FileTextureSource implements TextureSource
 					texName = "textures\\" + texName;
 				}
 
+				if (compressionType == CompressionType.ASTC)
+				{
+					texName = texName.replace(".dds", ".tga.astc");
+				}
+
 				Texture tex = null;
 				//check cache hit
-				tex = DDSTextureLoader.checkCachedTexture(texName);
+				tex = CompressedTextureLoader.checkCachedTexture(texName);
 				if (tex != null)
 					return true;
 
@@ -71,29 +86,41 @@ public class FileTextureSource implements TextureSource
 				texName = "textures\\" + texName;
 			}
 
+			if (compressionType == CompressionType.ASTC)
+			{
+				texName = texName.replace(".dds", ".tga.astc");
+			}
+
 			Texture tex = null;
 			//check cache hit
-			tex = DDSTextureLoader.checkCachedTexture(texName);
+			tex = CompressedTextureLoader.checkCachedTexture(texName);
 			if (tex != null)
 				return tex;
 
 			String[] parts = FileMediaRoots.splitOffMediaRoot(texName);
+
 			if (texName.endsWith(".dds"))
 			{
 				tex = DDSTextureLoader.getTexture(new File(parts[0] + parts[1]));
 			}
+			else if (texName.endsWith(".astc") || texName.endsWith(".atc"))
+			{
+
+				tex = ASTCTextureLoader.getTexture(new File(parts[0] + parts[1]));
+			}
 			else
+
 			{
 				//FIXME: find a generic texture loading system!
-			/*	try
-				{
-					TextureLoader tl = new TextureLoader(parts[0] + parts[1], null);
-					tex = tl.getTexture();
-				}
-				catch (ImageException e)
-				{
-					System.out.println("FileTextureSource.getTexture  " + texName + " " + e + " " + e.getStackTrace()[0]);
-				}*/
+				/*	try
+					{
+						TextureLoader tl = new TextureLoader(parts[0] + parts[1], null);
+						tex = tl.getTexture();
+					}
+					catch (ImageException e)
+					{
+						System.out.println("FileTextureSource.getTexture  " + texName + " " + e + " " + e.getStackTrace()[0]);
+					}*/
 			}
 
 			if (tex == null)
@@ -107,7 +134,6 @@ public class FileTextureSource implements TextureSource
 		return null;
 
 	}
- 
 
 	@Override
 	public List<String> getFilesInFolder(String folderName)
