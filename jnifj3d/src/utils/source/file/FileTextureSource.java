@@ -9,6 +9,7 @@ import javax.media.j3d.Texture;
 import tools.compressedtexture.CompressedTextureLoader;
 import tools.compressedtexture.astc.ASTCTextureLoader;
 import tools.compressedtexture.dds.DDSTextureLoader;
+import tools.compressedtexture.ktx.KTXTextureLoader;
 import utils.source.TextureSource;
 
 public class FileTextureSource implements TextureSource
@@ -16,7 +17,7 @@ public class FileTextureSource implements TextureSource
 
 	public enum CompressionType
 	{
-		DDS, ASTC
+		DDS, ASTC, KTX
 	};
 
 	public static CompressionType compressionType = CompressionType.DDS;
@@ -35,7 +36,7 @@ public class FileTextureSource implements TextureSource
 			if (texName.length() > 0)
 			{
 				// remove incorrect file path prefix, if it exists
-				if (texName.startsWith("data\\"))
+				if (texName.startsWith("data" + File.separator))
 				{
 					texName = texName.substring(5);
 				}
@@ -43,12 +44,16 @@ public class FileTextureSource implements TextureSource
 				// add the textures path part
 				if (!texName.startsWith("textures"))
 				{
-					texName = "textures\\" + texName;
+					texName = "textures" + File.separator + texName;
 				}
 
 				if (compressionType == CompressionType.ASTC)
 				{
 					texName = texName.replace(".dds", ".tga.astc");
+				}
+				else if (compressionType == CompressionType.KTX)
+				{
+					texName = texName.replace(".dds", ".ktx");
 				}
 
 				Texture tex = null;
@@ -75,7 +80,7 @@ public class FileTextureSource implements TextureSource
 		if (texName.length() > 0)
 		{
 			// remove incorrect file path prefix, if it exists
-			if (texName.startsWith("data\\"))
+			if (texName.startsWith("data" + File.separator))
 			{
 				texName = texName.substring(5);
 			}
@@ -83,12 +88,16 @@ public class FileTextureSource implements TextureSource
 			// add the textures path part
 			if (!texName.startsWith("textures"))
 			{
-				texName = "textures\\" + texName;
+				texName = "textures" + File.separator + texName;
 			}
 
 			if (compressionType == CompressionType.ASTC)
 			{
 				texName = texName.replace(".dds", ".tga.astc");
+			}
+			else if (compressionType == CompressionType.KTX)
+			{
+				texName = texName.replace(".dds", ".ktx");
 			}
 
 			Texture tex = null;
@@ -107,6 +116,11 @@ public class FileTextureSource implements TextureSource
 			{
 
 				tex = ASTCTextureLoader.getTexture(new File(parts[0] + parts[1]));
+			}
+			else if (texName.endsWith(".ktx") )
+			{
+
+				tex = KTXTextureLoader.getTexture(new File(parts[0] + parts[1]));
 			}
 			else
 
