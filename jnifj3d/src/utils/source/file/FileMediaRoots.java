@@ -8,6 +8,13 @@ import utils.ESConfig;
 
 public class FileMediaRoots
 {
+	private static String fixedRoot = null;
+
+	public static void setFixedRoot(String root)
+	{
+		fixedRoot = root;
+	}
+
 	private static ArrayList<String> defaultMediaRoots = new ArrayList<String>();
 
 	private static List<String> MEDIA_ROOTS = defaultMediaRoots;
@@ -63,43 +70,25 @@ public class FileMediaRoots
 	public static String[] splitOffMediaRoot(String mediaFileName)
 	{
 		String[] ret = new String[2];
-		if (MEDIA_ROOTS == defaultMediaRoots && !defaultUsageWarningGiven)
+		if (fixedRoot != null)
 		{
-			System.err.println("Warning! Warning! Usage of default media roots not recommended!");
-			defaultUsageWarningGiven = true;
-		}
 
-		// test to see if it is a complete file name "as is"
-		File f = new File(mediaFileName);
-		if (f.exists())
-		{
-			mediaFileName = mediaFileName.replace("\\", "/").toLowerCase();
-			for (String path : MEDIA_ROOTS)
+			File f = new File(mediaFileName);
+			if (f.exists())
 			{
-				if (mediaFileName.startsWith(path))
-				{
-					ret[0] = path;
-					ret[1] = mediaFileName.substring(path.length());
-					return ret;
-				}
+				//System.out.println("No root found to split " + mediaFileName);
+				ret[0] = "";
+				ret[1] = mediaFileName;
+				return ret;
 			}
-
-			//System.out.println("No root found to split " + mediaFileName);
-			ret[0] = "";
-			ret[1] = mediaFileName;
-			return ret;
-		}
-		else
-		{
-			for (String path : MEDIA_ROOTS)
+			else
 			{
-
 				// try with the word mesh
-				f = new File(path + File.separator + ESConfig.TES_MESH_PATH + mediaFileName);
+				f = new File(fixedRoot + File.separator + ESConfig.TES_MESH_PATH + mediaFileName);
 
 				if (f.exists())
 				{
-					ret[0] = path;
+					ret[0] = fixedRoot;
 					ret[1] = File.separator + ESConfig.TES_MESH_PATH + mediaFileName;
 					return ret;
 
@@ -107,11 +96,11 @@ public class FileMediaRoots
 				else
 				{
 					// add texture
-					f = new File(path + File.separator + ESConfig.TES_TEXTURE_PATH + mediaFileName);
+					f = new File(fixedRoot + File.separator + ESConfig.TES_TEXTURE_PATH + mediaFileName);
 
 					if (f.exists())
 					{
-						ret[0] = path;
+						ret[0] = fixedRoot;
 						ret[1] = File.separator + ESConfig.TES_TEXTURE_PATH + mediaFileName;
 						return ret;
 
@@ -119,37 +108,121 @@ public class FileMediaRoots
 					else
 					{
 						// add sound
-						f = new File(path + File.separator + ESConfig.TES_SOUND_PATH + mediaFileName);
+						f = new File(fixedRoot + File.separator + ESConfig.TES_SOUND_PATH + mediaFileName);
 
 						if (f.exists())
 						{
-							ret[0] = path;
+							ret[0] = fixedRoot;
 							ret[1] = File.separator + ESConfig.TES_SOUND_PATH + mediaFileName;
 							return ret;
 						}
 						else
 						{
-							f = new File(path + File.separator + mediaFileName);
+							f = new File(fixedRoot + File.separator + mediaFileName);
 
 							if (f.exists())
 							{
-								ret[0] = path;
+								ret[0] = fixedRoot;
 								ret[1] = File.separator + mediaFileName;
 								return ret;
 							}
-							//note no return roll around to check next path	
+							
 						}
 
 					}
 				}
-
 			}
 
-			//System.out.println("No root found to split " + mediaFileName);
-			ret[0] = "";
-			ret[1] = mediaFileName;
-			return ret;
 		}
+		else
+		{
+			if (MEDIA_ROOTS == defaultMediaRoots && !defaultUsageWarningGiven)
+			{
+				System.err.println("Warning! Warning! Usage of default media roots not recommended!");
+				defaultUsageWarningGiven = true;
+			}
+
+			// test to see if it is a complete file name "as is"
+			File f = new File(mediaFileName);
+			if (f.exists())
+			{
+				mediaFileName = mediaFileName.replace("\\", "/").toLowerCase();
+				for (String path : MEDIA_ROOTS)
+				{
+					if (mediaFileName.startsWith(path))
+					{
+						ret[0] = path;
+						ret[1] = mediaFileName.substring(path.length());
+						return ret;
+					}
+				}
+
+				//System.out.println("No root found to split " + mediaFileName);
+				ret[0] = "";
+				ret[1] = mediaFileName;
+				return ret;
+			}
+			else
+			{
+				for (String path : MEDIA_ROOTS)
+				{
+
+					// try with the word mesh
+					f = new File(path + File.separator + ESConfig.TES_MESH_PATH + mediaFileName);
+
+					if (f.exists())
+					{
+						ret[0] = path;
+						ret[1] = File.separator + ESConfig.TES_MESH_PATH + mediaFileName;
+						return ret;
+
+					}
+					else
+					{
+						// add texture
+						f = new File(path + File.separator + ESConfig.TES_TEXTURE_PATH + mediaFileName);
+
+						if (f.exists())
+						{
+							ret[0] = path;
+							ret[1] = File.separator + ESConfig.TES_TEXTURE_PATH + mediaFileName;
+							return ret;
+
+						}
+						else
+						{
+							// add sound
+							f = new File(path + File.separator + ESConfig.TES_SOUND_PATH + mediaFileName);
+
+							if (f.exists())
+							{
+								ret[0] = path;
+								ret[1] = File.separator + ESConfig.TES_SOUND_PATH + mediaFileName;
+								return ret;
+							}
+							else
+							{
+								f = new File(path + File.separator + mediaFileName);
+
+								if (f.exists())
+								{
+									ret[0] = path;
+									ret[1] = File.separator + mediaFileName;
+									return ret;
+								}
+								//note no return roll around to check next path	
+							}
+
+						}
+					}
+
+				}
+			}
+		}
+		//System.out.println("No root found to split " + mediaFileName);
+		ret[0] = "";
+		ret[1] = mediaFileName;
+		return ret;
 	}
 	/**
 	 * To force a particular root for say characters etc use this to find the root
@@ -165,7 +238,7 @@ public class FileMediaRoots
 				return path;
 			}
 		}
-
+	
 		System.out.println("getMediaRootOfType failed for " + rootContains);
 		return "";
 	}*/
@@ -185,7 +258,7 @@ public class FileMediaRoots
 			System.err.println("Warning! Warning! Usage of default media roots not recommended!");
 			defaultUsageWarningGiven = true;
 		}
-
+	
 		// test to see if it is a complete file name "as is"
 		File f = new File(mediaFileName);
 		if (f.exists())
@@ -198,7 +271,7 @@ public class FileMediaRoots
 					return path;
 				}
 			}
-
+	
 			return "";
 		}
 		else
@@ -206,7 +279,7 @@ public class FileMediaRoots
 			for (String path : MEDIA_ROOTS)
 			{
 				f = new File(path + File.separator + mediaFileName);
-
+	
 				if (f.exists())
 				{
 					return path + File.separator;
@@ -215,7 +288,7 @@ public class FileMediaRoots
 				{
 					// try with the word mesh
 					f = new File(path + File.separator + ESConfig.TES_MESH_PATH + mediaFileName);
-
+	
 					if (f.exists())
 					{
 						return path + File.separator + ESConfig.TES_MESH_PATH;
@@ -224,7 +297,7 @@ public class FileMediaRoots
 					{
 						// add texture
 						f = new File(path + File.separator + ESConfig.TES_TEXTURE_PATH + mediaFileName);
-
+	
 						if (f.exists())
 						{
 							return path + File.separator + ESConfig.TES_TEXTURE_PATH;
@@ -233,18 +306,18 @@ public class FileMediaRoots
 						{
 							// add sound
 							f = new File(path + File.separator + ESConfig.TES_SOUND_PATH + mediaFileName);
-
+	
 							if (f.exists())
 							{
 								return path + File.separator + ESConfig.TES_SOUND_PATH;
 							}
-
+	
 						}
 					}
 				}
-
+	
 			}
-
+	
 			return "";
 		}
 	}*/
