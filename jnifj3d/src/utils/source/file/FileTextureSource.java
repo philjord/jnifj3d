@@ -114,12 +114,10 @@ public class FileTextureSource implements TextureSource
 			}
 			else if (texName.endsWith(".astc") || texName.endsWith(".atc"))
 			{
-
 				tex = ASTCTextureLoader.getTexture(new File(parts[0] + parts[1]));
 			}
 			else if (texName.endsWith(".ktx") )
 			{
-
 				tex = KTXTextureLoader.getTexture(new File(parts[0] + parts[1]));
 			}
 			else
