@@ -558,7 +558,7 @@ public class J3dbhkCollisionObject extends Group
 				vertices[i] = ConvertFromNif.toJ3dP3f(data.vertices[i]);
 			}
 			gi.setCoordinates(vertices);*/
-			gi.setCoordinates(data.verticesOpt);
+			gi.setCoordinates(Utils3D.extractArrayFromFloatBuffer(data.verticesOptBuf));
 		}
 
 		int numStrips = data.numStrips;

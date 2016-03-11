@@ -75,7 +75,7 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 				texMap[i] = 0;
 			 
 			IndexedGeometryArray itsa;
-			if (data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS)
+			if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
 			{
 				itsa = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable, INTERLEAVE), texCoordCount, texMap, 2,
 						new int[] { 3, 3 }, length, stripLengths);

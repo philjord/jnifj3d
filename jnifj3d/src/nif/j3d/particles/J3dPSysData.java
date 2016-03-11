@@ -1,10 +1,6 @@
 package nif.j3d.particles;
 
-import java.io.IOException;
-import java.util.Enumeration;
-
 import javax.media.j3d.Appearance;
-import javax.media.j3d.Behavior;
 import javax.media.j3d.GLSLShaderProgram;
 import javax.media.j3d.GeometryArray;
 import javax.media.j3d.IndexedTriangleArray;
@@ -14,7 +10,6 @@ import javax.media.j3d.Shader;
 import javax.media.j3d.ShaderAppearance;
 import javax.media.j3d.ShaderAttribute;
 import javax.media.j3d.ShaderAttributeArray;
-import javax.media.j3d.ShaderAttributeObject;
 import javax.media.j3d.ShaderAttributeSet;
 import javax.media.j3d.ShaderAttributeValue;
 import javax.media.j3d.ShaderProgram;
@@ -23,14 +18,12 @@ import javax.media.j3d.Texture;
 import javax.media.j3d.TextureUnitState;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
-import javax.media.j3d.WakeupOnElapsedTime;
 import javax.vecmath.AxisAngle4f;
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3f;
 
-import com.sun.j3d.utils.shader.StringIO;
-
 import nif.niobject.particle.NiPSysData;
+import tools3d.utils.ShaderSourceIO;
 
 public class J3dPSysData
 {
@@ -91,7 +84,7 @@ public class J3dPSysData
 	private TransformGroup billTG;
 
 	public AtlasAnimatedTexture atlasAnimatedTexture;
-	
+
 	//https://www.opengl.org/discussion_boards/showthread.php/166796-GLSL-PointSprites-different-sizes
 
 	/**
@@ -458,70 +451,63 @@ public class J3dPSysData
 
 		if (shaderProgram == null)
 		{
-			try
-			{
-				String vertexProgram = StringIO.readFully("./shaders/water.vert");
-				String fragmentProgram = StringIO.readFully("./shaders/water.frag");
 
-				Shader[] shaders = new Shader[2];
-				shaders[0] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_VERTEX, vertexProgram) {
-					public String toString()
-					{
-						return "vertexProgram";
-					}
-				};
-				shaders[1] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_FRAGMENT, fragmentProgram) {
-					public String toString()
-					{
-						return "fragmentProgram";
-					}
-				};
+			String vertexProgram = ShaderSourceIO.getTextFileAsString("shaders/water.vert");
+			String fragmentProgram = ShaderSourceIO.getTextFileAsString("shaders/water.frag");
 
-				final String[] shaderAttrNames = { "envMap", "numWaves", "amplitude", "wavelength", "speed", "direction", "time" };
-
-				shaderProgram = new GLSLShaderProgram() {
-					public String toString()
-					{
-						return "Water Shader Program";
-					}
-				};
-				shaderProgram.setShaders(shaders);
-				shaderProgram.setShaderAttrNames(shaderAttrNames);
-
-				ShaderAttribute shaderAttribute = new ShaderAttributeValue("envMap", new Integer(0));
-				shaderAttributeSet.put(shaderAttribute);
-
-				shaderAttribute = new ShaderAttributeValue("numWaves", new Integer(4));
-				shaderAttributeSet.put(shaderAttribute);
-
-				Float[] amplitude = new Float[4];
-				Float[] wavelength = new Float[4];
-				Float[] speed = new Float[4];
-				Point2f[] direction = new Point2f[4];
-				for (int i = 0; i < 4; ++i)
+			Shader[] shaders = new Shader[2];
+			shaders[0] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_VERTEX, vertexProgram) {
+				public String toString()
 				{
-					amplitude[i] = 0.2f / (i + 1);
-					wavelength[i] = (float) (8 * Math.PI / (i + 1));
-					speed[i] = 1.0f + 2 * i;
-					float angle = uniformRandomInRange(-Math.PI / 3, Math.PI / 3);
-					direction[i] = new Point2f((float) Math.cos(angle), (float) Math.sin(angle));
+					return "vertexProgram";
 				}
+			};
+			shaders[1] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_FRAGMENT, fragmentProgram) {
+				public String toString()
+				{
+					return "fragmentProgram";
+				}
+			};
 
-				ShaderAttributeArray amplitudes = new ShaderAttributeArray("amplitude", amplitude);
-				ShaderAttributeArray wavelengths = new ShaderAttributeArray("wavelength", wavelength);
-				ShaderAttributeArray speeds = new ShaderAttributeArray("speed", speed);
-				ShaderAttributeArray directions = new ShaderAttributeArray("direction", direction);
-				shaderAttributeSet.put(amplitudes);
-				shaderAttributeSet.put(wavelengths);
-				shaderAttributeSet.put(speeds);
-				shaderAttributeSet.put(directions);
+			final String[] shaderAttrNames = { "envMap", "numWaves", "amplitude", "wavelength", "speed", "direction", "time" };
 
-			}
-			catch (IOException e)
+			shaderProgram = new GLSLShaderProgram() {
+				public String toString()
+				{
+					return "Water Shader Program";
+				}
+			};
+			shaderProgram.setShaders(shaders);
+			shaderProgram.setShaderAttrNames(shaderAttrNames);
+
+			ShaderAttribute shaderAttribute = new ShaderAttributeValue("envMap", new Integer(0));
+			shaderAttributeSet.put(shaderAttribute);
+
+			shaderAttribute = new ShaderAttributeValue("numWaves", new Integer(4));
+			shaderAttributeSet.put(shaderAttribute);
+
+			Float[] amplitude = new Float[4];
+			Float[] wavelength = new Float[4];
+			Float[] speed = new Float[4];
+			Point2f[] direction = new Point2f[4];
+			for (int i = 0; i < 4; ++i)
 			{
-				System.err.println(e);
-				return null;
+				amplitude[i] = 0.2f / (i + 1);
+				wavelength[i] = (float) (8 * Math.PI / (i + 1));
+				speed[i] = 1.0f + 2 * i;
+				float angle = uniformRandomInRange(-Math.PI / 3, Math.PI / 3);
+				direction[i] = new Point2f((float) Math.cos(angle), (float) Math.sin(angle));
 			}
+
+			ShaderAttributeArray amplitudes = new ShaderAttributeArray("amplitude", amplitude);
+			ShaderAttributeArray wavelengths = new ShaderAttributeArray("wavelength", wavelength);
+			ShaderAttributeArray speeds = new ShaderAttributeArray("speed", speed);
+			ShaderAttributeArray directions = new ShaderAttributeArray("direction", direction);
+			shaderAttributeSet.put(amplitudes);
+			shaderAttributeSet.put(wavelengths);
+			shaderAttributeSet.put(speeds);
+			shaderAttributeSet.put(directions);
+
 		}
 
 		((ShaderAppearance) app).setShaderProgram(shaderProgram);
@@ -561,5 +547,4 @@ public class J3dPSysData
 		return (float) (d + (Math.random() * (e - d)));
 	}
 
-	
 }

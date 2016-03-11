@@ -1,5 +1,6 @@
 package nif.character;
 
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -8,8 +9,6 @@ import javax.media.j3d.Alpha;
 import javax.media.j3d.BranchGroup;
 import javax.media.j3d.GeometryArray;
 import javax.media.j3d.IndexedGeometryArray;
-import javax.media.j3d.IndexedTriangleArray;
-import javax.media.j3d.IndexedTriangleStripArray;
 import javax.media.j3d.PolygonAttributes;
 
 import nif.NifJ3dVisRoot;
@@ -224,24 +223,24 @@ public class NifCharacterTes3 extends NifCharacter
 
 	}
 
+	//TODO: no good at all, normals worng all sorts of problems!
 	private static void reverse(J3dNiTriBasedGeom j3dNiTriBasedGeom, IndexedGeometryArray ga)
 	{
 		if (ga != null)
 		{
 			if ((ga.getVertexFormat() & GeometryArray.BY_REFERENCE) != 0)
 			{
-
 				if ((ga.getVertexFormat() & GeometryArray.INTERLEAVED) != 0)
 				{
-					System.out.println("Unable to swap interleaved vertices for now");
+					throw new UnsupportedOperationException();
 					//ga.getInterleavedVertices();
 				}
 				else
 				{
-					float[] coords = ga.getCoordRefFloat();
-					for (int v = 0; v < coords.length / 3; v++)
+					FloatBuffer coords = (FloatBuffer) ga.getCoordRefBuffer().getBuffer();
+					for (int v = 0; v < coords.limit() / 3; v++)
 					{
-						coords[v * 3 + 0] = -coords[v * 3 + 0];
+						coords.put(v * 3 + 0, -coords.get(v * 3 + 0));
 					}
 				}
 			}
@@ -258,7 +257,7 @@ public class NifCharacterTes3 extends NifCharacter
 			}
 
 			//Tri winding will be backwards now so flip faces
-			//Note can't touch the tri indexes as morpahbles still share them
+			//Note can't touch the tri indexes as morphables still share them
 			PolygonAttributes pa = j3dNiTriBasedGeom.getShape().getAppearance().getPolygonAttributes();
 			pa.setBackFaceNormalFlip(true);
 			pa.setCullFace(PolygonAttributes.CULL_FRONT);

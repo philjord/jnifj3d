@@ -1,5 +1,6 @@
 package nif.j3d.animation;
 
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 
 import javax.media.j3d.BoundingSphere;
@@ -174,24 +175,26 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 				public void updateData(Geometry geometry)
 				{
 					// Note teh below only works if character attachment constantly resetting for us
-					float[] coordRefFloat = currentGeoArray.getCoordRefFloat();
-					float[] baseCoords = baseGeoArray.getCoordRefFloat();
+					
+					FloatBuffer coordRefFloat = (FloatBuffer) currentGeoArray.getCoordRefBuffer().getBuffer();
+					FloatBuffer baseCoords = (FloatBuffer) baseGeoArray.getCoordRefBuffer().getBuffer();
 
-					for (int i = 0; i < (coordRefFloat.length / 3); i++)
+					for (int i = 0; i < (coordRefFloat.limit() / 3); i++)
 					{
-						float x1 = baseCoords[(i * 3) + 0];
-						float y1 = baseCoords[(i * 3) + 1];
-						float z1 = baseCoords[(i * 3) + 2];
+						float x1 = baseCoords.get((i * 3) + 0);
+						float y1 = baseCoords.get((i * 3) + 1);
+						float z1 = baseCoords.get((i * 3) + 2);
 
 						// notice ConvertFromNif work here
 						float x2 = localCurrentNifMorph.vectors[i].x * ESConfig.ES_TO_METERS_SCALE;
 						float y2 = localCurrentNifMorph.vectors[i].z * ESConfig.ES_TO_METERS_SCALE;
 						float z2 = -localCurrentNifMorph.vectors[i].y * ESConfig.ES_TO_METERS_SCALE;
 
-						coordRefFloat[(i * 3) + 0] = x1 + (x2 * (interpValue));
-						coordRefFloat[(i * 3) + 1] = y1 + (y2 * (interpValue));
-						coordRefFloat[(i * 3) + 2] = z1 + (z2 * (interpValue));
+						coordRefFloat.put((i * 3) + 0,x1 + (x2 * (interpValue)));
+						coordRefFloat.put((i * 3) + 1,y1 + (y2 * (interpValue)));
+						coordRefFloat.put((i * 3) + 2, z1 + (z2 * (interpValue)));
 					}
+					
 
 					vertsResetOffBase = true;
 				}

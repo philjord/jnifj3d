@@ -14,7 +14,6 @@ import javax.media.j3d.LineAttributes;
 import javax.media.j3d.PolygonAttributes;
 import javax.media.j3d.RenderingAttributes;
 import javax.media.j3d.Shape3D;
-import javax.media.j3d.TriangleArray;
 import javax.vecmath.Color3f;
 
 import nif.NifVer;
@@ -31,19 +30,16 @@ import utils.source.TextureSource;
 /**
  * This class has a base geometry and a current to allow skin instances to deform the base
  * @author philip
- * assa
  */
 public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 {
-	//morrowind wants true false false
-	//oblivion wants true false false
-	//skyrim wants true false false
 
-	public static boolean TANGENTS_BITANGENTS = false;//  shader code auto ons 
-
+	//TODO: these can no longer be turned on, possibly remove fully?
 	public static boolean INTERLEAVE = false;// FALSE if tangents and bitangents on!!!  
 
 	public static boolean STRIPIFY = false; //Relevant to shape only (no advantage with shaders?) doesn't currently work with vert attributes
+
+	public static boolean TANGENTS_BITANGENTS = false;//  shader code auto ons 
 
 	public static boolean BUFFERS = true;
 
@@ -113,9 +109,9 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 			// this is generally working now, below are earlier notes, it doesn't play 
 			// badly with transparency once everything has renderingattributes
-			//possibly issue 249 https://java.net/jira/browse/JAVA3D-224
+			// possibly issue 249 https://java.net/jira/browse/JAVA3D-224
 			// transparency buggers with stencils https://java.net/jira/browse/JAVA3D-314
-			//Notice issues with transparent textures not working well, the "filled in" part must be being run after the line 
+			// Notice issues with transparent textures not working well, the "filled in" part must be being run after the line 
 
 			Appearance sapp = getShape().getAppearance();
 
@@ -217,110 +213,53 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 		int vertexFormat = (data.hasVertices ? GeometryArray.COORDINATES : 0) //
 				| (data.hasNormals ? GeometryArray.NORMALS : 0) //
 				| (data.actNumUVSets > 0 ? GeometryArray.TEXTURE_COORDINATE_2 : 0) //
-				| (data.vertexColorsOpt != null ? GeometryArray.COLOR_4 : 0) //
+				| (data.hasVertexColors ? GeometryArray.COLOR_4 : 0) //
 				| GeometryArray.USE_COORD_INDEX_ONLY //
 				| ((morphable || interleave || BUFFERS) ? GeometryArray.BY_REFERENCE_INDICES : 0)//				
 				| ((morphable || interleave || BUFFERS) ? GeometryArray.BY_REFERENCE : 0)//
 				| ((!morphable && interleave) ? GeometryArray.INTERLEAVED : 0)//
-				| ((!morphable && BUFFERS) ? GeometryArray.USE_NIO_BUFFER : 0) //
-				| ((data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS) ? GeometryArray.VERTEX_ATTRIBUTES : 0);
+				| (BUFFERS ? GeometryArray.USE_NIO_BUFFER : 0) //
+				| ((data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS) ? GeometryArray.VERTEX_ATTRIBUTES : 0);
 		return vertexFormat;
 	}
 
 	protected static void fillIn(GeometryArray ga, NiTriBasedGeomData data, boolean morphable, boolean interleave)
 	{
 		//Note consistency type in nif file also dictates morphable
-		float[] normals = null;
-		if (data.hasNormals)
-		{
-			normals = data.normalsOpt;
-		}
-
-		float[] colors4 = null;
-		if (data.hasVertexColors)
-		{
-			colors4 = data.vertexColorsOpt;
-		}
-
-		int texCoordDim = 2;
-		float[][] texCoordSets = null;
-
-		if (data.actNumUVSets > 0)
-		{
-			texCoordSets = new float[1][];
-			texCoordSets[0] = data.uVSetsOpt[0];//others ignored
-		}
 
 		if (!morphable)
 		{
 			if (interleave)
 			{
-				float[] vertexData = J3dNiTriBasedGeom.interleave(texCoordDim, texCoordSets, null, colors4, normals, data.verticesOpt);
-				if (!BUFFERS)
-				{
-					ga.setInterleavedVertices(vertexData);
-					if (data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS)
-					{
-
-						ga.setVertexAttrs(0, 0, data.tangentsOpt);
-						ga.setVertexAttrs(1, 0, data.binormalsOpt);
-					}
-				}
-				else
-				{
-					ga.setInterleavedVertexBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(vertexData)));
-				}
+				throw new UnsupportedOperationException();
 			}
 			else
 			{
 				if (!BUFFERS)
 				{
-					ga.setCoordinates(0, data.verticesOpt);
-
-					if (data.hasNormals)
-						ga.setNormals(0, normals);
-
-					if (data.hasVertexColors)
-						ga.setColors(0, colors4);
-
-					if (texCoordSets != null)
-					{
-						for (int i = 0; i < texCoordSets.length; i++)
-							ga.setTextureCoordinates(i, 0, texCoordSets[i]);
-					}
-
-					if (data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS)
-					{
-						//TODO: here https://www.opengl.org/sdk/docs/tutorials/ClockworkCoders/attributes.php
-						// says 6 and 7 are spare, I'm assuming java3d and openlGL sort this out?
-						// must test on nvidia hardware
-						ga.setVertexAttrs(0, 0, data.tangentsOpt);
-						ga.setVertexAttrs(1, 0, data.binormalsOpt);
-					}
+					throw new UnsupportedOperationException();
 				}
 				else
 				{
 
-					ga.setCoordRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(data.verticesOpt)));
+					ga.setCoordRefBuffer(new J3DBuffer(data.verticesOptBuf));
 
 					if (data.hasNormals)
-						ga.setNormalRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(normals)));
+						ga.setNormalRefBuffer(new J3DBuffer(data.normalsOptBuf));
 
 					if (data.hasVertexColors)
-						ga.setColorRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(colors4)));
+						ga.setColorRefBuffer(new J3DBuffer(data.vertexColorsOptBuf));
 
-					if (texCoordSets != null)
+					if (data.actNumUVSets > 0)
 					{
-						for (int i = 0; i < texCoordSets.length; i++)
-						{
-							ga.setTexCoordRefBuffer(i, new J3DBuffer(Utils3D.makeFloatBuffer(texCoordSets[i])));
-						}
+						//only 0 others ignored
+						ga.setTexCoordRefBuffer(0, new J3DBuffer(data.uVSetsOptBuf[0]));
 					}
 
-					if (data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS)
+					if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
 					{
-						ga.setVertexAttrRefBuffer(0, new J3DBuffer(Utils3D.makeFloatBuffer(data.tangentsOpt)));
-						ga.setVertexAttrRefBuffer(1, new J3DBuffer(Utils3D.makeFloatBuffer(data.binormalsOpt)));
+						ga.setVertexAttrRefBuffer(0, new J3DBuffer(data.tangentsOptBuf));
+						ga.setVertexAttrRefBuffer(1, new J3DBuffer(data.binormalsOptBuf));
 					}
 				}
 
@@ -329,32 +268,29 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 		else
 		{
 			// copy as we are by ref and people will morph these coords later on
-			float[] coords = new float[data.verticesOpt.length];
-			System.arraycopy(data.verticesOpt, 0, coords, 0, data.verticesOpt.length);
-			ga.setCoordRefFloat(coords);
+			ga.setCoordRefBuffer(new J3DBuffer(Utils3D.cloneFloatBuffer(data.verticesOptBuf)));
 
 			if (data.hasNormals)
-				ga.setNormalRefFloat(normals);
+				ga.setNormalRefBuffer(new J3DBuffer(data.normalsOptBuf));
 
-			ga.setColorRefFloat(colors4);
+			if (data.hasVertexColors)
+				ga.setColorRefBuffer(new J3DBuffer(data.vertexColorsOptBuf));
 
-			if (texCoordSets != null)
+			if (data.actNumUVSets > 0)
 			{
-				for (int i = 0; i < texCoordSets.length; i++)
-				{
-					ga.setTexCoordRefFloat(i, texCoordSets[i]);
-				}
+				//only 0 others ignored
+				ga.setTexCoordRefBuffer(0, new J3DBuffer(data.uVSetsOptBuf[0]));
 			}
 
-			if (data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS)
+			if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
 			{
-				ga.setVertexAttrRefFloat(0, data.tangentsOpt);
-				ga.setVertexAttrRefFloat(1, data.binormalsOpt);
+				ga.setVertexAttrRefBuffer(0, new J3DBuffer(data.tangentsOptBuf));
+				ga.setVertexAttrRefBuffer(1, new J3DBuffer(data.binormalsOptBuf));
 			}
 
 			ga.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
-			ga.setCapability(GeometryArray.ALLOW_REF_DATA_WRITE);
-			ga.setCapability(GeometryArray.ALLOW_COORDINATE_WRITE);
+			ga.setCapability(GeometryArray.ALLOW_REF_DATA_WRITE);//used to tell pipeline about changablness
+
 		}
 
 	}
@@ -455,7 +391,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 		{
 			NiTriBasedGeomData data = (NiTriBasedGeomData) niToJ3dData.get(niTriBasedGeom.data);
 			// this can be called many times, only set it up the first time
-			if (data.tangentsOpt == null)
+			if (data.tangentsOptBuf == null)
 			{
 				NifRef[] properties = niTriBasedGeom.extraDataList;
 

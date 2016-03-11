@@ -19,7 +19,6 @@ import javax.vecmath.TexCoord2f;
 import javax.vecmath.Vector3f;
 
 import nif.basic.NifRef;
-import nif.compound.BSVertexData;
 import nif.compound.NifMatrix33;
 import nif.niobject.NiObject;
 import nif.niobject.bs.BSPackedCombinedSharedGeomDataExtra;
@@ -29,7 +28,6 @@ import nif.niobject.bs.BSTriShape;
 import tools3d.utils.Utils3D;
 import tools3d.utils.YawPitch;
 import tools3d.utils.leafnode.Cube;
-import utils.ESConfig;
 import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
@@ -110,7 +108,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 						YawPitch yp = new YawPitch(q2);
 						System.out.println("yp = " + yp);
 
-						Quat4f q = ConvertFromNif.toJ3d(m);
+						//Quat4f q = ConvertFromNif.toJ3d(m);
 						//q= new Quat4f(0,0,0,1);// I think my q is not forming as I would have it form
 						// I think I need to round the values off or something like nifskope
 
@@ -217,23 +215,23 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 			if (BSTriShape.LOAD_OPTIMIZED)
 			{
 				vertexFormat = GeometryArray.COORDINATES //
-						| (bsTriShape.normalsOpt != null ? GeometryArray.NORMALS : 0) //
-						| (bsTriShape.uVSetOpt != null ? GeometryArray.TEXTURE_COORDINATE_2 : 0) //
-						| (bsTriShape.colorsOpt != null ? GeometryArray.COLOR_4 : 0) //
+						| (bsTriShape.normalsOptBuf != null ? GeometryArray.NORMALS : 0) //
+						| (bsTriShape.uVSetOptBuf != null ? GeometryArray.TEXTURE_COORDINATE_2 : 0) //
+						| (bsTriShape.colorsOptBuf != null ? GeometryArray.COLOR_4 : 0) //
 						| GeometryArray.USE_COORD_INDEX_ONLY //
 						| ((morphable || BUFFERS) ? GeometryArray.BY_REFERENCE_INDICES : 0)//				
 						| ((morphable || BUFFERS) ? GeometryArray.BY_REFERENCE : 0)//
-						| ((!morphable && BUFFERS) ? GeometryArray.USE_NIO_BUFFER : 0) //
-						| ((bsTriShape.normalsOpt != null && bsTriShape.tangentsOpt != null && TANGENTS_BITANGENTS)
+						| ((BUFFERS) ? GeometryArray.USE_NIO_BUFFER : 0) //
+						| ((bsTriShape.normalsOptBuf != null && bsTriShape.tangentsOptBuf != null && TANGENTS_BITANGENTS)
 								? GeometryArray.VERTEX_ATTRIBUTES : 0);
 			}
 			else
 			{
-				//TODO: non optomized version of a format
+				throw new UnsupportedOperationException();
 			}
 
 			IndexedGeometryArray iga;
-			if (bsTriShape.normalsOpt != null && bsTriShape.tangentsOpt != null && TANGENTS_BITANGENTS)
+			if (bsTriShape.normalsOptBuf != null && bsTriShape.tangentsOptBuf != null && TANGENTS_BITANGENTS)
 			{
 				iga = new IndexedTriangleArray(bsTriShape.numVertices, vertexFormat, 1, texMap, 2, new int[] { 3, 3 },
 						bsTriShape.numTriangles * 3);
@@ -260,10 +258,10 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 		return null;
 	}
 
-	private static void fillIn(GeometryArray ga, BSTriShape bsTriShape, boolean morphable)
+	private static void fillIn(GeometryArray ga, BSTriShape data, boolean morphable)
 	{
-		BSVertexData[] vertexData = bsTriShape.vertexData;
-
+		/*BSVertexData[] vertexData = data.vertexData;
+		
 		float[] verticesOpt = null;
 		if (BSTriShape.LOAD_OPTIMIZED)
 		{
@@ -279,7 +277,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 				verticesOpt[i * 3 + 1] = vertexData[i].vertex.z * ESConfig.ES_TO_METERS_SCALE;
 			}
 		}
-
+		
 		float[] uVSetOpt = null;
 		if (BSTriShape.LOAD_OPTIMIZED)
 		{
@@ -300,15 +298,15 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 				}
 			}
 		}
-
+		
 		float[] normalsOpt = null;
-
+		
 		if (BSTriShape.LOAD_OPTIMIZED)
 		{
 			if (bsTriShape.normalsOpt != null)
 			{
 				normalsOpt = bsTriShape.normalsOpt;
-
+		
 			}
 		}
 		else
@@ -324,7 +322,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 				}
 			}
 		}
-
+		
 		float[] tangentsOpt = null;
 		float[] binormalsOpt = null;
 		if (TANGENTS_BITANGENTS)
@@ -358,7 +356,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 				}
 			}
 		}
-
+		
 		float[] vertexColorsOpt = null;
 		if (BSTriShape.LOAD_OPTIMIZED)
 		{
@@ -380,53 +378,54 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 					vertexColorsOpt[i * 4 + 3] = vertexData[i].color.a;
 				}
 			}
-		}
+		}*/
 
 		if (!morphable)
 		{
 			if (!BUFFERS)
 			{
-				ga.setCoordinates(0, verticesOpt);
-
-				if (normalsOpt != null)
-					ga.setNormals(0, normalsOpt);
-
-				if (vertexColorsOpt != null)
-					ga.setColors(0, vertexColorsOpt);
-
-				if (uVSetOpt != null)
-				{
-					ga.setTextureCoordinates(0, 0, uVSetOpt);
-				}
-
-				if (normalsOpt != null && tangentsOpt != null)
-				{
-					//TODO: here https://www.opengl.org/sdk/docs/tutorials/ClockworkCoders/attributes.php
-					// says 6 and 7 are spare, I'm assuming java3d and openlGL sort this out?
-					// must test on nvidia hardware
-					ga.setVertexAttrs(0, 0, tangentsOpt);
-					ga.setVertexAttrs(1, 0, binormalsOpt);
-				}
+				/*	ga.setCoordinates(0, verticesOpt);
+				
+					if (normalsOpt != null)
+						ga.setNormals(0, normalsOpt);
+				
+					if (vertexColorsOpt != null)
+						ga.setColors(0, vertexColorsOpt);
+				
+					if (uVSetOpt != null)
+					{
+						ga.setTextureCoordinates(0, 0, uVSetOpt);
+					}
+				
+					if (normalsOpt != null && tangentsOpt != null)
+					{
+						//TODO: here https://www.opengl.org/sdk/docs/tutorials/ClockworkCoders/attributes.php
+						// says 6 and 7 are spare, I'm assuming java3d and openlGL sort this out?
+						// must test on nvidia hardware
+						ga.setVertexAttrs(0, 0, tangentsOpt);
+						ga.setVertexAttrs(1, 0, binormalsOpt);
+					}*/
 			}
 			else
 			{
-				ga.setCoordRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(verticesOpt)));
 
-				if (normalsOpt != null)
-					ga.setNormalRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(normalsOpt)));
+				ga.setCoordRefBuffer(new J3DBuffer(data.verticesOptBuf));
 
-				if (vertexColorsOpt != null)
-					ga.setColorRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(vertexColorsOpt)));
+				if (data.normalsOptBuf != null)
+					ga.setNormalRefBuffer(new J3DBuffer(data.normalsOptBuf));
 
-				if (uVSetOpt != null)
+				if (data.colorsOptBuf != null)
+					ga.setColorRefBuffer(new J3DBuffer(data.colorsOptBuf));
+
+				if (data.uVSetOptBuf != null)
 				{
-					ga.setTexCoordRefBuffer(0, new J3DBuffer(Utils3D.makeFloatBuffer(uVSetOpt)));
+					ga.setTexCoordRefBuffer(0, new J3DBuffer(data.uVSetOptBuf));
 				}
 
-				if (normalsOpt != null && tangentsOpt != null)
+				if (data.normalsOptBuf != null && data.tangentsOptBuf != null)
 				{
-					ga.setVertexAttrRefBuffer(0, new J3DBuffer(Utils3D.makeFloatBuffer(tangentsOpt)));
-					ga.setVertexAttrRefBuffer(1, new J3DBuffer(Utils3D.makeFloatBuffer(binormalsOpt)));
+					ga.setVertexAttrRefBuffer(0, new J3DBuffer(data.tangentsOptBuf));
+					ga.setVertexAttrRefBuffer(1, new J3DBuffer(data.binormalsOptBuf));
 				}
 			}
 
@@ -434,25 +433,23 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 		else
 		{
 			// copy as we are by ref and people will morph these coords later on
-			float[] coords = new float[verticesOpt.length];
-			System.arraycopy(verticesOpt, 0, coords, 0, verticesOpt.length);
-			ga.setCoordRefFloat(coords);
+			ga.setCoordRefBuffer(new J3DBuffer(Utils3D.cloneFloatBuffer(data.verticesOptBuf)));
 
-			if (normalsOpt != null)
-				ga.setNormalRefFloat(normalsOpt);
+			if (data.normalsOptBuf != null)
+				ga.setNormalRefBuffer(new J3DBuffer(data.normalsOptBuf));
 
-			if (vertexColorsOpt != null)
-				ga.setColorRefFloat(vertexColorsOpt);
+			if (data.colorsOptBuf != null)
+				ga.setColorRefBuffer(new J3DBuffer(data.colorsOptBuf));
 
-			if (uVSetOpt != null)
+			if (data.uVSetOptBuf != null)
 			{
-				ga.setTexCoordRefFloat(0, uVSetOpt);
+				ga.setTexCoordRefBuffer(0, new J3DBuffer(data.uVSetOptBuf));
 			}
 
-			if (normalsOpt != null && tangentsOpt != null)
+			if (data.normalsOptBuf != null && data.tangentsOptBuf != null)
 			{
-				ga.setVertexAttrRefFloat(0, tangentsOpt);
-				ga.setVertexAttrRefFloat(1, binormalsOpt);
+				ga.setVertexAttrRefBuffer(0, new J3DBuffer(data.tangentsOptBuf));
+				ga.setVertexAttrRefBuffer(1, new J3DBuffer(data.binormalsOptBuf));
 			}
 
 			ga.setCapability(GeometryArray.ALLOW_REF_DATA_READ);

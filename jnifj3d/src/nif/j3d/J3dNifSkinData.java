@@ -1,5 +1,6 @@
 package nif.j3d;
 
+import java.nio.FloatBuffer;
 import java.util.LinkedHashMap;
 
 import javax.media.j3d.Geometry;
@@ -81,7 +82,7 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 	{
 		j3dNiTriShape.fade(percent);
 	}
-	
+
 	@Override
 	public void setOutline(Color3f c)
 	{
@@ -103,15 +104,15 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 	public void updateData(Geometry geometry)
 	{
 		// holder of the transform data to speed up transform (possibly)
-		double[] accTransMat = new double[16];
+		double[] accTransMat = new double[16];	
 
-		float[] baseCoordRefFloat = baseIndexedGeometryArray.getCoordRefFloat();
-		float[] currentCoordRefFloat = currentIndexedGeometryArray.getCoordRefFloat();
+		FloatBuffer baseCoordRefFloat = (FloatBuffer) baseIndexedGeometryArray.getCoordRefBuffer().getBuffer();
+		FloatBuffer currentCoordRefFloat = (FloatBuffer) currentIndexedGeometryArray.getCoordRefBuffer().getBuffer();
 
 		//clear out current in order to accum into it
-		for (int i = 0; i < currentCoordRefFloat.length; i++)
+		for (int i = 0; i < currentCoordRefFloat.limit(); i++)
 		{
-			currentCoordRefFloat[i] = 0;
+			currentCoordRefFloat.put(i, 0);
 		}
 
 		// pre multiply transforms for repeated use for each vertex
@@ -146,9 +147,9 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 				// If this bone has any effect add it in 
 				if (weight > 0)
 				{
-					float px = baseCoordRefFloat[vIdx * 3 + 0];
-					float py = baseCoordRefFloat[vIdx * 3 + 1];
-					float pz = baseCoordRefFloat[vIdx * 3 + 2];
+					float px = baseCoordRefFloat.get(vIdx * 3 + 0);
+					float py = baseCoordRefFloat.get(vIdx * 3 + 1);
+					float pz = baseCoordRefFloat.get(vIdx * 3 + 2);
 
 					// transform point by using code from Transform3D.transform(Point3f) to speed up transform (possibly)
 					float x = (float) (accTransMat[0] * px + accTransMat[1] * py + accTransMat[2] * pz + accTransMat[3]);
@@ -163,9 +164,9 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 					pz *= weight;
 
 					// accumulate into the output
-					currentCoordRefFloat[vIdx * 3 + 0] += px;
-					currentCoordRefFloat[vIdx * 3 + 1] += py;
-					currentCoordRefFloat[vIdx * 3 + 2] += pz;
+					currentCoordRefFloat.put(vIdx * 3 + 0, currentCoordRefFloat.get(vIdx * 3 + 0) + px);
+					currentCoordRefFloat.put(vIdx * 3 + 1, currentCoordRefFloat.get(vIdx * 3 + 1) + py);
+					currentCoordRefFloat.put(vIdx * 3 + 2, currentCoordRefFloat.get(vIdx * 3 + 2) + pz);
 				}
 
 			}

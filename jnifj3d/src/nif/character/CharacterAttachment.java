@@ -1,5 +1,6 @@
 package nif.character;
 
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -191,29 +192,30 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 		temp.get(accTransMat);
 
 		// now to incorporate the geomorphs changes (if any)
-		float[] srcVs = null;
+
+		FloatBuffer srcVs = null;
 		J3dNiTriBasedGeom j3dNiTriBasedGeom = arrayToGeomMap.get(geometry);
 		// if reset current will hold the verts reset to base with the geomorphs changes
 		J3dNiGeomMorpherController geoMorph = j3dNiTriBasedGeom.getJ3dNiGeomMorpherController();
 		if (geoMorph != null && geoMorph.isVertsResetOffBase())
 		{
-			srcVs = j3dNiTriBasedGeom.getCurrentGeometryArray().getCoordRefFloat();
+			srcVs = (FloatBuffer) j3dNiTriBasedGeom.getCurrentGeometryArray().getCoordRefBuffer().getBuffer();
 			// recall that this has now screwed with them and will look to see if geo reset again
 			geoMorph.setVertsResetOffBase(false);
 		}
 		else
 		{
 			// need to start from base as no geommorph has done a reset for us
-			srcVs = j3dNiTriBasedGeom.getBaseGeometryArray().getCoordRefFloat();
+			srcVs = (FloatBuffer) j3dNiTriBasedGeom.getBaseGeometryArray().getCoordRefBuffer().getBuffer();
 		}
 
-		float[] vs = ((GeometryArray) geometry).getCoordRefFloat();
+		FloatBuffer vs = (FloatBuffer) ((GeometryArray) geometry).getCoordRefBuffer().getBuffer();
 
-		for (int vIdx = 0; vIdx < vs.length / 3; vIdx++)
+		for (int vIdx = 0; vIdx < vs.limit() / 3; vIdx++)
 		{
-			float px = srcVs[vIdx * 3 + 0];
-			float py = srcVs[vIdx * 3 + 1];
-			float pz = srcVs[vIdx * 3 + 2];
+			float px = srcVs.get(vIdx * 3 + 0);
+			float py = srcVs.get(vIdx * 3 + 1);
+			float pz = srcVs.get(vIdx * 3 + 2);
 
 			// transform point by using code from Transform3D.transform(Point3f) to speed up transform (possibly)
 			float x = (float) (accTransMat[0] * px + accTransMat[1] * py + accTransMat[2] * pz + accTransMat[3]);
@@ -222,9 +224,9 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 			px = x;
 			py = y;
 
-			vs[vIdx * 3 + 0] = px;
-			vs[vIdx * 3 + 1] = py;
-			vs[vIdx * 3 + 2] = pz;
+			vs.put(vIdx * 3 + 0, px);
+			vs.put(vIdx * 3 + 1, py);
+			vs.put(vIdx * 3 + 2, pz);
 		}
 	}
 }

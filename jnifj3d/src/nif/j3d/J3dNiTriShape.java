@@ -2,16 +2,11 @@ package nif.j3d;
 
 import javax.media.j3d.IndexedGeometryArray;
 import javax.media.j3d.IndexedTriangleArray;
-import javax.media.j3d.J3DBuffer;
 
 import nif.niobject.NiTriShape;
 import nif.niobject.NiTriShapeData;
 import nif.niobject.bs.BSLODTriShape;
-import tools3d.utils.Utils3D;
 import utils.source.TextureSource;
-
-import com.sun.j3d.utils.geometry.GeometryInfo;
-import com.sun.j3d.utils.geometry.Stripifier;
 
 public class J3dNiTriShape extends J3dNiTriBasedGeom
 {
@@ -92,7 +87,7 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 			if (!STRIPIFY || morphable)
 			{
 				IndexedGeometryArray ita;
-				if (data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS)
+				if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
 				{
 					ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, INTERLEAVE), texCoordCount, texMap, 2,
 							new int[] { 3, 3 }, data.numTrianglePoints);
@@ -119,9 +114,10 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 			else
 			{
 				//	DO NOT DELETE this is how you make strip arrays
+				// this doesn't work now because I use Flaotbuffers for the Opts
 				// NifToJ3d.extractShapes  setControllers might complain, but it should have set morphable proper by now
 
-				GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
+/*				GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
 
 				gi.setCoordinateIndices(data.trianglesOpt);
 				gi.setUseCoordIndexOnly(true);
@@ -178,7 +174,7 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 				{
 					sharedIGAs.put(data, ita);
 				}
-				return ita;
+				return ita;*/
 			}
 		}
 		//TODO: some trishapes with skin data nearby have no tris (it's in skin data)
