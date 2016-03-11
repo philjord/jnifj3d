@@ -83,7 +83,8 @@ public class J3dControllerLink extends Group
 
 				if (nodeTarget != null)
 				{
-					nodeTarget.setCapability(ALLOW_BOUNDS_READ);
+					if (!nodeTarget.isLive() && !nodeTarget.isCompiled())
+						nodeTarget.setCapability(ALLOW_BOUNDS_READ);
 					targetNiToJ3dData = otherNiToJ3dData;
 					break;
 				}
@@ -99,7 +100,8 @@ public class J3dControllerLink extends Group
 		}
 		else
 		{
-			nodeTarget.setCapability(ALLOW_BOUNDS_READ);
+			if (!nodeTarget.isLive() && !nodeTarget.isCompiled())
+				nodeTarget.setCapability(ALLOW_BOUNDS_READ);
 			NiInterpolator niInterpolator = (NiInterpolator) niToJ3dData.get(controllerLink.interpolator);
 
 			//NOTE controller can be null as a transfrom interpolator can directly set the node targets transform
@@ -150,12 +152,10 @@ public class J3dControllerLink extends Group
 		}
 	}
 
-
 	public boolean isControlsGeomMorpher()
 	{
 		return controlsGeomMorpher;
 	}
-
 
 	@Override
 	public Bounds getBounds()
@@ -171,12 +171,12 @@ public class J3dControllerLink extends Group
 	{
 		// because we need to ensure the controller is running our frame (could be set by another link at some point)
 		if (j3dNiGeomMorpherController != null)
-		{		
+		{
 			j3dNiGeomMorpherController.setFrameName(variable2);
 		}
 
 		if (j3dNiInterpolator != null)
-		{			
+		{
 			j3dNiInterpolator.process(alphaValue);
 		}
 	}
