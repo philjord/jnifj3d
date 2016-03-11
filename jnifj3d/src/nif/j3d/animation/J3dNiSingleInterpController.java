@@ -1,6 +1,7 @@
 package nif.j3d.animation;
 
 import javax.media.j3d.Alpha;
+import javax.media.j3d.Node;
 
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.NiToJ3dData;
@@ -27,6 +28,7 @@ public class J3dNiSingleInterpController extends J3dNiTimeController
 		nodeTarget = niToJ3dData.get(target);
 		if (nodeTarget != null)
 		{
+			nodeTarget.setCapability(Node.ALLOW_BOUNDS_READ);
 			NiInterpolator niInterpolator = (NiInterpolator) niToJ3dData.get(controller.interpolator);
 			if (niInterpolator != null)
 			{

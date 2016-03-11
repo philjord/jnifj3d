@@ -59,7 +59,7 @@ public abstract class J3dNiTimeController extends Group implements InterpolatorL
 
 	/**
 	 * Just requires sub classes to hand it up for now, no reason
-	 * if nodeTarget == null getBounds() MUST be overrriden or nodeTarget must be set
+	 * if nodeTarget == null getBounds() MUST be overridden or nodeTarget must be set
 	 * @param niTimeController
 	 * @param nodeTarget 
 	 */
@@ -67,6 +67,8 @@ public abstract class J3dNiTimeController extends Group implements InterpolatorL
 	{
 		this.niTimeController = niTimeController;
 		this.nodeTarget = nodeTarget;
+		if (nodeTarget != null)
+			nodeTarget.setCapability(Node.ALLOW_BOUNDS_READ);
 	}
 
 	public J3dNiTimeController getJ3dNiTimeController()
@@ -131,7 +133,8 @@ public abstract class J3dNiTimeController extends Group implements InterpolatorL
 	 * @param startTimeS
 	 * @param stopTimeS
 	 */
-	public static J3dNiInterpolator createInterpForController(InterpolatorListener callbackListener, NiInterpolator niInterpolator, NiToJ3dData niToJ3dData, float startTimeS, float stopTimeS)
+	public static J3dNiInterpolator createInterpForController(InterpolatorListener callbackListener, NiInterpolator niInterpolator,
+			NiToJ3dData niToJ3dData, float startTimeS, float stopTimeS)
 	{
 		if (niInterpolator == null)
 		{
@@ -148,7 +151,8 @@ public abstract class J3dNiTimeController extends Group implements InterpolatorL
 
 		if (niInterpolator instanceof NiFloatInterpolator)
 		{
-			j3dNiInterpolator = new J3dNiFloatInterpolator((NiFloatInterpolator) niInterpolator, niToJ3dData, startTimeS, lengthS, callbackListener);
+			j3dNiInterpolator = new J3dNiFloatInterpolator((NiFloatInterpolator) niInterpolator, niToJ3dData, startTimeS, lengthS,
+					callbackListener);
 		}
 		else if (niInterpolator instanceof NiBlendFloatInterpolator)
 		{
@@ -156,7 +160,8 @@ public abstract class J3dNiTimeController extends Group implements InterpolatorL
 		}
 		else if (niInterpolator instanceof NiBoolInterpolator || niInterpolator instanceof NiBoolTimelineInterpolator)
 		{
-			j3dNiInterpolator = new J3dNiBoolInterpolator((NiBoolInterpolator) niInterpolator, niToJ3dData, startTimeS, lengthS, callbackListener);
+			j3dNiInterpolator = new J3dNiBoolInterpolator((NiBoolInterpolator) niInterpolator, niToJ3dData, startTimeS, lengthS,
+					callbackListener);
 		}
 		else if (niInterpolator instanceof NiBlendBoolInterpolator)
 		{
@@ -164,7 +169,8 @@ public abstract class J3dNiTimeController extends Group implements InterpolatorL
 		}
 		else if (niInterpolator instanceof NiPoint3Interpolator)
 		{
-			j3dNiInterpolator = new J3dNiPoint3Interpolator((NiPoint3Interpolator) niInterpolator, niToJ3dData, startTimeS, lengthS, callbackListener);
+			j3dNiInterpolator = new J3dNiPoint3Interpolator((NiPoint3Interpolator) niInterpolator, niToJ3dData, startTimeS, lengthS,
+					callbackListener);
 		}
 		else if (niInterpolator instanceof NiBlendPoint3Interpolator)
 		{
@@ -172,7 +178,8 @@ public abstract class J3dNiTimeController extends Group implements InterpolatorL
 		}
 		else if (niInterpolator instanceof NiBSplineCompFloatInterpolator)
 		{
-			j3dNiInterpolator = new J3dNiBSplineCompFloatInterpolator((NiBSplineCompFloatInterpolator) niInterpolator, niToJ3dData, callbackListener);
+			j3dNiInterpolator = new J3dNiBSplineCompFloatInterpolator((NiBSplineCompFloatInterpolator) niInterpolator, niToJ3dData,
+					callbackListener);
 		}
 		else
 		{
@@ -186,7 +193,8 @@ public abstract class J3dNiTimeController extends Group implements InterpolatorL
 		return j3dNiInterpolator;
 	}
 
-	public static J3dNiTimeController createJ3dNiTimeController(NiTimeController controller, NiToJ3dData niToJ3dData, J3dNiAVObject nodeTarget, TextureSource textureSource)
+	public static J3dNiTimeController createJ3dNiTimeController(NiTimeController controller, NiToJ3dData niToJ3dData,
+			J3dNiAVObject nodeTarget, TextureSource textureSource)
 	{
 		J3dNiTimeController j3dNiTimeController = null;
 

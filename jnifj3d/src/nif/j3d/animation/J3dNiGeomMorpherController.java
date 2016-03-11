@@ -65,6 +65,7 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 			if (nodeTarget != null)
 			{
 
+				nodeTarget.setCapability(Node.ALLOW_BOUNDS_READ);
 				if (nodeTarget instanceof J3dNiTriBasedGeom)
 				{
 					// this bad boy is not connected to scene graph!
@@ -170,12 +171,11 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 			// use a local as the member can be swapped out anytime
 			final NifMorph localCurrentNifMorph = currentNifMorph;
 
-			currentGeoArray.updateData(new GeometryUpdater()
-			{
+			currentGeoArray.updateData(new GeometryUpdater() {
 				public void updateData(Geometry geometry)
 				{
 					// Note teh below only works if character attachment constantly resetting for us
-					
+
 					FloatBuffer coordRefFloat = (FloatBuffer) currentGeoArray.getCoordRefBuffer().getBuffer();
 					FloatBuffer baseCoords = (FloatBuffer) baseGeoArray.getCoordRefBuffer().getBuffer();
 
@@ -190,11 +190,10 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 						float y2 = localCurrentNifMorph.vectors[i].z * ESConfig.ES_TO_METERS_SCALE;
 						float z2 = -localCurrentNifMorph.vectors[i].y * ESConfig.ES_TO_METERS_SCALE;
 
-						coordRefFloat.put((i * 3) + 0,x1 + (x2 * (interpValue)));
-						coordRefFloat.put((i * 3) + 1,y1 + (y2 * (interpValue)));
+						coordRefFloat.put((i * 3) + 0, x1 + (x2 * (interpValue)));
+						coordRefFloat.put((i * 3) + 1, y1 + (y2 * (interpValue)));
 						coordRefFloat.put((i * 3) + 2, z1 + (z2 * (interpValue)));
 					}
-					
 
 					vertsResetOffBase = true;
 				}
@@ -372,8 +371,7 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 		public SequenceBehavior(Node node)
 		{
 			// NOTE!!!! these MUST be active, otherwise the headless locale that might be running physics doesn't continuously render
-			super(node, new float[]
-			{ 40, 120, 280 }, true, true);
+			super(node, new float[] { 40, 120, 280 }, true, true);
 		}
 
 		@Override

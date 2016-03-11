@@ -1,6 +1,7 @@
 package nif.j3d.animation;
 
 import javax.media.j3d.Alpha;
+import javax.media.j3d.Node;
 
 import nif.compound.NifKeyGroup;
 import nif.enums.TexTransform;
@@ -21,6 +22,8 @@ public class J3dNiUVController extends J3dNiTimeController
 		nodeTarget = niToJ3dData.get(target);
 		if (nodeTarget != null)
 		{
+			nodeTarget.setCapability(Node.ALLOW_BOUNDS_READ);
+			
 			float startTimeS = controller.startTime;
 			float stopTimeS = controller.stopTime;
 

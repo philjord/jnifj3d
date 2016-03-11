@@ -3,6 +3,7 @@ package nif.j3d;
 import java.util.ArrayList;
 
 import javax.media.j3d.Group;
+import javax.media.j3d.Node;
 
 import nif.NifVer;
 import nif.j3d.animation.J3dNiControllerManager;
@@ -41,6 +42,8 @@ public abstract class J3dNiObjectNET extends Group
 
 		buildExtraDataInList(niObjectNET, niToJ3dData);
 
+		//See NifTransformGroup for why, merging of TG's
+		capabilityBits = 0L;
 	}
 
 	private void buildExtraDataInList(NiObjectNET niObjectNET2, NiToJ3dData niToJ3dData)

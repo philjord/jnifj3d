@@ -83,6 +83,7 @@ public class J3dControllerLink extends Group
 
 				if (nodeTarget != null)
 				{
+					nodeTarget.setCapability(ALLOW_BOUNDS_READ);
 					targetNiToJ3dData = otherNiToJ3dData;
 					break;
 				}
@@ -98,6 +99,7 @@ public class J3dControllerLink extends Group
 		}
 		else
 		{
+			nodeTarget.setCapability(ALLOW_BOUNDS_READ);
 			NiInterpolator niInterpolator = (NiInterpolator) niToJ3dData.get(controllerLink.interpolator);
 
 			//NOTE controller can be null as a transfrom interpolator can directly set the node targets transform

@@ -22,6 +22,8 @@ public class J3dNiControllerLinkTes3 extends J3dControllerLink
 	{
 		this.j3dNiKeyframeController = j3dNiKeyframeController;
 		this.nodeTarget = j3dNiKeyframeController.getNodeTarget();
+		if (nodeTarget != null)
+			nodeTarget.setCapability(ALLOW_BOUNDS_READ);
 		this.offSetStartS = offSetStartS;
 		this.startTimeS = startTimeS;
 		this.stopTimeS = stopTimeS;

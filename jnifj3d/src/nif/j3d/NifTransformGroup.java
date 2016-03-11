@@ -12,12 +12,23 @@ public class NifTransformGroup extends TransformGroup
 	public NifTransformGroup(J3dNiAVObject owner)
 	{
 		this.owner = owner;
+
+		
+		//RAISE_ISSUE: this needs to be understood, it make a MASSIVE difference to Java3D over all
+		//make 'em static
+		//TransformGroupRetained want's isStatic to be true in order for 
+		//compile to agree to merge transforms.
+		//However (madly) Node calls set default read capabilities 
+		//and NodeRetained isStatic check against the long read list
+		//however firing off the opposite in clears leaves some capabilites left over so...
+		capabilityBits = 0L;
 	}
 
 	public void makeWritable()
 	{
 		if (!isLive() && !isCompiled())
 		{
+			this.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
 			this.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 		}
 	}
@@ -102,12 +113,9 @@ public class NifTransformGroup extends TransformGroup
 		t.set(mat);
 	}
 
-	private Transform3D temp2;
-
 	public boolean isNoImpact()
 	{
-		if (temp2 == null)
-			temp2 = new Transform3D();
+		Transform3D temp2 = new Transform3D();
 		this.getTransform(temp2);
 		return temp2.equals(IDENTITY) && !this.getCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 	}

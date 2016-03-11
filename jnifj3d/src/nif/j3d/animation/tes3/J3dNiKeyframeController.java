@@ -1,6 +1,7 @@
 package nif.j3d.animation.tes3;
 
 import javax.media.j3d.Alpha;
+import javax.media.j3d.Node;
 
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.NiToJ3dData;
@@ -40,6 +41,8 @@ public class J3dNiKeyframeController extends J3dNiTimeController
 		nodeTarget = niToJ3dData.get(target);
 		if (nodeTarget != null)
 		{
+			nodeTarget.setCapability(Node.ALLOW_BOUNDS_READ);
+			
 			float startTimeS = controller.startTime;
 			float stopTimeS = controller.stopTime;
 			totalLengthS = stopTimeS - startTimeS;
