@@ -159,7 +159,15 @@ public class NifCharacterTes3 extends NifCharacter
 									if (j3dNiAVObject.topOfParent != null)
 										j3dNiAVObject.topOfParent.removeAllChildren();
 
+									//apparently negative scaling is how you mirror, with thanks to Brandano on #niftools IRC
+								//	TransformGroup tg = new TransformGroup();
+								//	Transform3D t = new Transform3D();
+								//	t.setScale(new Vector3d(-1, 1, 1));
+								//	tg.setTransform(t);
+
 									CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, j3dNiAVObject, true);
+									//this.addChild(tg);
+									//tg.addChild(ca);
 									this.addChild(ca);
 									attachments.add(ca);
 									//Note called after giving it to character attachment as this will make it morphable etc
@@ -223,7 +231,7 @@ public class NifCharacterTes3 extends NifCharacter
 
 	}
 
-	//TODO: no good at all, normals worng all sorts of problems!
+	//TODO: no good at all, normals wrong all sorts of problems!
 	private static void reverse(J3dNiTriBasedGeom j3dNiTriBasedGeom, IndexedGeometryArray ga)
 	{
 		if (ga != null)
@@ -240,7 +248,7 @@ public class NifCharacterTes3 extends NifCharacter
 					FloatBuffer coords = (FloatBuffer) ga.getCoordRefBuffer().getBuffer();
 					for (int v = 0; v < coords.limit() / 3; v++)
 					{
-						coords.put(v * 3 + 0, -coords.get(v * 3 + 0));
+						coords.put(v * 3 + 0, -coords.get(v * 3 + 0));						 
 					}
 				}
 			}
@@ -250,7 +258,7 @@ public class NifCharacterTes3 extends NifCharacter
 				ga.getCoordinates(0, coords);
 				for (int v = 0; v < coords.length / 3; v++)
 				{
-					coords[v * 3 + 0] = -coords[v * 3 + 0];
+					coords[v * 3 + 0] = -coords[v * 3 + 0];//flip x				 
 				}
 				ga.setCoordinates(0, coords);
 				j3dNiTriBasedGeom.getShape().setGeometry(ga);
@@ -259,8 +267,8 @@ public class NifCharacterTes3 extends NifCharacter
 			//Tri winding will be backwards now so flip faces
 			//Note can't touch the tri indexes as morphables still share them
 			PolygonAttributes pa = j3dNiTriBasedGeom.getShape().getAppearance().getPolygonAttributes();
-			pa.setBackFaceNormalFlip(true);
-			pa.setCullFace(PolygonAttributes.CULL_FRONT);
+			//pa.setBackFaceNormalFlip(true);
+			//pa.setCullFace(PolygonAttributes.CULL_FRONT);
 		}
 	}
 
