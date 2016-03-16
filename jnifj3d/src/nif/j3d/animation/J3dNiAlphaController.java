@@ -41,8 +41,8 @@ public class J3dNiAlphaController extends J3dNiTimeController implements FloatIn
 		
 		if (value < 0 || value > 1)
 		{
-			System.out.println("bum alpha " + value);
-			new Throwable().printStackTrace();
+			System.out.println("J3dNiAlphaController.update bum alpha " + value);
+			//new Throwable().printStackTrace();
 		}
 		else
 		{

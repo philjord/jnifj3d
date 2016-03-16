@@ -145,8 +145,7 @@ public class J3dPSysData
 			gaCoordIndices[i * 4 + 2] = i * 4 + 2;//3
 			gaCoordIndices[i * 4 + 3] = i * 4 + 3;//1
 			gaCoordIndices[i * 4 + 4] = i * 4 + 4;//3
-			gaCoordIndices[i * 4 + 6] = i * 4 + 5;//4
-
+			gaCoordIndices[i * 4 + 5] = i * 4 + 5;//4
 		}
 
 		ga.setCoordRefFloat(gaCoords);

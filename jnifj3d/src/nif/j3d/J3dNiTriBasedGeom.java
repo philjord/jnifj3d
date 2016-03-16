@@ -1,7 +1,7 @@
 package nif.j3d;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import javax.media.j3d.Appearance;
 import javax.media.j3d.BranchGroup;
@@ -403,7 +403,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 						NiBinaryExtraData niBinaryExtraData = (NiBinaryExtraData) prop;
 						if (niBinaryExtraData.name.equals("Tangent space (binormal & tangent vectors)"))
 						{
-							ByteArrayInputStream stream = new ByteArrayInputStream(niBinaryExtraData.binaryData.data);
+							ByteBuffer stream = ByteBuffer.wrap(niBinaryExtraData.binaryData.data);
 
 							try
 							{

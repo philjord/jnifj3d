@@ -40,7 +40,7 @@ public class BgsmSource
 
 			if (material == null)
 			{
-				material = BgsmFile.readMaterialFile(fileName, MESH_SOURCE.getInputStreamForFile(fileName));
+				material = BgsmFile.readMaterialFile(fileName, MESH_SOURCE.getByteBuffer(fileName));
 				materialFiles.put(fileName, material);
 			}
 

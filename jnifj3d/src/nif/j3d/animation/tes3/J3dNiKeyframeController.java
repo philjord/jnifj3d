@@ -42,22 +42,25 @@ public class J3dNiKeyframeController extends J3dNiTimeController
 		if (nodeTarget != null)
 		{
 			nodeTarget.setCapability(Node.ALLOW_BOUNDS_READ);
-			
+
 			float startTimeS = controller.startTime;
 			float stopTimeS = controller.stopTime;
 			totalLengthS = stopTimeS - startTimeS;
 
 			NiKeyframeData niTransformData = (NiKeyframeData) niToJ3dData.get(controller.data);
-			NifTransformGroup targetTransform = ((J3dNiAVObject) nodeTarget).getTransformGroup();
-
-			j3dNiInterpolator = new J3dNiTransformInterpolator(niTransformData, targetTransform, startTimeS, totalLengthS);
-
-			if (j3dNiInterpolator != null)
+			if (niTransformData != null)
 			{
-				addChild(j3dNiInterpolator);
+				NifTransformGroup targetTransform = ((J3dNiAVObject) nodeTarget).getTransformGroup();
 
-				baseAlpha = J3dNiTimeController.createLoopingAlpha(startTimeS, stopTimeS);
-				j3dNiInterpolator.fire(baseAlpha);
+				j3dNiInterpolator = new J3dNiTransformInterpolator(niTransformData, targetTransform, startTimeS, totalLengthS);
+
+				if (j3dNiInterpolator != null)
+				{
+					addChild(j3dNiInterpolator);
+
+					baseAlpha = J3dNiTimeController.createLoopingAlpha(startTimeS, stopTimeS);
+					j3dNiInterpolator.fire(baseAlpha);
+				}
 			}
 		}
 	}

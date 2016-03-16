@@ -132,7 +132,16 @@ public class NifToJ3d
 		NifFile nifFile = loadNiObjects(filename, meshSource);
 		if (nifFile != null)
 		{
-			return extractHavok(nifFile);
+			try
+			{
+				return extractHavok(nifFile);
+			}
+			catch (RuntimeException e)
+			{
+				System.out.println("RuntimeException " + e.toString() + " extracting havok from " + filename);
+				if (!SUPPRESS_EXCEPTIONS)
+					throw e;
+			}
 		}
 		return null;
 	}
