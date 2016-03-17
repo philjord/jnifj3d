@@ -90,7 +90,7 @@ public class NifJ3dSkeletonRoot extends Group
 		}
 
 		if (skeletonRoot == null)
-			new Throwable("skeletonRoot == null").getStackTrace();
+			new Throwable("skeletonRoot == null").printStackTrace();
 	}
 
 	public J3dNiNode getHeadJ3dNiNode()
