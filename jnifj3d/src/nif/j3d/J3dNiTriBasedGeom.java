@@ -99,6 +99,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 		{
 			// prepare a root for outline to be added to
 			outlinerBG1 = new BranchGroup();
+			outlinerBG1.clearCapabilities();
 			outlinerBG1.setCapability(Group.ALLOW_CHILDREN_EXTEND);
 			outlinerBG1.setCapability(Group.ALLOW_CHILDREN_WRITE);
 			addChild(outlinerBG1);
@@ -145,7 +146,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 			if (outliner == null)
 			{
 				outliner = new Shape3D();
-
+				outliner.clearCapabilities();
 				////////////////////////////////
 				//Outliner gear, note empty geom should be ignored
 				Appearance app = new SimpleShaderAppearance(c);
@@ -182,6 +183,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 				colorAtt.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
 
 				outlinerBG2 = new BranchGroup();
+				outlinerBG2.clearCapabilities();
 				outlinerBG2.setCapability(BranchGroup.ALLOW_DETACH);
 				outlinerBG2.addChild(outliner);
 				outlinerBG1.addChild(outlinerBG2);

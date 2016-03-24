@@ -63,6 +63,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 				app.getTextureUnitState(0).getTextureAttributes().setTextureMode(TextureAttributes.REPLACE);
 
 			Shape3D shape = new Shape3D();
+			shape.clearCapabilities();
 			shape.setAppearance(app);
 			root.addChild(shape);
 

@@ -42,7 +42,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		if (customShape == null)
 		{
 			shape = new Shape3D();
-
+			shape.clearCapabilities();
 			addChild(shape);
 		}
 		else
