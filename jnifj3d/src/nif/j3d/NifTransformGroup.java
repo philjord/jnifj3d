@@ -21,7 +21,7 @@ public class NifTransformGroup extends TransformGroup
 		//However (madly) Node calls set default read capabilities 
 		//and NodeRetained isStatic check against the long read list
 		//however firing off the opposite in clears leaves some capabilites left over so...
-		capabilityBits = 0L;
+		clearCapabilities();
 	}
 
 	public void makeWritable()
