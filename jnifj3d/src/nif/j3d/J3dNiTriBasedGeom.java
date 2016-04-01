@@ -410,6 +410,8 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 							try
 							{
 								data.loadTangentAndBinormalsFromExtraData(stream, data.nVer);
+								//This can only ever be called once then it's finished so we can drop the loaded raw bytes
+								niBinaryExtraData.binaryData = null;
 							}
 							catch (IOException e)
 							{
