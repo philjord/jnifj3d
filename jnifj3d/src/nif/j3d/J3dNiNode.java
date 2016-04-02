@@ -280,8 +280,9 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 	@Override
 	public void fade(float percent)
 	{
-		for (Fadable f : j3dNiNodes)
+		for (int i = 0; i < j3dNiNodes.size(); i++)
 		{
+			Fadable f = j3dNiNodes.get(i);
 			if (f != null)
 				f.fade(percent);
 		}
@@ -290,8 +291,9 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 	@Override
 	public void setOutline(Color3f c)
 	{
-		for (Fadable f : j3dNiNodes)
+		for (int i = 0; i < j3dNiNodes.size(); i++)
 		{
+			Fadable f = j3dNiNodes.get(i);
 			if (f != null)
 				f.setOutline(c);
 		}
