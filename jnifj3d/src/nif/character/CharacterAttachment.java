@@ -179,6 +179,9 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 	// deburner
 	private Transform3D temp = new Transform3D();
 
+	private float[] vsbf;
+	private float[] srcVsbf;
+
 	@Override
 	public void updateData(Geometry geometry)
 	{
@@ -211,22 +214,56 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 
 		FloatBuffer vs = (FloatBuffer) ((GeometryArray) geometry).getCoordRefBuffer().getBuffer();
 
-		for (int vIdx = 0; vIdx < vs.limit() / 3; vIdx++)
+		 
+		if (NifCharacter.BULK_BUFFER_UPDATES)
 		{
-			float px = srcVs.get(vIdx * 3 + 0);
-			float py = srcVs.get(vIdx * 3 + 1);
-			float pz = srcVs.get(vIdx * 3 + 2);
+			// let's try bulk get/set
+			if (srcVsbf == null || srcVsbf.length != srcVs.limit())
+				srcVsbf = new float[srcVs.limit()];
+			srcVs.position(0);
+			srcVs.get(srcVsbf);
+			if (vsbf == null || vsbf.length != vs.limit())
+				vsbf = new float[vs.capacity()];
 
-			// transform point by using code from Transform3D.transform(Point3f) to speed up transform (possibly)
-			float x = (float) (accTransMat[0] * px + accTransMat[1] * py + accTransMat[2] * pz + accTransMat[3]);
-			float y = (float) (accTransMat[4] * px + accTransMat[5] * py + accTransMat[6] * pz + accTransMat[7]);
-			pz = (float) (accTransMat[8] * px + accTransMat[9] * py + accTransMat[10] * pz + accTransMat[11]);
-			px = x;
-			py = y;
+			for (int vIdx = 0; vIdx < vsbf.length / 3; vIdx++)
+			{
+				float px = srcVsbf[vIdx * 3 + 0];
+				float py = srcVsbf[vIdx * 3 + 1];
+				float pz = srcVsbf[vIdx * 3 + 2];
 
-			vs.put(vIdx * 3 + 0, px);
-			vs.put(vIdx * 3 + 1, py);
-			vs.put(vIdx * 3 + 2, pz);
+				// transform point by using code from Transform3D.transform(Point3f) to speed up transform (possibly)
+				float x = (float) (accTransMat[0] * px + accTransMat[1] * py + accTransMat[2] * pz + accTransMat[3]);
+				float y = (float) (accTransMat[4] * px + accTransMat[5] * py + accTransMat[6] * pz + accTransMat[7]);
+				pz = (float) (accTransMat[8] * px + accTransMat[9] * py + accTransMat[10] * pz + accTransMat[11]);
+				px = x;
+				py = y;
+
+				vsbf[vIdx * 3 + 0] = px;
+				vsbf[vIdx * 3 + 1] = py;
+				vsbf[vIdx * 3 + 2] = pz;
+			}
+			vs.position(0);
+			vs.put(vsbf);
+		}
+		else
+		{
+			for (int vIdx = 0; vIdx < vs.limit() / 3; vIdx++)
+			{
+				float px = srcVs.get(vIdx * 3 + 0);
+				float py = srcVs.get(vIdx * 3 + 1);
+				float pz = srcVs.get(vIdx * 3 + 2);
+
+				// transform point by using code from Transform3D.transform(Point3f) to speed up transform (possibly)
+				float x = (float) (accTransMat[0] * px + accTransMat[1] * py + accTransMat[2] * pz + accTransMat[3]);
+				float y = (float) (accTransMat[4] * px + accTransMat[5] * py + accTransMat[6] * pz + accTransMat[7]);
+				pz = (float) (accTransMat[8] * px + accTransMat[9] * py + accTransMat[10] * pz + accTransMat[11]);
+				px = x;
+				py = y;
+
+				vs.put(vIdx * 3 + 0, px);
+				vs.put(vIdx * 3 + 1, py);
+				vs.put(vIdx * 3 + 2, pz);
+			}
 		}
 	}
 }

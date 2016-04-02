@@ -10,6 +10,7 @@ import javax.media.j3d.Group;
 import javax.media.j3d.Transform3D;
 import javax.vecmath.Color3f;
 
+import nif.character.NifCharacter;
 import nif.compound.NifSkinData;
 import nif.compound.NifSkinTransform;
 import nif.compound.NifSkinWeight;
@@ -100,16 +101,20 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 	//reused in loop
 	private Transform3D accumulatorTrans = new Transform3D();
 
+	private float[] currentCoordRefFloatbf;
+	private float[] baseCoordRefFloatbf;
+
 	@Override
 	public void updateData(Geometry geometry)
 	{
 		// holder of the transform data to speed up transform (possibly)
-		double[] accTransMat = new double[16];	
+		double[] accTransMat = new double[16];
 
 		FloatBuffer baseCoordRefFloat = (FloatBuffer) baseIndexedGeometryArray.getCoordRefBuffer().getBuffer();
 		FloatBuffer currentCoordRefFloat = (FloatBuffer) currentIndexedGeometryArray.getCoordRefBuffer().getBuffer();
 
 		//clear out current in order to accum into it
+		//TODO: a bulk copy of a blank array might be faster here?
 		for (int i = 0; i < currentCoordRefFloat.limit(); i++)
 		{
 			currentCoordRefFloat.put(i, 0);
@@ -139,36 +144,84 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 
 			// apply it's effect to it's dependant vertices
 			NifSkinData nsd = niSkinData.boneList[spBoneId];
-
-			for (NifSkinWeight vw : nsd.vertexWeights)
+			
+			if (NifCharacter.BULK_BUFFER_UPDATES)
 			{
-				int vIdx = vw.index;
-				float weight = vw.weight;
-				// If this bone has any effect add it in 
-				if (weight > 0)
+				// let's try bulk get/set
+				if (baseCoordRefFloatbf == null || baseCoordRefFloatbf.length != baseCoordRefFloat.limit())
+					baseCoordRefFloatbf = new float[baseCoordRefFloat.limit()];
+				baseCoordRefFloat.position(0);
+				baseCoordRefFloat.get(baseCoordRefFloatbf);
+				if (currentCoordRefFloatbf == null || currentCoordRefFloatbf.length != currentCoordRefFloat.limit())
+					currentCoordRefFloatbf = new float[currentCoordRefFloat.capacity()];
+				currentCoordRefFloat.position(0);
+				currentCoordRefFloat.get(currentCoordRefFloatbf);
+
+				for (NifSkinWeight vw : nsd.vertexWeights)
 				{
-					float px = baseCoordRefFloat.get(vIdx * 3 + 0);
-					float py = baseCoordRefFloat.get(vIdx * 3 + 1);
-					float pz = baseCoordRefFloat.get(vIdx * 3 + 2);
+					int vIdx = vw.index;
+					float weight = vw.weight;
+					// If this bone has any effect add it in 
+					if (weight > 0)
+					{
+						float px = baseCoordRefFloatbf[vIdx * 3 + 0];
+						float py = baseCoordRefFloatbf[vIdx * 3 + 1];
+						float pz = baseCoordRefFloatbf[vIdx * 3 + 2];
 
-					// transform point by using code from Transform3D.transform(Point3f) to speed up transform (possibly)
-					float x = (float) (accTransMat[0] * px + accTransMat[1] * py + accTransMat[2] * pz + accTransMat[3]);
-					float y = (float) (accTransMat[4] * px + accTransMat[5] * py + accTransMat[6] * pz + accTransMat[7]);
-					pz = (float) (accTransMat[8] * px + accTransMat[9] * py + accTransMat[10] * pz + accTransMat[11]);
-					px = x;
-					py = y;
+						// transform point by using code from Transform3D.transform(Point3f) to speed up transform (possibly)
+						float x = (float) (accTransMat[0] * px + accTransMat[1] * py + accTransMat[2] * pz + accTransMat[3]);
+						float y = (float) (accTransMat[4] * px + accTransMat[5] * py + accTransMat[6] * pz + accTransMat[7]);
+						pz = (float) (accTransMat[8] * px + accTransMat[9] * py + accTransMat[10] * pz + accTransMat[11]);
+						px = x;
+						py = y;
 
-					//scale by the weight of the bone
-					px *= weight;
-					py *= weight;
-					pz *= weight;
+						//scale by the weight of the bone
+						px *= weight;
+						py *= weight;
+						pz *= weight;
 
-					// accumulate into the output
-					currentCoordRefFloat.put(vIdx * 3 + 0, currentCoordRefFloat.get(vIdx * 3 + 0) + px);
-					currentCoordRefFloat.put(vIdx * 3 + 1, currentCoordRefFloat.get(vIdx * 3 + 1) + py);
-					currentCoordRefFloat.put(vIdx * 3 + 2, currentCoordRefFloat.get(vIdx * 3 + 2) + pz);
+						// accumulate into the output
+						currentCoordRefFloatbf[vIdx * 3 + 0] += px;
+						currentCoordRefFloatbf[vIdx * 3 + 1] += py;
+						currentCoordRefFloatbf[vIdx * 3 + 2] += pz;
+					}
+
 				}
+				currentCoordRefFloat.position(0);
+				currentCoordRefFloat.put(currentCoordRefFloatbf);
+			}
+			else
+			{
+				for (NifSkinWeight vw : nsd.vertexWeights)
+				{
+					int vIdx = vw.index;
+					float weight = vw.weight;
+					// If this bone has any effect add it in 
+					if (weight > 0)
+					{
+						float px = baseCoordRefFloat.get(vIdx * 3 + 0);
+						float py = baseCoordRefFloat.get(vIdx * 3 + 1);
+						float pz = baseCoordRefFloat.get(vIdx * 3 + 2);
 
+						// transform point by using code from Transform3D.transform(Point3f) to speed up transform (possibly)
+						float x = (float) (accTransMat[0] * px + accTransMat[1] * py + accTransMat[2] * pz + accTransMat[3]);
+						float y = (float) (accTransMat[4] * px + accTransMat[5] * py + accTransMat[6] * pz + accTransMat[7]);
+						pz = (float) (accTransMat[8] * px + accTransMat[9] * py + accTransMat[10] * pz + accTransMat[11]);
+						px = x;
+						py = y;
+
+						//scale by the weight of the bone
+						px *= weight;
+						py *= weight;
+						pz *= weight;
+
+						// accumulate into the output
+						currentCoordRefFloat.put(vIdx * 3 + 0, currentCoordRefFloat.get(vIdx * 3 + 0) + px);
+						currentCoordRefFloat.put(vIdx * 3 + 1, currentCoordRefFloat.get(vIdx * 3 + 1) + py);
+						currentCoordRefFloat.put(vIdx * 3 + 2, currentCoordRefFloat.get(vIdx * 3 + 2) + pz);
+					}
+
+				}
 			}
 		}
 
