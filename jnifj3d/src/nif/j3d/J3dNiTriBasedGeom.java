@@ -147,6 +147,8 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 			{
 				outliner = new Shape3D();
 				outliner.clearCapabilities();
+				outliner.setPickable(false);
+				outliner.setCollidable(false);
 				////////////////////////////////
 				//Outliner gear, note empty geom should be ignored
 				Appearance app = new SimpleShaderAppearance(c);

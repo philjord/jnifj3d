@@ -64,6 +64,8 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 
 			Shape3D shape = new Shape3D();
 			shape.clearCapabilities();
+			shape.setPickable(false);
+			shape.setCollidable(false);
 			shape.setAppearance(app);
 			root.addChild(shape);
 

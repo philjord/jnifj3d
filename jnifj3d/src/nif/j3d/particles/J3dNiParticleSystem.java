@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 
-import javax.media.j3d.Billboard;
 import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.BranchGroup;
 import javax.media.j3d.Geometry;
@@ -15,7 +14,6 @@ import javax.media.j3d.Shape3D;
 import javax.media.j3d.TransformGroup;
 import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
-import javax.vecmath.Point3f;
 
 import nif.basic.NifRef;
 import nif.j3d.J3dNiGeometry;
@@ -30,8 +28,6 @@ import nif.niobject.particle.NiPSysModifierCtlr;
 import nif.niobject.particle.NiParticleSystem;
 import tools.WeakListenerList;
 import tools3d.utils.PhysAppearance;
-import tools3d.utils.Utils3D;
-import tools3d.utils.scenegraph.Billboard2;
 import utils.PerTimeUpdateBehavior;
 import utils.source.TextureSource;
 
@@ -59,11 +55,18 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 
 	private BranchGroup outlinerBG2 = null;
 
+	private Shape3D shape;
+
 	public J3dNiParticleSystem(NiParticleSystem niParticleSystem, NiToJ3dData niToJ3dData, TextureSource textureSource)
 	{
 
 		// the shape will not be added so we can choose to add it to a root we like in a moment
 		super(niParticleSystem, niToJ3dData, textureSource, new Shape3D());
+		shape = getShape();
+		shape.clearCapabilities();
+		shape.setPickable(false);
+		shape.setCollidable(false);
+
 		this.niParticleSystem = niParticleSystem;
 
 		niToJ3dData.put(niParticleSystem, this);
@@ -78,12 +81,12 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 			// the further away smoke gets the odder the facing code works OrientedShape3D os3d;
 
 			// bill board to orient every quad to cameras proper like
-		//	billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-		//	billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-		//	Billboard2 billBehave = new Billboard2(billTrans, Billboard.ROTATE_ABOUT_POINT, new Point3f(0, 0, 0));
-		//	billBehave.setEnable(true);
-		//	billBehave.setSchedulingBounds(Utils3D.defaultBounds);
-		//	addChild(billBehave);
+			//	billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+			//	billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+			//	Billboard2 billBehave = new Billboard2(billTrans, Billboard.ROTATE_ABOUT_POINT, new Point3f(0, 0, 0));
+			//	billBehave.setEnable(true);
+			//	billBehave.setSchedulingBounds(Utils3D.defaultBounds);
+			//	addChild(billBehave);
 
 			j3dPSysData = new J3dPSysData(niPSysData, billTrans);
 
@@ -143,6 +146,9 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 			//TODO: textures and debug shapes are WAY off from each other
 
 			Shape3D outliner = new Shape3D();
+			outliner.clearCapabilities();
+			outliner.setPickable(false);
+			outliner.setCollidable(false);
 			outliner.setGeometry(j3dPSysData.ga);
 			outliner.setAppearance(PhysAppearance.makeAppearance());
 
