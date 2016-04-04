@@ -160,10 +160,13 @@ public class J3dControllerLink extends Group
 	@Override
 	public Bounds getBounds()
 	{
-		if (nodeTarget != null)
+		if (nodeTarget != null && nodeTarget.getCapability(ALLOW_BOUNDS_READ))
 		{
 			return nodeTarget.getBounds();
 		}
+		
+		//TODO: how is this not set correctly? but I need a better bounds system anyway
+		
 		return null;
 	}
 

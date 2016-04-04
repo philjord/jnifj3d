@@ -4,12 +4,12 @@ import javax.media.j3d.Appearance;
 import javax.media.j3d.Texture;
 import javax.media.j3d.TextureUnitState;
 
-import utils.source.TextureSource;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiGeometry;
 import nif.j3d.NiToJ3dData;
 import nif.niobject.NiSourceTexture;
 import nif.niobject.controller.NiFlipController;
+import utils.source.TextureSource;
 
 public class J3dNiFlipController extends J3dNiTimeController
 {
@@ -28,10 +28,12 @@ public class J3dNiFlipController extends J3dNiTimeController
 			String texName = ((NiSourceTexture) niToJ3dData.get(controller.sources[t])).fileName.string;
 			textures[t] = J3dNiGeometry.loadTexture(texName, textureSource);
 		}
-		
+
 		if (app.getTextureUnitCount() > 0)
 		{
-			app.getTextureUnitState(0).setCapability(TextureUnitState.ALLOW_STATE_WRITE);
+			app.setCapability(Appearance.ALLOW_TEXTURE_UNIT_STATE_READ);
+			if (!app.getTextureUnitState(0).getCapability(TextureUnitState.ALLOW_STATE_WRITE))
+				app.getTextureUnitState(0).setCapability(TextureUnitState.ALLOW_STATE_WRITE);
 		}
 		else
 		{

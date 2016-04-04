@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.media.j3d.Texture;
 import javax.media.j3d.Texture2D;
+import javax.media.j3d.TextureUnitState;
 
 /**
  * For NIF verification purposes, to ensure fast loading
@@ -38,6 +39,12 @@ public class DummyTextureSource implements TextureSource
 	public List<String> getFilesInFolder(String folderName)
 	{
 		return new ArrayList<String>();
+	}
+
+	@Override
+	public TextureUnitState getTextureUnitState(String texName)
+	{
+		return new TextureUnitState();
 	}
 
 }

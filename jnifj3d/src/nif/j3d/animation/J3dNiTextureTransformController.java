@@ -2,6 +2,7 @@ package nif.j3d.animation;
 
 import javax.media.j3d.Appearance;
 import javax.media.j3d.TextureAttributes;
+import javax.media.j3d.TextureUnitState;
 import javax.media.j3d.Transform3D;
 import javax.vecmath.AxisAngle4f;
 import javax.vecmath.Vector3d;
@@ -55,7 +56,9 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 			if (app.getTextureUnitCount() > 0)
 			{
 				// note these MUST be shared so updating one updates for all TUS
-				textureAttributes = app.getTextureUnitState(0).getTextureAttributes();
+				TextureUnitState tus = app.getTextureUnitState(0);
+
+				textureAttributes = tus.getTextureAttributes();
 				if (textureAttributes == null)
 				{
 					textureAttributes = new TextureAttributes();
@@ -66,9 +69,7 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 				}
 
 				if (!textureAttributes.getCapability(TextureAttributes.ALLOW_TRANSFORM_WRITE))
-				{
 					textureAttributes.setCapability(TextureAttributes.ALLOW_TRANSFORM_WRITE);
-				}
 
 				// for those special cases output the incomplete operation support
 				if (operation == TexTransform.TT_SCALE_U)
