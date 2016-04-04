@@ -13,7 +13,6 @@ public class NifTransformGroup extends TransformGroup
 	{
 		this.owner = owner;
 
-		
 		//RAISE_ISSUE: this needs to be understood, it make a MASSIVE difference to Java3D over all
 		//make 'em static
 		//TransformGroupRetained want's isStatic to be true in order for 
@@ -21,6 +20,16 @@ public class NifTransformGroup extends TransformGroup
 		//However (madly) Node calls set default read capabilities 
 		//and NodeRetained isStatic check against the long read list
 		//however firing off the opposite in clears leaves some capabilites left over so...
+
+		//RAISE_ISSUE:
+		// it also appears that compile does not get called when a branchgroup becomes live, you MUST
+		// call it yourself manually, not in line with the doc
+
+		//RAISE_ISSUE:
+		// In order for shapes to be merged properly this must be changed from ==
+		// boolean isEquivalent(Shape3DRetained shape) {
+		//if (!this.appearance.equals(shape.appearance) ||
+
 		clearCapabilities();
 	}
 
