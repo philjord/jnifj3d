@@ -42,7 +42,22 @@ public abstract class J3dNiObjectNET extends TransformGroup
 
 		buildExtraDataInList(niObjectNET, niToJ3dData);
 
-		//See NifTransformGroup for why, merging of TG's
+		//RAISE_ISSUE: this needs to be understood, it make a MASSIVE difference to Java3D over all
+		//make 'em static
+		//TransformGroupRetained want's isStatic to be true in order for 
+		//compile to agree to merge transforms.
+		//However (madly) Node calls set default read capabilities 
+		//and NodeRetained isStatic check against the long read list
+		//however firing off the opposite in clears leaves some capabilites left over so...
+
+		//RAISE_ISSUE:
+		// it also appears that compile does not get called when a branchgroup becomes live, you MUST
+		// call it yourself manually, not in line with the doc
+
+		//RAISE_ISSUE:
+		// In order for shapes to be merged properly this must be changed from ==
+		// boolean isEquivalent(Shape3DRetained shape) {
+		//if (!this.appearance.equals(shape.appearance) ||
 		clearCapabilities();
 	}
 
