@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.WeakHashMap;
 
 import javax.media.j3d.Transform3D;
+import javax.media.j3d.TransformGroup;
 import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
 
 import nif.j3d.NiToJ3dData;
-import nif.j3d.NifTransformGroup;
 import nif.j3d.animation.j3dinterp.interp.RotPosScaleTCBSplinePathInterpolator;
 import nif.j3d.animation.j3dinterp.interp.data.TCBKeyFrame;
 import nif.niobject.NiBSplineBasisData;
@@ -35,7 +35,7 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 	private static WeakHashMap<NiBSplineCompTransformInterpolator, TCBKeyFrame[]> keysMap = new WeakHashMap<NiBSplineCompTransformInterpolator, TCBKeyFrame[]>();
 
 	public J3dNiBSplineCompTransformInterpolator(NiBSplineCompTransformInterpolator niBSplineCompTransformInterpolator,
-			NiToJ3dData niToJ3dData, NifTransformGroup targetTransform)
+			NiToJ3dData niToJ3dData, TransformGroup targetTransform)
 	{
 		this.nibs = niBSplineCompTransformInterpolator;
 
@@ -80,7 +80,7 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 		}
 	}
 
-	private void setDefaultRotPosScale(NifTransformGroup targetTransform)
+	private void setDefaultRotPosScale(TransformGroup targetTransform)
 	{
 		if (nibs.translation.x != NIF_FLOAT_MIN)
 		{

@@ -1,6 +1,6 @@
 package nif.j3d.animation.j3dinterp.interp;
 
-import nif.j3d.NifTransformGroup;
+import javax.media.j3d.TransformGroup;
 
 /**
  * This is a  copy of the PathInterpolator from j3d, with target swapped out for a multiple targets and axis dumped
@@ -17,7 +17,7 @@ public abstract class PathInterpolator extends TransformInterpolator
 
 	protected int currentKnotIndex;
 
-	public PathInterpolator(NifTransformGroup target, float[] knots, float startTimeS, float lengthS)
+	public PathInterpolator(TransformGroup target, float[] knots, float startTimeS, float lengthS)
 	{
 		super(target, startTimeS, lengthS);
 		setKnots(knots);

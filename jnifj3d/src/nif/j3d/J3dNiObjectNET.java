@@ -3,6 +3,7 @@ package nif.j3d;
 import java.util.ArrayList;
 
 import javax.media.j3d.Group;
+import javax.media.j3d.TransformGroup;
 
 import nif.NifVer;
 import nif.j3d.animation.J3dNiControllerManager;
@@ -26,7 +27,7 @@ import nif.niobject.controller.NiSingleInterpController;
 import nif.niobject.controller.NiTimeController;
 import nif.niobject.controller.NiUVController;
 
-public abstract class J3dNiObjectNET extends Group
+public abstract class J3dNiObjectNET extends TransformGroup
 {
 	private NiObjectNET niObjectNET;
 

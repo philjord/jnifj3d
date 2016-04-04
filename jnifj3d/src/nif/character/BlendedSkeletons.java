@@ -9,7 +9,6 @@ import javax.vecmath.Vector3f;
 
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiNode;
-import nif.j3d.NifTransformGroup;
 import tools3d.utils.Utils3D;
 import utils.source.MeshSource;
 
@@ -17,6 +16,7 @@ public class BlendedSkeletons extends Group
 {
 
 	private static Transform3D zeroT = new Transform3D();
+
 	static
 	{
 		zeroT.setZero();
@@ -58,13 +58,11 @@ public class BlendedSkeletons extends Group
 		for (String boneName : outputSkeleton.getAllBonesInSkeleton().keySet())
 		{
 			J3dNiAVObject outputBone = outputSkeleton.getAllBonesInSkeleton().get(boneName);
-			NifTransformGroup output = outputBone.getTransformGroup();
 
 			J3dNiAVObject prevBone = prevSkeleton.getAllBonesInSkeleton().get(boneName);
-			NifTransformGroup prev = prevBone.getTransformGroup();
 
-			output.getTransform(temp);
-			prev.setTransform(temp);
+			outputBone.getTransform(temp);
+			prevBone.setTransform(temp);
 		}
 
 		return inputSkeleton;
@@ -89,36 +87,31 @@ public class BlendedSkeletons extends Group
 			//skip calcing accum for now
 			if (outputBone != outputSkeleton.getSkeletonRoot())
 			{
-				NifTransformGroup output = outputBone.getTransformGroup();
-				
-//TODO: blending now causes massive issues see blockhit for example!				
-alphaValue = 1f;
+
+				//TODO: blending now causes massive issues see blockhit for example!				
+				alphaValue = 1f;
 				if (alphaValue == 0f)
 				{
 					J3dNiAVObject prevBone = prevSkeleton.getAllBonesInSkeleton().get(boneName);
-					NifTransformGroup prev = prevBone.getTransformGroup();
-					prev.getTransform(prevT);
+					prevBone.getTransform(prevT);
 					outputT.set(prevT);
 				}
 				else if (alphaValue == 1f)
 				{
 					J3dNiAVObject inputBone = inputSkeleton.getAllBonesInSkeleton().get(boneName);
-					NifTransformGroup input = inputBone.getTransformGroup();
-					input.getTransform(inputT);
+					inputBone.getTransform(inputT);
 					outputT.set(inputT);
 				}
 				else
 				{
 					// get out 3 transfrom groups			
 					J3dNiAVObject prevBone = prevSkeleton.getAllBonesInSkeleton().get(boneName);
-					NifTransformGroup prev = prevBone.getTransformGroup();
 
 					J3dNiAVObject inputBone = inputSkeleton.getAllBonesInSkeleton().get(boneName);
-					NifTransformGroup input = inputBone.getTransformGroup();
 
 					// combine prev and input for second transform3d
-					prev.getTransform(prevT);
-					input.getTransform(inputT);
+					prevBone.getTransform(prevT);
+					inputBone.getTransform(inputT);
 
 					computeTransform(alphaValue, prevT, inputT, outputT);
 
@@ -127,7 +120,7 @@ alphaValue = 1f;
 				//only set on a change
 				if (!outputT.equals(prevOutputT))
 				{
-					output.setTransform(outputT);
+					outputBone.setTransform(outputT);
 					prevOutputT.set(outputT);
 				}
 			}
@@ -190,10 +183,8 @@ alphaValue = 1f;
 			return;
 		}
 
-		NifTransformGroup boneTrans = skeletonBone.getTransformGroup();
-
 		//multiply the bone accum trans by the bone current transform
-		boneTrans.transformMul(skeletonBone.getBoneCurrentAccumedTrans());
+		skeletonBone.transformMul(skeletonBone.getBoneCurrentAccumedTrans());
 	}
 
 	public NifJ3dSkeletonRoot getOutputSkeleton()

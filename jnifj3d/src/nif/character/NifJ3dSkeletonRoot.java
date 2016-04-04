@@ -65,7 +65,8 @@ public class NifJ3dSkeletonRoot extends Group
 					nonAccumRoot = j3dNiNode;
 				}
 
-				if (niNode.name.equals("Bip01") || niNode.name.equals("Bip02") || niNode.name.indexOf("[Root]") != -1 || niNode.name.indexOf("Root Bone") != -1)
+				if (niNode.name.equals("Bip01") || niNode.name.equals("Bip02") || niNode.name.indexOf("[Root]") != -1
+						|| niNode.name.indexOf("Root Bone") != -1)
 				{
 					if (skeletonRoot != null)
 						System.out.println("setting skeletonRoot more than once!!");
@@ -75,7 +76,7 @@ public class NifJ3dSkeletonRoot extends Group
 					// because in the real Gamebryo this is the node that is transformed by movement, where as we simply
 					// do it one up from the root.
 
-					skeletonRoot.getTransformGroup().setTransform(new Transform3D());
+					skeletonRoot.setTransform(new Transform3D());
 				}
 				allBonesInSkeleton.put(j3dNiNode.getName(), j3dNiNode);
 

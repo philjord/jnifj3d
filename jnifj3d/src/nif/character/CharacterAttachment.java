@@ -129,9 +129,9 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 			}
 
 			// blank the j3dNiTriBasedGeom transform as this is now embedded above
-			j3dNiTriBasedGeom.getTransformGroup().setTransform(new Transform3D());
+			j3dNiTriBasedGeom.setTransform(new Transform3D());
 
-			// record teh transform for use in updateData
+			// record the transform for use in updateData
 			transformMap.put(geoArray, trans);
 
 			// ensure detached
@@ -191,7 +191,7 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 
 		// holder of the transform data to speed up transform (possibly)
 		double[] accTransMat = new double[16];
-		// get accumulatorTrans out to a stright float [] to speed up transform (possibly)
+		// get accumulatorTrans out to a straight float [] to speed up transform (possibly)
 		temp.get(accTransMat);
 
 		// now to incorporate the geomorphs changes (if any)

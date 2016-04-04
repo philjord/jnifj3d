@@ -77,7 +77,7 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 						if (child.name.equals(niNode.name + " NonAccum"))
 						{
 							// we are an accum node! we take on movements etc of the model
-							this.getTransformGroup().setTransform(new Transform3D());
+							this.setTransform(new Transform3D());
 						}
 						else
 						{

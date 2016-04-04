@@ -1,10 +1,9 @@
 package nif.j3d.animation.j3dinterp.interp;
 
 import javax.media.j3d.Transform3D;
+import javax.media.j3d.TransformGroup;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
-
-import nif.j3d.NifTransformGroup;
 
 public class RotPosScaleInterpolator extends TransformInterpolator
 {
@@ -24,7 +23,7 @@ public class RotPosScaleInterpolator extends TransformInterpolator
 
 	private Transform3D baseTransform = null;
 
-	public RotPosScaleInterpolator(NifTransformGroup target, float startTimeS, float lengthS,
+	public RotPosScaleInterpolator(TransformGroup target, float startTimeS, float lengthS,
 			PositionPathInterpolator positionPathInterpolator, ScalePathInterpolator scalePathInterpolator,
 			XYZRotPathInterpolator xYZRotPathInterpolator, RotationPathInterpolator quatRotInterpolator, Vector3f defaultTrans,
 			Quat4f defaultRot, float defaultScale)

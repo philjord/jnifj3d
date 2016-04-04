@@ -2,10 +2,10 @@ package nif.j3d.animation.tes3;
 
 import javax.media.j3d.Alpha;
 import javax.media.j3d.Node;
+import javax.media.j3d.TransformGroup;
 
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.NiToJ3dData;
-import nif.j3d.NifTransformGroup;
 import nif.j3d.animation.J3dNiTimeController;
 import nif.j3d.animation.j3dinterp.J3dNiInterpolator;
 import nif.j3d.animation.j3dinterp.J3dNiTransformInterpolator;
@@ -50,7 +50,7 @@ public class J3dNiKeyframeController extends J3dNiTimeController
 			NiKeyframeData niTransformData = (NiKeyframeData) niToJ3dData.get(controller.data);
 			if (niTransformData != null)
 			{
-				NifTransformGroup targetTransform = ((J3dNiAVObject) nodeTarget).getTransformGroup();
+				TransformGroup targetTransform = ((TransformGroup) nodeTarget);
 
 				j3dNiInterpolator = new J3dNiTransformInterpolator(niTransformData, targetTransform, startTimeS, totalLengthS);
 
@@ -71,16 +71,15 @@ public class J3dNiKeyframeController extends J3dNiTimeController
 	 * @param niToJ3dData
 	 * @param nodeTarget
 	 */
-	public J3dNiKeyframeController(NiKeyframeController controller, NiToJ3dData niToJ3dData, J3dNiAVObject nodeTarget)
+	public J3dNiKeyframeController(NiKeyframeController controller, NiToJ3dData niToJ3dData, TransformGroup targetTransform)
 	{
-		super(controller, nodeTarget);
+		super(controller, targetTransform);
 
 		float totalStartTimeS = controller.startTime;
 		float totalStopTimeS = controller.stopTime;
 		totalLengthS = totalStopTimeS - totalStartTimeS;
 
 		NiKeyframeData niTransformData = (NiKeyframeData) niToJ3dData.get(controller.data);
-		NifTransformGroup targetTransform = nodeTarget.getTransformGroup();
 
 		j3dNiInterpolator = new J3dNiTransformInterpolator(niTransformData, targetTransform, totalStartTimeS, totalLengthS);
 	}

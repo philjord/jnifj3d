@@ -1,11 +1,11 @@
 package nif.j3d.animation.j3dinterp.interp;
 
 import javax.media.j3d.Transform3D;
+import javax.media.j3d.TransformGroup;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
-import nif.j3d.NifTransformGroup;
 import nif.j3d.animation.j3dinterp.interp.data.CubicSplineCurve;
 import nif.j3d.animation.j3dinterp.interp.data.CubicSplineSegment;
 import nif.j3d.animation.j3dinterp.interp.data.TCBKeyFrame;
@@ -28,7 +28,7 @@ public class RotPosScaleTCBSplinePathInterpolator extends TCBSplinePathInterpola
 
 	int currentSegmentIndex;
 
-	public RotPosScaleTCBSplinePathInterpolator(NifTransformGroup target, TCBKeyFrame keys[])
+	public RotPosScaleTCBSplinePathInterpolator(TransformGroup target, TCBKeyFrame keys[])
 	{
 		super(target, keys);
 		// Create a spline curve using the derived key frames
@@ -48,7 +48,6 @@ public class RotPosScaleTCBSplinePathInterpolator extends TCBSplinePathInterpola
 		// Determine the segment within which we will be interpolating
 		currentSegmentIndex = this.lowerKnot - 1;
 
-		
 		if (currentSegmentIndex == 0 && currentU == 0f)
 		{// if we are at the start of the curve 
 
@@ -56,7 +55,6 @@ public class RotPosScaleTCBSplinePathInterpolator extends TCBSplinePathInterpola
 			iPos.set(keyFrames[1].position);
 			iScale.set(keyFrames[1].scale);
 
-			 
 		}
 		else if (currentSegmentIndex == (numSegments - 1) && currentU == 1.0)
 		{// if we are at the end of the curve
@@ -65,7 +63,6 @@ public class RotPosScaleTCBSplinePathInterpolator extends TCBSplinePathInterpola
 			iPos.set(keyFrames[upperKnot].position);
 			iScale.set(keyFrames[upperKnot].scale);
 
-			
 		}
 		else
 		{// if we are somewhere in between the curve

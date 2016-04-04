@@ -2,6 +2,7 @@ package nif.j3d.animation.j3dinterp;
 
 import java.util.WeakHashMap;
 
+import javax.media.j3d.TransformGroup;
 import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
@@ -12,7 +13,6 @@ import nif.compound.NifQuatKey;
 import nif.compound.NifVector3;
 import nif.enums.KeyType;
 import nif.j3d.NiToJ3dData;
-import nif.j3d.NifTransformGroup;
 import nif.j3d.animation.j3dinterp.interp.PositionPathInterpolator;
 import nif.j3d.animation.j3dinterp.interp.RotPosScaleInterpolator;
 import nif.j3d.animation.j3dinterp.interp.RotationPathInterpolator;
@@ -61,7 +61,7 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 	private float defaultScale = Float.MIN_VALUE;
 
 	public J3dNiTransformInterpolator(NiTransformInterpolator niTransformInterp, NiToJ3dData niToJ3dData,
-			NifTransformGroup targetTransform, float startTimeS, float lengthS)
+			TransformGroup targetTransform, float startTimeS, float lengthS)
 	{
 		if (niTransformInterp.rotation.x != NIF_FLOAT_MIN)
 		{
@@ -94,7 +94,7 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 
 	}
 
-	public J3dNiTransformInterpolator(NiKeyframeData niTransformData, NifTransformGroup targetTransform, float startTimeS, float lengthS)
+	public J3dNiTransformInterpolator(NiKeyframeData niTransformData, TransformGroup targetTransform, float startTimeS, float lengthS)
 	{
 		processNiKeyframeData(niTransformData);
 

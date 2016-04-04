@@ -1,8 +1,7 @@
 package nif.j3d.animation.j3dinterp.interp;
 
 import javax.media.j3d.Transform3D;
-
-import nif.j3d.NifTransformGroup;
+import javax.media.j3d.TransformGroup;
 
 /**
  * This is a  copy of the TransformInterpolator from j3d
@@ -21,7 +20,7 @@ public abstract class TransformInterpolator implements Interpolated
 	/**
 	 * The NifTransformGroups node affected by this transformInterpolator
 	 */
-	protected NifTransformGroup target = null;
+	protected TransformGroup target = null;
 
 	protected float startTimeS = 0;
 
@@ -37,7 +36,7 @@ public abstract class TransformInterpolator implements Interpolated
 	// detect alpha value change.
 	protected float prevAlphaValue = Float.NaN;
 
-	public TransformInterpolator(NifTransformGroup target, float startTimeS, float lengthS)
+	public TransformInterpolator(TransformGroup target, float startTimeS, float lengthS)
 	{
 		this.target = target;
 		this.startTimeS = startTimeS;

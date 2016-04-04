@@ -1,9 +1,8 @@
 package nif.j3d;
 
-import java.util.Enumeration;
-
 import javax.media.j3d.Node;
 import javax.media.j3d.Transform3D;
+import javax.media.j3d.TransformGroup;
 
 import nif.NifVer;
 import nif.niobject.NiAVObject;
@@ -15,11 +14,7 @@ import utils.convert.ConvertFromNif;
 
 public abstract class J3dNiAVObject extends J3dNiObjectNET
 {
-	private NifTransformGroup transformGroup;
-
 	protected NiAVObject niAVObject;
-
-	private boolean compactable = true;
 
 	public Cube visualMarker;
 
@@ -31,8 +26,6 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 		this.niAVObject = niAVObject;
 
 		niToJ3dData.put(niAVObject, this);
-
-		transformGroup = new NifTransformGroup(this);
 
 		Transform3D t1 = new Transform3D();
 
@@ -49,8 +42,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 		t1.setTranslation(ConvertFromNif.toJ3d(niAVObject.translation));
 		t1.setScale(niAVObject.scale);
 
-		transformGroup.setTransform(t1);
-		super.addChild(transformGroup);
+		this.setTransform(t1);
 	}
 
 	//  Oblivion does not ignore root rotations (will return false here
@@ -92,61 +84,10 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 		return niAVObject;
 	}
 
-	public boolean isCompactable()
-	{
-		return compactable;
-	}
-
 	public void setUncompactable()
 	{
-		// make sure the transform group exists
-		recreateTransformGroup();
+		makeWritable();
 
-		transformGroup.makeWritable();
-		this.compactable = false;
-	}
-
-	public void compact()
-	{
-		if (compactable && transformGroup != null && transformGroup.isNoImpact())
-		{
-			super.removeChild(transformGroup);
-			Enumeration<Node> children = getAllChildren();
-			removeAllChildren();
-			while (children.hasMoreElements())
-			{
-				Node child = children.nextElement();
-				super.addChild(child);
-			}
-
-			transformGroup = null;
-		}
-	}
-
-	private void recreateTransformGroup()
-	{
-		if (transformGroup == null)
-		{
-			Enumeration<Node> children = super.getAllChildren();
-			super.removeAllChildren();
-
-			transformGroup = new NifTransformGroup(this);
-
-			while (children.hasMoreElements())
-			{
-				Node child = children.nextElement();
-				transformGroup.addChild(child);
-			}
-
-			super.addChild(transformGroup);
-		}
-	}
-
-	public NifTransformGroup getTransformGroup()
-	{
-		// ensure group exist if it's been removed
-		recreateTransformGroup();
-		return transformGroup;
 	}
 
 	/**
@@ -155,6 +96,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 	 */
 	public void addChildBeforeTrans(Node child)
 	{
+		//TODO: bad news impossible now, need to find the parent or root or something else
 		super.addChild(child);
 	}
 
@@ -164,149 +106,41 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 	 */
 	public void removeChildBeforeTrans(Node child)
 	{
+		//TODO: bad news impossible now, need to find the parent or root or something else
 		super.removeChild(child);
 	}
 
 	@Override
 	public void addChild(Node child)
 	{
-		if (transformGroup != null)
+		if (child instanceof J3dNiAVObject)
 		{
-			transformGroup.addChild(child);
-			if (child instanceof J3dNiAVObject)
-			{
-				((J3dNiAVObject) child).topOfParent = this;
-			}
+			((J3dNiAVObject) child).topOfParent = this;
 		}
-		else
-		{
-			super.addChild(child);
-		}
-	}
 
-	@Override
-	public Enumeration<Node> getAllChildren()
-	{
-		if (transformGroup != null)
-		{
-			return transformGroup.getAllChildren();
-		}
-		else
-		{
-			return super.getAllChildren();
-		}
-	}
+		super.addChild(child);
 
-	@Override
-	public Node getChild(int index)
-	{
-		if (transformGroup != null)
-		{
-			return transformGroup.getChild(index);
-		}
-		else
-		{
-			return super.getChild(index);
-		}
-	}
-
-	@Override
-	public int indexOfChild(Node child)
-	{
-		if (transformGroup != null)
-		{
-			return transformGroup.indexOfChild(child);
-		}
-		else
-		{
-			return super.indexOfChild(child);
-		}
 	}
 
 	@Override
 	public void insertChild(Node child, int index)
 	{
-		if (transformGroup != null)
+		if (child instanceof J3dNiAVObject)
 		{
-			transformGroup.insertChild(child, index);
-			if (child instanceof J3dNiAVObject)
-			{
-				((J3dNiAVObject) child).topOfParent = this;
-			}
+			((J3dNiAVObject) child).topOfParent = this;
 		}
-		else
-		{
-			super.insertChild(child, index);
-		}
-	}
 
-	@Override
-	public int numChildren()
-	{
-		if (transformGroup != null)
-		{
-			return transformGroup.numChildren();
-		}
-		else
-		{
-			return super.numChildren();
-		}
-	}
-
-	@Override
-	public void removeAllChildren()
-	{
-		if (transformGroup != null)
-		{
-			transformGroup.removeAllChildren();
-		}
-		else
-		{
-			super.removeAllChildren();
-		}
-	}
-
-	@Override
-	public void removeChild(int index)
-	{
-		if (transformGroup != null)
-		{
-			transformGroup.removeChild(index);
-		}
-		else
-		{
-			super.removeChild(index);
-		}
-	}
-
-	@Override
-	public void removeChild(Node child)
-	{
-		if (transformGroup != null)
-		{
-			transformGroup.removeChild(child);
-		}
-		else
-		{
-			super.removeChild(child);
-		}
+		super.insertChild(child, index);
 	}
 
 	@Override
 	public void setChild(Node child, int index)
 	{
-		if (transformGroup != null)
+		if (child instanceof J3dNiAVObject)
 		{
-			transformGroup.setChild(child, index);
-			if (child instanceof J3dNiAVObject)
-			{
-				((J3dNiAVObject) child).topOfParent = this;
-			}
+			((J3dNiAVObject) child).topOfParent = this;
 		}
-		else
-		{
-			super.setChild(child, index);
-		}
+		super.setChild(child, index);
 	}
 
 	/**
@@ -345,18 +179,9 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 				{
 					((J3dNiAVObject) parent).getTreeTransformImpl(t, rootJ3dNiAVObject);
 				}
-				//moved to the above spot but needs testing
-				/*else if (parent instanceof TransformGroup && this.topOfParent != null)
-				{
-					// in this case our parent is the bottom of the nif group and so we call the topofparent pointer				
-					this.topOfParent.getTreeTransformImpl(t, rootJ3dNiAVObject);
-				}*/
 			}
 
-			if (transformGroup != null)
-			{
-				transformGroup.transformMul(t);
-			}
+			transformMul(t);
 		}
 
 	}
@@ -374,4 +199,109 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 			visualMarker = null;
 		}
 	}
+
+	public void makeWritable()
+	{
+		if (!isLive() && !isCompiled())
+		{
+			this.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+			this.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+		}
+	}
+
+	// this is turned on if transformMul is called at all (from the getTreeTransformImpl)
+	private Transform3D transformCache;
+
+	public void setTransform(Transform3D t1)
+	{
+		if (transformCache != null)
+			transformCache.set(t1);
+
+		super.setTransform(t1);
+	}
+
+	public void transformMul(Transform3D t)
+	{
+		if (transformCache == null)
+		{
+			transformCache = new Transform3D();
+			this.getTransform(transformCache);
+		}
+
+		//TODO: this is still expensive, think about making a generic fast version like SkinData?
+		// the isAffine call seems pricey, but I'm ALWAYS affine, so I use faster version below
+		//t.mul(transformCache);
+		affineTransfromMul(t, transformCache);
+
+	}
+
+	/**
+	 * Assume BOTH are Affine!!
+	 * same as t.mul(t1); basically
+	 * @param mat
+	 * @param t1Mat
+	 */
+	//TODO: put in utils somewhere
+	public static void affineTransfromMul(Transform3D t, Transform3D t1)
+	{
+		double[] mat = new double[16];
+		t.get(mat);
+		double[] t1Mat = new double[16];
+		t1.get(t1Mat);
+		double tmp0, tmp1, tmp2, tmp3;
+		double tmp4, tmp5, tmp6, tmp7;
+		double tmp8, tmp9, tmp10, tmp11;
+
+		if (Double.isNaN(mat[0]))
+		{
+			new Throwable("Spotted a NaN!").printStackTrace();
+		}
+
+		tmp0 = mat[0] * t1Mat[0] + mat[1] * t1Mat[4] + mat[2] * t1Mat[8];
+		tmp1 = mat[0] * t1Mat[1] + mat[1] * t1Mat[5] + mat[2] * t1Mat[9];
+		tmp2 = mat[0] * t1Mat[2] + mat[1] * t1Mat[6] + mat[2] * t1Mat[10];
+		tmp3 = mat[0] * t1Mat[3] + mat[1] * t1Mat[7] + mat[2] * t1Mat[11] + mat[3];
+		tmp4 = mat[4] * t1Mat[0] + mat[5] * t1Mat[4] + mat[6] * t1Mat[8];
+		tmp5 = mat[4] * t1Mat[1] + mat[5] * t1Mat[5] + mat[6] * t1Mat[9];
+		tmp6 = mat[4] * t1Mat[2] + mat[5] * t1Mat[6] + mat[6] * t1Mat[10];
+		tmp7 = mat[4] * t1Mat[3] + mat[5] * t1Mat[7] + mat[6] * t1Mat[11] + mat[7];
+		tmp8 = mat[8] * t1Mat[0] + mat[9] * t1Mat[4] + mat[10] * t1Mat[8];
+		tmp9 = mat[8] * t1Mat[1] + mat[9] * t1Mat[5] + mat[10] * t1Mat[9];
+		tmp10 = mat[8] * t1Mat[2] + mat[9] * t1Mat[6] + mat[10] * t1Mat[10];
+		tmp11 = mat[8] * t1Mat[3] + mat[9] * t1Mat[7] + mat[10] * t1Mat[11] + mat[11];
+
+		mat[12] = mat[13] = mat[14] = 0;
+		mat[15] = 1;
+
+		mat[0] = tmp0;
+		mat[1] = tmp1;
+		mat[2] = tmp2;
+		mat[3] = tmp3;
+		mat[4] = tmp4;
+		mat[5] = tmp5;
+		mat[6] = tmp6;
+		mat[7] = tmp7;
+		mat[8] = tmp8;
+		mat[9] = tmp9;
+		mat[10] = tmp10;
+		mat[11] = tmp11;
+
+		t.set(mat);
+	}
+
+	private static Transform3D IDENTITY = new Transform3D();
+
+	public boolean isNoImpact()
+	{
+		Transform3D temp2 = new Transform3D();
+		this.getTransform(temp2);
+		return temp2.equals(IDENTITY) && !this.getCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+	}
+
+	public void compact()
+	{
+		// TODO this is where geometrys get compacted!!!
+
+	}
+
 }

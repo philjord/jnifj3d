@@ -1,8 +1,8 @@
 package nif.j3d.animation.j3dinterp;
 
-import nif.j3d.J3dNiAVObject;
+import javax.media.j3d.TransformGroup;
+
 import nif.j3d.NiToJ3dData;
-import nif.j3d.NifTransformGroup;
 import nif.niobject.interpolator.NiBSplineCompTransformInterpolator;
 import nif.niobject.interpolator.NiInterpolator;
 import nif.niobject.interpolator.NiLookAtInterpolator;
@@ -13,11 +13,11 @@ public class J3dNiTransformInterpolatorFactory
 {
 
 	public static J3dNiInterpolator createTransformInterpolator(NiInterpolator niInterpolator, NiToJ3dData niToJ3dData,
-			J3dNiAVObject nodeTarget, float startTimeS, float stopTimeS)
+			TransformGroup nodeTarget, float startTimeS, float stopTimeS)
 	{
 		float lengthS = stopTimeS - startTimeS;
 
-		NifTransformGroup targetTransform = nodeTarget.getTransformGroup();
+		TransformGroup targetTransform = nodeTarget ;
 		if (niInterpolator instanceof NiPathInterpolator)
 		{
 			return new J3dNiPathInterpolator((NiPathInterpolator) niInterpolator, niToJ3dData, targetTransform);

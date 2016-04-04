@@ -5,8 +5,9 @@ import java.util.Enumeration;
 import javax.media.j3d.Alpha;
 import javax.media.j3d.Group;
 import javax.media.j3d.Interpolator;
+import javax.media.j3d.TransformGroup;
 
-import nif.j3d.NifTransformGroup;
+import nif.j3d.J3dNiAVObject;
 import nif.j3d.animation.j3dinterp.interp.Interpolated;
 import tools3d.utils.Utils3D;
 
@@ -45,11 +46,15 @@ public abstract class J3dNiInterpolator extends Group
 			interpolator.process(alphaValue);
 	}
 
-	public static NifTransformGroup prepTransformGroup(NifTransformGroup targetTransform)
+	public static TransformGroup prepTransformGroup(TransformGroup targetTransform)
 	{
 		if (targetTransform != null)
 		{
-			targetTransform.makeWritable();
+			if (!targetTransform.isLive() && !targetTransform.isCompiled())
+			{
+				targetTransform.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+				targetTransform .setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+			}
 			return targetTransform;
 		}
 		return null;

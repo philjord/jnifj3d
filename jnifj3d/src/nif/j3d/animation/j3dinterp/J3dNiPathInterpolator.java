@@ -3,6 +3,7 @@ package nif.j3d.animation.j3dinterp;
 import java.util.WeakHashMap;
 
 import javax.media.j3d.Transform3D;
+import javax.media.j3d.TransformGroup;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
@@ -12,7 +13,6 @@ import nif.compound.NifKey;
 import nif.compound.NifKeyGroup;
 import nif.compound.NifVector3;
 import nif.j3d.NiToJ3dData;
-import nif.j3d.NifTransformGroup;
 import nif.j3d.animation.j3dinterp.interp.RotPosPathInterpolator;
 import nif.niobject.NiPosData;
 import nif.niobject.interpolator.NiPathInterpolator;
@@ -23,7 +23,7 @@ public class J3dNiPathInterpolator extends J3dNiInterpolator
 {
 	private static WeakHashMap<NifKeyGroup, PathData> pathDataMap = new WeakHashMap<NifKeyGroup, PathData>();
 
-	public J3dNiPathInterpolator(NiPathInterpolator niPathInterp, NiToJ3dData niToJ3dData, NifTransformGroup targetTransform)
+	public J3dNiPathInterpolator(NiPathInterpolator niPathInterp, NiToJ3dData niToJ3dData, TransformGroup targetTransform)
 	{
 		NifKeyGroup posData = ((NiPosData) niToJ3dData.get(niPathInterp.posData)).data;
 

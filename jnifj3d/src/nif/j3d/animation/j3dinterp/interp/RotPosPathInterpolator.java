@@ -1,11 +1,10 @@
 package nif.j3d.animation.j3dinterp.interp;
 
 import javax.media.j3d.Transform3D;
+import javax.media.j3d.TransformGroup;
 import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
-
-import nif.j3d.NifTransformGroup;
 
 /**
  * RotPosPathInterpolator is my copy if the j3d RotPosPathInterpolator
@@ -23,7 +22,7 @@ public class RotPosPathInterpolator extends PathInterpolator
 
 	private Point3f positions[];
 
-	public RotPosPathInterpolator(NifTransformGroup target, float[] knots, Quat4f[] quats, Point3f[] positions)
+	public RotPosPathInterpolator(TransformGroup target, float[] knots, Quat4f[] quats, Point3f[] positions)
 	{
 		super(target, knots, 0, 1f);//normailized knots
 
