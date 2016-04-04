@@ -79,11 +79,13 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 			{
 				itsa = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable, INTERLEAVE), texCoordCount, texMap, 2,
 						new int[] { 3, 3 }, length, stripLengths);
+				itsa.clearCapabilities();
 			}
 			else
 			{
 				itsa = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable, INTERLEAVE),
 						texCoordCount, texMap, length, stripLengths);
+				itsa.clearCapabilities();
 			}
 
 			if (morphable || INTERLEAVE || BUFFERS)

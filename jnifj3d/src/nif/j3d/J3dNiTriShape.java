@@ -91,11 +91,13 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 				{
 					ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, INTERLEAVE), texCoordCount, texMap, 2,
 							new int[] { 3, 3 }, data.numTrianglePoints);
+					ita.clearCapabilities();
 				}
 				else
 				{
 					ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, INTERLEAVE), texCoordCount, texMap,
 							data.numTrianglePoints);
+					ita.clearCapabilities();
 				}
 
 				if (morphable || INTERLEAVE || BUFFERS)

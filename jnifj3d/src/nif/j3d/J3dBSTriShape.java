@@ -9,26 +9,14 @@ import javax.media.j3d.J3DBuffer;
 import javax.media.j3d.PolygonAttributes;
 import javax.media.j3d.Shape3D;
 import javax.media.j3d.TextureAttributes;
-import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
 import javax.vecmath.Color3f;
-import javax.vecmath.Matrix3f;
 import javax.vecmath.Point3f;
-import javax.vecmath.Quat4f;
 import javax.vecmath.TexCoord2f;
-import javax.vecmath.Vector3f;
 
 import nif.basic.NifRef;
-import nif.compound.NifMatrix33;
 import nif.niobject.NiObject;
-import nif.niobject.bs.BSPackedCombinedSharedGeomDataExtra;
-import nif.niobject.bs.BSPackedCombinedSharedGeomDataExtra.Combined;
-import nif.niobject.bs.BSPackedCombinedSharedGeomDataExtra.Data;
 import nif.niobject.bs.BSTriShape;
 import tools3d.utils.Utils3D;
-import tools3d.utils.YawPitch;
-import tools3d.utils.leafnode.Cube;
-import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
 public class J3dBSTriShape extends J3dNiTriBasedGeom
@@ -64,8 +52,6 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 
 			Shape3D shape = new Shape3D();
 			shape.clearCapabilities();
-			shape.setPickable(false);
-			shape.setCollidable(false);
 			shape.setAppearance(app);
 			root.addChild(shape);
 
@@ -73,7 +59,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 			NifRef[] extraDataList = bsTriShape.extraDataList;
 			NiObject extraData = niToJ3dData.get(extraDataList[0]);
 			//I have also seen BSPositionData
-			if (extraData instanceof BSPackedCombinedSharedGeomDataExtra)
+/*			if (extraData instanceof BSPackedCombinedSharedGeomDataExtra)
 			{
 				BSPackedCombinedSharedGeomDataExtra packed = (BSPackedCombinedSharedGeomDataExtra) extraData;
 
@@ -152,7 +138,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 
 					}
 				}
-			}
+			}*/
 
 		}
 	}
@@ -238,10 +224,12 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 			{
 				iga = new IndexedTriangleArray(bsTriShape.numVertices, vertexFormat, 1, texMap, 2, new int[] { 3, 3 },
 						bsTriShape.numTriangles * 3);
+				iga.clearCapabilities();
 			}
 			else
 			{
 				iga = new IndexedTriangleArray(bsTriShape.numVertices, vertexFormat, 1, texMap, bsTriShape.numTriangles * 3);
+				iga.clearCapabilities();
 			}
 
 			if (morphable || BUFFERS)

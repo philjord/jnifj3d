@@ -58,6 +58,13 @@ public abstract class J3dNiObjectNET extends TransformGroup
 		// In order for shapes to be merged properly this must be changed from ==
 		// boolean isEquivalent(Shape3DRetained shape) {
 		//if (!this.appearance.equals(shape.appearance) ||
+
+		//RAISE_ISSUE
+		// boolean staticXformCanBeApplied() {
+		//isPickable (for mirror) is used wrongly
+		//     if (pickable || collidable ||
+		
+		// and various below it hacked out!
 		clearCapabilities();
 	}
 
