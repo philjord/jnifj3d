@@ -58,6 +58,10 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 				// note these MUST be shared so updating one updates for all TUS
 				TextureUnitState tus = app.getTextureUnitState(0);
 
+				if(tus.getCapability(TextureUnitState.ALLOW_STATE_READ))
+					tus.setCapability(TextureUnitState.ALLOW_STATE_READ);
+				
+				
 				textureAttributes = tus.getTextureAttributes();
 				if (textureAttributes == null)
 				{

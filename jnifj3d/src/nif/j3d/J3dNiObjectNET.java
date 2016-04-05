@@ -47,7 +47,7 @@ public abstract class J3dNiObjectNET extends TransformGroup
 		//compile to agree to merge transforms.
 		//However (madly) Node calls set default read capabilities 
 		//and NodeRetained isStatic check against the long read list
-		//however firing off the opposite in clears leaves some capabilites left over so...
+		//however firing off the opposite in clears leaves some capabilities left over so...
 
 		//RAISE_ISSUE:
 		// it also appears that compile does not get called when a branchgroup becomes live, you MUST
@@ -57,6 +57,10 @@ public abstract class J3dNiObjectNET extends TransformGroup
 		// In order for shapes to be merged properly this must be changed from ==
 		// boolean isEquivalent(Shape3DRetained shape) {
 		//if (!this.appearance.equals(shape.appearance) ||
+		
+		//RAISE_ISSUE:
+		// setPickable(false) is required on all shapes as 
+		//Group are already false, but Nodes are true! so it won't flow don't from the root Groups
 
 		//RAISE_ISSUE
 		// boolean staticXformCanBeApplied() {

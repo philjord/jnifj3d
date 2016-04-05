@@ -514,6 +514,7 @@ public class J3dPSysData
 
 		TextureUnitState[] tus = new TextureUnitState[1];
 		TextureUnitState tus0 = new TextureUnitState();
+		tus0.clearCapabilities();
 		tus0.setTexture(tex);
 
 		//TextureCubeMap textureCubeMap = new TextureCubeMap();
