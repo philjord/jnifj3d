@@ -44,6 +44,8 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		{
 			shape = new Shape3D();
 			shape.clearCapabilities();
+			shape.setPickable(false);
+			shape.setCollidable(false);
 			addChild(shape);
 		}
 		else

@@ -2,7 +2,6 @@ package nif.j3d;
 
 import java.util.ArrayList;
 
-import javax.media.j3d.Group;
 import javax.media.j3d.TransformGroup;
 
 import nif.NifVer;
@@ -65,6 +64,10 @@ public abstract class J3dNiObjectNET extends TransformGroup
 		//     if (pickable || collidable ||
 		
 		// and various below it hacked out!
+		
+		//Shape3DRetined.shapeIsMergeable
+		// has staticTransfrom test remove, so Shape3DCompileRetained will
+		//need to ahndle it, but it's going to be overhauled totally
 		clearCapabilities();
 	}
 

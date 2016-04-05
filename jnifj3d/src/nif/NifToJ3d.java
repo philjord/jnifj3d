@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
 
+import javax.media.j3d.Group;
+
 import nif.character.KfJ3dRoot;
 import nif.j3d.J3dBSTreeNode;
 import nif.j3d.J3dNiAVObject;
@@ -185,6 +187,9 @@ public class NifToJ3d
 					System.out.println("*****************************bad root type! " + root);
 				}
 
+				// we want to force merging and compiling to stop at the root, this should be enough
+				j3dNiAVObjectRoot.setCapability(Group.ALLOW_PARENT_READ);
+				
 				// now setupcontrollers for all J3dNiAVObject now everything is constructed
 				for (J3dNiAVObject jnao : niToJ3dData.j3dNiAVObjectValues())
 				{
@@ -245,6 +250,9 @@ public class NifToJ3d
 					System.out.println("No root found in extractHavok!");
 				}
 
+				// we want to force merging and compiling to stop at the root, this should be enough
+				j3dNiAVObjectRoot.setCapability(Group.ALLOW_PARENT_READ);
+				
 				// now attach each havok node to it appropriate NiNOde				
 				for (NiObject niObject : nifFile.blocks.getNiObjects())
 				{
