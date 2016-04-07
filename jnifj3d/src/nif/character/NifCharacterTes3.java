@@ -98,13 +98,14 @@ public class NifCharacterTes3 extends NifCharacter
 							J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton().get(attachNodeName);
 							if (attachnode != null)
 							{
-								//TODO: this is possibly a bad idea?
-								if (j3dNiAVObject.topOfParent != null)
-									j3dNiAVObject.topOfParent.removeAllChildren();
-
-								CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, j3dNiAVObject, true);
+								CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, j3dNiGeometry, true, false);
 								this.addChild(ca);
 								attachments.add(ca);
+							}
+							else
+							{
+								System.out.println(
+										"attach node not found ? " + attachNodeName + " in " + j3dNiGeometry.getNiAVObject().nVer.fileName);
 							}
 
 							// please excuse crazy time now, both sides needed
@@ -137,7 +138,8 @@ public class NifCharacterTes3 extends NifCharacter
 									attachNodeName = parent.name;
 								}
 
-								else if (attachNodeName.contains("_Ankle"))
+								//map known values
+								if (attachNodeName.contains("_Ankle"))
 									attachNodeName = "Left Ankle";
 								else if (attachNodeName.contains("_Forearm"))
 									attachNodeName = "Left Forearm";
@@ -155,23 +157,17 @@ public class NifCharacterTes3 extends NifCharacter
 								J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton().get(attachNodeName);
 								if (attachnode != null)
 								{
-									//TODO: this is possibly a bad idea?
-									if (j3dNiAVObject.topOfParent != null)
-										j3dNiAVObject.topOfParent.removeAllChildren();
-
-									//apparently negative scaling is how you mirror, with thanks to Brandano on #niftools IRC
-								//	TransformGroup tg = new TransformGroup();
-								//	Transform3D t = new Transform3D();
-								//	t.setScale(new Vector3d(-1, 1, 1));
-								//	tg.setTransform(t);
-
-									CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, j3dNiAVObject, true);
-									//this.addChild(tg);
-									//tg.addChild(ca);
+									CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, j3dNiGeometry, true, true);
 									this.addChild(ca);
 									attachments.add(ca);
-									//Note called after giving it to character attachment as this will make it morphable etc
+									// Note called after giving it to character attachment as this will make it morphable etc
+
 									reverse(j3dNiGeometry);
+								}
+								else
+								{
+									System.out.println("left attach node not found ? " + attachNodeName + " in "
+											+ j3dNiGeometry.getNiAVObject().nVer.fileName);
 								}
 							}
 						}
@@ -231,7 +227,8 @@ public class NifCharacterTes3 extends NifCharacter
 
 	}
 
-	//TODO: no good at all, normals wrong all sorts of problems!
+	// apparently negative scaling is how you mirror, with thanks to Brandano on #niftools IRC
+	// but that doesn't fix up windings so , no
 	private static void reverse(J3dNiTriBasedGeom j3dNiTriBasedGeom, IndexedGeometryArray ga)
 	{
 		if (ga != null)
@@ -248,7 +245,7 @@ public class NifCharacterTes3 extends NifCharacter
 					FloatBuffer coords = (FloatBuffer) ga.getCoordRefBuffer().getBuffer();
 					for (int v = 0; v < coords.limit() / 3; v++)
 					{
-						coords.put(v * 3 + 0, -coords.get(v * 3 + 0));						 
+						coords.put(v * 3 + 0, -coords.get(v * 3 + 0));
 					}
 				}
 			}
@@ -267,8 +264,8 @@ public class NifCharacterTes3 extends NifCharacter
 			//Tri winding will be backwards now so flip faces
 			//Note can't touch the tri indexes as morphables still share them
 			PolygonAttributes pa = j3dNiTriBasedGeom.getShape().getAppearance().getPolygonAttributes();
-			//pa.setBackFaceNormalFlip(true);
-			//pa.setCullFace(PolygonAttributes.CULL_FRONT);
+			pa.setBackFaceNormalFlip(true);
+			pa.setCullFace(PolygonAttributes.CULL_FRONT);
 		}
 	}
 

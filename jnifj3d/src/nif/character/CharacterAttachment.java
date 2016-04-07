@@ -13,6 +13,7 @@ import javax.media.j3d.Node;
 import javax.media.j3d.Transform3D;
 import javax.vecmath.Color3f;
 import javax.vecmath.Quat4f;
+import javax.vecmath.Vector3f;
 
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiNode;
@@ -51,25 +52,25 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 
 	public CharacterAttachment(J3dNiNode attachBone, boolean headAttachRotNeeded, J3dNiAVObject model)
 	{
-		this(attachBone, headAttachRotNeeded, model, false);
+		this(attachBone, headAttachRotNeeded, model, false, false);
 	}
 
 	// for TES3 if attachment is from "inside" the skin file ignore parents (which are actually the bone)
-	public CharacterAttachment(J3dNiNode attachBone, J3dNiAVObject model, boolean noParents)
+	public CharacterAttachment(J3dNiNode attachBone, J3dNiAVObject model, boolean noParents, boolean leftSide)
 	{
-		this(attachBone, false, model, noParents);
+		this(attachBone, false, model, noParents, leftSide);
 	}
 
-	private CharacterAttachment(J3dNiNode attachBone, boolean headAttachRotNeeded, J3dNiAVObject model, boolean noParents)
+	private CharacterAttachment(J3dNiNode attachBone, boolean headAttachRotNeeded, J3dNiAVObject model, boolean noParents, boolean leftSide)
 	{
 		this.setCapability(BranchGroup.ALLOW_DETACH);
 		this.attachBone = attachBone;
 		this.model = model;
 
-		getAndAttachAllGeom(model, headAttachRotNeeded, noParents);
+		getAndAttachAllGeom(model, headAttachRotNeeded, noParents, leftSide);
 	}
 
-	private void getAndAttachAllGeom(J3dNiAVObject node, boolean headAttachRotNeeded, boolean noParents)
+	private void getAndAttachAllGeom(J3dNiAVObject node, boolean headAttachRotNeeded, boolean noParents, boolean leftSide)
 	{
 		if (node instanceof J3dNiNode)
 		{
@@ -78,7 +79,7 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 			{
 				Node n = j3dNiNode.getChild(i);
 				if (n instanceof J3dNiAVObject)
-					getAndAttachAllGeom((J3dNiAVObject) n, headAttachRotNeeded, noParents);
+					getAndAttachAllGeom((J3dNiAVObject) n, headAttachRotNeeded, noParents, leftSide);
 			}
 		}
 		else if (node instanceof J3dNiTriBasedGeom)
@@ -117,7 +118,12 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 				{
 					temp1.setRotation(new Quat4f(0, 0, 0, 1));
 				}
-				temp1.setTranslation(ConvertFromNif.toJ3d(niAVObject.translation));
+
+				Vector3f v = ConvertFromNif.toJ3d(niAVObject.translation);
+				
+				v.x = leftSide ? -v.x : v.x;
+
+				temp1.setTranslation(v);
 				temp1.setScale(niAVObject.scale);
 
 				trans.mul(temp1, trans);
@@ -214,7 +220,6 @@ public class CharacterAttachment extends BranchGroup implements GeometryUpdater,
 
 		FloatBuffer vs = (FloatBuffer) ((GeometryArray) geometry).getCoordRefBuffer().getBuffer();
 
-		 
 		if (NifCharacter.BULK_BUFFER_UPDATES)
 		{
 			// let's try bulk get/set
