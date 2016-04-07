@@ -63,15 +63,43 @@ public abstract class J3dNiObjectNET extends TransformGroup
 		//Group are already false, but Nodes are true! so it won't flow don't from the root Groups
 
 		//RAISE_ISSUE
-		// boolean staticXformCanBeApplied() {
+		//Shape3DRetained.staticXformCanBeApplied() {
 		//isPickable (for mirror) is used wrongly
 		//     if (pickable || collidable ||
 		
 		// and various below it hacked out!
+ 
 		
-		//Shape3DRetined.shapeIsMergeable
-		// has staticTransfrom test remove, so Shape3DCompileRetained will
-		//need to ahndle it, but it's going to be overhauled totally
+		//TransformGroupRetained.merge
+		//this.needNormalsTransform old rubbish removed
+		
+		//Other considerations:
+		//In nif display I see compilation down to shapes (morrow tree _02 56 of them)
+		// but in explorer nothing in morrowind? Odd? why the change?
+		
+		//In doing the above I notice that the addShape of CompState use equals on Appearance
+		// to get from HashMap, which checks current values are the same but doesn't consider 
+		// capabilities and everything has TRANSPARENT_WRITE on for fade
+		// however in GRoup.merge there is a appearance.isStatic call which does check for
+		// capabilities and if none will phyiscally swap appearances (what I want)
+		// so what happens when I change some thing other than transparency on one of these
+		// merged shapes? (can't happen because shaderappearance currently does not shared TUS if
+		// anything can change). So I should find out if appearance is swapped totally in this case
+		// I feel it should be as they get into a single compiled shape
+		
+ 
+		
+		//notice real merge of static transfomr and geom data can only happen for trivial coords in float []
+		// so my sexy br_ref buffer guys can't be optimized by java3d for now
+		
+		// so new approach, use the same sort of gear to discover identical appearances and merge teh 
+		// geom data in a compact call
+		// then go through and find controls and share everything below them (that is to say go as high as possible
+		// with out a control and make into a shared array)
+		
+		//sstart by making the tree in morrowind a shared gorups and check the per frame stats
+		// them merge that damn geoms
+		
 		clearCapabilities();
 	}
 

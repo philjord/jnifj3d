@@ -447,7 +447,7 @@ public class J3dPSysData
 		ShaderAttributeSet shaderAttributeSet = new ShaderAttributeSet();
 
 		ShaderAppearance app = new ShaderAppearance();
-
+		app.clearCapabilities();
 		if (shaderProgram == null)
 		{
 
