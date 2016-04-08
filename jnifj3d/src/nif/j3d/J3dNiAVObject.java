@@ -300,7 +300,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 
 	public void compact()
 	{
-		// TODO this is where geometrys get compacted!!!
+		// TODO: is there anything to do now? iterate through children?
 
 	}
 

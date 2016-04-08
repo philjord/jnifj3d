@@ -65,8 +65,7 @@ public class NifJ3dSkeletonRoot extends Group
 					nonAccumRoot = j3dNiNode;
 				}
 
-				if (niNode.name.equals("Bip01") || niNode.name.equals("Bip02") || niNode.name.indexOf("[Root]") != -1
-						|| niNode.name.indexOf("Root Bone") != -1)
+				if (isRootBoneName(niNode.name))
 				{
 					if (skeletonRoot != null)
 						System.out.println("setting skeletonRoot more than once!!");
@@ -92,6 +91,11 @@ public class NifJ3dSkeletonRoot extends Group
 
 		if (skeletonRoot == null)
 			new Throwable("skeletonRoot == null").printStackTrace();
+	}
+
+	public static boolean isRootBoneName(String name)
+	{
+		return name.equals("Bip01") || name.equals("Bip02") || name.indexOf("[Root]") != -1 || name.indexOf("Root Bone") != -1;
 	}
 
 	public J3dNiNode getHeadJ3dNiNode()

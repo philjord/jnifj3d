@@ -25,6 +25,7 @@ import nif.niobject.RootCollisionNode;
 import nif.niobject.bhk.bhkCollisionObject;
 import nif.niobject.bs.BSTreeNode;
 import tools3d.utils.PhysAppearance;
+import utils.optimize.NifFileOptimizer;
 import utils.source.MeshSource;
 import utils.source.TextureSource;
 
@@ -63,6 +64,8 @@ public class NifToJ3d
 		if (nifFile == null)
 		{
 			nifFile = meshSource.getNifFile(nifFilename);
+			NifFileOptimizer nifFileOptimizer = new NifFileOptimizer(nifFile);
+			nifFileOptimizer.optimize();
 			loadedFiles.put(nifFilename, nifFile);
 		}
 
@@ -189,7 +192,7 @@ public class NifToJ3d
 
 				// we want to force merging and compiling to stop at the root, this should be enough
 				j3dNiAVObjectRoot.setCapability(Group.ALLOW_PARENT_READ);
-				
+
 				// now setupcontrollers for all J3dNiAVObject now everything is constructed
 				for (J3dNiAVObject jnao : niToJ3dData.j3dNiAVObjectValues())
 				{
@@ -200,10 +203,13 @@ public class NifToJ3d
 				nifJ3dRoot.setCameras(NifToJ3d.extractCameras(niToJ3dData));
 
 				// now to compact the nif model by removing unused transforms (Note: after everything is finsihed not before!)
+				// this in fact does nothing at all now! but will probably again one day
 				for (J3dNiAVObject jnao : niToJ3dData.j3dNiAVObjectValues())
 				{
 					jnao.compact();
 				}
+				
+				
 
 				return nifJ3dRoot;
 			}
@@ -249,10 +255,16 @@ public class NifToJ3d
 				{
 					System.out.println("No root found in extractHavok!");
 				}
+				if (j3dNiAVObjectRoot != null)
+				{
+					// we want to force merging and compiling to stop at the root, this should be enough
+					j3dNiAVObjectRoot.setCapability(Group.ALLOW_PARENT_READ);
+				}
+				else
+				{
+					//I feel I should tell someone there's an issue?
+				}
 
-				// we want to force merging and compiling to stop at the root, this should be enough
-				j3dNiAVObjectRoot.setCapability(Group.ALLOW_PARENT_READ);
-				
 				// now attach each havok node to it appropriate NiNOde				
 				for (NiObject niObject : nifFile.blocks.getNiObjects())
 				{
