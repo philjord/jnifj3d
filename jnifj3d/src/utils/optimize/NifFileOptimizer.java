@@ -184,7 +184,8 @@ public class NifFileOptimizer
 				if (firstTriShape.path.get(0) == mergeTriShape.path.get(0))
 				{
 					// are they identical appearances
-					if (equivilentAppearace(firstTriShape, mergeTriShape, niToJ3dData))
+					if (equivilentAppearace(firstTriShape, mergeTriShape, niToJ3dData)
+							&& equivilentShapeData(firstTriShape, mergeTriShape, niToJ3dData))
 					{
 						// merge them!
 						mergeShapes(firstTriShape, mergeTriShape, niToJ3dData);
@@ -197,6 +198,16 @@ public class NifFileOptimizer
 			}
 		}
 
+	}
+
+	private static boolean equivilentShapeData(MergeTriShape firstMerge, MergeTriShape mergeMerge, NiToJ3dData niToJ3dData)
+	{
+
+		NiTriShapeData firstTriShape = (NiTriShapeData) niToJ3dData.get(firstMerge.niTriShape.data);
+		NiTriShapeData mergeTriShape = (NiTriShapeData) niToJ3dData.get(mergeMerge.niTriShape.data);
+
+		return firstTriShape.hasNormals == mergeTriShape.hasNormals && firstTriShape.hasVertexColors == mergeTriShape.hasVertexColors
+				&& firstTriShape.actNumUVSets == mergeTriShape.actNumUVSets && firstTriShape.hasTriangles == mergeTriShape.hasTriangles;
 	}
 
 	/**
@@ -272,28 +283,30 @@ public class NifFileOptimizer
 			}
 		}
 		firstTriShape.uVSetsOptBuf = newUVSetsOptBuf;
-
-		// numTriPoints
-		int newNumTrianglePoints = firstTriShape.numTrianglePoints + mergeTriShape.numTrianglePoints;
-		firstTriShape.numTrianglePoints = newNumTrianglePoints;
-
-		// numTris
-		int newNumTriangles = firstTriShape.numTriangles + mergeTriShape.numTriangles;
-
-		int[] newTrianglesOpt = new int[newNumTriangles * 3];
-		for (int i = 0; i < firstTriShape.numTriangles * 3; i++)
+		if (firstTriShape.hasTriangles)
 		{
-			newTrianglesOpt[i] = firstTriShape.trianglesOpt[i];
+			// numTriPoints
+			int newNumTrianglePoints = firstTriShape.numTrianglePoints + mergeTriShape.numTrianglePoints;
+			firstTriShape.numTrianglePoints = newNumTrianglePoints;
 
-		}
-		// triangle must be offset for the new data
-		for (int i = 0; i < mergeTriShape.numTriangles * 3; i++)
-		{
-			newTrianglesOpt[firstTriShape.numTriangles * 3 + i] = mergeTriShape.trianglesOpt[i] + firstTriShape.numVertices;
-		}
+			// numTris
+			int newNumTriangles = firstTriShape.numTriangles + mergeTriShape.numTriangles;
 
-		firstTriShape.numTriangles = newNumTriangles;
-		firstTriShape.trianglesOpt = newTrianglesOpt;
+			int[] newTrianglesOpt = new int[newNumTriangles * 3];
+			for (int i = 0; i < firstTriShape.numTriangles * 3; i++)
+			{
+				newTrianglesOpt[i] = firstTriShape.trianglesOpt[i];
+
+			}
+			// triangle must be offset for the new data
+			for (int i = 0; i < mergeTriShape.numTriangles * 3; i++)
+			{
+				newTrianglesOpt[firstTriShape.numTriangles * 3 + i] = mergeTriShape.trianglesOpt[i] + firstTriShape.numVertices;
+			}
+
+			firstTriShape.numTriangles = newNumTriangles;
+			firstTriShape.trianglesOpt = newTrianglesOpt;
+		}
 
 		//finally update the vert count
 		firstTriShape.numVertices = newNumVertices;
