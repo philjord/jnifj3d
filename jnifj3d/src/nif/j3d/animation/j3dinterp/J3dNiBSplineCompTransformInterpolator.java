@@ -1,6 +1,8 @@
 package nif.j3d.animation.j3dinterp;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Map;
 import java.util.WeakHashMap;
 
 import javax.media.j3d.Transform3D;
@@ -32,7 +34,8 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 
 	private Point3f defaultScale = null;
 
-	private static WeakHashMap<NiBSplineCompTransformInterpolator, TCBKeyFrame[]> keysMap = new WeakHashMap<NiBSplineCompTransformInterpolator, TCBKeyFrame[]>();
+	private static Map<NiBSplineCompTransformInterpolator, TCBKeyFrame[]> keysMap = Collections
+			.synchronizedMap(new WeakHashMap<NiBSplineCompTransformInterpolator, TCBKeyFrame[]>());
 
 	public J3dNiBSplineCompTransformInterpolator(NiBSplineCompTransformInterpolator niBSplineCompTransformInterpolator,
 			NiToJ3dData niToJ3dData, TransformGroup targetTransform)
@@ -47,30 +50,35 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 			{
 				niBSplineBasisData = (NiBSplineBasisData) niToJ3dData.get(niBSplineCompTransformInterpolator.basisData);
 
-				TCBKeyFrame[] keys = keysMap.get(nibs);//note key!
-				if (keys == null)
+				// don't let 2 threads load up the data into weak map
+				TCBKeyFrame[] keys = null;
+				synchronized (nibs)
 				{
-					setDefaultRotPosScale(targetTransform);
-
-					ArrayList<Quat4f> quats = getQuatRotateControlData();
-					ArrayList<Point3f> points = getTranslateControlData();
-					ArrayList<Point3f> scales = getScaleControlData();
-
-					int numberOfControlPoints = niBSplineBasisData.numControlPoints;
-					keys = new TCBKeyFrame[numberOfControlPoints];
-					for (int i = 0; i < numberOfControlPoints; i++)
+					keys = keysMap.get(nibs);//note key!
+					if (keys == null)
 					{
-						float knot = (float) i / (float) (numberOfControlPoints - 1);
-						Point3f p = points == null ? defaultTrans : points.get(i);
-						Quat4f q = quats == null ? defaultRot : quats.get(i);
-						Point3f s = scales == null ? defaultScale : scales.get(i);
+						setDefaultRotPosScale(targetTransform);
 
-						//NOTE no TCB because this is not a TCB interpolator so linear=1 (faster?)
-						TCBKeyFrame key = new TCBKeyFrame(knot, 1, p, q, s, 0.0f, 0.0f, 0.0f);
-						keys[i] = key;
+						ArrayList<Quat4f> quats = getQuatRotateControlData();
+						ArrayList<Point3f> points = getTranslateControlData();
+						ArrayList<Point3f> scales = getScaleControlData();
+
+						int numberOfControlPoints = niBSplineBasisData.numControlPoints;
+						keys = new TCBKeyFrame[numberOfControlPoints];
+						for (int i = 0; i < numberOfControlPoints; i++)
+						{
+							float knot = (float) i / (float) (numberOfControlPoints - 1);
+							Point3f p = points == null ? defaultTrans : points.get(i);
+							Quat4f q = quats == null ? defaultRot : quats.get(i);
+							Point3f s = scales == null ? defaultScale : scales.get(i);
+
+							//NOTE no TCB because this is not a TCB interpolator so linear=1 (faster?)
+							TCBKeyFrame key = new TCBKeyFrame(knot, 1, p, q, s, 0.0f, 0.0f, 0.0f);
+							keys[i] = key;
+						}
+
+						keysMap.put(nibs, keys);
 					}
-
-					keysMap.put(nibs, keys);
 				}
 
 				RotPosScaleTCBSplinePathInterpolator tCBSplinePathInterpolator = new RotPosScaleTCBSplinePathInterpolator(

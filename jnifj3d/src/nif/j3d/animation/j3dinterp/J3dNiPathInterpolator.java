@@ -1,5 +1,7 @@
 package nif.j3d.animation.j3dinterp;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.WeakHashMap;
 
 import javax.media.j3d.Transform3D;
@@ -21,7 +23,7 @@ import utils.convert.ConvertFromNif;
 
 public class J3dNiPathInterpolator extends J3dNiInterpolator
 {
-	private static WeakHashMap<NifKeyGroup, PathData> pathDataMap = new WeakHashMap<NifKeyGroup, PathData>();
+	private static Map<NifKeyGroup, PathData> pathDataMap = Collections.synchronizedMap(new WeakHashMap<NifKeyGroup, PathData>());
 
 	public J3dNiPathInterpolator(NiPathInterpolator niPathInterp, NiToJ3dData niToJ3dData, TransformGroup targetTransform)
 	{
@@ -32,28 +34,34 @@ public class J3dNiPathInterpolator extends J3dNiInterpolator
 		{
 			if (posData.interpolation.type == 2)
 			{
-				PathData data = pathDataMap.get(posData);
-				if (data == null)
+				// don't let 2 threads load up the data into weak map
+				PathData data = null;
+				synchronized (posData)
 				{
-					float[] knots = new float[posData.keys.length];
-					Point3f[] positions = new Point3f[posData.keys.length];
-					Quat4f[] quats = new Quat4f[posData.keys.length];
-					Transform3D tempTrans = new Transform3D();
-					for (int i = 0; i < posData.keys.length; i++)
+					data = pathDataMap.get(posData);
+					if (data == null)
 					{
-						NifKey key = posData.keys[i];
-						// times are in 0.0 to 1.0 normalized form
-						knots[i] = key.time;
-						positions[i] = ConvertFromNif.toJ3dP3f((NifVector3) key.value);
+						float[] knots = new float[posData.keys.length];
+						Point3f[] positions = new Point3f[posData.keys.length];
+						Quat4f[] quats = new Quat4f[posData.keys.length];
+						Transform3D tempTrans = new Transform3D();
+						for (int i = 0; i < posData.keys.length; i++)
+						{
+							NifKey key = posData.keys[i];
+							// times are in 0.0 to 1.0 normalized form
+							knots[i] = key.time;
+							positions[i] = ConvertFromNif.toJ3dP3f((NifVector3) key.value);
 
-						//TODO: this looks like a rubbish system, why not proper forward to a quat
-						tempTrans.lookAt(new Point3d(0, 0, 0), ConvertFromNif.toJ3dP3d((NifVector3) key.forward), new Vector3d(0, 0, 1));
+							//TODO: this looks like a rubbish system, why not proper forward to a quat
+							tempTrans.lookAt(new Point3d(0, 0, 0), ConvertFromNif.toJ3dP3d((NifVector3) key.forward),
+									new Vector3d(0, 0, 1));
 
-						quats[i] = new Quat4f();
-						Utils3D.safeGetQuat(tempTrans, quats[i]);
+							quats[i] = new Quat4f();
+							Utils3D.safeGetQuat(tempTrans, quats[i]);
+						}
+						data = new PathData(knots, positions, quats);
+						pathDataMap.put(posData, data);
 					}
-					data = new PathData(knots, positions, quats);
-					pathDataMap.put(posData, data);
 				}
 				RotPosPathInterpolator interpolator = new RotPosPathInterpolator(J3dNiInterpolator.prepTransformGroup(targetTransform),
 						data.knots, data.quats, data.positions);

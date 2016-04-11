@@ -48,7 +48,7 @@ public class J3dNiSequenceStreamHelper extends J3dNiAVObject
 		NiKeyframeController controller = (NiKeyframeController) niToJ3dData.get(niSequenceStreamHelper.controller);
 
 		NiTextKeyExtraData ntked = (NiTextKeyExtraData) niToJ3dData.get(niSequenceStreamHelper.extraData);
-		// skip teh first extra data as it is textkeys bone node names start below it
+		// skip the first extra data as it is textkeys bone node names start below it
 		NiStringExtraData nsed = (NiStringExtraData) niToJ3dData.get(ntked.NextExtraData);
 
 		while (controller != null)
@@ -76,25 +76,24 @@ public class J3dNiSequenceStreamHelper extends J3dNiAVObject
 
 		// find all unique animation names, ignore case in all cases
 		HashSet<String> namesFound = new HashSet<String>();
+		List<J3dNiControllerSequenceTes3> j3dNiControllerSequenceList = new ArrayList<J3dNiControllerSequenceTes3>();
 		TimeKeyValue[] tkvs = parseTimeKeyValues(ntked);
 		for (TimeKeyValue tkv : tkvs)
 		{
 			for (KeyValue kv : tkv.keyValues)
 			{
+				String key = kv.key.toLowerCase();
 				// skip sounds for now (can be mixed case)
-				if (!kv.key.toLowerCase().equals("soundgen") //
-						&& !kv.key.toLowerCase().equals("sound"))
-				{					
-					namesFound.add(kv.key.toLowerCase());
+				if (!key.equals("soundgen") //
+						&& !key.equals("sound"))
+				{
+					if (!namesFound.contains(key))
+					{
+						namesFound.add(key);
+						j3dNiControllerSequenceList.add(new J3dNiControllerSequenceTes3(key, tkvs, j3dNiKeyframeControllers));
+					}
 				}
 			}
-		}
-
-		//and contruct sequences
-		List<J3dNiControllerSequenceTes3> j3dNiControllerSequenceList = new ArrayList<J3dNiControllerSequenceTes3>();
-		for (Object fireName : namesFound.toArray())
-		{
-			j3dNiControllerSequenceList.add(new J3dNiControllerSequenceTes3((String) fireName, tkvs, j3dNiKeyframeControllers));
 		}
 
 		sequences = new J3dNiControllerSequenceTes3[j3dNiControllerSequenceList.size()];
@@ -155,19 +154,40 @@ public class J3dNiSequenceStreamHelper extends J3dNiAVObject
 
 	public static KeyValue[] parseKeyValues(String input)
 	{
+		/*	List<KeyValue> keyValues2 = new ArrayList<KeyValue>();
+			String[] kvParts = input.split("\r\n");
+			for (int i = 0; i < kvParts.length; i++)
+			{
+				String[] parts = kvParts[i].split(": ");
+				//often blanks etc
+				if (parts.length == 2)
+					keyValues2.add(new KeyValue(parts[0].trim(), parts[1].trim()));
+		
+			}*/
+
 		List<KeyValue> keyValues = new ArrayList<KeyValue>();
-		String[] kvParts = input.split("\r\n");
-		for (int i = 0; i < kvParts.length; i++)
+		int pos = 0, end;
+		while ((end = input.indexOf("\r\n", pos)) >= 0)
 		{
-			String[] parts = kvParts[i].split(": ");
-			//often blanks etc
-			if (parts.length == 2)
-				keyValues.add(new KeyValue(parts[0].trim(), parts[1].trim()));
-			 
+			String kvPart = input.substring(pos, end);
+			int sIdx = kvPart.indexOf(": ");
+			if (sIdx != -1)
+			{
+				keyValues.add(new KeyValue(kvPart.substring(0, sIdx).trim(), kvPart.substring(sIdx + 2).trim()));
+			}
+			pos = end + 1;
+		}
+		// add the last (not finished with \r\n) entry in
+		String kvPart = input.substring(pos);
+		int sIdx = kvPart.indexOf(": ");
+		if (sIdx != -1)
+		{
+			keyValues.add(new KeyValue(kvPart.substring(0, sIdx).trim(), kvPart.substring(sIdx + 2).trim()));
 		}
 
 		KeyValue[] ret = new KeyValue[keyValues.size()];
 		keyValues.toArray(ret);
+
 		return ret;
 	}
 

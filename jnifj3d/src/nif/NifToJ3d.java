@@ -1,10 +1,10 @@
 package nif;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
@@ -43,7 +43,7 @@ public class NifToJ3d
 
 	//Note this is caching the file read operations, not the j3d built object which are not shared
 	//private static SoftValueHashMap<String, NifFile> loadedFiles = new SoftValueHashMap<String, NifFile>();
-	private static WeakHashMap<String, NifFile> loadedFiles = new WeakHashMap<String, NifFile>();
+	private static Map<String, NifFile> loadedFiles = Collections.synchronizedMap(new WeakHashMap<String, NifFile>());
 
 	// we can't request the same file at the same time, this tell threads to wait for each other
 	private static Set<String> loadingFiles = Collections.synchronizedSet(new HashSet<String>());

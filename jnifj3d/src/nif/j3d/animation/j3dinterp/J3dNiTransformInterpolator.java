@@ -1,5 +1,7 @@
 package nif.j3d.animation.j3dinterp;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.WeakHashMap;
 
 import javax.media.j3d.TransformGroup;
@@ -60,8 +62,8 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 
 	private float defaultScale = Float.MIN_VALUE;
 
-	public J3dNiTransformInterpolator(NiTransformInterpolator niTransformInterp, NiToJ3dData niToJ3dData,
-			TransformGroup targetTransform, float startTimeS, float lengthS)
+	public J3dNiTransformInterpolator(NiTransformInterpolator niTransformInterp, NiToJ3dData niToJ3dData, TransformGroup targetTransform,
+			float startTimeS, float lengthS)
 	{
 		if (niTransformInterp.rotation.x != NIF_FLOAT_MIN)
 		{
@@ -85,9 +87,9 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 			processNiKeyframeData(niTransformData);
 		}
 
-		RotPosScaleInterpolator rotPosScaleInterpolator = new RotPosScaleInterpolator(
-				J3dNiInterpolator.prepTransformGroup(targetTransform), startTimeS, lengthS, positionPathInterpolator,
-				scalePathInterpolator, xYZRotPathInterpolator, quatRotInterpolator, defaultTrans, defaultRot, defaultScale);
+		RotPosScaleInterpolator rotPosScaleInterpolator = new RotPosScaleInterpolator(J3dNiInterpolator.prepTransformGroup(targetTransform),
+				startTimeS, lengthS, positionPathInterpolator, scalePathInterpolator, xYZRotPathInterpolator, quatRotInterpolator,
+				defaultTrans, defaultRot, defaultScale);
 		setInterpolator(rotPosScaleInterpolator);
 		rotPosScaleInterpolator.setOwner(this);
 		this.setOwner(niTransformInterp);
@@ -98,9 +100,9 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 	{
 		processNiKeyframeData(niTransformData);
 
-		RotPosScaleInterpolator rotPosScaleInterpolator = new RotPosScaleInterpolator(
-				J3dNiInterpolator.prepTransformGroup(targetTransform), startTimeS, lengthS, positionPathInterpolator,
-				scalePathInterpolator, xYZRotPathInterpolator, quatRotInterpolator, defaultTrans, defaultRot, defaultScale);
+		RotPosScaleInterpolator rotPosScaleInterpolator = new RotPosScaleInterpolator(J3dNiInterpolator.prepTransformGroup(targetTransform),
+				startTimeS, lengthS, positionPathInterpolator, scalePathInterpolator, xYZRotPathInterpolator, quatRotInterpolator,
+				defaultTrans, defaultRot, defaultScale);
 		setInterpolator(rotPosScaleInterpolator);
 		rotPosScaleInterpolator.setOwner(this);
 		this.setOwner(niTransformData);
@@ -120,40 +122,45 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 				NifKeyGroup xRotation = niTransformData.xYZRotations[0];
 				if (xRotation.keys != null && xRotation.keys.length > 0)
 				{
-					XyzRotationData data = xyzRotationDataMap.get(niTransformData);
-					if (data == null)
+					// don't let 2 threads load up the data into weak map
+					XyzRotationData data = null;
+					synchronized (niTransformData)
 					{
-						// all three will be not null and l >= 0
-						float[] xKnots = new float[xRotation.keys.length];
-						float[] xRots = new float[xRotation.keys.length];
-						for (int i = 0; i < xRotation.keys.length; i++)
+						data = xyzRotationDataMap.get(niTransformData);
+						if (data == null)
 						{
-							NifKey key = xRotation.keys[i];
-							xKnots[i] = key.time;
-							xRots[i] = ((Float) key.value).floatValue();
-						}
+							// all three will be not null and l >= 0
+							float[] xKnots = new float[xRotation.keys.length];
+							float[] xRots = new float[xRotation.keys.length];
+							for (int i = 0; i < xRotation.keys.length; i++)
+							{
+								NifKey key = xRotation.keys[i];
+								xKnots[i] = key.time;
+								xRots[i] = ((Float) key.value).floatValue();
+							}
 
-						NifKeyGroup yRotation = niTransformData.xYZRotations[1];
-						float[] yKnots = new float[yRotation.keys.length];
-						float[] yRots = new float[yRotation.keys.length];
-						for (int i = 0; i < yRotation.keys.length; i++)
-						{
-							NifKey key = yRotation.keys[i];
-							yKnots[i] = key.time;
-							yRots[i] = ((Float) key.value).floatValue();
-						}
+							NifKeyGroup yRotation = niTransformData.xYZRotations[1];
+							float[] yKnots = new float[yRotation.keys.length];
+							float[] yRots = new float[yRotation.keys.length];
+							for (int i = 0; i < yRotation.keys.length; i++)
+							{
+								NifKey key = yRotation.keys[i];
+								yKnots[i] = key.time;
+								yRots[i] = ((Float) key.value).floatValue();
+							}
 
-						NifKeyGroup zRotation = niTransformData.xYZRotations[2];
-						float[] zKnots = new float[zRotation.keys.length];
-						float[] zRots = new float[zRotation.keys.length];
-						for (int i = 0; i < zRotation.keys.length; i++)
-						{
-							NifKey key = zRotation.keys[i];
-							zKnots[i] = key.time;
-							zRots[i] = ((Float) key.value).floatValue();
+							NifKeyGroup zRotation = niTransformData.xYZRotations[2];
+							float[] zKnots = new float[zRotation.keys.length];
+							float[] zRots = new float[zRotation.keys.length];
+							for (int i = 0; i < zRotation.keys.length; i++)
+							{
+								NifKey key = zRotation.keys[i];
+								zKnots[i] = key.time;
+								zRots[i] = ((Float) key.value).floatValue();
+							}
+							data = new XyzRotationData(xKnots, xRots, yKnots, yRots, zKnots, zRots);
+							xyzRotationDataMap.put(niTransformData, data);
 						}
-						data = new XyzRotationData(xKnots, xRots, yKnots, yRots, zKnots, zRots);
-						xyzRotationDataMap.put(niTransformData, data);
 					}
 
 					xYZRotPathInterpolator = new XYZRotPathInterpolator(data.xKnots, data.xRots, data.yKnots, data.yRots, data.zKnots,
@@ -166,21 +173,25 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 				NifQuatKey[] quatKeys = niTransformData.quaternionKeys;
 				if (quatKeys != null && quatKeys.length > 0)
 				{
-					QuatRotationData data = quatRotationDataMap.get(niTransformData);
-					if (data == null)
+					// don't let 2 threads load up the data into weak map
+					QuatRotationData data = null;
+					synchronized (niTransformData)
 					{
-						float[] knots = new float[quatKeys.length];
-						Quat4f[] quats = new Quat4f[quatKeys.length];
-						for (int i = 0; i < quatKeys.length; i++)
+						data = quatRotationDataMap.get(niTransformData);
+						if (data == null)
 						{
-							NifQuatKey key = quatKeys[i];
-							knots[i] = key.time;
-							quats[i] = ConvertFromNif.toJ3d(key.value);
+							float[] knots = new float[quatKeys.length];
+							Quat4f[] quats = new Quat4f[quatKeys.length];
+							for (int i = 0; i < quatKeys.length; i++)
+							{
+								NifQuatKey key = quatKeys[i];
+								knots[i] = key.time;
+								quats[i] = ConvertFromNif.toJ3d(key.value);
+							}
+							data = new QuatRotationData(knots, quats);
+							quatRotationDataMap.put(niTransformData, data);
 						}
-						data = new QuatRotationData(knots, quats);
-						quatRotationDataMap.put(niTransformData, data);
 					}
-
 					quatRotInterpolator = new RotationPathInterpolator(data.knots, data.quats);
 
 				}
@@ -194,19 +205,24 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 		NifKeyGroup translations = niTransformData.translations;
 		if (translations.keys != null && translations.keys.length > 0)
 		{
-			TranslationData data = translationDataMap.get(niTransformData);
-			if (data == null)
+			// don't let 2 threads load up the data into weak map
+			TranslationData data = null;
+			synchronized (niTransformData)
 			{
-				float[] knots = new float[translations.keys.length];
-				Point3f[] positions = new Point3f[translations.keys.length];
-				for (int i = 0; i < translations.keys.length; i++)
+				data = translationDataMap.get(niTransformData);
+				if (data == null)
 				{
-					NifKey key = translations.keys[i];
-					knots[i] = key.time;
-					positions[i] = ConvertFromNif.toJ3dP3f((NifVector3) key.value);
+					float[] knots = new float[translations.keys.length];
+					Point3f[] positions = new Point3f[translations.keys.length];
+					for (int i = 0; i < translations.keys.length; i++)
+					{
+						NifKey key = translations.keys[i];
+						knots[i] = key.time;
+						positions[i] = ConvertFromNif.toJ3dP3f((NifVector3) key.value);
+					}
+					data = new TranslationData(knots, positions);
+					translationDataMap.put(niTransformData, data);
 				}
-				data = new TranslationData(knots, positions);
-				translationDataMap.put(niTransformData, data);
 			}
 			positionPathInterpolator = new PositionPathInterpolator(data.knots, data.positions);
 
@@ -242,13 +258,16 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 		}
 	}
 
-	private static WeakHashMap<NiKeyframeData, XyzRotationData> xyzRotationDataMap = new WeakHashMap<NiKeyframeData, XyzRotationData>();
+	private static Map<NiKeyframeData, XyzRotationData> xyzRotationDataMap = Collections
+			.synchronizedMap(new WeakHashMap<NiKeyframeData, XyzRotationData>());
 
-	private static WeakHashMap<NiKeyframeData, QuatRotationData> quatRotationDataMap = new WeakHashMap<NiKeyframeData, QuatRotationData>();
+	private static Map<NiKeyframeData, QuatRotationData> quatRotationDataMap = Collections
+			.synchronizedMap(new WeakHashMap<NiKeyframeData, QuatRotationData>());
 
-	private static WeakHashMap<NiKeyframeData, TranslationData> translationDataMap = new WeakHashMap<NiKeyframeData, TranslationData>();
+	private static Map<NiKeyframeData, TranslationData> translationDataMap = Collections
+			.synchronizedMap(new WeakHashMap<NiKeyframeData, TranslationData>());
 
-	private static WeakHashMap<NiKeyframeData, ScaleData> scaleDataMap = new WeakHashMap<NiKeyframeData, ScaleData>();
+	private static Map<NiKeyframeData, ScaleData> scaleDataMap = Collections.synchronizedMap(new WeakHashMap<NiKeyframeData, ScaleData>());
 
 	public static class XyzRotationData
 	{

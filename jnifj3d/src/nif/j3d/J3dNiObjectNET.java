@@ -57,7 +57,7 @@ public abstract class J3dNiObjectNET extends TransformGroup
 		// In order for shapes to be merged properly this must be changed from ==
 		// boolean isEquivalent(Shape3DRetained shape) {
 		//if (!this.appearance.equals(shape.appearance) ||
-		
+
 		//RAISE_ISSUE:
 		// setPickable(false) is required on all shapes as 
 		//Group are already false, but Nodes are true! so it won't flow don't from the root Groups
@@ -66,17 +66,16 @@ public abstract class J3dNiObjectNET extends TransformGroup
 		//Shape3DRetained.staticXformCanBeApplied() {
 		//isPickable (for mirror) is used wrongly
 		//     if (pickable || collidable ||
-		
+
 		// and various below it hacked out!
- 
-		
+
 		//TransformGroupRetained.merge
 		//this.needNormalsTransform old rubbish removed
-		
+
 		//Other considerations:
 		//In nif display I see compilation down to shapes (morrow tree _02 56 of them)
 		// but in explorer nothing in morrowind? Odd? why the change?
-		
+
 		//In doing the above I notice that the addShape of CompState use equals on Appearance
 		// to get from HashMap, which checks current values are the same but doesn't consider 
 		// capabilities and everything has TRANSPARENT_WRITE on for fade
@@ -86,20 +85,18 @@ public abstract class J3dNiObjectNET extends TransformGroup
 		// merged shapes? (can't happen because shaderappearance currently does not shared TUS if
 		// anything can change). So I should find out if appearance is swapped totally in this case
 		// I feel it should be as they get into a single compiled shape
-		
- 
-		
+
 		//notice real merge of static transfomr and geom data can only happen for trivial coords in float []
 		// so my sexy br_ref buffer guys can't be optimized by java3d for now
-		
+
 		// so new approach, use the same sort of gear to discover identical appearances and merge teh 
 		// geom data in a compact call
 		// then go through and find controls and share everything below them (that is to say go as high as possible
 		// with out a control and make into a shared array)
-		
-		//sstart by making the tree in morrowind a shared gorups and check the per frame stats
+
+		// start by making the tree in morrowind a shared gorups and check the per frame stats
 		// them merge that damn geoms
-		
+
 		clearCapabilities();
 	}
 
@@ -108,15 +105,23 @@ public abstract class J3dNiObjectNET extends TransformGroup
 		//early versions used a chain, build a list if needed
 		if (niObjectNET2.nVer.LOAD_VER <= NifVer.VER_4_2_2_0)
 		{
-			ArrayList<NiExtraData> niExtraDatas = new ArrayList<NiExtraData>();
-			NiExtraData ned = (NiExtraData) niToJ3dData.get(niObjectNET.extraData);
-			while (ned != null)
+			if (niObjectNET.extraData.ref != -1)				
 			{
-				niExtraDatas.add(ned);
-				ned = (NiExtraData) niToJ3dData.get(ned.NextExtraData);
+				ArrayList<NiExtraData> niExtraDatas = new ArrayList<NiExtraData>();
+				NiExtraData ned = (NiExtraData) niToJ3dData.get(niObjectNET.extraData);
+
+				while (ned != null)
+				{
+					niExtraDatas.add(ned);
+					ned = (NiExtraData) niToJ3dData.get(ned.NextExtraData);
+				}
+				extraDataList = new NiExtraData[niExtraDatas.size()];
+				niExtraDatas.toArray(extraDataList);
 			}
-			extraDataList = new NiExtraData[niExtraDatas.size()];
-			niExtraDatas.toArray(extraDataList);
+			else
+			{
+				extraDataList = new NiExtraData[0];
+			}
 		}
 		else
 		{
