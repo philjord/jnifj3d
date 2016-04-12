@@ -394,30 +394,34 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 		if (isOblivion)
 		{
 			NiTriBasedGeomData data = (NiTriBasedGeomData) niToJ3dData.get(niTriBasedGeom.data);
-			// this can be called many times, only set it up the first time
-			if (data.tangentsOptBuf == null)
+			// don't lets have 2 threads trying to build the tangents at the same time
+			synchronized (data)
 			{
-				NifRef[] properties = niTriBasedGeom.extraDataList;
-
-				for (int i = 0; i < properties.length; i++)
+				// this can be called many times, only set it up the first time
+				if (data.tangentsOptBuf == null)
 				{
-					NiObject prop = niToJ3dData.get(properties[i]);
-					if (prop != null && prop instanceof NiBinaryExtraData)
-					{
-						NiBinaryExtraData niBinaryExtraData = (NiBinaryExtraData) prop;
-						if (niBinaryExtraData.name.equals("Tangent space (binormal & tangent vectors)"))
-						{
-							ByteBuffer stream = ByteBuffer.wrap(niBinaryExtraData.binaryData.data);
+					NifRef[] properties = niTriBasedGeom.extraDataList;
 
-							try
+					for (int i = 0; i < properties.length; i++)
+					{
+						NiObject prop = niToJ3dData.get(properties[i]);
+						if (prop != null && prop instanceof NiBinaryExtraData)
+						{
+							NiBinaryExtraData niBinaryExtraData = (NiBinaryExtraData) prop;
+							if (niBinaryExtraData.name.equals("Tangent space (binormal & tangent vectors)"))
 							{
-								data.loadTangentAndBinormalsFromExtraData(stream, data.nVer);
-								//This can only ever be called once then it's finished so we can drop the loaded raw bytes
-								niBinaryExtraData.binaryData = null;
-							}
-							catch (IOException e)
-							{
-								e.printStackTrace();
+								ByteBuffer stream = ByteBuffer.wrap(niBinaryExtraData.binaryData.data);
+
+								try
+								{
+									data.loadTangentAndBinormalsFromExtraData(stream, data.nVer);
+									//This can only ever be called once then it's finished so we can drop the loaded raw bytes
+									niBinaryExtraData.binaryData = null;
+								}
+								catch (IOException e)
+								{
+									e.printStackTrace();
+								}
 							}
 						}
 					}
