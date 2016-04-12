@@ -39,12 +39,16 @@ public class NiToJ3dData
 
 	public J3dNiAVObject get(NiAVObject key)
 	{
-		return dataJ3dNiAVObject.get(key.refId);
+		if (key != null)
+			return dataJ3dNiAVObject.get(key.refId);
+		else
+			return null;
 	}
 
 	public void put(NiAVObject key, J3dNiAVObject value)
 	{
-		dataJ3dNiAVObject.put(key.refId, value);
+		if (key != null)
+			dataJ3dNiAVObject.put(key.refId, value);
 	}
 
 	public Collection<J3dNiAVObject> j3dNiAVObjectValues()
