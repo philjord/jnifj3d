@@ -3,20 +3,29 @@ package nif.j3d;
 import javax.media.j3d.Appearance;
 import javax.media.j3d.GeometryArray;
 import javax.media.j3d.IndexedGeometryArray;
-import javax.media.j3d.IndexedQuadArray;
 import javax.media.j3d.IndexedTriangleArray;
 import javax.media.j3d.J3DBuffer;
 import javax.media.j3d.PolygonAttributes;
 import javax.media.j3d.Shape3D;
 import javax.media.j3d.TextureAttributes;
-import javax.vecmath.Color3f;
+import javax.media.j3d.Transform3D;
+import javax.media.j3d.TransformGroup;
+import javax.media.j3d.TriangleArray;
+import javax.vecmath.Matrix3f;
 import javax.vecmath.Point3f;
-import javax.vecmath.TexCoord2f;
+import javax.vecmath.Quat4f;
+import javax.vecmath.Vector3f;
 
 import nif.basic.NifRef;
+import nif.compound.NifMatrix33;
 import nif.niobject.NiObject;
+import nif.niobject.bs.BSPackedCombinedSharedGeomDataExtra;
+import nif.niobject.bs.BSPackedCombinedSharedGeomDataExtra.BSPackedGeomData;
+import nif.niobject.bs.BSPackedCombinedSharedGeomDataExtra.BSPackedGeomDataCombined;
 import nif.niobject.bs.BSTriShape;
 import tools3d.utils.Utils3D;
+import tools3d.utils.leafnode.Cube;
+import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
 public class J3dBSTriShape extends J3dNiTriBasedGeom
@@ -48,7 +57,8 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 
 			app.getPolygonAttributes().setCullFace(PolygonAttributes.CULL_NONE);
 			if (app.getTextureUnitCount() > 0)
-				app.getTextureUnitState(0).getTextureAttributes().setTextureMode(TextureAttributes.REPLACE);
+				if (app.getTextureUnitState(0).getTextureAttributes() != null)
+					app.getTextureUnitState(0).getTextureAttributes().setTextureMode(TextureAttributes.REPLACE);
 
 			Shape3D shape = new Shape3D();
 			shape.clearCapabilities();
@@ -61,25 +71,27 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 			NifRef[] extraDataList = bsTriShape.extraDataList;
 			NiObject extraData = niToJ3dData.get(extraDataList[0]);
 			//I have also seen BSPositionData
-/*			if (extraData instanceof BSPackedCombinedSharedGeomDataExtra)
+			if (extraData instanceof BSPackedCombinedSharedGeomDataExtra)
 			{
 				BSPackedCombinedSharedGeomDataExtra packed = (BSPackedCombinedSharedGeomDataExtra) extraData;
 
-				Data[] datas = packed.data;
+				BSPackedGeomData[] datas = packed.BSPackedGeomData;
+				//BSPackedGeomObject[] objs = packed.BSPackedGeomObject;
 				//System.out.println("set of data below");
 				for (int da = 0; da < datas.length; da++)
 				{
-					Data data = datas[da];
+					BSPackedGeomData data = datas[da];
+					//BSPackedGeomObject obj = objs[da];
 					//System.out.println("data " + da);
 
 					//System.out.println("set of combined below");
 					for (int c = 0; c < data.NumCombined; c++)
 					{
 						//	System.out.println("combined " + c);
-						Combined combined = data.Combined[c];
+						BSPackedGeomDataCombined combined = data.BSPackedGeomDataCombined[c];
 
 						// reverse it all!
-						NifMatrix33 m = combined.rot;
+						NifMatrix33 m = combined.Rotation;
 
 						float[] d = m.data();
 						m.m33 = d[0];
@@ -96,51 +108,44 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 						//m2.invert();
 						Quat4f q2 = new Quat4f();
 						q2.set(m2);
-						YawPitch yp = new YawPitch(q2);
-						System.out.println("yp = " + yp);
+						//YawPitch yp = new YawPitch(q2);
+						//System.out.println("yp = " + yp);
 
 						//Quat4f q = ConvertFromNif.toJ3d(m);
 						//q= new Quat4f(0,0,0,1);// I think my q is not forming as I would have it form
 						// I think I need to round the values off or something like nifskope
 
-						Vector3f t = ConvertFromNif.toJ3d(combined.trans);
-						float s = combined.scale;
+						Vector3f t = ConvertFromNif.toJ3d(combined.Translation);
+						float s = combined.Scale;
 
 						Transform3D t4p = new Transform3D(q2, t, s);
 
-						float x = 5.12f;
+						float radius = combined.BoundingSphere.radius;
+						float radiusAsHalfSquareSize = (float) Math.sqrt((radius * radius) / 2f);
+
+						float x = radiusAsHalfSquareSize;
 						float y = 0;
-						float z = 5.12f;
+						float z = radiusAsHalfSquareSize;
 
-						if (Math.abs(packed.fs[da][2]) < 0.01)
-						{
-							y = 5.12f;
-							z = 0;
-						}
-
-						Point3f p0 = new Point3f(x, y, z);
+						Point3f p0 = new Point3f(-x, -y, -z);
 						t4p.transform(p0);
-						Point3f p1 = new Point3f(0.0f, y, z);
+						Point3f p1 = new Point3f(x, y, z);
 						t4p.transform(p1);
-						Point3f p2 = new Point3f(0.0f, 0.0f, 0);
-						t4p.transform(p2);
-						Point3f p3 = new Point3f(x, 0.0f, 0);
-						t4p.transform(p3);
 
-						shape.addGeometry(createQuad(p0, p1, p2, p3));
+						shape.addGeometry(createQuad(p0, p1));
 
 						TransformGroup tg = new TransformGroup();
-						Transform3D t3d = new Transform3D(new Quat4f(0, 0, 0, 1), ConvertFromNif.toJ3d(combined.bounds.center), 1);
+						Transform3D t3d = new Transform3D(new Quat4f(0, 0, 0, 1), ConvertFromNif.toJ3d(combined.BoundingSphere.center), 1);
 
 						tg.setTransform(t3d);
 
-						tg.addChild(
-								new Cube(0.25, (combined.trans.x / 100) % 1, (combined.trans.y / 100) % 1, (combined.trans.z / 100) % 1));
+						tg.addChild(new Cube(0.25, (combined.Translation.x / 100) % 1, (combined.Translation.y / 100) % 1,
+								(combined.Translation.z / 100) % 1));
 						root.addChild(tg);
 
 					}
 				}
-			}*/
+			}
 
 		}
 	}
@@ -151,35 +156,43 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 		return createGeometry((BSTriShape) this.niAVObject, morphable);
 	}
 
-	private static IndexedQuadArray createQuad(Point3f p0, Point3f p1, Point3f p2, Point3f p3)
+	private static TriangleArray createQuad(Point3f min, Point3f max)
 	{
-		//	QuadArray quads = new QuadArray(4, GeometryArray.COORDINATES | GeometryArray.NORMALS | GeometryArray.TEXTURE_COORDINATE_2
-		//			| GeometryArray.COLOR_4);
+		float[] verts1 = { min.x, min.y, min.z, //1
+				max.x, min.y, min.z, //2
+				max.x, max.y, min.z, //3
+				min.x, min.y, min.z, //1
+				max.x, max.y, min.z, //3
+				min.x, max.y, min.z//4
+		};//4
 
-		IndexedQuadArray quads = new IndexedQuadArray(4,
-				GeometryArray.COORDINATES | GeometryArray.TEXTURE_COORDINATE_2 | GeometryArray.COLOR_3 | GeometryArray.USE_COORD_INDEX_ONLY,
-				4);
+		float[] texCoords = { 0f, 1f, //1
+				0f, 0f, //2
+				(1f), 0f, //3
+				0f, 1f, //1
+				(1f), 0f, //3
+				(1f), 1f//4
 
-		quads.setCoordinate(0, p0);
-		quads.setCoordinate(1, p1);
-		quads.setCoordinate(2, p2);
-		quads.setCoordinate(3, p3);
-		/*	quads.setNormal(0, new Vector3f(0f, 1f, 0f));
-			quads.setNormal(1, new Vector3f(0f, 1f, 0f));
-			quads.setNormal(2, new Vector3f(0f, 1f, 0f));
-			quads.setNormal(3, new Vector3f(0f, 1f, 0f));*/
-		quads.setTextureCoordinate(0, 0, new TexCoord2f(1f, 1f));
-		quads.setTextureCoordinate(0, 1, new TexCoord2f(0f, 1f));
-		quads.setTextureCoordinate(0, 2, new TexCoord2f(0f, 0f));
-		quads.setTextureCoordinate(0, 3, new TexCoord2f(1f, 0f));
-		quads.setColor(0, new Color3f(p0));
-		quads.setColor(1, new Color3f(p1));
-		quads.setColor(2, new Color3f(p2));
-		quads.setColor(3, new Color3f(p3));
+		};
 
-		quads.setCoordinateIndices(0, new int[] { 0, 1, 2, 3 });
+		//probably should add normals too for speed?otherwise auto generated or something
+		float[] normals = { 0f, 0f, 1f, //1
+				0f, 0f, 1f, //2
+				0f, 0f, 1f, //3
+				0f, 0f, 1f, //1
+				0f, 0f, 1f, //3
+				0f, 0f, 1f, //4
 
-		return quads;
+		};
+
+		TriangleArray rect = new TriangleArray(6, GeometryArray.COORDINATES | GeometryArray.TEXTURE_COORDINATE_2 | GeometryArray.NORMALS
+				| GeometryArray.USE_NIO_BUFFER | GeometryArray.BY_REFERENCE);
+
+		rect.setCoordRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(verts1)));
+		rect.setNormalRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(normals)));
+		rect.setTexCoordRefBuffer(0, new J3DBuffer(Utils3D.makeFloatBuffer(texCoords)));
+
+		return rect;
 	}
 
 	//also used by Fo4LODLandscape
