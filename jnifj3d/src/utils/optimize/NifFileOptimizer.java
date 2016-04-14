@@ -3,6 +3,7 @@ package utils.optimize;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.HashSet;
 
 import javax.media.j3d.Transform3D;
 import javax.vecmath.Point3f;
@@ -166,6 +167,7 @@ public class NifFileOptimizer
 			compress(mergeTriShape, niToJ3dData);
 		}
 
+		HashSet<MergeTriShape> haveBeenMerged = new HashSet<MergeTriShape>();
 		// now for each other 
 		// if the same appearance
 		// compress and add into first trishape
@@ -189,12 +191,31 @@ public class NifFileOptimizer
 					{
 						// merge them!
 						mergeShapes(firstTriShape, mergeTriShape, niToJ3dData);
+						haveBeenMerged.add(firstTriShape);
 						discard(mergeTriShape, niToJ3dData);
 						optimizeState.shapesToMerge.remove(i);
 						i--;
+
 					}
 				}
 
+			}
+		}
+
+		// merged transparent lose blending
+		for (MergeTriShape mergeTriShape : haveBeenMerged)
+		{
+			for (int i = 0; i < mergeTriShape.niTriShape.numProperties; i++)
+			{
+				NiProperty mergeNiProperty = (NiProperty) niToJ3dData.get(mergeTriShape.niTriShape.properties[i]);
+
+				if (mergeNiProperty instanceof NiAlphaProperty)
+				{
+					NiAlphaProperty mergeNap = (NiAlphaProperty) mergeNiProperty;
+
+					if (mergeNap.flags.flags == 4608 + 237)
+						mergeNap.flags.flags = 4608;
+				}
 			}
 		}
 
