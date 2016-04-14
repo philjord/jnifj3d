@@ -509,20 +509,20 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 	 * @param app
 	 * @param blocks
 	 */
-	public static void setUpTimeController(NiProperty property, NiToJ3dData niToJ3dData, TextureSource textureSource, J3dNiAVObject target)
+	protected static void setUpTimeController(NiProperty property, NiToJ3dData niToJ3dData, TextureSource textureSource, J3dNiAVObject target)
 	{
 		NiTimeController controller = (NiTimeController) niToJ3dData.get(property.controller);
 		setUpTimeController(controller, niToJ3dData, textureSource, target);
 	}
 
-	public static void setUpTimeController(BSLightingShaderProperty bslsp, NiToJ3dData niToJ3dData, TextureSource textureSource,
+	protected static void setUpTimeController(BSLightingShaderProperty bslsp, NiToJ3dData niToJ3dData, TextureSource textureSource,
 			J3dNiAVObject target)
 	{
 		NiTimeController controller = (NiTimeController) niToJ3dData.get(bslsp.controller);
 		setUpTimeController(controller, niToJ3dData, textureSource, target);
 	}
 
-	private static void setUpTimeController(NiTimeController controller, NiToJ3dData niToJ3dData, TextureSource textureSource,
+	public static void setUpTimeController(NiTimeController controller, NiToJ3dData niToJ3dData, TextureSource textureSource,
 			J3dNiAVObject target)
 	{
 		if (controller != null)

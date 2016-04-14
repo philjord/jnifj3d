@@ -23,6 +23,7 @@ import nif.niobject.NiTexturingProperty;
 import nif.niobject.NiTriShape;
 import nif.niobject.NiTriShapeData;
 import nif.niobject.NiVertexColorProperty;
+import nif.niobject.NiZBufferProperty;
 import nif.niobject.RootCollisionNode;
 import utils.convert.ConvertFromNif;
 import utils.optimize.OptimizeState.MergeTriShape;
@@ -582,6 +583,10 @@ public class NifFileOptimizer
 												hasTexture = true;
 										}
 										else if (property instanceof NiVertexColorProperty)
+										{
+											//TODO: is it ok to leave these alone and merge anyway?
+										}
+										else if (property instanceof NiZBufferProperty)
 										{
 											//TODO: is it ok to leave these alone and merge anyway?
 										}

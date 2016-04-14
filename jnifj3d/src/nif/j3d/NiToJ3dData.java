@@ -3,6 +3,8 @@ package nif.j3d;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import javax.media.j3d.TextureAttributes;
+
 import nif.NiObjectList;
 import nif.NifVer;
 import nif.basic.NifPtr;
@@ -26,6 +28,8 @@ public class NiToJ3dData
 	private SparseArray<J3dNiTimeController> dataJ3dNiTimeController = new SparseArray<J3dNiTimeController>();
 
 	private SparseArray<J3dNiInterpolator> dataJ3dNiInterpolator = new SparseArray<J3dNiInterpolator>();
+
+	private SparseArray<TextureAttributes> textureAttributesLookup = new SparseArray<TextureAttributes>();
 
 	/**
 	 * Note by now the data in NiObjectList is totally static
@@ -77,6 +81,16 @@ public class NiToJ3dData
 	public void put(NiInterpolator key, J3dNiInterpolator value)
 	{
 		dataJ3dNiInterpolator.put(key.refId, value);
+	}
+
+	public TextureAttributes getTextureAttributes(int refId)
+	{
+		return textureAttributesLookup.get(refId);
+	}
+
+	public void putTextureAttributes(int refId, TextureAttributes value)
+	{
+		textureAttributesLookup.put(refId, value);
 	}
 
 	public NiObject root()
