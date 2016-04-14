@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import javax.media.j3d.Appearance;
+import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.BranchGroup;
 import javax.media.j3d.ColoringAttributes;
 import javax.media.j3d.GeometryArray;
@@ -25,6 +26,7 @@ import nif.niobject.NiTriBasedGeomData;
 import tools.WeakValueHashMap;
 import tools3d.utils.SimpleShaderAppearance;
 import tools3d.utils.Utils3D;
+import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
 /**
@@ -33,6 +35,8 @@ import utils.source.TextureSource;
  */
 public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 {
+
+	public static boolean USE_FIXED_BOUNDS = false;
 
 	//TODO: these can no longer be turned on, possibly remove fully?
 	public static boolean INTERLEAVE = false;// FALSE if tangents and bitangents on!!!  
@@ -72,11 +76,15 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 	 */
 	public void makeMorphable()
 	{
+		// TODO: is there any gain? certainly a loss from being wrong
+		if (USE_FIXED_BOUNDS)
+		{
+			getShape().setBoundsAutoCompute(false);// expensive to do regularly so animated node just get one
+			getShape().setBounds(new BoundingSphere(ConvertFromNif.toJ3dP3d(data.center),
+					ConvertFromNif.toJ3d(isMorphable ? data.radius * 2 : data.radius)));
+		}
 		if (!isMorphable)
 		{
-			// TODO: is there any gain? certainly a loss from being wrong
-			//getShape().setBoundsAutoCompute(false);// expensive to do regularly so animated node just get one
-			//getShape().setBounds(new BoundingSphere(ConvertFromNif.toJ3dP3d(data.center), ConvertFromNif.toJ3d(data.radius)));
 
 			baseGeometryArray = createGeometry(true);
 			currentGeometryArray = createGeometry(true);
