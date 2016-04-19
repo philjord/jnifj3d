@@ -1,6 +1,7 @@
 package nif.j3d;
 
 import javax.media.j3d.Appearance;
+import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.GeometryArray;
 import javax.media.j3d.IndexedGeometryArray;
 import javax.media.j3d.IndexedTriangleArray;
@@ -47,6 +48,11 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 
 		currentGeometryArray = createGeometry(false);
 		getShape().setGeometry(currentGeometryArray);
+		if (USE_FIXED_BOUNDS)
+		{
+			getShape().setBoundsAutoCompute(false);// expensive to do regularly so animated node just get one
+			getShape().setBounds(new BoundingSphere(ConvertFromNif.toJ3dP3d(bsTriShape.center), ConvertFromNif.toJ3d(bsTriShape.radius)));
+		}
 
 		if (bsTriShape.dataSize == 0 && DISPLAY_FAR_QUADS)
 		{

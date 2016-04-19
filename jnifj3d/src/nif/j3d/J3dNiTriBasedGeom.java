@@ -36,7 +36,7 @@ import utils.source.TextureSource;
 public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 {
 
-	public static boolean USE_FIXED_BOUNDS = false;
+	public static boolean USE_FIXED_BOUNDS = true;
 
 	//TODO: these can no longer be turned on, possibly remove fully?
 	public static boolean INTERLEAVE = false;// FALSE if tangents and bitangents on!!!  
@@ -53,6 +53,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 	protected GeometryArray currentGeometryArray;
 
+	//NOT FOR FO4!!!
 	protected NiTriBasedGeomData data;
 
 	private boolean isMorphable = false;
@@ -72,7 +73,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 	protected abstract IndexedGeometryArray createGeometry(boolean morphable);
 
 	/**
-	 * Note expensive re-create should be optomised one day
+	 * Note expensive re-create should be optimized one day
 	 */
 	public void makeMorphable()
 	{
@@ -91,6 +92,13 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 			getShape().setGeometry(currentGeometryArray);
 			isMorphable = true;
 		}
+
+		/*		//little test 
+				Bounds fromShape = getShape().getBounds();
+				BoundingSphere fromFile = new BoundingSphere(ConvertFromNif.toJ3dP3d(data.center),
+						ConvertFromNif.toJ3d(isMorphable ? data.radius * 2 : data.radius));
+		
+				System.out.println("fromShape " + fromShape + " fromFile " + fromFile);*/
 	}
 
 	@Override

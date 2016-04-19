@@ -1,10 +1,12 @@
 package nif.j3d;
 
+import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.IndexedGeometryArray;
 import javax.media.j3d.IndexedTriangleStripArray;
 
 import nif.niobject.NiTriStrips;
 import nif.niobject.NiTriStripsData;
+import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
 /**
@@ -22,6 +24,12 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 		currentGeometryArray = createGeometry(false);
 		currentGeometryArray.setName(niTriStrips.toString() + " : " + data.nVer.fileName);
 		getShape().setGeometry(currentGeometryArray);
+
+		if (USE_FIXED_BOUNDS)
+		{
+			getShape().setBoundsAutoCompute(false);// expensive to do regularly so animated node just get one
+			getShape().setBounds(new BoundingSphere(ConvertFromNif.toJ3dP3d(data.center), ConvertFromNif.toJ3d(data.radius)));
+		}
 	}
 
 	@Override
@@ -73,7 +81,7 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 			int[] texMap = new int[9];
 			for (int i = 0; i < 9; i++)
 				texMap[i] = 0;
-			 
+
 			IndexedGeometryArray itsa;
 			if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
 			{
@@ -83,8 +91,8 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 			}
 			else
 			{
-				itsa = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable, INTERLEAVE),
-						texCoordCount, texMap, length, stripLengths);
+				itsa = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable, INTERLEAVE), texCoordCount, texMap,
+						length, stripLengths);
 				itsa.clearCapabilities();
 			}
 

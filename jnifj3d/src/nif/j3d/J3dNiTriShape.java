@@ -1,11 +1,13 @@
 package nif.j3d;
 
+import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.IndexedGeometryArray;
 import javax.media.j3d.IndexedTriangleArray;
 
 import nif.niobject.NiTriShape;
 import nif.niobject.NiTriShapeData;
 import nif.niobject.bs.BSLODTriShape;
+import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
 public class J3dNiTriShape extends J3dNiTriBasedGeom
@@ -26,6 +28,12 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 			currentGeometryArray = createGeometry(false);
 			currentGeometryArray.setName(niTriShape.toString() + " : " + data.nVer.fileName);
 			getShape().setGeometry(currentGeometryArray);
+
+			if (USE_FIXED_BOUNDS)
+			{
+				getShape().setBoundsAutoCompute(false);// expensive to do regularly so animated node just get one
+				getShape().setBounds(new BoundingSphere(ConvertFromNif.toJ3dP3d(data.center), ConvertFromNif.toJ3d(data.radius)));
+			}
 		}
 
 	}
@@ -119,64 +127,64 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 				// this doesn't work now because I use Flaotbuffers for the Opts
 				// NifToJ3d.extractShapes  setControllers might complain, but it should have set morphable proper by now
 
-/*				GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
-
-				gi.setCoordinateIndices(data.trianglesOpt);
-				gi.setUseCoordIndexOnly(true);
-				gi.setCoordinates(data.verticesOpt);
-				gi.setColors4(data.vertexColorsOpt);
-				gi.setNormals(data.normalsOpt);
-
-				if (data.actNumUVSets > 0)
-				{
-					gi.setTextureCoordinateParams(texCoordCount, 2);
-					gi.setTexCoordSetMap(texMap);
-					for (int i = 0; i < texCoordCount; i++)
-					{
-						gi.setTextureCoordinates(i, data.uVSetsOpt[i]);
-					}
-				}
-
-				Stripifier stripifer = new Stripifier();
-				stripifer.stripify(gi);
-
-				if (data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS)
-				{
-					gi.setVertexAttributes(2, new int[] { 3, 3 });
-				}
-
-				IndexedGeometryArray ita = gi.getIndexedGeometryArray(false, false, INTERLEAVE, true, BUFFERS);
-				ita.setName(data.toString() + ":" + data.nVer.fileName);
-				if (data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS)
-				{
-					if (!morphable)
-					{
-						if (!INTERLEAVE)
-						{
-							if (!BUFFERS)
-							{
-								ita.setVertexAttrs(0, 0, data.tangentsOpt);
-								ita.setVertexAttrs(1, 0, data.binormalsOpt);
-							}
-							else
-							{
-								ita.setVertexAttrRefBuffer(0, new J3DBuffer(Utils3D.makeFloatBuffer(data.tangentsOpt)));
-								ita.setVertexAttrRefBuffer(1, new J3DBuffer(Utils3D.makeFloatBuffer(data.binormalsOpt)));
-							}
-						}
-					}
-					else
-					{
-						ita.setVertexAttrRefFloat(0, data.tangentsOpt);
-						ita.setVertexAttrRefFloat(1, data.binormalsOpt);
-					}
-				}
-
-				if (!morphable)
-				{
-					sharedIGAs.put(data, ita);
-				}
-				return ita;*/
+				/*				GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
+				
+								gi.setCoordinateIndices(data.trianglesOpt);
+								gi.setUseCoordIndexOnly(true);
+								gi.setCoordinates(data.verticesOpt);
+								gi.setColors4(data.vertexColorsOpt);
+								gi.setNormals(data.normalsOpt);
+				
+								if (data.actNumUVSets > 0)
+								{
+									gi.setTextureCoordinateParams(texCoordCount, 2);
+									gi.setTexCoordSetMap(texMap);
+									for (int i = 0; i < texCoordCount; i++)
+									{
+										gi.setTextureCoordinates(i, data.uVSetsOpt[i]);
+									}
+								}
+				
+								Stripifier stripifer = new Stripifier();
+								stripifer.stripify(gi);
+				
+								if (data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS)
+								{
+									gi.setVertexAttributes(2, new int[] { 3, 3 });
+								}
+				
+								IndexedGeometryArray ita = gi.getIndexedGeometryArray(false, false, INTERLEAVE, true, BUFFERS);
+								ita.setName(data.toString() + ":" + data.nVer.fileName);
+								if (data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS)
+								{
+									if (!morphable)
+									{
+										if (!INTERLEAVE)
+										{
+											if (!BUFFERS)
+											{
+												ita.setVertexAttrs(0, 0, data.tangentsOpt);
+												ita.setVertexAttrs(1, 0, data.binormalsOpt);
+											}
+											else
+											{
+												ita.setVertexAttrRefBuffer(0, new J3DBuffer(Utils3D.makeFloatBuffer(data.tangentsOpt)));
+												ita.setVertexAttrRefBuffer(1, new J3DBuffer(Utils3D.makeFloatBuffer(data.binormalsOpt)));
+											}
+										}
+									}
+									else
+									{
+										ita.setVertexAttrRefFloat(0, data.tangentsOpt);
+										ita.setVertexAttrRefFloat(1, data.binormalsOpt);
+									}
+								}
+				
+								if (!morphable)
+								{
+									sharedIGAs.put(data, ita);
+								}
+								return ita;*/
 			}
 		}
 		//TODO: some trishapes with skin data nearby have no tris (it's in skin data)
