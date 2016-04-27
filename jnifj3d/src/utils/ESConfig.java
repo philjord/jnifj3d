@@ -7,13 +7,13 @@ public class ESConfig
 	// NOTE es x,y,z to j3d x,z,-y
 
 	// 1/0.02 = 50
-	public static float ES_TO_METERS_SCALE = 0.02f;
+	// TES units are in fact definitively one half inch per unit!
+	public static float ES_TO_METERS_SCALE = 0.0254f / 2f;
 
 	public static String TES_TEXTURE_PATH = "Textures\\";
 
 	public static String TES_MESH_PATH = "Meshes\\";
 
 	public static String TES_SOUND_PATH = "Sound\\";
-
 
 }
