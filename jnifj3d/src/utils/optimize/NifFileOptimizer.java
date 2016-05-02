@@ -136,6 +136,7 @@ import utils.optimize.OptimizeState.MergeTriShape;
 
 public class NifFileOptimizer
 {
+	public static boolean OPTIMIZER_ENABLED = true;
 	private NifFile nifFile;
 
 	public NifFileOptimizer(NifFile nifFile)
@@ -147,15 +148,18 @@ public class NifFileOptimizer
 
 	public void optimize()
 	{
-		NiObject root = nifFile.blocks.root();
-
-		//Optimize Tes3 transparent shapes into a single shape
-		if (root.nVer.LOAD_VER <= NifVer.VER_10_0_1_0 && root instanceof NiNode)
+		if (OPTIMIZER_ENABLED)
 		{
-			NiToJ3dData niToJ3dData = new NiToJ3dData(nifFile.blocks);
-			OptimizeState optimizeState = new OptimizeState();
-			searchTes3TransparentTriShape((NiNode) root, niToJ3dData, optimizeState);
-			mergeTes3TransparentTriShape(optimizeState, niToJ3dData);
+			NiObject root = nifFile.blocks.root();
+
+			//Optimize Tes3 transparent shapes into a single shape
+			if (root.nVer.LOAD_VER <= NifVer.VER_10_0_1_0 && root instanceof NiNode)
+			{
+				NiToJ3dData niToJ3dData = new NiToJ3dData(nifFile.blocks);
+				OptimizeState optimizeState = new OptimizeState();
+				searchTes3TransparentTriShape((NiNode) root, niToJ3dData, optimizeState);
+				mergeTes3TransparentTriShape(optimizeState, niToJ3dData);
+			}
 		}
 	}
 
