@@ -136,7 +136,9 @@ import utils.optimize.OptimizeState.MergeTriShape;
 
 public class NifFileOptimizer
 {
+	private static boolean REMOVE_BLEND_FROM_ALPHA_TEST = false;
 	public static boolean OPTIMIZER_ENABLED = true;
+	
 	private NifFile nifFile;
 
 	public NifFileOptimizer(NifFile nifFile)
@@ -218,8 +220,9 @@ public class NifFileOptimizer
 				{
 					NiAlphaProperty mergeNap = (NiAlphaProperty) mergeNiProperty;
 
-					if (mergeNap.flags.flags == 4608 + 237)
-						mergeNap.flags.flags = 4608;
+					if (REMOVE_BLEND_FROM_ALPHA_TEST)
+						if (mergeNap.flags.flags == 4608 + 237)
+							mergeNap.flags.flags = 4608;
 				}
 			}
 		}
