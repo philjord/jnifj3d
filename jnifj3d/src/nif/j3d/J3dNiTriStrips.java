@@ -1,5 +1,9 @@
 package nif.j3d;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.ShortBuffer;
+
 import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.IndexedGeometryArray;
 import javax.media.j3d.IndexedTriangleStripArray;
@@ -113,5 +117,68 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 
 		new Throwable("Null IGA!").printStackTrace();
 		return null;
+	}
+
+	/**
+	 * Code from pipeline for stitching, but not useful there, so kept here in case needed later
+	 * @param strip_len
+	 * @param sarray
+	 * @param initialIndexIndex
+	 * @param indexCoord
+	 * @return
+	 */
+	static ShortBuffer stitchTriStrips(int strip_len, int[] sarray, int initialIndexIndex, int[] indexCoord)
+	{
+		//TODO: How to make degenerate tri strips joined up
+		//What do we need to put in between, in order to link up the triangles? 
+		//We'll need an even number of new triangles in order to preserve the winding. 
+		//We can do this by repeating the last vertex of the first row, 
+		//and the first vertex of the second row. http://www.learnopengles.com/tag/degenerate-triangles/
+
+		// first how big = size0+1...1+sizeN+1...1+sizeLen
+		// equals sum strips + (numstrip*2)-2
+		int totalStitchedIndexSize = 0;
+		for (int i = 0; i < strip_len; i++)
+			totalStitchedIndexSize += sarray[i];
+
+		totalStitchedIndexSize += (strip_len * 2) - 2;
+
+		// now put the tristrip indexes into a  single fat buffer, with degenerates...
+		int dstOffset = initialIndexIndex;
+		int srcOffset = initialIndexIndex;
+		ByteBuffer bb = ByteBuffer.allocateDirect(totalStitchedIndexSize * 2);
+		bb.order(ByteOrder.nativeOrder());
+		ShortBuffer totalIndicesBuffer = bb.asShortBuffer();
+
+		for (int i = 0; i < strip_len; i++)
+		{
+			// first one no repeated first
+			if (i != 0)
+			{
+				//repeat first
+				totalIndicesBuffer.put(dstOffset, (short) indexCoord[srcOffset]);
+				dstOffset++;
+			}
+
+			int count = sarray[i];
+			totalIndicesBuffer.position(dstOffset);
+
+			for (int s = 0; s < count; s++)
+				totalIndicesBuffer.put(s, (short) indexCoord[srcOffset + s]);
+
+			dstOffset += count;
+			srcOffset += count;
+
+			//last one no repeat last
+			if (i != strip_len - 1)
+			{
+				//repeat last
+				totalIndicesBuffer.put(dstOffset, (short) indexCoord[srcOffset]);
+				dstOffset++;
+			}
+
+		}
+		return totalIndicesBuffer;
+
 	}
 }
