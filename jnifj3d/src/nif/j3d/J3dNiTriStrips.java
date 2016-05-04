@@ -7,6 +7,7 @@ import java.nio.ShortBuffer;
 import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.IndexedGeometryArray;
 import javax.media.j3d.IndexedTriangleStripArray;
+import javax.media.j3d.JoglesIndexedTriangleArray;
 
 import nif.niobject.NiTriStrips;
 import nif.niobject.NiTriStripsData;
@@ -57,62 +58,72 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 
 		if (data.hasVertices && data.hasPoints)
 		{
-			int numStrips = data.numStrips;
-			int[] stripLengths = data.stripLengths;
-			int[] points = null;
-
-			// get full length
-			int length = 0;
-			for (int i = 0; i < numStrips; i++)
+			if (!JOGLES_OPTIMIZED_GEOMETRY || morphable)
 			{
-				length += data.points[i].length;
-			}
+				int numStrips = data.numStrips;
+				int[] stripLengths = data.stripLengths;
+				int[] points = null;
 
-			points = new int[length];
-			int idx = 0;
-			for (int i = 0; i < numStrips; i++)
-			{
-				for (int j = 0; j < stripLengths[i]; j++)
+				// get full length
+				int length = 0;
+				for (int i = 0; i < numStrips; i++)
 				{
-					points[idx] = data.points[i][j];
-					idx++;
+					length += data.points[i].length;
 				}
-			}
 
-			int texCoordCount = 1;
+				points = new int[length];
+				int idx = 0;
+				for (int i = 0; i < numStrips; i++)
+				{
+					for (int j = 0; j < stripLengths[i]; j++)
+					{
+						points[idx] = data.points[i][j];
+						idx++;
+					}
+				}
 
-			// All tex units use the 0ith one  
-			int[] texMap = new int[9];
-			for (int i = 0; i < 9; i++)
-				texMap[i] = 0;
+				int texCoordCount = 1;
 
-			IndexedGeometryArray itsa;
-			if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
-			{
-				itsa = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable, INTERLEAVE), texCoordCount, texMap, 2,
-						new int[] { 3, 3 }, length, stripLengths);
-				itsa.clearCapabilities();
+				// All tex units use the 0ith one  
+				int[] texMap = new int[9];
+				for (int i = 0; i < 9; i++)
+					texMap[i] = 0;
+
+				IndexedGeometryArray itsa;
+				if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
+				{
+					itsa = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable, false), texCoordCount, texMap, 2,
+							new int[] { 3, 3 }, length, stripLengths);
+					itsa.clearCapabilities();
+				}
+				else
+				{
+					itsa = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable, false), texCoordCount, texMap, length,
+							stripLengths);
+					itsa.clearCapabilities();
+				}
+
+				if (morphable || BUFFERS)
+					itsa.setCoordIndicesRef(points);
+				else
+					itsa.setCoordinateIndices(0, points);
+
+				fillIn(itsa, data, morphable, false);
+
+				// if not morphable cache
+				if (!morphable)
+				{
+					sharedIGAs.put(data, itsa);
+				}
+				return itsa;
 			}
 			else
 			{
-				itsa = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable, INTERLEAVE), texCoordCount, texMap,
-						length, stripLengths);
-				itsa.clearCapabilities();
+
+			 
+
+				return null;
 			}
-
-			if (morphable || INTERLEAVE || BUFFERS)
-				itsa.setCoordIndicesRef(points);
-			else
-				itsa.setCoordinateIndices(0, points);
-
-			fillIn(itsa, data, morphable, INTERLEAVE);
-
-			// if not morphable cache
-			if (!morphable)
-			{
-				sharedIGAs.put(data, itsa);
-			}
-			return itsa;
 		}
 
 		new Throwable("Null IGA!").printStackTrace();

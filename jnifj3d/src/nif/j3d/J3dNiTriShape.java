@@ -1,8 +1,13 @@
 package nif.j3d;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.ShortBuffer;
+
 import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.IndexedGeometryArray;
 import javax.media.j3d.IndexedTriangleArray;
+import javax.media.j3d.JoglesIndexedTriangleArray;
 
 import nif.niobject.NiTriShape;
 import nif.niobject.NiTriShapeData;
@@ -94,32 +99,66 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 
 			if (!STRIPIFY || morphable)
 			{
-				IndexedGeometryArray ita;
-				if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
+				if (!JOGLES_OPTIMIZED_GEOMETRY || morphable)
 				{
-					ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, INTERLEAVE), texCoordCount, texMap, 2,
-							new int[] { 3, 3 }, data.numTrianglePoints);
-					ita.clearCapabilities();
+					IndexedGeometryArray ita;
+					if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
+					{
+						ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, false), texCoordCount, texMap, 2,
+								new int[] { 3, 3 }, data.numTrianglePoints);
+						ita.clearCapabilities();
+					}
+					else
+					{
+						ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, false), texCoordCount, texMap,
+								data.numTrianglePoints);
+						ita.clearCapabilities();
+					}
+
+					if (morphable || BUFFERS)
+						ita.setCoordIndicesRef(data.trianglesOpt);
+					else
+						ita.setCoordinateIndices(0, data.trianglesOpt);
+
+					fillIn(ita, data, morphable, false);
+
+					if (!morphable)
+					{
+						sharedIGAs.put(data, ita);
+					}
+					return ita;
 				}
 				else
 				{
-					ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, INTERLEAVE), texCoordCount, texMap,
-							data.numTrianglePoints);
-					ita.clearCapabilities();
-				}
+					JoglesIndexedTriangleArray ita;
+					if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
+					{
+						ita = new JoglesIndexedTriangleArray(data.numVertices, getFormat(data, morphable, true), texCoordCount, texMap, 2,
+								new int[] { 3, 3 }, data.numTrianglePoints);
+						ita.clearCapabilities();
+					}
+					else
+					{
+						ita = new JoglesIndexedTriangleArray(data.numVertices, getFormat(data, morphable, true), texCoordCount, texMap,
+								data.numTrianglePoints);
+						ita.clearCapabilities();
+					}
 
-				if (morphable || INTERLEAVE || BUFFERS)
-					ita.setCoordIndicesRef(data.trianglesOpt);
-				else
-					ita.setCoordinateIndices(0, data.trianglesOpt);
+					ByteBuffer bb = ByteBuffer.allocateDirect(data.trianglesOpt.length * 2);
+					bb.order(ByteOrder.nativeOrder());
+					ShortBuffer indBuf = bb.asShortBuffer();
+					for (int s = 0; s < data.trianglesOpt.length; s++)
+						indBuf.put(s, (short) data.trianglesOpt[s]);
+					indBuf.position(0);
 
-				fillIn(ita, data, morphable, INTERLEAVE);
+					ita.setCoordIndicesRefBuffer(indBuf);
 
-				if (!morphable)
-				{
+					fillIn(ita, data, false, true);
+
 					sharedIGAs.put(data, ita);
+
+					return ita;
 				}
-				return ita;
 			}
 			else
 			{

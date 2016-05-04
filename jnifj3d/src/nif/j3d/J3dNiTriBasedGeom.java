@@ -2,6 +2,8 @@ package nif.j3d;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 
 import javax.media.j3d.Appearance;
 import javax.media.j3d.BoundingSphere;
@@ -11,6 +13,7 @@ import javax.media.j3d.GeometryArray;
 import javax.media.j3d.Group;
 import javax.media.j3d.IndexedGeometryArray;
 import javax.media.j3d.J3DBuffer;
+import javax.media.j3d.JoglesIndexedTriangleArray;
 import javax.media.j3d.LineAttributes;
 import javax.media.j3d.PolygonAttributes;
 import javax.media.j3d.RenderingAttributes;
@@ -23,6 +26,7 @@ import nif.niobject.NiBinaryExtraData;
 import nif.niobject.NiObject;
 import nif.niobject.NiTriBasedGeom;
 import nif.niobject.NiTriBasedGeomData;
+import nif.tools.MiniFloat;
 import tools.WeakValueHashMap;
 import tools3d.utils.SimpleShaderAppearance;
 import tools3d.utils.Utils3D;
@@ -38,14 +42,13 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 	public static boolean USE_FIXED_BOUNDS = true;
 
-	//TODO: these can no longer be turned on, possibly remove fully?
-	public static boolean INTERLEAVE = false;// FALSE if tangents and bitangents on!!!  
-
 	public static boolean STRIPIFY = false; //Relevant to shape only (no advantage with shaders?) doesn't currently work with vert attributes
 
 	public static boolean TANGENTS_BITANGENTS = false;//  shader code auto ons 
 
 	public static boolean BUFFERS = true;
+
+	public static boolean JOGLES_OPTIMIZED_GEOMETRY = true;
 
 	private int outlineStencilMask = -1;
 
@@ -227,37 +230,218 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 	//Note self expunging cache
 	protected static WeakValueHashMap<Object, IndexedGeometryArray> sharedIGAs = new WeakValueHashMap<Object, IndexedGeometryArray>();
 
-	protected static int getFormat(NiTriBasedGeomData data, boolean morphable, boolean interleave)
+	protected static int getFormat(NiTriBasedGeomData data, boolean morphable, boolean optimized)
 	{
-		//TODO: this is using the optomized arrays so will fail for normal
-		int vertexFormat = (data.hasVertices ? GeometryArray.COORDINATES : 0) //
-				| (data.hasNormals ? GeometryArray.NORMALS : 0) //
-				| (data.actNumUVSets > 0 ? GeometryArray.TEXTURE_COORDINATE_2 : 0) //
-				| (data.hasVertexColors ? GeometryArray.COLOR_4 : 0) //
-				| GeometryArray.USE_COORD_INDEX_ONLY //
-				| ((morphable || interleave || BUFFERS) ? GeometryArray.BY_REFERENCE_INDICES : 0)//				
-				| ((morphable || interleave || BUFFERS) ? GeometryArray.BY_REFERENCE : 0)//
-				| ((!morphable && interleave) ? GeometryArray.INTERLEAVED : 0)//
-				| (BUFFERS ? GeometryArray.USE_NIO_BUFFER : 0) //
-				| ((data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS) ? GeometryArray.VERTEX_ATTRIBUTES : 0);
-		return vertexFormat;
+		//TODO: this is using the opt buffers in nif so will fail for normal
+		if (!optimized)
+		{
+			int vertexFormat = (data.hasVertices ? GeometryArray.COORDINATES : 0) //
+					| (data.hasNormals ? GeometryArray.NORMALS : 0) //
+					| (data.actNumUVSets > 0 ? GeometryArray.TEXTURE_COORDINATE_2 : 0) //
+					| (data.hasVertexColors ? GeometryArray.COLOR_4 : 0) //
+					| GeometryArray.USE_COORD_INDEX_ONLY //
+					| ((morphable || optimized || BUFFERS) ? GeometryArray.BY_REFERENCE_INDICES : 0)//				
+					| ((morphable || optimized || BUFFERS) ? GeometryArray.BY_REFERENCE : 0)//
+					| (BUFFERS ? GeometryArray.USE_NIO_BUFFER : 0) //
+					| ((data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS) ? GeometryArray.VERTEX_ATTRIBUTES : 0);
+			return vertexFormat;
+		}
+		else
+		{
+			// always buffers never morphable
+			int vertexFormat = (data.hasVertices ? GeometryArray.COORDINATES : 0) //
+					| (data.hasNormals ? GeometryArray.NORMALS : 0) //
+					| (data.actNumUVSets > 0 ? GeometryArray.TEXTURE_COORDINATE_2 : 0) //
+					| (data.hasVertexColors ? GeometryArray.COLOR_4 : 0) //
+					| GeometryArray.USE_COORD_INDEX_ONLY //
+					| GeometryArray.BY_REFERENCE_INDICES //				
+					| GeometryArray.BY_REFERENCE //
+			//| GeometryArray.INTERLEAVED //
+					| GeometryArray.USE_NIO_BUFFER //
+					| ((data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS) ? GeometryArray.VERTEX_ATTRIBUTES : 0);
+			return vertexFormat;
+		}
 	}
 
-	protected static void fillIn(GeometryArray ga, NiTriBasedGeomData data, boolean morphable, boolean interleave)
+	protected static void fillIn(GeometryArray ga, NiTriBasedGeomData data, boolean morphable, boolean optimized)
 	{
 		//Note consistency type in nif file also dictates morphable
-
 		if (!morphable)
 		{
-			if (interleave)
+			if (!BUFFERS)
 			{
 				throw new UnsupportedOperationException();
 			}
 			else
 			{
-				if (!BUFFERS)
+				if (optimized)
 				{
-					throw new UnsupportedOperationException();
+					// must pass these in so it actually does some render work, but then it bad
+					
+					ga.setCoordRefBuffer(new J3DBuffer(data.verticesOptBuf));
+					if (data.hasNormals)
+						ga.setNormalRefBuffer(new J3DBuffer(data.normalsOptBuf));
+
+					if (data.hasVertexColors)
+						ga.setColorRefBuffer(new J3DBuffer(data.vertexColorsOptBuf));
+
+					if (data.actNumUVSets > 0)
+					{
+						//only 0 others ignored
+						ga.setTexCoordRefBuffer(0, new J3DBuffer(data.uVSetsOptBuf[0]));
+					}
+
+					if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
+					{
+						ga.setVertexAttrRefBuffer(0, new J3DBuffer(data.tangentsOptBuf));
+						ga.setVertexAttrRefBuffer(1, new J3DBuffer(data.binormalsOptBuf));
+					}
+
+					//TODO :WTF why are 2 threads playing with the same data at the same time?????
+					synchronized (data)
+					{
+						int geoToCoordOffset = -1;
+						int interleavedStride = -1;
+						int geoToColorsOffset = -1;
+						int geoToNormalsOffset = -1;
+						int[] geoToTexCoordOffset = new int[1];
+						int[] geoToVattrOffset = new int[2];
+
+						// how big are we going to require?
+						interleavedStride = 0;
+						int offset = 0;
+
+						geoToCoordOffset = offset;
+
+						offset += 8;// 3 half float = 6 align on 4
+						interleavedStride += 8;
+
+						data.verticesOptBuf.position(0);
+
+						if (data.hasVertexColors)
+						{
+							geoToColorsOffset = offset;
+							offset += 4;
+							interleavedStride += 4;// minimum alignment
+
+							data.vertexColorsOptBuf.position(0);
+						}
+
+						if (data.hasNormals)
+						{
+							geoToNormalsOffset = offset;
+
+							offset += 4;
+							interleavedStride += 4;// minimum alignment
+
+							data.normalsOptBuf.position(0);
+						}
+
+						if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
+						{
+							geoToVattrOffset[0] = offset;
+							offset += 4;
+							interleavedStride += 4;
+							data.tangentsOptBuf.position(0);
+
+							geoToVattrOffset[1] = offset;
+							offset += 4;
+							interleavedStride += 4;
+							data.binormalsOptBuf.position(0);
+						}
+						int texStride = 2;
+						if (data.actNumUVSets > 0)
+						{
+							geoToTexCoordOffset[0] = offset;
+
+							// note half floats sized
+							int stride = (texStride == 2 ? 4 : 8);// minimum alignment 4 
+							offset += stride;
+							interleavedStride += stride;
+
+							FloatBuffer buf = data.uVSetsOptBuf[0];
+							buf.position(0);
+						}
+
+						ByteBuffer interleavedBuffer = ByteBuffer.allocateDirect(data.numVertices * interleavedStride);
+						interleavedBuffer.order(ByteOrder.nativeOrder());
+
+						for (int i = 0; i < data.numVertices; i++)
+						{
+							interleavedBuffer.position(i * interleavedStride);
+
+							int startPos2 = interleavedBuffer.position();
+							for (int c = 0; c < 3; c++)
+							{
+								short hf = (short) MiniFloat.fromFloat(data.verticesOptBuf.get());
+								interleavedBuffer.putShort(hf);
+							}
+
+							interleavedBuffer.position(startPos2 + 8);// minimum alignment of 2*3 is 8
+
+							if (data.hasVertexColors)
+							{
+								int sz = 4;
+
+								int startPos = interleavedBuffer.position();
+								for (int c = 0; c < sz; c++)
+									interleavedBuffer.put((byte) (data.vertexColorsOptBuf.get() * 255));
+
+								interleavedBuffer.position(startPos + 4);// minimum alignment
+
+							}
+
+							if (data.hasNormals)
+							{
+
+								int startPos = interleavedBuffer.position();
+								for (int c = 0; c < 3; c++)
+									interleavedBuffer.put((byte) (((data.normalsOptBuf.get() * 255) - 1) / 2f));
+
+								interleavedBuffer.position(startPos + 4);// minimum alignment
+
+							}
+
+							if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
+							{
+								FloatBuffer vertexAttrs = data.tangentsOptBuf;
+								int startPos = interleavedBuffer.position();
+								for (int va = 0; va < 3; va++)
+									interleavedBuffer.put((byte) (((vertexAttrs.get() * 255) - 1) / 2f));
+
+								interleavedBuffer.position(startPos + 4);// minimum alignment
+
+								vertexAttrs = data.binormalsOptBuf;
+								startPos = interleavedBuffer.position();
+								for (int va = 0; va < 3; va++)
+									interleavedBuffer.put((byte) (((vertexAttrs.get() * 255) - 1) / 2f));
+
+								interleavedBuffer.position(startPos + 4);// minimum alignment
+
+							}
+
+							if (data.actNumUVSets > 0)
+							{
+								FloatBuffer tcBuf = data.uVSetsOptBuf[0];
+
+								int startPos = interleavedBuffer.position();
+								for (int c = 0; c < texStride; c++)
+								{
+									short hf = (short) MiniFloat.fromFloat(tcBuf.get());
+									interleavedBuffer.putShort(hf);
+								}
+
+								interleavedBuffer.position(startPos + (texStride == 2 ? 4 : 8));// minimum alignment
+
+							}
+						}
+
+						interleavedBuffer.position(0);
+						JoglesIndexedTriangleArray gd = (JoglesIndexedTriangleArray) ga;
+
+						gd.setInterleavedVertexBuffer(geoToCoordOffset, interleavedStride, geoToColorsOffset, geoToNormalsOffset,
+								geoToTexCoordOffset, geoToVattrOffset, interleavedBuffer);
+					}
 				}
 				else
 				{
@@ -286,6 +470,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 			}
 		}
 		else
+
 		{
 			// copy as we are by ref and people will morph these coords later on
 			ga.setCoordRefBuffer(new J3DBuffer(Utils3D.cloneFloatBuffer(data.verticesOptBuf)));
