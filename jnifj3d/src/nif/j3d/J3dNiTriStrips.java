@@ -7,7 +7,7 @@ import java.nio.ShortBuffer;
 import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.IndexedGeometryArray;
 import javax.media.j3d.IndexedTriangleStripArray;
-import javax.media.j3d.JoglesIndexedTriangleArray;
+import javax.media.j3d.JoglesIndexedTriangleStripArray;
 
 import nif.niobject.NiTriStrips;
 import nif.niobject.NiTriStripsData;
@@ -53,8 +53,9 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 			if (iga != null)
 			{
 				return iga;
-			}
+			}				
 		}
+		
 
 		if (data.hasVertices && data.hasPoints)
 		{
@@ -120,9 +121,60 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 			else
 			{
 
-			 
+				int numStrips = data.numStrips;
+				int[] stripLengths = data.stripLengths;
 
-				return null;
+				// get full length
+				int length = 0;
+				for (int i = 0; i < numStrips; i++)
+				{
+					length += data.points[i].length;
+				}
+
+				ByteBuffer bb = ByteBuffer.allocateDirect(length * 2);
+				bb.order(ByteOrder.nativeOrder());
+				ShortBuffer points = bb.asShortBuffer();
+				int idx = 0;
+				for (int i = 0; i < numStrips; i++)
+				{
+					for (int j = 0; j < stripLengths[i]; j++)
+					{
+						points.put(idx, (short) data.points[i][j]);
+						idx++;
+					}
+				}
+
+				int texCoordCount = 1;
+
+				// All tex units use the 0ith one  
+				int[] texMap = new int[9];
+				for (int i = 0; i < 9; i++)
+					texMap[i] = 0;
+
+				JoglesIndexedTriangleStripArray itsa;
+				if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
+				{
+					itsa = new JoglesIndexedTriangleStripArray(data.numVertices, getFormat(data, false, true), texCoordCount, texMap, 2,
+							new int[] { 3, 3 }, length, stripLengths);
+					itsa.clearCapabilities();
+				}
+				else
+				{
+					itsa = new JoglesIndexedTriangleStripArray(data.numVertices, getFormat(data, false, true), texCoordCount, texMap,
+							length, stripLengths);
+					itsa.clearCapabilities();
+				}
+
+				itsa.setCoordIndicesRefBuffer(points);
+
+				
+				fillIn(itsa, data, false, true);
+				
+
+				sharedIGAs.put(data, itsa);
+
+				return itsa;
+
 			}
 		}
 

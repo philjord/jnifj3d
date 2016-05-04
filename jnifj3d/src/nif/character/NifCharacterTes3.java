@@ -1,22 +1,17 @@
 package nif.character;
 
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import javax.media.j3d.Alpha;
 import javax.media.j3d.BranchGroup;
-import javax.media.j3d.GeometryArray;
-import javax.media.j3d.IndexedGeometryArray;
-import javax.media.j3d.PolygonAttributes;
 
 import nif.NifJ3dVisRoot;
 import nif.NifToJ3d;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiGeometry;
 import nif.j3d.J3dNiNode;
-import nif.j3d.J3dNiTriBasedGeom;
 import nif.j3d.animation.J3dNiGeomMorpherController;
 import nif.j3d.animation.SequenceAlpha;
 import nif.j3d.animation.tes3.J3dNiControllerSequenceTes3;
@@ -160,9 +155,6 @@ public class NifCharacterTes3 extends NifCharacter
 									CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, j3dNiGeometry, true, true);
 									this.addChild(ca);
 									attachments.add(ca);
-									// Note called after giving it to character attachment as this will make it morphable etc
-
-									reverse(j3dNiGeometry);
 								}
 								else
 								{
@@ -214,59 +206,6 @@ public class NifCharacterTes3 extends NifCharacter
 			System.out.println("No TES3 kf file for " + skeletonNifFilename + " (missing .nif)");
 		}
 
-	}
-
-	private static void reverse(J3dNiGeometry j3dNiGeometry)
-	{
-		if (j3dNiGeometry instanceof J3dNiTriBasedGeom)
-		{
-			J3dNiTriBasedGeom j3dNiTriBasedGeom = (J3dNiTriBasedGeom) j3dNiGeometry;
-			reverse(j3dNiTriBasedGeom, (IndexedGeometryArray) j3dNiTriBasedGeom.getBaseGeometryArray());
-			reverse(j3dNiTriBasedGeom, (IndexedGeometryArray) j3dNiTriBasedGeom.getCurrentGeometryArray());
-		}
-
-	}
-
-	// apparently negative scaling is how you mirror, with thanks to Brandano on #niftools IRC
-	// but that doesn't fix up windings so , no
-	private static void reverse(J3dNiTriBasedGeom j3dNiTriBasedGeom, IndexedGeometryArray ga)
-	{
-		if (ga != null)
-		{
-			if ((ga.getVertexFormat() & GeometryArray.BY_REFERENCE) != 0)
-			{
-				if ((ga.getVertexFormat() & GeometryArray.INTERLEAVED) != 0)
-				{
-					throw new UnsupportedOperationException();
-					//ga.getInterleavedVertices();
-				}
-				else
-				{
-					FloatBuffer coords = (FloatBuffer) ga.getCoordRefBuffer().getBuffer();
-					for (int v = 0; v < coords.limit() / 3; v++)
-					{
-						coords.put(v * 3 + 0, -coords.get(v * 3 + 0));
-					}
-				}
-			}
-			else
-			{
-				float[] coords = new float[ga.getVertexCount() * 3];
-				ga.getCoordinates(0, coords);
-				for (int v = 0; v < coords.length / 3; v++)
-				{
-					coords[v * 3 + 0] = -coords[v * 3 + 0];//flip x				 
-				}
-				ga.setCoordinates(0, coords);
-				j3dNiTriBasedGeom.getShape().setGeometry(ga);
-			}
-
-			//Tri winding will be backwards now so flip faces
-			//Note can't touch the tri indexes as morphables still share them
-			PolygonAttributes pa = j3dNiTriBasedGeom.getShape().getAppearance().getPolygonAttributes();
-			pa.setBackFaceNormalFlip(true);
-			pa.setCullFace(PolygonAttributes.CULL_FRONT);
-		}
 	}
 
 	public J3dNiSequenceStreamHelper getJ3dNiSequenceStreamHelper()

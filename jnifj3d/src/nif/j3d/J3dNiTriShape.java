@@ -97,134 +97,67 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 			for (int i = 0; i < 9; i++)
 				texMap[i] = 0;
 
-			if (!STRIPIFY || morphable)
+			if (!JOGLES_OPTIMIZED_GEOMETRY || morphable)
 			{
-				if (!JOGLES_OPTIMIZED_GEOMETRY || morphable)
+				IndexedGeometryArray ita;
+				if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
 				{
-					IndexedGeometryArray ita;
-					if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
-					{
-						ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, false), texCoordCount, texMap, 2,
-								new int[] { 3, 3 }, data.numTrianglePoints);
-						ita.clearCapabilities();
-					}
-					else
-					{
-						ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, false), texCoordCount, texMap,
-								data.numTrianglePoints);
-						ita.clearCapabilities();
-					}
-
-					if (morphable || BUFFERS)
-						ita.setCoordIndicesRef(data.trianglesOpt);
-					else
-						ita.setCoordinateIndices(0, data.trianglesOpt);
-
-					fillIn(ita, data, morphable, false);
-
-					if (!morphable)
-					{
-						sharedIGAs.put(data, ita);
-					}
-					return ita;
+					ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, false), texCoordCount, texMap, 2,
+							new int[] { 3, 3 }, data.numTrianglePoints);
+					ita.clearCapabilities();
 				}
 				else
 				{
-					JoglesIndexedTriangleArray ita;
-					if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
-					{
-						ita = new JoglesIndexedTriangleArray(data.numVertices, getFormat(data, morphable, true), texCoordCount, texMap, 2,
-								new int[] { 3, 3 }, data.numTrianglePoints);
-						ita.clearCapabilities();
-					}
-					else
-					{
-						ita = new JoglesIndexedTriangleArray(data.numVertices, getFormat(data, morphable, true), texCoordCount, texMap,
-								data.numTrianglePoints);
-						ita.clearCapabilities();
-					}
-
-					ByteBuffer bb = ByteBuffer.allocateDirect(data.trianglesOpt.length * 2);
-					bb.order(ByteOrder.nativeOrder());
-					ShortBuffer indBuf = bb.asShortBuffer();
-					for (int s = 0; s < data.trianglesOpt.length; s++)
-						indBuf.put(s, (short) data.trianglesOpt[s]);
-					indBuf.position(0);
-
-					ita.setCoordIndicesRefBuffer(indBuf);
-
-					fillIn(ita, data, false, true);
-
-					sharedIGAs.put(data, ita);
-
-					return ita;
+					ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, false), texCoordCount, texMap,
+							data.numTrianglePoints);
+					ita.clearCapabilities();
 				}
+
+				if (morphable || BUFFERS)
+					ita.setCoordIndicesRef(data.trianglesOpt);
+				else
+					ita.setCoordinateIndices(0, data.trianglesOpt);
+
+				fillIn(ita, data, morphable, false);
+
+				if (!morphable)
+				{
+					sharedIGAs.put(data, ita);
+				}
+				return ita;
 			}
 			else
 			{
-				//	DO NOT DELETE this is how you make strip arrays
-				// this doesn't work now because I use Flaotbuffers for the Opts
-				// NifToJ3d.extractShapes  setControllers might complain, but it should have set morphable proper by now
+				JoglesIndexedTriangleArray ita;
+				if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
+				{
+					ita = new JoglesIndexedTriangleArray(data.numVertices, getFormat(data, false, true), texCoordCount, texMap, 2,
+							new int[] { 3, 3 }, data.numTrianglePoints);
+					ita.clearCapabilities();
+				}
+				else
+				{
+					ita = new JoglesIndexedTriangleArray(data.numVertices, getFormat(data, false, true), texCoordCount, texMap,
+							data.numTrianglePoints);
+					ita.clearCapabilities();
+				}
 
-				/*				GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
-				
-								gi.setCoordinateIndices(data.trianglesOpt);
-								gi.setUseCoordIndexOnly(true);
-								gi.setCoordinates(data.verticesOpt);
-								gi.setColors4(data.vertexColorsOpt);
-								gi.setNormals(data.normalsOpt);
-				
-								if (data.actNumUVSets > 0)
-								{
-									gi.setTextureCoordinateParams(texCoordCount, 2);
-									gi.setTexCoordSetMap(texMap);
-									for (int i = 0; i < texCoordCount; i++)
-									{
-										gi.setTextureCoordinates(i, data.uVSetsOpt[i]);
-									}
-								}
-				
-								Stripifier stripifer = new Stripifier();
-								stripifer.stripify(gi);
-				
-								if (data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS)
-								{
-									gi.setVertexAttributes(2, new int[] { 3, 3 });
-								}
-				
-								IndexedGeometryArray ita = gi.getIndexedGeometryArray(false, false, INTERLEAVE, true, BUFFERS);
-								ita.setName(data.toString() + ":" + data.nVer.fileName);
-								if (data.hasNormals && data.tangentsOpt != null && TANGENTS_BITANGENTS)
-								{
-									if (!morphable)
-									{
-										if (!INTERLEAVE)
-										{
-											if (!BUFFERS)
-											{
-												ita.setVertexAttrs(0, 0, data.tangentsOpt);
-												ita.setVertexAttrs(1, 0, data.binormalsOpt);
-											}
-											else
-											{
-												ita.setVertexAttrRefBuffer(0, new J3DBuffer(Utils3D.makeFloatBuffer(data.tangentsOpt)));
-												ita.setVertexAttrRefBuffer(1, new J3DBuffer(Utils3D.makeFloatBuffer(data.binormalsOpt)));
-											}
-										}
-									}
-									else
-									{
-										ita.setVertexAttrRefFloat(0, data.tangentsOpt);
-										ita.setVertexAttrRefFloat(1, data.binormalsOpt);
-									}
-								}
-				
-								if (!morphable)
-								{
-									sharedIGAs.put(data, ita);
-								}
-								return ita;*/
+				ByteBuffer bb = ByteBuffer.allocateDirect(data.trianglesOpt.length * 2);
+				bb.order(ByteOrder.nativeOrder());
+				ShortBuffer indBuf = bb.asShortBuffer();
+				for (int s = 0; s < data.trianglesOpt.length; s++)
+					indBuf.put(s, (short) data.trianglesOpt[s]);
+				indBuf.position(0);
+
+				ita.setCoordIndicesRefBuffer(indBuf);
+
+				fillIn(ita, data, false, true);
+
+				sharedIGAs.put(data, ita);
+
+				return ita;
 			}
+
 		}
 		//TODO: some trishapes with skin data nearby have no tris (it's in skin data)
 		//data.hasTriangles = no in trees in skyrim down the switch paths
