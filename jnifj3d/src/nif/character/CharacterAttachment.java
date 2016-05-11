@@ -99,6 +99,12 @@ public class CharacterAttachment extends BranchGroup implements Fadable
 			{
 				J3dNiGeometry j3dNiGeometry = (J3dNiGeometry) model;
 				PolygonAttributes pa = j3dNiGeometry.getShape().getAppearance().getPolygonAttributes();
+				if (pa == null)
+				{
+					pa = new PolygonAttributes();
+					j3dNiGeometry.getShape().getAppearance().setPolygonAttributes(pa);
+				}
+
 				pa.setBackFaceNormalFlip(true);
 				pa.setCullFace(PolygonAttributes.CULL_FRONT);
 			}

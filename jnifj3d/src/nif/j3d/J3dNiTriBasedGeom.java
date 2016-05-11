@@ -137,8 +137,15 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 			Appearance sapp = getShape().getAppearance();
 
 			RenderingAttributes ra1 = sapp.getRenderingAttributes();
+
 			//RAISE_BUG:
 			// note ra1 must not be null ever, for stencils all apps should have ras
+			// see pipeline resetRenderingAtttributes for possible fix
+			if (ra1 == null)
+			{
+				ra1 = new RenderingAttributes();
+				sapp.setRenderingAttributes(ra1);
+			}
 
 			outlineStencilMask = (int) (c.x * 255) + (int) (c.y * 255) + (int) (c.z * 255);
 
