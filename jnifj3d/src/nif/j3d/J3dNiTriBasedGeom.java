@@ -258,232 +258,255 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 	protected static void fillIn(GeometryArray ga, NiTriBasedGeomData data, boolean morphable, boolean optimized)
 	{
-		//Note consistency type in nif file also dictates morphable
-		if (!morphable)
+		//looks like multiple threads can be playing with the same data at the same time somehow?
+		synchronized (data)
 		{
-			if (!BUFFERS)
+			//Note consistency type in nif file also dictates morphable
+			if (!morphable)
 			{
-				throw new UnsupportedOperationException();
-			}
-			else
-			{
-				if (optimized)
+				if (!BUFFERS)
 				{
-					int interleavedStride = -1;
-					int geoToCoordOffset = -1;
-					int geoToColorsOffset = -1;
-					int geoToNormalsOffset = -1;
-					int[] geoToTexCoordOffset = new int[1];
-					int[] geoToVattrOffset = new int[2];
-
-					// take a cut of buffers to avoid multithreaded hanky panky
-					FloatBuffer verticesOptBuf = null;
-					FloatBuffer vertexColorsOptBuf = null;
-					FloatBuffer normalsOptBuf = null;
-					FloatBuffer tangentsOptBuf = null;
-					FloatBuffer binormalsOptBuf = null;
-					FloatBuffer uVSetsOptBuf = null;
-
-					// how big are we going to require?
-					interleavedStride = 0;
-					int offset = 0;
-
-					geoToCoordOffset = offset;
-
-					offset += 8;// 3 half float = 6 align on 4
-					interleavedStride += 8;
-
-					verticesOptBuf = data.verticesOptBuf.asReadOnlyBuffer();
-					verticesOptBuf.position(0);
-
-					if (data.hasVertexColors)
+					throw new UnsupportedOperationException();
+				}
+				else
+				{
+					if (optimized && !data.nVer.niGeometryDataToLoadMorphably.contains(new Integer(data.refId)))
 					{
-						geoToColorsOffset = offset;
-						offset += 4;
-						interleavedStride += 4;// minimum alignment
-
-						vertexColorsOptBuf = data.vertexColorsOptBuf.asReadOnlyBuffer();
-						vertexColorsOptBuf.position(0);
-					}
-
-					if (data.hasNormals)
-					{
-						geoToNormalsOffset = offset;
-
-						offset += 4;
-						interleavedStride += 4;// minimum alignment
-
-						normalsOptBuf = data.normalsOptBuf.asReadOnlyBuffer();
-						normalsOptBuf.position(0);
-					}
-
-					if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
-					{
-						geoToVattrOffset[0] = offset;
-						offset += 4;
-						interleavedStride += 4;
-						tangentsOptBuf = data.tangentsOptBuf.asReadOnlyBuffer();
-						tangentsOptBuf.position(0);
-
-						geoToVattrOffset[1] = offset;
-						offset += 4;
-						interleavedStride += 4;
-						binormalsOptBuf = data.binormalsOptBuf.asReadOnlyBuffer();
-						binormalsOptBuf.position(0);
-					}
-					int texStride = 2;
-					if (data.actNumUVSets > 0)
-					{
-						geoToTexCoordOffset[0] = offset;
-
-						// note half floats sized
-						int stride = (texStride == 2 ? 4 : 8);// minimum alignment 4 
-						offset += stride;
-						interleavedStride += stride;
-
-						uVSetsOptBuf = data.uVSetsOptBuf[0].asReadOnlyBuffer();
-						uVSetsOptBuf.position(0);
-					}
-
-					ByteBuffer interleavedBuffer = ByteBuffer.allocateDirect(data.numVertices * interleavedStride);
-					interleavedBuffer.order(ByteOrder.nativeOrder());
-
-					for (int i = 0; i < data.numVertices; i++)
-					{
-						interleavedBuffer.position(i * interleavedStride);
-
-						int startPos2 = interleavedBuffer.position();
-						for (int c = 0; c < 3; c++)
+						if (data.interleavedBuffer == null)
 						{
-							short hf = (short) MiniFloat.fromFloat(verticesOptBuf.get());
-							interleavedBuffer.putShort(hf);
-						}
+							int interleavedStride = -1;
+							int geoToCoordOffset = -1;
+							int geoToColorsOffset = -1;
+							int geoToNormalsOffset = -1;
+							int[] geoToTexCoordOffset = new int[1];
+							int[] geoToVattrOffset = new int[2];
 
-						interleavedBuffer.position(startPos2 + 8);// minimum alignment of 2*3 is 8
+							// take a cut of buffers to avoid multithreaded hanky panky
+							FloatBuffer verticesOptBuf = null;
+							FloatBuffer vertexColorsOptBuf = null;
+							FloatBuffer normalsOptBuf = null;
+							FloatBuffer tangentsOptBuf = null;
+							FloatBuffer binormalsOptBuf = null;
+							FloatBuffer uVSetsOptBuf = null;
 
-						if (data.hasVertexColors)
-						{
-							int sz = 4;
+							// how big are we going to require?
+							interleavedStride = 0;
+							int offset = 0;
 
-							int startPos = interleavedBuffer.position();
-							for (int c = 0; c < sz; c++)
-								interleavedBuffer.put((byte) (vertexColorsOptBuf.get() * 255));
+							geoToCoordOffset = offset;
 
-							interleavedBuffer.position(startPos + 4);// minimum alignment
+							offset += 8;// 3 half float = 6 align on 4
+							interleavedStride += 8;
 
-						}
+							verticesOptBuf = data.verticesOptBuf.asReadOnlyBuffer();
+							verticesOptBuf.position(0);
 
-						if (data.hasNormals)
-						{
-
-							int startPos = interleavedBuffer.position();
-							for (int c = 0; c < 3; c++)
-								interleavedBuffer.put((byte) (((normalsOptBuf.get() * 255) - 1) / 2f));
-
-							interleavedBuffer.position(startPos + 4);// minimum alignment
-
-						}
-
-						if (data.hasNormals && tangentsOptBuf != null && TANGENTS_BITANGENTS)
-						{
-
-							int startPos = interleavedBuffer.position();
-							for (int va = 0; va < 3; va++)
-								interleavedBuffer.put((byte) (((tangentsOptBuf.get() * 255) - 1) / 2f));
-
-							interleavedBuffer.position(startPos + 4);// minimum alignment
-
-							startPos = interleavedBuffer.position();
-							for (int va = 0; va < 3; va++)
-								interleavedBuffer.put((byte) (((binormalsOptBuf.get() * 255) - 1) / 2f));
-
-							interleavedBuffer.position(startPos + 4);// minimum alignment
-
-						}
-
-						if (data.actNumUVSets > 0)
-						{
-							int startPos = interleavedBuffer.position();
-							for (int c = 0; c < texStride; c++)
+							if (data.hasVertexColors)
 							{
-								short hf = (short) MiniFloat.fromFloat(uVSetsOptBuf.get());
-								interleavedBuffer.putShort(hf);
+								geoToColorsOffset = offset;
+								offset += 4;
+								interleavedStride += 4;// minimum alignment
+
+								vertexColorsOptBuf = data.vertexColorsOptBuf.asReadOnlyBuffer();
+								vertexColorsOptBuf.position(0);
 							}
 
-							interleavedBuffer.position(startPos + (texStride == 2 ? 4 : 8));// minimum alignment
+							if (data.hasNormals)
+							{
+								geoToNormalsOffset = offset;
 
+								offset += 4;
+								interleavedStride += 4;// minimum alignment
+
+								normalsOptBuf = data.normalsOptBuf.asReadOnlyBuffer();
+								normalsOptBuf.position(0);
+							}
+
+							if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
+							{
+								geoToVattrOffset[0] = offset;
+								offset += 4;
+								interleavedStride += 4;
+								tangentsOptBuf = data.tangentsOptBuf.asReadOnlyBuffer();
+								tangentsOptBuf.position(0);
+
+								geoToVattrOffset[1] = offset;
+								offset += 4;
+								interleavedStride += 4;
+								binormalsOptBuf = data.binormalsOptBuf.asReadOnlyBuffer();
+								binormalsOptBuf.position(0);
+							}
+							int texStride = 2;
+							if (data.actNumUVSets > 0)
+							{
+								geoToTexCoordOffset[0] = offset;
+
+								// note half floats sized
+								int stride = (texStride == 2 ? 4 : 8);// minimum alignment 4 
+								offset += stride;
+								interleavedStride += stride;
+
+								uVSetsOptBuf = data.uVSetsOptBuf[0].asReadOnlyBuffer();
+								uVSetsOptBuf.position(0);
+							}
+
+							ByteBuffer interleavedBuffer = ByteBuffer.allocateDirect(data.numVertices * interleavedStride);
+							interleavedBuffer.order(ByteOrder.nativeOrder());
+
+							for (int i = 0; i < data.numVertices; i++)
+							{
+								interleavedBuffer.position(i * interleavedStride);
+
+								int startPos2 = interleavedBuffer.position();
+								for (int c = 0; c < 3; c++)
+								{
+									short hf = (short) MiniFloat.fromFloat(verticesOptBuf.get());
+									interleavedBuffer.putShort(hf);
+								}
+
+								interleavedBuffer.position(startPos2 + 8);// minimum alignment of 2*3 is 8
+
+								if (data.hasVertexColors)
+								{
+									int sz = 4;
+
+									int startPos = interleavedBuffer.position();
+									for (int c = 0; c < sz; c++)
+										interleavedBuffer.put((byte) (vertexColorsOptBuf.get() * 255));
+
+									interleavedBuffer.position(startPos + 4);// minimum alignment
+
+								}
+
+								if (data.hasNormals)
+								{
+
+									int startPos = interleavedBuffer.position();
+									for (int c = 0; c < 3; c++)
+										interleavedBuffer.put((byte) (((normalsOptBuf.get() * 255) - 1) / 2f));
+
+									interleavedBuffer.position(startPos + 4);// minimum alignment
+
+								}
+
+								if (data.hasNormals && tangentsOptBuf != null && TANGENTS_BITANGENTS)
+								{
+
+									int startPos = interleavedBuffer.position();
+									for (int va = 0; va < 3; va++)
+										interleavedBuffer.put((byte) (((tangentsOptBuf.get() * 255) - 1) / 2f));
+
+									interleavedBuffer.position(startPos + 4);// minimum alignment
+
+									startPos = interleavedBuffer.position();
+									for (int va = 0; va < 3; va++)
+										interleavedBuffer.put((byte) (((binormalsOptBuf.get() * 255) - 1) / 2f));
+
+									interleavedBuffer.position(startPos + 4);// minimum alignment
+
+								}
+
+								if (data.actNumUVSets > 0)
+								{
+									int startPos = interleavedBuffer.position();
+									for (int c = 0; c < texStride; c++)
+									{
+										short hf = (short) MiniFloat.fromFloat(uVSetsOptBuf.get());
+										interleavedBuffer.putShort(hf);
+									}
+
+									interleavedBuffer.position(startPos + (texStride == 2 ? 4 : 8));// minimum alignment
+
+								}
+
+								//NOTE!! do not delete this it is required for physics!
+								//data.verticesOptBuf = null;
+								data.normalsOptBuf = null;
+								data.vertexColorsOptBuf = null;
+								data.uVSetsOptBuf = null;
+								data.tangentsOptBuf = null;
+								data.binormalsOptBuf = null;
+
+							}
+
+							data.interleavedStride = interleavedStride;
+							data.geoToCoordOffset = geoToCoordOffset;
+							data.geoToColorsOffset = geoToColorsOffset;
+							data.geoToNormalsOffset = geoToNormalsOffset;
+							data.geoToTexCoordOffset = geoToTexCoordOffset;
+							data.geoToVattrOffset = geoToVattrOffset;
+							data.interleavedBuffer = interleavedBuffer;
 						}
-
-						interleavedBuffer.position(0);
+						data.interleavedBuffer.position(0);
 						if (ga instanceof JoglesIndexedTriangleArray)
 						{
 							JoglesIndexedTriangleArray gd = (JoglesIndexedTriangleArray) ga;
 
-							gd.setInterleavedVertexBuffer(interleavedStride, geoToCoordOffset, geoToColorsOffset, geoToNormalsOffset,
-									geoToTexCoordOffset, geoToVattrOffset, interleavedBuffer);
+							gd.setInterleavedVertexBuffer(data.interleavedStride, data.geoToCoordOffset, data.geoToColorsOffset,
+									data.geoToNormalsOffset, data.geoToTexCoordOffset, data.geoToVattrOffset, data.interleavedBuffer, null);
 						}
 						else if (ga instanceof JoglesIndexedTriangleStripArray)
 						{
 							JoglesIndexedTriangleStripArray gd = (JoglesIndexedTriangleStripArray) ga;
 
-							gd.setInterleavedVertexBuffer(interleavedStride, geoToCoordOffset, geoToColorsOffset, geoToNormalsOffset,
-									geoToTexCoordOffset, geoToVattrOffset, interleavedBuffer);
+							gd.setInterleavedVertexBuffer(data.interleavedStride, data.geoToCoordOffset, data.geoToColorsOffset,
+									data.geoToNormalsOffset, data.geoToTexCoordOffset, data.geoToVattrOffset, data.interleavedBuffer, null);
+						}
+
+					}
+					else
+					{
+
+						ga.setCoordRefBuffer(new J3DBuffer(data.verticesOptBuf));
+
+						if (data.hasNormals)
+							ga.setNormalRefBuffer(new J3DBuffer(data.normalsOptBuf));
+
+						if (data.hasVertexColors)
+							ga.setColorRefBuffer(new J3DBuffer(data.vertexColorsOptBuf));
+
+						if (data.actNumUVSets > 0)
+						{
+							//only 0 others ignored
+							ga.setTexCoordRefBuffer(0, new J3DBuffer(data.uVSetsOptBuf[0]));
+						}
+
+						if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
+						{
+							ga.setVertexAttrRefBuffer(0, new J3DBuffer(data.tangentsOptBuf));
+							ga.setVertexAttrRefBuffer(1, new J3DBuffer(data.binormalsOptBuf));
 						}
 					}
-					 
+
 				}
-				else
+			}
+			else
+			{
+				// copy as we are by ref and people will morph these coords later on
+				ga.setCoordRefBuffer(new J3DBuffer(Utils3D.cloneFloatBuffer(data.verticesOptBuf)));
+
+				if (data.hasNormals)
+					ga.setNormalRefBuffer(new J3DBuffer(data.normalsOptBuf));
+
+				if (data.hasVertexColors)
+					ga.setColorRefBuffer(new J3DBuffer(data.vertexColorsOptBuf));
+
+				if (data.actNumUVSets > 0)
 				{
-
-					ga.setCoordRefBuffer(new J3DBuffer(data.verticesOptBuf));
-
-					if (data.hasNormals)
-						ga.setNormalRefBuffer(new J3DBuffer(data.normalsOptBuf));
-
-					if (data.hasVertexColors)
-						ga.setColorRefBuffer(new J3DBuffer(data.vertexColorsOptBuf));
-
-					if (data.actNumUVSets > 0)
-					{
-						//only 0 others ignored
-						ga.setTexCoordRefBuffer(0, new J3DBuffer(data.uVSetsOptBuf[0]));
-					}
-
-					if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
-					{
-						ga.setVertexAttrRefBuffer(0, new J3DBuffer(data.tangentsOptBuf));
-						ga.setVertexAttrRefBuffer(1, new J3DBuffer(data.binormalsOptBuf));
-					}
+					//only 0 others ignored
+					ga.setTexCoordRefBuffer(0, new J3DBuffer(data.uVSetsOptBuf[0]));
 				}
 
+				if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
+				{
+					ga.setVertexAttrRefBuffer(0, new J3DBuffer(data.tangentsOptBuf));
+					ga.setVertexAttrRefBuffer(1, new J3DBuffer(data.binormalsOptBuf));
+				}
+
+				ga.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+				ga.setCapability(GeometryArray.ALLOW_REF_DATA_WRITE);//used to tell pipeline about changablness
+
 			}
-		}
-		else
-		{
-			// copy as we are by ref and people will morph these coords later on
-			ga.setCoordRefBuffer(new J3DBuffer(Utils3D.cloneFloatBuffer(data.verticesOptBuf)));
-
-			if (data.hasNormals)
-				ga.setNormalRefBuffer(new J3DBuffer(data.normalsOptBuf));
-
-			if (data.hasVertexColors)
-				ga.setColorRefBuffer(new J3DBuffer(data.vertexColorsOptBuf));
-
-			if (data.actNumUVSets > 0)
-			{
-				//only 0 others ignored
-				ga.setTexCoordRefBuffer(0, new J3DBuffer(data.uVSetsOptBuf[0]));
-			}
-
-			if (data.hasNormals && data.tangentsOptBuf != null && TANGENTS_BITANGENTS)
-			{
-				ga.setVertexAttrRefBuffer(0, new J3DBuffer(data.tangentsOptBuf));
-				ga.setVertexAttrRefBuffer(1, new J3DBuffer(data.binormalsOptBuf));
-			}
-
-			ga.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
-			ga.setCapability(GeometryArray.ALLOW_REF_DATA_WRITE);//used to tell pipeline about changablness
-
 		}
 
 	}
@@ -586,8 +609,8 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 			// don't lets have 2 threads trying to build the tangents at the same time
 			synchronized (data)
 			{
-				// this can be called many times, only set it up the first time
-				if (data.tangentsOptBuf == null)
+				// this can be called many times, only set it up the first time, sometimes tangents is merged into interleaved
+				if (data.tangentsOptBuf == null && data.interleavedBuffer == null)
 				{
 					NifRef[] properties = niTriBasedGeom.extraDataList;
 

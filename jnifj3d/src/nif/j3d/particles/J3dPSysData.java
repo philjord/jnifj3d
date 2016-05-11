@@ -116,6 +116,8 @@ public class J3dPSysData
 				GeometryArray.BY_REFERENCE | GeometryArray.COORDINATES | GeometryArray.TEXTURE_COORDINATE_2 | GeometryArray.COLOR_4
 						| GeometryArray.BY_REFERENCE_INDICES | GeometryArray.USE_COORD_INDEX_ONLY,
 				gaVertexCount);
+		
+		ga.setName("Particles System");
 
 		ga.setCapability(GeometryArray.ALLOW_REF_DATA_WRITE);
 		ga.setCapability(GeometryArray.ALLOW_COUNT_WRITE);

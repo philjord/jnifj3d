@@ -71,7 +71,6 @@ public class CharacterAttachment extends BranchGroup implements Fadable
 		NiAVObject niAVObject = model.getNiAVObject();
 		if (!J3dNiAVObject.ignoreTopTransformRot(niAVObject))
 		{
-			System.out.println("niAVObject " + niAVObject.nVer.fileName + " " + headAttachRotNeeded);
 			if (headAttachRotNeeded)
 			{
 				Transform3D upright = new Transform3D();

@@ -100,7 +100,6 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 						J3dNiTriBasedGeom.mergeOblivionTanBiExtraData(niTriBasedGeom, niToJ3dData);
 
 						if (niTriBasedGeom instanceof NiTriShape)
-
 						{
 							//For now we skip meat caps and morrowind shadows
 							if (!(NifToJ3d.HIDE_EDITORS && isEditorMarker(niTriBasedGeom.name))
