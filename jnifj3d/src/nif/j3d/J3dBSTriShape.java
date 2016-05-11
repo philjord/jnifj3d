@@ -1,11 +1,16 @@
 package nif.j3d;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.ShortBuffer;
+
 import javax.media.j3d.Appearance;
 import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.GeometryArray;
 import javax.media.j3d.IndexedGeometryArray;
 import javax.media.j3d.IndexedTriangleArray;
 import javax.media.j3d.J3DBuffer;
+import javax.media.j3d.JoglesIndexedTriangleArray;
 import javax.media.j3d.PolygonAttributes;
 import javax.media.j3d.Shape3D;
 import javax.media.j3d.TextureAttributes;
@@ -23,6 +28,7 @@ import nif.niobject.NiObject;
 import nif.niobject.bs.BSPackedCombinedSharedGeomDataExtra;
 import nif.niobject.bs.BSPackedCombinedSharedGeomDataExtra.BSPackedGeomData;
 import nif.niobject.bs.BSPackedCombinedSharedGeomDataExtra.BSPackedGeomDataCombined;
+import nif.niobject.bs.BSTriShape.VertexFormat;
 import nif.niobject.bs.BSTriShape;
 import tools3d.utils.Utils3D;
 import tools3d.utils.leafnode.Cube;
@@ -214,6 +220,15 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 			}
 		}
 
+		if (morphable && bsTriShape.verticesOptBuf == null)
+		{
+			// we have laoded optimized but someone wants to morph us now
+			// example size 4 btr lod landscape files Commonwealth.4.0.0.BTR
+			// extract back out of interleaved!
+			//TODO: madness!
+			return null;
+		}
+
 		if (bsTriShape.dataSize > 0)
 		{
 			// All tex units use the 0ith , all others are ignored
@@ -225,38 +240,69 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 			if (BSTriShape.LOAD_OPTIMIZED)
 			{
 				vertexFormat = GeometryArray.COORDINATES //
-						| (bsTriShape.normalsOptBuf != null ? GeometryArray.NORMALS : 0) //
-						| (bsTriShape.uVSetOptBuf != null ? GeometryArray.TEXTURE_COORDINATE_2 : 0) //
-						| (bsTriShape.colorsOptBuf != null ? GeometryArray.COLOR_4 : 0) //
+						| (bsTriShape.normalsOptBuf != null || bsTriShape.geoToNormalsOffset != -1 ? GeometryArray.NORMALS : 0) //
+						| (bsTriShape.uVSetOptBuf != null || bsTriShape.geoToTexCoordOffset != -1 ? GeometryArray.TEXTURE_COORDINATE_2 : 0) //
+						| (bsTriShape.colorsOptBuf != null || bsTriShape.geoToColorsOffset != -1 ? GeometryArray.COLOR_4 : 0) //
 						| GeometryArray.USE_COORD_INDEX_ONLY //
 						| ((morphable || BUFFERS) ? GeometryArray.BY_REFERENCE_INDICES : 0)//				
 						| ((morphable || BUFFERS) ? GeometryArray.BY_REFERENCE : 0)//
 						| ((BUFFERS) ? GeometryArray.USE_NIO_BUFFER : 0) //
-						| ((bsTriShape.normalsOptBuf != null && bsTriShape.tangentsOptBuf != null && TANGENTS_BITANGENTS)
-								? GeometryArray.VERTEX_ATTRIBUTES : 0);
+						| (((bsTriShape.normalsOptBuf != null && bsTriShape.tangentsOptBuf != null)
+								|| (bsTriShape.geoToNormalsOffset != -1 && bsTriShape.geoToTanOffset != -1) && TANGENTS_BITANGENTS)
+										? GeometryArray.VERTEX_ATTRIBUTES : 0);
 			}
 			else
 			{
 				throw new UnsupportedOperationException();
 			}
 
-			IndexedGeometryArray iga;
-			if (bsTriShape.normalsOptBuf != null && bsTriShape.tangentsOptBuf != null && TANGENTS_BITANGENTS)
+			IndexedGeometryArray iga = null;
+			if (BSTriShape.LOAD_MEGA_OPTIMIZED && !bsTriShape.vertexFormat.isSet(VertexFormat.VF_Skinned)
+					&& !bsTriShape.vertexFormat.isSet(VertexFormat.VF_Male_Eyes))
 			{
-				iga = new IndexedTriangleArray(bsTriShape.numVertices, vertexFormat, 1, texMap, 2, new int[] { 3, 3 },
-						bsTriShape.numTriangles * 3);
-				iga.clearCapabilities();
-			}
-			else
-			{
-				iga = new IndexedTriangleArray(bsTriShape.numVertices, vertexFormat, 1, texMap, bsTriShape.numTriangles * 3);
-				iga.clearCapabilities();
-			}
+				JoglesIndexedTriangleArray ita;
+				if ((bsTriShape.normalsOptBuf != null && bsTriShape.tangentsOptBuf != null)
+						|| (bsTriShape.geoToNormalsOffset != -1 && bsTriShape.geoToTanOffset != -1) && TANGENTS_BITANGENTS)
+				{
+					ita = new JoglesIndexedTriangleArray(bsTriShape.numVertices, vertexFormat, 1, texMap, 2, new int[] { 3, 3 },
+							bsTriShape.numTriangles * 3);
+					ita.clearCapabilities();
+				}
+				else
+				{
+					ita = new JoglesIndexedTriangleArray(bsTriShape.numVertices, vertexFormat, 1, texMap, bsTriShape.numTriangles * 3);
+					ita.clearCapabilities();
+				}
 
-			if (morphable || BUFFERS)
-				iga.setCoordIndicesRef(bsTriShape.trianglesOpt);
+				ByteBuffer bb = ByteBuffer.allocateDirect(bsTriShape.trianglesOpt.length * 2);
+				bb.order(ByteOrder.nativeOrder());
+				ShortBuffer indBuf = bb.asShortBuffer();
+				for (int s = 0; s < bsTriShape.trianglesOpt.length; s++)
+					indBuf.put(s, (short) bsTriShape.trianglesOpt[s]);
+				indBuf.position(0);
+
+				ita.setCoordIndicesRefBuffer(indBuf);
+				iga = ita;
+			}
 			else
-				iga.setCoordinateIndices(0, bsTriShape.trianglesOpt);
+			{
+				if (bsTriShape.normalsOptBuf != null && bsTriShape.tangentsOptBuf != null && TANGENTS_BITANGENTS)
+				{
+					iga = new IndexedTriangleArray(bsTriShape.numVertices, vertexFormat, 1, texMap, 2, new int[] { 3, 3 },
+							bsTriShape.numTriangles * 3);
+					iga.clearCapabilities();
+				}
+				else
+				{
+					iga = new IndexedTriangleArray(bsTriShape.numVertices, vertexFormat, 1, texMap, bsTriShape.numTriangles * 3);
+					iga.clearCapabilities();
+				}
+
+				if (morphable || BUFFERS)
+					iga.setCoordIndicesRef(bsTriShape.trianglesOpt);
+				else
+					iga.setCoordinateIndices(0, bsTriShape.trianglesOpt);
+			}
 
 			fillIn(iga, bsTriShape, morphable);
 
@@ -394,29 +440,17 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 
 		if (!morphable)
 		{
-			if (!BUFFERS)
+			if (BSTriShape.LOAD_MEGA_OPTIMIZED && !data.vertexFormat.isSet(VertexFormat.VF_Skinned)
+					&& !data.vertexFormat.isSet(VertexFormat.VF_Male_Eyes))
 			{
-				/*	ga.setCoordinates(0, verticesOpt);
-				
-					if (normalsOpt != null)
-						ga.setNormals(0, normalsOpt);
-				
-					if (vertexColorsOpt != null)
-						ga.setColors(0, vertexColorsOpt);
-				
-					if (uVSetOpt != null)
-					{
-						ga.setTextureCoordinates(0, 0, uVSetOpt);
-					}
-				
-					if (normalsOpt != null && tangentsOpt != null)
-					{
-						//TODO: here https://www.opengl.org/sdk/docs/tutorials/ClockworkCoders/attributes.php
-						// says 6 and 7 are spare, I'm assuming java3d and openlGL sort this out?
-						// must test on nvidia hardware
-						ga.setVertexAttrs(0, 0, tangentsOpt);
-						ga.setVertexAttrs(1, 0, binormalsOpt);
-					}*/
+				int[] geoToVattrOffset = new int[] { data.geoToTanOffset, data.geoToBiTanOffset };
+
+				data.interleavedBuffer.position(0);
+
+				JoglesIndexedTriangleArray gd = (JoglesIndexedTriangleArray) ga;
+				gd.setInterleavedVertexBuffer(data.interleavedStride, data.geoToCoordOffset, data.geoToColorsOffset,
+						data.geoToNormalsOffset, new int[] { data.geoToTexCoordOffset }, geoToVattrOffset, data.interleavedBuffer, null);
+
 			}
 			else
 			{
@@ -444,6 +478,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 		}
 		else
 		{
+
 			// copy as we are by ref and people will morph these coords later on
 			ga.setCoordRefBuffer(new J3DBuffer(Utils3D.cloneFloatBuffer(data.verticesOptBuf)));
 
