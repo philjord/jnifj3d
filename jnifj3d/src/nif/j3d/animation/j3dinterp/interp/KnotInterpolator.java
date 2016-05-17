@@ -39,23 +39,27 @@ public abstract class KnotInterpolator
 
 	protected void computePathInterpolation(float alphaValue)
 	{
-		for (int i = 0; i < knots.length; i++)
+		if (alphaValue <= knots[0])
 		{
-			if ((i == 0 && alphaValue <= knots[i]) || (i > 0 && alphaValue >= knots[i - 1] && alphaValue <= knots[i]))
+			currentInterpolationValue = 0f;
+			currentKnotIndex = 0;
+		}
+
+		for (int i = 1; i < knots.length; i++)
+		{
+			if (alphaValue >= knots[i - 1] && alphaValue <= knots[i])
 			{
-				if (i == 0)
-				{
-					currentInterpolationValue = 0f;
-					currentKnotIndex = 0;
-				}
-				else
-				{
-					currentInterpolationValue = (alphaValue - knots[i - 1]) / (knots[i] - knots[i - 1]);
-					currentKnotIndex = i - 1;
-				}
-				break;
+				currentInterpolationValue = (alphaValue - knots[i - 1]) / (knots[i] - knots[i - 1]);
+				currentKnotIndex = i - 1;
+
+				return;
 			}
 		}
+
+		// in case of > last knot
+		currentInterpolationValue = knots[knots.length - 2];
+		currentKnotIndex = knots.length - 2;
+
 	}
 
 	public abstract void computeTransform(float alphaValue);
