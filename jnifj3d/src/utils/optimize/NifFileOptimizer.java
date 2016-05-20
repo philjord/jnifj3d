@@ -5,8 +5,11 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.HashSet;
 
+import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.Transform3D;
+import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
+import javax.vecmath.Vector3f;
 
 import nif.NifFile;
 import nif.NifVer;
@@ -25,6 +28,7 @@ import nif.niobject.NiTriShapeData;
 import nif.niobject.NiVertexColorProperty;
 import nif.niobject.NiZBufferProperty;
 import nif.niobject.RootCollisionNode;
+import utils.ESConfig;
 import utils.convert.ConvertFromNif;
 import utils.optimize.OptimizeState.MergeTriShape;
 
@@ -138,7 +142,7 @@ public class NifFileOptimizer
 {
 	private static boolean REMOVE_BLEND_FROM_ALPHA_TEST = false;
 	public static boolean OPTIMIZER_ENABLED = true;
-	
+
 	private NifFile nifFile;
 
 	public NifFileOptimizer(NifFile nifFile)
@@ -340,9 +344,21 @@ public class NifFileOptimizer
 		//finally update the vert count
 		firstTriShape.numVertices = newNumVertices;
 
-		// TODO: for num matchgroups has to be 0 test this
+		// merge of bounds
+		BoundingSphere firstBS = new BoundingSphere(new Point3d(firstTriShape.center.x, firstTriShape.center.y, firstTriShape.center.z),
+				firstTriShape.radius);
+		BoundingSphere mergeBS = new BoundingSphere(new Point3d(mergeTriShape.center.x, mergeTriShape.center.y, mergeTriShape.center.z),
+				mergeTriShape.radius);
 
-		// TODO: finish by setting the center and radius too? find the 2 most extreme radius points and ...
+		firstBS.combine(mergeBS);
+		Point3d center = new Point3d();
+		firstBS.getCenter(center);
+		firstTriShape.center.x = (float) center.x;
+		firstTriShape.center.y = (float) center.y;
+		firstTriShape.center.z = (float) center.z;
+		firstTriShape.radius = (float) firstBS.getRadius();
+
+		// TODO: for num matchgroups has to be 0 test this
 
 	}
 
@@ -467,7 +483,19 @@ public class NifFileOptimizer
 		// notice start at 1 mean first path item is not used (the root)
 		Transform3D currentTrans = new Transform3D();
 		Transform3D tempTrans = new Transform3D();
+		
+		Point3d tester = new Point3d();
+		
+		 
+		
+		/*NiTriShape niTriShape = mergeTriShape.niTriShape;
+		tempTrans.setRotation(ConvertFromNif.toJ3d(niTriShape.rotation));
+		tempTrans.setTranslation(ConvertFromNif.toJ3d(niTriShape.translation));
+		tempTrans.setScale(niTriShape.scale);
+		currentTrans.mul(tempTrans, currentTrans);*/
+		
 		for (int i = 1; i < mergeTriShape.path.size(); i++)
+		//for (int i = mergeTriShape.path.size() - 1; i > 0; i--)
 		{
 			NiNode niNode = mergeTriShape.path.get(i);
 			//NOTE the opt buffer are already in java3d format, so the transform must be as well (thank god)
@@ -476,14 +504,23 @@ public class NifFileOptimizer
 			tempTrans.setScale(niNode.scale);
 			currentTrans.mul(tempTrans);
 			tempTrans.setIdentity();
+			
+			tester = new Point3d();
+			currentTrans.transform(tester);
+//			System.out.println("mergeTriShape " +mergeTriShape.niTriShape.name +" "+  + i + " tester " +tester);
 		}
 
 		NiTriShape niTriShape = mergeTriShape.niTriShape;
 		tempTrans.setRotation(ConvertFromNif.toJ3d(niTriShape.rotation));
-		tempTrans.setTranslation(ConvertFromNif.toJ3d(niTriShape.translation));
+		tempTrans.setTranslation(ConvertFromNif.toJ3d(niTriShape.translation));		
 		tempTrans.setScale(niTriShape.scale);
 		currentTrans.mul(tempTrans);
-
+		
+		tester = new Point3d();
+		currentTrans.transform(tester);
+//		System.out.println("mergeTriShape " +mergeTriShape.niTriShape.name +"final  tester " +tester);
+		
+		
 		// now to apply the change to the niTriShape, just verts, normals are already in object space
 		NiTriShapeData niTriShapeData = (NiTriShapeData) niToJ3dData.get(niTriShape.data);
 		if (niTriShapeData != null)
@@ -508,6 +545,13 @@ public class NifFileOptimizer
 		niTriShape.translation.y = 0;
 		niTriShape.translation.z = 0;
 		niTriShape.scale = 1;
+
+		// now move the bounds, note center and radius loaded optimized so in j3d space
+		Point3d center = new Point3d(niTriShapeData.center.x, niTriShapeData.center.y, niTriShapeData.center.z);
+		currentTrans.transform(center);
+		niTriShapeData.center.x = (float) center.x;
+		niTriShapeData.center.y = (float) center.y;
+		niTriShapeData.center.z = (float) center.z;
 
 	}
 

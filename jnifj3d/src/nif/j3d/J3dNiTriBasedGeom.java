@@ -20,6 +20,7 @@ import javax.media.j3d.PolygonAttributes;
 import javax.media.j3d.RenderingAttributes;
 import javax.media.j3d.Shape3D;
 import javax.vecmath.Color3f;
+import javax.vecmath.Point3d;
 
 import nif.NifVer;
 import nif.basic.NifRef;
@@ -85,8 +86,8 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 		if (USE_FIXED_BOUNDS)
 		{
 			getShape().setBoundsAutoCompute(false);// expensive to do regularly so animated node just get one
-			getShape().setBounds(new BoundingSphere(ConvertFromNif.toJ3dP3d(data.center),
-					ConvertFromNif.toJ3d(isMorphable ? data.radius * 2 : data.radius)));
+			getShape().setBounds(new BoundingSphere(new Point3d(data.center.x, data.center.y, data.center.z),
+					isMorphable ? data.radius * 2 : data.radius));
 		}
 		if (!isMorphable)
 		{
@@ -180,8 +181,8 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 				if (USE_FIXED_BOUNDS && data != null)
 				{
 					outliner.setBoundsAutoCompute(false);
-					outliner.setBounds(new BoundingSphere(ConvertFromNif.toJ3dP3d(data.center),
-							ConvertFromNif.toJ3d(isMorphable ? data.radius * 2 : data.radius)));
+					outliner.setBounds(new BoundingSphere(new Point3d(data.center.x, data.center.y, data.center.z),
+							isMorphable ? data.radius * 2 : data.radius));
 				}
 
 				////////////////////////////////

@@ -8,6 +8,7 @@ import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.IndexedGeometryArray;
 import javax.media.j3d.IndexedTriangleArray;
 import javax.media.j3d.JoglesIndexedTriangleArray;
+import javax.vecmath.Point3d;
 
 import nif.niobject.NiTriShape;
 import nif.niobject.NiTriShapeData;
@@ -37,7 +38,7 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 			if (USE_FIXED_BOUNDS)
 			{
 				getShape().setBoundsAutoCompute(false);// expensive to do regularly so animated node just get one
-				getShape().setBounds(new BoundingSphere(ConvertFromNif.toJ3dP3d(data.center), ConvertFromNif.toJ3d(data.radius)));
+				getShape().setBounds(new BoundingSphere(new Point3d(data.center.x, data.center.y, data.center.z), data.radius));
 			}
 		}
 
