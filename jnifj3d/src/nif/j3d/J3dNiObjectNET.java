@@ -105,7 +105,7 @@ public abstract class J3dNiObjectNET extends TransformGroup
 		//early versions used a chain, build a list if needed
 		if (niObjectNET2.nVer.LOAD_VER <= NifVer.VER_4_2_2_0)
 		{
-			if (niObjectNET.extraData.ref != -1)				
+			if (niObjectNET.extraData.ref != -1)
 			{
 				ArrayList<NiExtraData> niExtraDatas = new ArrayList<NiExtraData>();
 				NiExtraData ned = (NiExtraData) niToJ3dData.get(niObjectNET.extraData);
@@ -198,10 +198,6 @@ public abstract class J3dNiObjectNET extends TransformGroup
 			{
 				ret = new J3dNiUVController((NiUVController) controller, niToJ3dData);
 			}
-			else if (controller instanceof NiPathController)
-			{
-				// TODO: handle NiPathController, much like the UV controller above
-			}
 			else if (controller instanceof BSFrustumFOVController)
 			{
 				// from skyrim BlacksmithForgeMarkerMeshes\Furniture\BlacksmithForgeMarker.nif
@@ -221,6 +217,20 @@ public abstract class J3dNiObjectNET extends TransformGroup
 			else if (controller instanceof NiMultiTargetTransformController)
 			{
 				// this looks like it is just an object palette for optomisation ignore?? controller link uses its single node target
+			}
+			else if (controller instanceof NiPathController)
+			{
+				// Morrowind, looks like a root for a keyframecontroller as the next, when not controlled in a kf file/bone system
+				// so just pluck the next one instead (is that ok?)
+				NiTimeController nextController = (NiTimeController) niToJ3dData.get(controller.nextController);
+				if (nextController != null)
+				{
+					J3dNiTimeController jtc2 = setupController(nextController, niToJ3dData);
+					if (jtc2 != null)
+					{
+						ret = jtc2;
+					}
+				}
 			}
 			else
 			{

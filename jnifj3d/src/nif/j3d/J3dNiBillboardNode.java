@@ -68,7 +68,7 @@ public class J3dNiBillboardNode extends J3dNiNode
 		{
 			//point rotates are fixed by this uprighter
 			Transform3D upT = new Transform3D();
-			upT.rotX(-Math.PI / 2f);
+			upT.rotX(Math.PI / 2f);
 			up.setTransform(upT);
 			billBehave = new Billboard2(billboardGroup, Billboard.ROTATE_ABOUT_POINT, new Point3f(0, 0, 0));
 		}
@@ -85,9 +85,9 @@ public class J3dNiBillboardNode extends J3dNiNode
 				tg.setTransform(t);
 				super.addChild(tg);
 		
-				ColorCube cc = new ColorCube(0.05);
+				Cube cc = new Cube(0.05);
 				tg.addChild(cc);
-				ColorCube cc2 = new ColorCube(0.025);
+				Cube cc2 = new Cube(0.025);
 				super.addChild(cc2);
 		
 				// let's add a testy 
@@ -97,9 +97,9 @@ public class J3dNiBillboardNode extends J3dNiNode
 				tg2.setTransform(t2);
 				addChild(tg2);
 		
-				ColorCube cc4 = new ColorCube(0.025);
+				Cube cc4 = new Cube(0.025);
 				tg2.addChild(cc4);
-				ColorCube cc5 = new ColorCube(0.025);
+				Cube cc5 = new Cube(0.025);
 				addChild(cc5);*/
 
 	}
