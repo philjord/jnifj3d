@@ -7,9 +7,10 @@ import javax.vecmath.Color3f;
 
 import nif.NifToJ3d;
 import nif.j3d.particles.J3dNiParticleSystem;
+import nif.j3d.particles.tes3.J3dNiAutoNormalParticles;
+import nif.j3d.particles.tes3.J3dNiBSParticleNode;
 import nif.niobject.NiAVObject;
 import nif.niobject.NiAmbientLight;
-import nif.niobject.NiBSParticleNode;
 import nif.niobject.NiBillboardNode;
 import nif.niobject.NiBone;
 import nif.niobject.NiCamera;
@@ -32,6 +33,8 @@ import nif.niobject.bs.BSMasterParticleSystem;
 import nif.niobject.bs.BSMultiBoundNode;
 import nif.niobject.bs.BSOrderedNode;
 import nif.niobject.bs.BSTriShape;
+import nif.niobject.particle.NiAutoNormalParticles;
+import nif.niobject.particle.NiBSParticleNode;
 import nif.niobject.particle.NiParticleSystem;
 import tools3d.utils.scenegraph.Fadable;
 import utils.source.TextureSource;
@@ -83,7 +86,6 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 						{
 							System.out.println("accum not parent of child!! " + child.name + " " + niNode.nVer.fileName);
 						}
-
 					}
 
 					J3dNiNode j3dNiNode = createNiNode((NiNode) child, niToJ3dData, textureSource, onlyNiNodes);
@@ -112,13 +114,11 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 							}
 						}
 						else if (niTriBasedGeom instanceof BSLODTriShape)
-
 						{
 							BSLODTriShape bSLODTriShape = (BSLODTriShape) niTriBasedGeom;
 							ntbg = new J3dNiTriShape(bSLODTriShape, niToJ3dData, textureSource);
 						}
 						else if (niTriBasedGeom instanceof NiTriStrips)
-
 						{
 							if (!(NifToJ3d.HIDE_EDITORS && isEditorMarker(niTriBasedGeom.name)))
 							{
@@ -127,7 +127,6 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 							}
 						}
 						else if (niTriBasedGeom instanceof BSTriShape)
-
 						{
 							BSTriShape bsTriShape = (BSTriShape) niTriBasedGeom;
 							ntbg = new J3dBSTriShape(bsTriShape, niToJ3dData, textureSource);
@@ -137,43 +136,42 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 						addChild(ntbg);
 					}
 					else if (child instanceof NiParticleSystem)
-
 					{
 						J3dNiParticleSystem j3dNiParticleSystem = new J3dNiParticleSystem((NiParticleSystem) child, niToJ3dData,
 								textureSource);
 						addChild(j3dNiParticleSystem);
 					}
+					else if (child instanceof NiAutoNormalParticles)
+					{
+						J3dNiAutoNormalParticles j3dNiAutoNormalParticles = new J3dNiAutoNormalParticles((NiAutoNormalParticles) child, niToJ3dData,
+								textureSource);
+						addChild(j3dNiAutoNormalParticles);
+					}
 					else if (child instanceof NiCamera)
-
 					{
 						J3dNiCamera j3dNiCamera = new J3dNiCamera((NiCamera) child, niToJ3dData);
 						addChild(j3dNiCamera);
 					}
 					else if (child instanceof NiAmbientLight)
-
 					{
 						J3dNiAmbientLight j3dNiAmbientLight = new J3dNiAmbientLight((NiAmbientLight) child, niToJ3dData);
 						addChild(j3dNiAmbientLight);
 					}
 					else if (child instanceof NiPointLight)
-
 					{
 						J3dNiPointLight j3dNiPointLight = new J3dNiPointLight((NiPointLight) child, niToJ3dData);
 						addChild(j3dNiPointLight);
 					}
 					else if (child instanceof NiDirectionalLight)
-
 					{
 						J3dNiDirectionalLight j3dNiDirectionalLight = new J3dNiDirectionalLight((NiDirectionalLight) child, niToJ3dData);
 						addChild(j3dNiDirectionalLight);
 					}
 					else if (child instanceof NiTextureEffect)
-
 					{
 						//TODO: NiTextureEffect
 					}
 					else
-
 					{
 						System.out.println("J3dNiNode - unhandled child NiAVObject " + child);
 					}
@@ -241,13 +239,7 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 		}
 		else if (niNode instanceof NiBSParticleNode)
 		{
-			//TODO: NiBSParticleNode  
-			if (warnPresenceNiBSParticleNode)
-			{
-				System.out.println("********************** NiBSParticleNode");
-				warnPresenceNiBSParticleNode = false;
-			}
-			return null;
+			return new J3dNiBSParticleNode(niNode, niToJ3dData, textureSource, onlyNiNodes);
 		}
 		else if (niNode instanceof BSLeafAnimNode)
 		{

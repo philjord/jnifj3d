@@ -11,7 +11,6 @@ import javax.media.j3d.Geometry;
 import javax.media.j3d.GeometryUpdater;
 import javax.media.j3d.Group;
 import javax.media.j3d.Shape3D;
-import javax.media.j3d.TransformGroup;
 import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
 
@@ -47,8 +46,6 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 
 	private NiParticleSystem niParticleSystem;
 
-	private TransformGroup billTrans = new TransformGroup();
-
 	private static WeakListenerList<J3dNiParticleSystem> allParticleSystems = new WeakListenerList<J3dNiParticleSystem>();
 
 	private BranchGroup outlinerBG1 = null;
@@ -76,31 +73,17 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		if (niPSysData != null)
 		{
 
-			//TODO: this orients teh trans at the root, but in fact every particle want to be oriented
-			// personally, other wise they don't truely face the camera! pull billboard apart
-			// the further away smoke gets the odder the facing code works OrientedShape3D os3d;
+			j3dPSysData = new J3dPSysData(niPSysData);
 
-			// bill board to orient every quad to cameras proper like
-			//	billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-			//	billTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-			//	Billboard2 billBehave = new Billboard2(billTrans, Billboard.ROTATE_ABOUT_POINT, new Point3f(0, 0, 0));
-			//	billBehave.setEnable(true);
-			//	billBehave.setSchedulingBounds(Utils3D.defaultBounds);
-			//	addChild(billBehave);
-
-			j3dPSysData = new J3dPSysData(niPSysData, billTrans);
-
-			getShape().setGeometry(j3dPSysData.ga);
+			getShape().setGeometry(j3dPSysData.getGeometryArray());
 
 			if (niParticleSystem.worldSpace)
 			{
 				niToJ3dData.getJ3dRoot().addChildBeforeTrans(getShape());
-				niToJ3dData.getJ3dRoot().addChildBeforeTrans(billTrans);
 			}
 			else
 			{
 				addChild(getShape());
-				addChild(billTrans);
 			}
 
 			//TODO: is this a good idea? thread show blocked on update bounds
@@ -113,7 +96,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 				public void update()
 				{
 					// set this as the geom updater and do the updates when called back (again)
-					j3dPSysData.ga.updateData(J3dNiParticleSystem.this);
+					j3dPSysData.getGeometryArray().updateData(J3dNiParticleSystem.this);
 				}
 			}));
 
@@ -149,7 +132,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 			outliner.clearCapabilities();
 			outliner.setPickable(false);
 			outliner.setCollidable(false);
-			outliner.setGeometry(j3dPSysData.ga);
+			outliner.setGeometry(j3dPSysData.getGeometryArray());
 			outliner.setAppearance(PhysAppearance.makeAppearance());
 
 			outlinerBG2 = new BranchGroup();

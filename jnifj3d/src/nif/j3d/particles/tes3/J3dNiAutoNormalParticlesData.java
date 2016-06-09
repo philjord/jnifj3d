@@ -1,4 +1,4 @@
-package nif.j3d.particles;
+package nif.j3d.particles.tes3;
 
 import javax.media.j3d.Appearance;
 import javax.media.j3d.GLSLShaderProgram;
@@ -8,20 +8,18 @@ import javax.media.j3d.Material;
 import javax.media.j3d.RenderingAttributes;
 import javax.media.j3d.Shader;
 import javax.media.j3d.ShaderAppearance;
-import javax.media.j3d.ShaderAttribute;
-import javax.media.j3d.ShaderAttributeArray;
 import javax.media.j3d.ShaderAttributeSet;
-import javax.media.j3d.ShaderAttributeValue;
 import javax.media.j3d.ShaderProgram;
 import javax.media.j3d.SourceCodeShader;
 import javax.media.j3d.Texture;
 import javax.media.j3d.TextureUnitState;
-import javax.vecmath.Point2f;
+import javax.vecmath.Vector3f;
 
-import nif.niobject.particle.NiPSysData;
+import nif.niobject.particle.NiAutoNormalParticlesData;
 import tools3d.utils.ShaderSourceIO;
+import utils.convert.ConvertFromNif;
 
-public class J3dPSysData
+public class J3dNiAutoNormalParticlesData
 {
 	public static int gaCoordStride = 3;
 
@@ -59,7 +57,7 @@ public class J3dPSysData
 
 	public float[] particleVelocity;
 
-	public int[] particleImageIds;
+	//public int[] particleImageIds;
 
 	private IndexedPointArray ga;
 
@@ -73,9 +71,7 @@ public class J3dPSysData
 
 	private float[] gaColors;
 
-	private NiPSysData niPSysData = null;
-
-	public AtlasAnimatedTexture atlasAnimatedTexture;
+	private NiAutoNormalParticlesData niAutoNormalParticlesData = null;
 
 	//https://www.opengl.org/discussion_boards/showthread.php/166796-GLSL-PointSprites-different-sizes
 
@@ -84,23 +80,27 @@ public class J3dPSysData
 	 * 
 	 * @param niPSysData
 	 */
-	public J3dPSysData(NiPSysData niPSysData)
+	public J3dNiAutoNormalParticlesData(NiAutoNormalParticlesData niAutoNormalParticlesData)
 	{
 		//Particles are points
 
-		//niPSysData.hasVertices;
-		//niPSysData.hasNormals;
-		//niPSysData.hasRadii;
-		//niPSysData.hasRotationAngles;
-		//niPSysData.hasRotationAxes;
-		//niPSysData.hasSizes;
-		//niPSysData.hasVertexColors;
-		//niPSysData.HasUVQuadrants;
-		// niPSysData.NumUVQuadrants;
+		//numVertices
+		//hasVertices
+		//vertices
+		// normals = no
+		// center
+		//radius
+		// vertex colors
+		// no uv
+		//numParticles
+		//particlesRadius;
+		//numAcitve
+		// has sizes
+		//sizes
 
-		this.niPSysData = niPSysData;
+		this.niAutoNormalParticlesData = niAutoNormalParticlesData;
 
-		maxParticleCount = Math.max(niPSysData.BSMaxVertices, niPSysData.numVertices);
+		maxParticleCount = niAutoNormalParticlesData.numVertices;
 		gaVertexCount = maxParticleCount;
 
 		ga = new IndexedPointArray(gaVertexCount,
@@ -128,17 +128,12 @@ public class J3dPSysData
 		particleRotationAngle = new float[maxParticleCount * 1];
 		particleRotationSpeed = new float[maxParticleCount * 1];
 		particleVelocity = new float[maxParticleCount * velocityStride];
-		particleImageIds = new int[maxParticleCount * 1];
+		//particleImageIds = new int[maxParticleCount * 1];
 
 		//fixed for all time
-		for (int i = 0; i < maxParticleCount; i++)
+		for (int i = 0; i < gaVertexCount; i++)
 		{
-			gaCoordIndices[i * 4 + 0] = i * 4 + 0;//1
-			gaCoordIndices[i * 4 + 1] = i * 4 + 1;//2
-			gaCoordIndices[i * 4 + 2] = i * 4 + 2;//3
-			gaCoordIndices[i * 4 + 3] = i * 4 + 3;//1
-			gaCoordIndices[i * 4 + 4] = i * 4 + 4;//3
-			gaCoordIndices[i * 4 + 5] = i * 4 + 5;//4
+			gaCoordIndices[i] = i;
 		}
 
 		ga.setCoordRefFloat(gaCoords);
@@ -146,9 +141,51 @@ public class J3dPSysData
 		ga.setColorRefFloat(gaColors);
 		ga.setCoordIndicesRef(gaCoordIndices);
 
-		// this will always be 0, otherwise the run up system gets particles on screen for the first frame
-		activeParticleCount = niPSysData.numActive;
+		setupInitialParticles();
 
+	}
+
+	private void setupInitialParticles()
+	{
+		// I have various initial values in data, then I need the controller to add some more
+		activeParticleCount = niAutoNormalParticlesData.numActive;
+
+		for (int indx = 0; indx < activeParticleCount; indx++)
+		{
+			//NOTICE optimization
+			//NifVector3 nv = niAutoNormalParticlesData.vertices[indx];
+			//Vector3f v = ConvertFromNif.toJ3d(nv);
+			Vector3f v = new Vector3f(niAutoNormalParticlesData.verticesOptBuf.get(indx * 3 + 0), //
+					niAutoNormalParticlesData.verticesOptBuf.get(indx * 3 + 1), //
+					niAutoNormalParticlesData.verticesOptBuf.get(indx * 3 + 2));
+
+			particleTranslation[indx * 3 + 0] = v.x;
+			particleTranslation[indx * 3 + 1] = v.y;
+			particleTranslation[indx * 3 + 2] = v.z;
+
+			gaCoords[indx * 3 + 0] = v.x;
+			gaCoords[indx * 3 + 1] = v.y;
+			gaCoords[indx * 3 + 2] = v.z;
+
+		}
+
+		for (int indx = 0; indx < activeParticleCount; indx++)
+		{
+			//NOTICE optimization
+			//NifColor4 nc = niAutoNormalParticlesData.vertexColors[indx];
+
+			particleColors[indx * 4 + 0] = niAutoNormalParticlesData.vertexColorsOptBuf.get(indx * 4 + 0);
+			particleColors[indx * 4 + 1] = niAutoNormalParticlesData.vertexColorsOptBuf.get(indx * 4 + 1);
+			particleColors[indx * 4 + 2] = niAutoNormalParticlesData.vertexColorsOptBuf.get(indx * 4 + 2);
+			particleColors[indx * 4 + 3] = niAutoNormalParticlesData.vertexColorsOptBuf.get(indx * 4 + 3);
+		}
+
+		for (int indx = 0; indx < activeParticleCount; indx++)
+		{
+			float s = niAutoNormalParticlesData.sizes[indx];
+
+			particleRadius[indx] = ConvertFromNif.toJ3d(s);
+		}
 	}
 
 	/**
@@ -188,7 +225,7 @@ public class J3dPSysData
 
 			shiftArray(particleVelocity, indx, velocityStride, partsToMove);
 
-			shiftArray(particleImageIds, indx, 1, partsToMove);
+			//shiftArray(particleImageIds, indx, 1, partsToMove);
 
 			activeParticleCount--;
 			ga.setValidIndexCount(activeParticleCount);
@@ -232,11 +269,11 @@ public class J3dPSysData
 			particleTranslation[indx * 3 + 1] = y;
 			particleTranslation[indx * 3 + 2] = z;
 
-			particleRotationAngle[indx] = 0f;
-
 			gaCoords[indx * 3 + 0] = x;
 			gaCoords[indx * 3 + 1] = y;
 			gaCoords[indx * 3 + 2] = z;
+
+			particleRotationAngle[indx] = 0f;
 
 			particleVelocity[indx * 3 + 0] = velx;
 			particleVelocity[indx * 3 + 1] = vely;
@@ -264,47 +301,15 @@ public class J3dPSysData
 
 	private void initTexCoords(int indx)
 	{
-		//file:///C:/Emergent/Gamebryo-LightSpeed-Binary/Documentation/HTML/Reference/NiParticle/NiPSAlignedQuadGenerator.htm
-		if (niPSysData.HasUVQuadrants)
-		{
-			atlasAnimatedTexture = new AtlasAnimatedTexture(niPSysData.NumUVQuadrants);
 
-			// default the modifer will set a start point
-			particleImageIds[indx] = 0;
-			atlasAnimatedTexture.getUVCoords(gaTexCoords, indx, particleImageIds[indx]);
-		}
-		else if (niPSysData.HasSubtextureOffsetUVs)
-		{
-			atlasAnimatedTexture = new AtlasAnimatedTexture(niPSysData.AspectRatio, niPSysData.SubtextureOffsetUVs);
+		//TODO: looks like there is no atlas system for particles
+		//there is no UV at all! so I can just use the point xy
+		//divided by size as uv into texture in frag
 
-			// default the modifer will set a start point
-			particleImageIds[indx] = 0;
-			atlasAnimatedTexture.getUVCoords(gaTexCoords, indx, particleImageIds[indx]);
-		}
-		else
-		{
-			// simply fixed
-			gaTexCoords[indx * 4 * 2 + 0] = 0;
-			gaTexCoords[indx * 4 * 2 + 1] = 0;
-			gaTexCoords[indx * 4 * 2 + 2] = 1;
-			gaTexCoords[indx * 4 * 2 + 3] = 0;
-			gaTexCoords[indx * 4 * 2 + 4] = 1;
-			gaTexCoords[indx * 4 * 2 + 5] = 1;
-			gaTexCoords[indx * 4 * 2 + 6] = 0;
-			gaTexCoords[indx * 4 * 2 + 7] = 1;
-		}
+		// simply fixed
+		gaTexCoords[indx * 2 + 0] = 0.5f;
+		gaTexCoords[indx * 2 + 1] = 0.5f;
 
-	}
-
-	public void updateAllTexCoords()
-	{
-		if (niPSysData.HasUVQuadrants || niPSysData.HasSubtextureOffsetUVs)
-		{
-			for (int indx = 0; indx < activeParticleCount; indx++)
-			{
-				atlasAnimatedTexture.getUVCoords(gaTexCoords, indx, particleImageIds[indx]);
-			}
-		}
 	}
 
 	/** if you alter the translation or rotation arrays directly this must be called
@@ -314,7 +319,6 @@ public class J3dPSysData
 	{
 		for (int i = 0; i < activeParticleCount; i++)
 		{
-
 			// with points we simply push the particles across to the gaCoords, in fact we only need agCoords
 
 			float x = particleTranslation[i * 3 + 0];
@@ -344,121 +348,15 @@ public class J3dPSysData
 			float b = particleColors[i * 4 + 2];
 			float a = particleColors[i * 4 + 3];
 
-			gaColors[i * 4 * 4 + 0] = r;
-			gaColors[i * 4 * 4 + 1] = g;
-			gaColors[i * 4 * 4 + 2] = b;
-			gaColors[i * 4 * 4 + 3] = a;
+			gaColors[i * 4 + 0] = r;
+			gaColors[i * 4 + 1] = g;
+			gaColors[i * 4 + 2] = b;
+			gaColors[i * 4 + 3] = a;
 		}
 
 	}
 
-	private static ShaderProgram shaderProgram = null;
 
-	protected Appearance createAppearance(Texture tex)
-	{
-		// Create the shader attribute set
-		ShaderAttributeSet shaderAttributeSet = new ShaderAttributeSet();
-
-		ShaderAppearance app = new ShaderAppearance();
-		app.clearCapabilities();
-		if (shaderProgram == null)
-		{
-
-			String vertexProgram = ShaderSourceIO.getTextFileAsString("shaders/particles.vert");
-			String fragmentProgram = ShaderSourceIO.getTextFileAsString("shaders/particles.frag");
-
-			Shader[] shaders = new Shader[2];
-			shaders[0] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_VERTEX, vertexProgram) {
-				public String toString()
-				{
-					return "vertexProgram";
-				}
-			};
-			shaders[1] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_FRAGMENT, fragmentProgram) {
-				public String toString()
-				{
-					return "fragmentProgram";
-				}
-			};
-
-			final String[] shaderAttrNames = { "envMap", "numWaves", "amplitude", "wavelength", "speed", "direction", "time" };
-
-			shaderProgram = new GLSLShaderProgram() {
-				public String toString()
-				{
-					return "Water Shader Program";
-				}
-			};
-			shaderProgram.setShaders(shaders);
-			shaderProgram.setShaderAttrNames(shaderAttrNames);
-
-			ShaderAttribute shaderAttribute = new ShaderAttributeValue("envMap", new Integer(0));
-			shaderAttributeSet.put(shaderAttribute);
-
-			shaderAttribute = new ShaderAttributeValue("numWaves", new Integer(4));
-			shaderAttributeSet.put(shaderAttribute);
-
-			Float[] amplitude = new Float[4];
-			Float[] wavelength = new Float[4];
-			Float[] speed = new Float[4];
-			Point2f[] direction = new Point2f[4];
-			for (int i = 0; i < 4; ++i)
-			{
-				amplitude[i] = 0.2f / (i + 1);
-				wavelength[i] = (float) (8 * Math.PI / (i + 1));
-				speed[i] = 1.0f + 2 * i;
-				float angle = uniformRandomInRange(-Math.PI / 3, Math.PI / 3);
-				direction[i] = new Point2f((float) Math.cos(angle), (float) Math.sin(angle));
-			}
-
-			ShaderAttributeArray amplitudes = new ShaderAttributeArray("amplitude", amplitude);
-			ShaderAttributeArray wavelengths = new ShaderAttributeArray("wavelength", wavelength);
-			ShaderAttributeArray speeds = new ShaderAttributeArray("speed", speed);
-			ShaderAttributeArray directions = new ShaderAttributeArray("direction", direction);
-			shaderAttributeSet.put(amplitudes);
-			shaderAttributeSet.put(wavelengths);
-			shaderAttributeSet.put(speeds);
-			shaderAttributeSet.put(directions);
-
-		}
-
-		((ShaderAppearance) app).setShaderProgram(shaderProgram);
-		((ShaderAppearance) app).setShaderAttributeSet(shaderAttributeSet);
-
-		TextureUnitState[] tus = new TextureUnitState[1];
-		TextureUnitState tus0 = new TextureUnitState();
-		tus0.clearCapabilities();
-		tus0.setTexture(tex);
-
-		//TextureCubeMap textureCubeMap = new TextureCubeMap();
-
-		tus[0] = tus0;
-		app.setTextureUnitState(tus);
-
-		app.setMaterial(getLandMaterial());
-
-		app.setRenderingAttributes(new RenderingAttributes());
-
-		return app;
-	}
-
-	public Material getLandMaterial()
-	{
-
-		Material landMaterial = new Material();
-
-		landMaterial.setShininess(100.0f); // water is  very shiny, generally
-		landMaterial.setDiffuseColor(0.5f, 0.5f, 0.6f);
-		landMaterial.setSpecularColor(1.0f, 1.0f, 1.0f);
-		landMaterial.setColorTarget(Material.AMBIENT_AND_DIFFUSE);
-
-		return landMaterial;
-	}
-
-	private static float uniformRandomInRange(double d, double e)
-	{
-		return (float) (d + (Math.random() * (e - d)));
-	}
 
 	public IndexedPointArray getGeometryArray()
 	{

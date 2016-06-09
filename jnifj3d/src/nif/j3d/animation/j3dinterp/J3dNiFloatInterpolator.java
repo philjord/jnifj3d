@@ -67,6 +67,23 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 
 	}
 
+	//FOR TES3  
+	public J3dNiFloatInterpolator(float startTimeS, float stopTimeS, FloatInterpolator.Listener callBack)
+	{		
+		float[] knots = new float[]{0,1};
+		float[] values = new float[]{startTimeS, stopTimeS};
+		
+		knotsFloats = new KnotsFloats();
+		knotsFloats.knots = knots;
+		knotsFloats.floats = values;
+
+		if (callBack != null)
+			createInterpolator(callBack);
+		else
+			new Throwable("null callback in NifKeyGroup ").printStackTrace();
+
+	}
+
 	//TODO: make this add interp so many can be called back from one
 	private void createInterpolator(FloatInterpolator.Listener callBack)
 	{
@@ -129,7 +146,7 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 	  float theta    = acosf(cosTheta);
 	  float sinTheta = sinf(theta);
 	  float wp, wq;
-
+	
 	  if (sinTheta > 0.001f) {
 	    wq = sinf(        t  * theta) / sinTheta;
 	    wp = sinf((1.0f - t) * theta) / sinTheta;
@@ -138,38 +155,38 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 	    wq =         t ;
 	    wp = (1.0f - t);
 	  }
-
+	
 	  return (p.data * wp) + (q.data * wq);
 	}
-
+	
 	
 	   Quaternion quadratic interpolation 
 	Quaternion squad(float t, Quaternion p, Quaternion a, Quaternion b, Quaternion q) {
 	  Quaternion sq1 = slerp(t, p, q);
 	  Quaternion sq2 = slerp(t, a, b);
-
+	
 	  return slerp(2.0f * t * (1.0f - t), sq1, sq2);
 	}
-
+	
 	/ Scalar/Vector linear interpolation /
 	K lerp(float t, Key<K> p, Key<K> q) {
 	  float wp, wq;
-
+	
 	  wq =         t ;
 	  wp = (1.0f - t);
-
+	
 	  return (p->data * wp) + (q->data * wq);
 	}
-
+	
 	/ Scalar/Vector quadratic interpolation /
 	K herp(float t, Key<K> p, K a, K b, Key<K> q) {
 	  K po1 = (q->value - p->value) * 3.0f - (a * 2.0f + b);
 	  K po2 = (p->value - q->value) * 2.0f + (a        + b);
-
+	
 	  K po3 = (po2 * t) + po1;
 	  K po4 = (po3 * t) + a;
 	  K po5 = (po4 * t) + p;
-
+	
 	  return po5;
 	}*/
 }
