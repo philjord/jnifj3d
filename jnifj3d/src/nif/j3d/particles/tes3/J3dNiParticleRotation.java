@@ -25,7 +25,7 @@ public class J3dNiParticleRotation extends J3dNiParticleModifier
 	}
 
 	@Override
-	public void updatePSys(long elapsedMillisec)
+	public void updateParticles(long elapsedMillisec)
 	{
 		// simply grab the rotation speed for an active particle and add it on to the current rotation
 		// velocitys are in meters per second

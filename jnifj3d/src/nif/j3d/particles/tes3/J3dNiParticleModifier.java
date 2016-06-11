@@ -24,7 +24,7 @@ public abstract class J3dNiParticleModifier
 	}
 
 	// Called by particle system to get the modifier to apply it's effect
-	public abstract void updatePSys(long elapsedMillisec);
+	public abstract void updateParticles(long elapsedMillisec);
 
 	public static J3dNiParticleModifier createJ3dNiParticleModifier(NiParticleModifier niParticleModifier,
 			J3dNiAutoNormalParticlesData j3dNiAutoNormalParticlesData, NiToJ3dData niToJ3dData)
@@ -53,7 +53,7 @@ public abstract class J3dNiParticleModifier
 		return null;
 	}
 
-	protected static float var(float range)
+	public static float var(float range)
 	{
 		return (float) (Math.random() * range) - range / 2f;
 	}

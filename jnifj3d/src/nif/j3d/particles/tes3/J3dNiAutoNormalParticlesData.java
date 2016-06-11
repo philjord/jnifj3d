@@ -1,22 +1,10 @@
 package nif.j3d.particles.tes3;
 
-import javax.media.j3d.Appearance;
-import javax.media.j3d.GLSLShaderProgram;
 import javax.media.j3d.GeometryArray;
 import javax.media.j3d.IndexedPointArray;
-import javax.media.j3d.Material;
-import javax.media.j3d.RenderingAttributes;
-import javax.media.j3d.Shader;
-import javax.media.j3d.ShaderAppearance;
-import javax.media.j3d.ShaderAttributeSet;
-import javax.media.j3d.ShaderProgram;
-import javax.media.j3d.SourceCodeShader;
-import javax.media.j3d.Texture;
-import javax.media.j3d.TextureUnitState;
 import javax.vecmath.Vector3f;
 
 import nif.niobject.particle.NiAutoNormalParticlesData;
-import tools3d.utils.ShaderSourceIO;
 import utils.convert.ConvertFromNif;
 
 public class J3dNiAutoNormalParticlesData
@@ -73,6 +61,9 @@ public class J3dNiAutoNormalParticlesData
 
 	private NiAutoNormalParticlesData niAutoNormalParticlesData = null;
 
+	//private FloatBuffer sizes;
+	private float[] sizesF;
+
 	//https://www.opengl.org/discussion_boards/showthread.php/166796-GLSL-PointSprites-different-sizes
 
 	/**
@@ -105,8 +96,8 @@ public class J3dNiAutoNormalParticlesData
 
 		ga = new IndexedPointArray(gaVertexCount,
 				GeometryArray.BY_REFERENCE | GeometryArray.COORDINATES | GeometryArray.TEXTURE_COORDINATE_2 | GeometryArray.COLOR_4
-						| GeometryArray.BY_REFERENCE_INDICES | GeometryArray.USE_COORD_INDEX_ONLY,
-				gaVertexCount);
+						| GeometryArray.BY_REFERENCE_INDICES | GeometryArray.USE_COORD_INDEX_ONLY | GeometryArray.VERTEX_ATTRIBUTES,
+				1, new int[] { 0 }, 1, new int[] { 1 }, gaVertexCount);
 
 		ga.setName("Particles System");
 
@@ -141,6 +132,13 @@ public class J3dNiAutoNormalParticlesData
 		ga.setColorRefFloat(gaColors);
 		ga.setCoordIndicesRef(gaCoordIndices);
 
+		//ByteBuffer bb = ByteBuffer.allocateDirect(maxParticleCount);
+		//bb.order(ByteOrder.nativeOrder());
+		//sizes = bb.asFloatBuffer();
+		sizesF = new float[maxParticleCount];
+		ga.setVertexAttrRefFloat(0, sizesF);
+		ga.setCapability(GeometryArray.ALLOW_VERTEX_ATTR_WRITE);
+
 		setupInitialParticles();
 
 	}
@@ -162,12 +160,9 @@ public class J3dNiAutoNormalParticlesData
 			particleTranslation[indx * 3 + 0] = v.x;
 			particleTranslation[indx * 3 + 1] = v.y;
 			particleTranslation[indx * 3 + 2] = v.z;
-
-			gaCoords[indx * 3 + 0] = v.x;
-			gaCoords[indx * 3 + 1] = v.y;
-			gaCoords[indx * 3 + 2] = v.z;
-
 		}
+		
+		recalcAllGaCoords();
 
 		for (int indx = 0; indx < activeParticleCount; indx++)
 		{
@@ -180,12 +175,16 @@ public class J3dNiAutoNormalParticlesData
 			particleColors[indx * 4 + 3] = niAutoNormalParticlesData.vertexColorsOptBuf.get(indx * 4 + 3);
 		}
 
+		resetAllGaColors();
+
 		for (int indx = 0; indx < activeParticleCount; indx++)
 		{
 			float s = niAutoNormalParticlesData.sizes[indx];
 
-			particleRadius[indx] = ConvertFromNif.toJ3d(s);
+			particleRadius[indx] = s * niAutoNormalParticlesData.particlesRadius;
 		}
+		recalcSizes();
+
 	}
 
 	/**
@@ -331,6 +330,15 @@ public class J3dNiAutoNormalParticlesData
 		}
 	}
 
+	public void recalcSizes()
+	{
+		for (int indx = 0; indx < activeParticleCount; indx++)
+		{
+			//sizes.put(indx, particleRadius[indx]);
+			sizesF[indx] = particleRadius[indx] * 2;
+		}
+	}
+
 	/**
 	 * If theparticleColors array is altered this must be called per each altered entry
 	 * @param particle
@@ -355,8 +363,6 @@ public class J3dNiAutoNormalParticlesData
 		}
 
 	}
-
-
 
 	public IndexedPointArray getGeometryArray()
 	{

@@ -14,7 +14,7 @@ public class J3dNiParticleGrowFade extends J3dNiParticleModifier
 	}
 
 	@Override
-	public void updatePSys(long elapsedMillisec)
+	public void updateParticles(long elapsedMillisec)
 	{
 		// growing and shrinking
 		// float growTime;

@@ -38,7 +38,7 @@ public class J3dNiGravity extends J3dNiParticleModifier
 	private Vector3f gravityApplied = new Vector3f();
 
 	@Override
-	public void updatePSys(long elapsedMillisec)
+	public void updateParticles(long elapsedMillisec)
 	{
 		if (type == FieldType.FIELD_POINT)
 		{

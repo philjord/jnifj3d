@@ -17,7 +17,7 @@ public class J3dNiParticleColorModifier extends J3dNiParticleModifier
 	}
 
 	@Override
-	public void updatePSys(long elapsedMillisec)
+	public void updateParticles(long elapsedMillisec)
 	{
 		// this has a keygroup, which should be controlled by an interpolator
 		// but in the case of not I'll just set the first one

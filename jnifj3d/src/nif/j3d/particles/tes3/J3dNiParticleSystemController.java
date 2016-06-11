@@ -4,17 +4,15 @@ import java.util.ArrayList;
 
 import javax.media.j3d.Alpha;
 import javax.media.j3d.Bounds;
-import javax.media.j3d.Group;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
 
 import nif.compound.NifParticle;
-import nif.j3d.J3dNiNode;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.animation.J3dNiTimeController;
 import nif.j3d.animation.j3dinterp.J3dNiFloatInterpolator;
 import nif.j3d.animation.j3dinterp.J3dNiInterpolator;
-import nif.niobject.NiAVObject;
+import nif.j3d.particles.J3dPSysData;
 import nif.niobject.particle.NiParticleSystemController;
 import tools3d.utils.Utils3D;
 import utils.convert.ConvertFromNif;
@@ -29,12 +27,16 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 
 	private J3dNiParticleSystemController nextJ3dNiParticleSystemController;
 
-	private J3dNiNode emmitter;
+	private J3dNiAutoNormalParticlesData j3dNiAutoNormalParticlesData;
 
-	public J3dNiParticleSystemController(NiParticleSystemController niParticleSystemController,
+	private J3dNiParticleEmitter j3dNiParticleEmitter;
+
+	public J3dNiParticleSystemController(NiParticleSystemController niParticleSystemController, J3dNiAutoNormalParticles parent,
 			J3dNiAutoNormalParticlesData j3dNiAutoNormalParticlesData, NiToJ3dData niToJ3dData)
 	{
 		super(niParticleSystemController, null);
+
+		this.j3dNiAutoNormalParticlesData = j3dNiAutoNormalParticlesData;
 
 		// only one call back this, which hands float off to all modifiers
 		J3dNiInterpolator j3dNiInterpolator = new J3dNiFloatInterpolator(niParticleSystemController.startTime,
@@ -42,19 +44,19 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 		Alpha baseAlpha = J3dNiTimeController.createLoopingAlpha(niParticleSystemController.startTime, niParticleSystemController.stopTime);
 		setInterpolator(j3dNiInterpolator, baseAlpha);
 
-		emmitter = (J3dNiNode) niToJ3dData.get((NiAVObject) niToJ3dData.get(niParticleSystemController.emitter));
-		emmitter.setCapability(Group.ALLOW_LOCAL_TO_VWORLD_READ);
+		j3dNiParticleEmitter = new J3dNiParticleEmitter(niParticleSystemController, parent, this, j3dNiAutoNormalParticlesData,
+				niToJ3dData);
 
 		// now add initial data to the particles
 		for (int indx = 0; indx < niParticleSystemController.numValid; indx++)
 		{
 			NifParticle p = niParticleSystemController.particles[indx];
-			Vector3f vel = ConvertFromNif.toJ3d(p.velocity);
+			Vector3f vel = ConvertFromNif.toJ3d(p.velocity);// notice scale as we are meters per second
 			j3dNiAutoNormalParticlesData.particleVelocity[indx * 3 + 0] = vel.x;
 			j3dNiAutoNormalParticlesData.particleVelocity[indx * 3 + 1] = vel.y;
 			j3dNiAutoNormalParticlesData.particleVelocity[indx * 3 + 2] = vel.z;
 
-			j3dNiAutoNormalParticlesData.particleAge[indx] = (long) (p.lifetime * 1000);
+			j3dNiAutoNormalParticlesData.particleAge[indx] = (long) (p.lifetime * 1000);// secs to milli secs
 			j3dNiAutoNormalParticlesData.particleLifeSpan[indx] = (long) (p.lifespan * 1000);
 		}
 
@@ -96,18 +98,75 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 		}
 	}
 
+	public void particleCreated(int newParticleId)
+	{
+		if (newParticleId != -1)
+		{
+			// now tell all modifiers about the new particles so they can make updates to it (like add rotation etc)
+			for (J3dNiParticleModifier j3dNiParticleModifier : modifiersInOrder)
+			{
+				j3dNiParticleModifier.particleCreated(newParticleId);
+			}
+		}
+	}
+
 	@Override
 	public void update(float value)
 	{
+		// the float received here is time (from 0-2 for the example)
+		// but I'm not sure that matters much?
 
-		// do spawn age and death now, spawn needs to use the mitter location
+		// do spawn age and death now, spawn needs to use the emitter location
 		// IN fact controller needs to do all the spawn age death type operations too
+		// it also should update the location based on speed
+
+		long fixedTime = 50L;
+
+		updateAge(fixedTime);
+		j3dNiParticleEmitter.update(fixedTime);
 
 		for (J3dNiParticleModifier j3dNiParticleModifier : modifiersInOrder)
 		{
 			//TODO: this is hard coded to the PerTime behaviour above, needs to work out real time?
-			j3dNiParticleModifier.updatePSys(50L);
+			j3dNiParticleModifier.updateParticles(fixedTime);
 		}
+	}
+
+	public void updateAge(long elapsedMillisec)
+	{
+
+		long[] as = j3dNiAutoNormalParticlesData.particleAge; // in milliseconds
+		long[] lss = j3dNiAutoNormalParticlesData.particleLifeSpan; // in ms
+
+		for (int i = 0; i < j3dNiAutoNormalParticlesData.activeParticleCount; i++)
+		{
+			as[i] += elapsedMillisec;
+			// is the particle past it's lifespan?
+			if (lss[i] < as[i])
+			{
+				j3dNiAutoNormalParticlesData.inactivateParticle(i);
+			}
+		}
+
+	}
+
+	public void updatePosition(long elapsedMillisec)
+	{
+		// simply grab the velocity for an active particle and add it on to the translation
+		// velocitys are in meters per second
+
+		float fractionOfSec = elapsedMillisec / 1000f;
+
+		float[] vs = j3dNiAutoNormalParticlesData.particleVelocity;
+		float[] ts = j3dNiAutoNormalParticlesData.particleTranslation;
+		for (int i = 0; i < j3dNiAutoNormalParticlesData.activeParticleCount; i++)
+		{
+			ts[i * 3 + 0] += vs[i * 3 + 0] * fractionOfSec;
+			ts[i * 3 + 1] += vs[i * 3 + 1] * fractionOfSec;
+			ts[i * 3 + 2] += vs[i * 3 + 2] * fractionOfSec;
+		}
+
+		// note j3dPSysData.recalcAllGaCoords(); will be called once by the particle system after all modifiers have run
 	}
 
 	@Override

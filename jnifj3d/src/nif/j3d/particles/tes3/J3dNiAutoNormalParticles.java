@@ -39,6 +39,7 @@ import tools.WeakListenerList;
 import tools3d.utils.PhysAppearance;
 import tools3d.utils.ShaderSourceIO;
 import utils.PerTimeUpdateBehavior;
+import utils.convert.NifOpenGLToJava3D;
 import utils.source.TextureSource;
 
 public class J3dNiAutoNormalParticles extends J3dNiGeometry implements GeometryUpdater
@@ -48,8 +49,6 @@ public class J3dNiAutoNormalParticles extends J3dNiGeometry implements GeometryU
 	private J3dNiAutoNormalParticlesData j3dNiAutoNormalParticlesData;
 
 	private J3dNiParticleSystemController j3dNiParticleSystemController = null;
-
-	private NiAutoNormalParticles niAutoNormalParticles;
 
 	private NiParticleSystemController niParticleSystemController;
 
@@ -70,8 +69,6 @@ public class J3dNiAutoNormalParticles extends J3dNiGeometry implements GeometryU
 		shape.setPickable(false);
 		shape.setCollidable(false);
 
-		this.niAutoNormalParticles = niAutoNormalParticles;
-
 		niToJ3dData.put(niAutoNormalParticles, this);
 		NiAutoNormalParticlesData niAutoNormalParticlesData = (NiAutoNormalParticlesData) niToJ3dData.get(niAutoNormalParticles.data);
 
@@ -82,9 +79,6 @@ public class J3dNiAutoNormalParticles extends J3dNiGeometry implements GeometryU
 			niParticleSystemController = (NiParticleSystemController) niToJ3dData.get(niAutoNormalParticles.controller);
 			if (niParticleSystemController != null)
 			{
-				j3dNiParticleSystemController = new J3dNiParticleSystemController(niParticleSystemController, j3dNiAutoNormalParticlesData,
-						niToJ3dData);
-
 				getShape().setGeometry(j3dNiAutoNormalParticlesData.getGeometryArray());
 
 				//override any default shader appearance
@@ -152,6 +146,11 @@ public class J3dNiAutoNormalParticles extends J3dNiGeometry implements GeometryU
 	@Override
 	public void setupController(NiToJ3dData niToJ3dData)
 	{
+		// this is done here because all nodes need to be added as we use get transform tree
+		j3dNiParticleSystemController = new J3dNiParticleSystemController(niParticleSystemController, this,
+				j3dNiAutoNormalParticlesData, niToJ3dData);
+		
+		
 		setUpModifers(niToJ3dData);
 	}
 
@@ -267,17 +266,14 @@ public class J3dNiAutoNormalParticles extends J3dNiGeometry implements GeometryU
 			shaderProgram.setShaders(shaders);
 
 			shaderProgram.setShaderAttrNames(new String[] { "BaseMap" });
-
+			String[] vertexAttrNames = new String[] { "Size" };
+			shaderProgram.setVertexAttrNames(vertexAttrNames);
 		}
 
 		app.setShaderProgram(shaderProgram);
-		// Create the shader attribute set
 
 		app.setMaterial(getMaterial());
 		TransparencyAttributes ta = new TransparencyAttributes();
-		// configure texture
-		//alpha
-		//and material
 
 		ShaderAttributeSet shaderAttributeSet = new ShaderAttributeSet();
 
@@ -327,9 +323,9 @@ public class J3dNiAutoNormalParticles extends J3dNiGeometry implements GeometryU
 					if (nap.alphaBlendingEnable())
 					{
 
-						//	ta.setTransparencyMode(TransparencyAttributes.BLENDED);
-						//	ta.setSrcBlendFunction(NifOpenGLToJava3D.convertBlendMode(nap.sourceBlendMode(), true));
-						//	ta.setDstBlendFunction(NifOpenGLToJava3D.convertBlendMode(nap.destinationBlendMode(), false));
+						ta.setTransparencyMode(TransparencyAttributes.BLENDED);
+						ta.setSrcBlendFunction(NifOpenGLToJava3D.convertBlendMode(nap.sourceBlendMode(), true));
+						ta.setDstBlendFunction(NifOpenGLToJava3D.convertBlendMode(nap.destinationBlendMode(), false));
 					}
 
 					//if(nap.alphaTestEnabled()	){nap.alphaTestMode(), nap.threshold
@@ -368,7 +364,7 @@ public class J3dNiAutoNormalParticles extends J3dNiGeometry implements GeometryU
 			app.setShaderAttributeSet(shaderAttributeSet);
 
 			// this is required to turn on the point size feature sometimes
-			// note this point size is ignored in the vert sahder the point attributes are used
+			// note this point size is ignored in the vert shader the point vertex attributes are used
 			app.setPointAttributes(new PointAttributes(1, true));
 		}
 
