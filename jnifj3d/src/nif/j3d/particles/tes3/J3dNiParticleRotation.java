@@ -10,10 +10,10 @@ public class J3dNiParticleRotation extends J3dNiParticleModifier
 
 	private float initialRotSpeed;
 
-	public J3dNiParticleRotation(NiParticleRotation niParticleRotation, J3dNiAutoNormalParticlesData j3dNiAutoNormalParticlesData,
+	public J3dNiParticleRotation(NiParticleRotation niParticleRotation, J3dNiParticlesData j3dNiParticlesData,
 			NiToJ3dData niToJ3dData)
 	{
-		super(niParticleRotation, j3dNiAutoNormalParticlesData, niToJ3dData);
+		super(niParticleRotation, j3dNiParticlesData, niToJ3dData);
 		this.niParticleRotation = niParticleRotation;
 		this.initialRotSpeed = niParticleRotation.rotationSpeed;
 
@@ -32,13 +32,13 @@ public class J3dNiParticleRotation extends J3dNiParticleModifier
 
 		float fractionOfSec = elapsedMillisec / 1000f;
 
-		float[] rss = j3dNiAutoNormalParticlesData.particleRotationSpeed;
-		float[] ras = j3dNiAutoNormalParticlesData.particleRotationAngle;
-		for (int i = 0; i < j3dNiAutoNormalParticlesData.activeParticleCount; i++)
+		float[] rss = j3dNiParticlesData.particleRotationSpeed;
+		float[] ras = j3dNiParticlesData.particleRotationAngle;
+		for (int i = 0; i < j3dNiParticlesData.activeParticleCount; i++)
 		{
 			ras[i] += rss[i] * fractionOfSec;
 		}
-
+		j3dNiParticlesData.recalcRotations();
 		// note j3dPSysData.recalcAllGaCoords(); will be called once by the particle system after all modifiers have run
 
 	}
@@ -55,8 +55,8 @@ public class J3dNiParticleRotation extends J3dNiParticleModifier
 		float rotAngle = 0;
 		rotAngle += var((float) (Math.PI * 2));
 
-		j3dNiAutoNormalParticlesData.particleRotationSpeed[id] = rotSpeed;
-		j3dNiAutoNormalParticlesData.particleRotationAngle[id] = rotAngle;
+		j3dNiParticlesData.particleRotationSpeed[id] = rotSpeed;
+		j3dNiParticlesData.particleRotationAngle[id] = rotAngle;
 
 	}
 }

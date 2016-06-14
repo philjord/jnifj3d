@@ -20,9 +20,9 @@ public class J3dNiGravity extends J3dNiParticleModifier
 
 	private int type;
 
-	public J3dNiGravity(NiGravity niGravity, J3dNiAutoNormalParticlesData j3dNiAutoNormalParticlesData, NiToJ3dData niToJ3dData)
+	public J3dNiGravity(NiGravity niGravity, J3dNiParticlesData j3dNiParticlesData, NiToJ3dData niToJ3dData)
 	{
-		super(niGravity, j3dNiAutoNormalParticlesData, niToJ3dData);
+		super(niGravity, j3dNiParticlesData, niToJ3dData);
 
 		position = ConvertFromNif.toJ3dNoScale(niGravity.position); // normal no scale 
 		direction = ConvertFromNif.toJ3dNoScale(niGravity.direction); // normal no scale 
@@ -49,13 +49,12 @@ public class J3dNiGravity extends J3dNiParticleModifier
 			gravityApplied.normalize();
 			Point3f loc = new Point3f();
 
-			 
 			float fractionOfSec = elapsedMillisec / 1000f;
 
-			float[] vs = j3dNiAutoNormalParticlesData.particleVelocity;
-			float[] ts = j3dNiAutoNormalParticlesData.particleTranslation;
+			float[] vs = j3dNiParticlesData.particleVelocity;
+			float[] ts = j3dNiParticlesData.particleTranslation;
 
-			for (int i = 0; i < j3dNiAutoNormalParticlesData.activeParticleCount; i++)
+			for (int i = 0; i < j3dNiParticlesData.activeParticleCount; i++)
 			{
 				loc.set(ts[i * 3 + 0], ts[i * 3 + 1], ts[i * 3 + 2]);
 				float distFromGravity = gravityLoc.distance(loc);

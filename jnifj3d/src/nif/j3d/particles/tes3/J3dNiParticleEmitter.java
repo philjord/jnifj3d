@@ -23,11 +23,11 @@ public class J3dNiParticleEmitter
 {
 	private J3dNiParticleSystemController j3dNiParticleSystemController;
 
-	private J3dNiAutoNormalParticlesData j3dNiAutoNormalParticlesData;
+	private J3dNiParticlesData j3dNiParticlesData;
 
-	private J3dNiAutoNormalParticles parent;
+	private J3dNiParticles parent;
 
-	private J3dNiNode emmitter;
+	private J3dNiNode emitter;
 	private J3dNiAVObject root;
 
 	private boolean autoAdjust = true;
@@ -56,18 +56,18 @@ public class J3dNiParticleEmitter
 
 	private float lifeSpanVariation;
 
-	public J3dNiParticleEmitter(NiParticleSystemController niParticleSystemController, J3dNiAutoNormalParticles parent,
-			J3dNiParticleSystemController j3dNiParticleSystemController, J3dNiAutoNormalParticlesData j3dNiAutoNormalParticlesData,
-			NiToJ3dData niToJ3dData)
+	public J3dNiParticleEmitter(NiParticleSystemController niParticleSystemController, J3dNiParticles parent,
+			J3dNiParticleSystemController j3dNiParticleSystemController, J3dNiParticlesData j3dNiParticlesData, NiToJ3dData niToJ3dData)
 	{
 		this.parent = parent;
 		this.j3dNiParticleSystemController = j3dNiParticleSystemController;
-		this.j3dNiAutoNormalParticlesData = j3dNiAutoNormalParticlesData;
+		this.j3dNiParticlesData = j3dNiParticlesData;
 
-		emmitter = (J3dNiNode) niToJ3dData.get((NiAVObject) niToJ3dData.get(niParticleSystemController.emitter));
-
+		emitter = (J3dNiNode) niToJ3dData.get((NiAVObject) niToJ3dData.get(niParticleSystemController.emitter));
+		emitter.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+		
 		//try to find nif root
-		root = emmitter.topOfParent;
+		root = emitter.topOfParent;
 		root.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
 		while (root.topOfParent != null)
 		{
@@ -75,6 +75,7 @@ public class J3dNiParticleEmitter
 			root.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
 		}
 
+		// parent is parent of particle system node, so we can emit in particle system space
 		parent.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
 		J3dNiAVObject pt = parent.topOfParent;
 		while (pt != null)
@@ -91,8 +92,8 @@ public class J3dNiParticleEmitter
 		declinationVariation = niParticleSystemController.verticalAngle;
 		planarAngle = niParticleSystemController.horizontalDirection;
 		planarAngleVariation = niParticleSystemController.horizontalAngle;
-		initialColor = new Color4f(0, 0, 0, 0);// set by the color modifier
-		initialRadius = niParticleSystemController.size;
+		initialColor = new Color4f(1, 1, 1, 1);// maybe reset by the color modifier
+		initialRadius = niParticleSystemController.size;// notice NO convert for radius, it's screen
 		radiusVariation = 0;
 		lifeSpan = niParticleSystemController.lifetime;
 		lifeSpanVariation = niParticleSystemController.lifetimeRandom;
@@ -149,13 +150,13 @@ public class J3dNiParticleEmitter
 		//find the relative position
 		// which means using the getTreeTransfom and the root node for both the emitter
 		// and the particle system location
-		emmitter.getTreeTransform(t3, root);
+		emitter.getTreeTransform(t3, root);
 		t3.get(v1);
 
 		parent.getTreeTransform(t3, root);
 		t3.get(v2);
 		v1.sub(v2);// get the diff
-		pos.set(v1);	 
+		pos.set(v1);
 	}
 
 	private AxisAngle4f aaZ = new AxisAngle4f(0, 0, 1, 0);
@@ -176,7 +177,7 @@ public class J3dNiParticleEmitter
 	{
 		if (autoAdjust)
 		{
-			if (j3dNiAutoNormalParticlesData.activeParticleCount < j3dNiAutoNormalParticlesData.maxParticleCount)
+			if (j3dNiParticlesData.activeParticleCount < j3dNiParticlesData.maxParticleCount)
 				addParticle();
 		}
 		else
@@ -227,9 +228,9 @@ public class J3dNiParticleEmitter
 
 		col.set(initialColor);
 
-		float radius = initialRadius;
+		float radius = initialRadius; // notice NO convert for radius, it's screen
 		radius += J3dNiParticleModifier.var(radiusVariation * 2);
-		radius = ConvertFromNif.toJ3d(radius);
+
 
 		float particleLifeSpan = lifeSpan;
 		particleLifeSpan += J3dNiParticleModifier.var(lifeSpanVariation);
@@ -239,8 +240,8 @@ public class J3dNiParticleEmitter
 
 		int generation = 0;
 
-		int newParticleId = j3dNiAutoNormalParticlesData.addActive(radius, (long) particleLifeSpan, generation, pos.x, pos.y, pos.z, col.x,
-				col.y, col.z, col.w, vel.x, vel.y, vel.z);
+		int newParticleId = j3dNiParticlesData.addActive(radius, (long) particleLifeSpan, generation, pos.x, pos.y, pos.z, col.x, col.y,
+				col.z, col.w, vel.x, vel.y, vel.z);
 
 		j3dNiParticleSystemController.particleCreated(newParticleId);
 

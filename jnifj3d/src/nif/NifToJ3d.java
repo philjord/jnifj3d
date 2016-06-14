@@ -119,7 +119,7 @@ public class NifToJ3d
 				if (root != null)
 				{
 					NifJ3dVisPhysRoot nifJ3dVisPhysRoot = new NifJ3dVisPhysRoot(root.getVisualRoot(),
-							phys == null ? null : phys.getHavokRoot(), new NiToJ3dData(nifFile.blocks));
+							phys == null ? null : phys.getHavokRoot(), root.getNiToJ3dData());
 					return nifJ3dVisPhysRoot;
 				}
 			}

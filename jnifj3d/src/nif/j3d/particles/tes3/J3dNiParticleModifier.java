@@ -9,12 +9,11 @@ import nif.niobject.particle.NiParticleRotation;
 
 public abstract class J3dNiParticleModifier
 {
-	protected J3dNiAutoNormalParticlesData j3dNiAutoNormalParticlesData;
+	protected J3dNiParticlesData j3dNiParticlesData;
 
-	public J3dNiParticleModifier(NiParticleModifier niParticleModifier, J3dNiAutoNormalParticlesData j3dNiAutoNormalParticlesData,
-			NiToJ3dData niToJ3dData)
+	public J3dNiParticleModifier(NiParticleModifier niParticleModifier, J3dNiParticlesData j3dNiParticlesData, NiToJ3dData niToJ3dData)
 	{
-		this.j3dNiAutoNormalParticlesData = j3dNiAutoNormalParticlesData;
+		this.j3dNiParticlesData = j3dNiParticlesData;
 	}
 
 	// Called by particle system to get the modifier to apply it's effect, to a newly created particle
@@ -27,23 +26,23 @@ public abstract class J3dNiParticleModifier
 	public abstract void updateParticles(long elapsedMillisec);
 
 	public static J3dNiParticleModifier createJ3dNiParticleModifier(NiParticleModifier niParticleModifier,
-			J3dNiAutoNormalParticlesData j3dNiAutoNormalParticlesData, NiToJ3dData niToJ3dData)
+			J3dNiParticlesData j3dNiParticlesData, NiToJ3dData niToJ3dData)
 	{
 		if (niParticleModifier instanceof NiParticleGrowFade)
 		{
-			return new J3dNiParticleGrowFade((NiParticleGrowFade) niParticleModifier, j3dNiAutoNormalParticlesData, niToJ3dData);
+			return new J3dNiParticleGrowFade((NiParticleGrowFade) niParticleModifier, j3dNiParticlesData, niToJ3dData);
 		}
 		else if (niParticleModifier instanceof NiGravity)
 		{
-			return new J3dNiGravity((NiGravity) niParticleModifier, j3dNiAutoNormalParticlesData, niToJ3dData);
+			return new J3dNiGravity((NiGravity) niParticleModifier, j3dNiParticlesData, niToJ3dData);
 		}
 		else if (niParticleModifier instanceof NiParticleRotation)
 		{
-			return new J3dNiParticleRotation((NiParticleRotation) niParticleModifier, j3dNiAutoNormalParticlesData, niToJ3dData);
+			return new J3dNiParticleRotation((NiParticleRotation) niParticleModifier, j3dNiParticlesData, niToJ3dData);
 		}
 		else if (niParticleModifier instanceof NiParticleColorModifier)
 		{
-			return new J3dNiParticleColorModifier((NiParticleColorModifier) niParticleModifier, j3dNiAutoNormalParticlesData, niToJ3dData);
+			return new J3dNiParticleColorModifier((NiParticleColorModifier) niParticleModifier, j3dNiParticlesData, niToJ3dData);
 		}
 		else
 		{

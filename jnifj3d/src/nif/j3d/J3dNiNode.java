@@ -9,6 +9,7 @@ import nif.NifToJ3d;
 import nif.j3d.particles.J3dNiParticleSystem;
 import nif.j3d.particles.tes3.J3dNiAutoNormalParticles;
 import nif.j3d.particles.tes3.J3dNiBSParticleNode;
+import nif.j3d.particles.tes3.J3dNiRotatingParticles;
 import nif.niobject.NiAVObject;
 import nif.niobject.NiAmbientLight;
 import nif.niobject.NiBillboardNode;
@@ -36,6 +37,7 @@ import nif.niobject.bs.BSTriShape;
 import nif.niobject.particle.NiAutoNormalParticles;
 import nif.niobject.particle.NiBSParticleNode;
 import nif.niobject.particle.NiParticleSystem;
+import nif.niobject.particle.NiRotatingParticles;
 import tools3d.utils.scenegraph.Fadable;
 import utils.source.TextureSource;
 
@@ -143,9 +145,15 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 					}
 					else if (child instanceof NiAutoNormalParticles)
 					{
-						J3dNiAutoNormalParticles j3dNiAutoNormalParticles = new J3dNiAutoNormalParticles((NiAutoNormalParticles) child, niToJ3dData,
-								textureSource);
+						J3dNiAutoNormalParticles j3dNiAutoNormalParticles = new J3dNiAutoNormalParticles((NiAutoNormalParticles) child,
+								niToJ3dData, textureSource);
 						addChild(j3dNiAutoNormalParticles);
+					}
+					else if (child instanceof NiRotatingParticles)
+					{
+						J3dNiRotatingParticles j3dNiRotatingParticles = new J3dNiRotatingParticles((NiRotatingParticles) child, niToJ3dData,
+								textureSource);
+						addChild(j3dNiRotatingParticles);
 					}
 					else if (child instanceof NiCamera)
 					{

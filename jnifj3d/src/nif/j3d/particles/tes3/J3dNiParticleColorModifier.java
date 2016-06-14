@@ -9,10 +9,10 @@ public class J3dNiParticleColorModifier extends J3dNiParticleModifier
 {
 	private NiColorData niColorData;
 
-	public J3dNiParticleColorModifier(NiParticleColorModifier niParticleColorModifier,
-			J3dNiAutoNormalParticlesData j3dNiAutoNormalParticlesData, NiToJ3dData niToJ3dData)
+	public J3dNiParticleColorModifier(NiParticleColorModifier niParticleColorModifier, J3dNiParticlesData j3dNiParticlesData,
+			NiToJ3dData niToJ3dData)
 	{
-		super(niParticleColorModifier, j3dNiAutoNormalParticlesData, niToJ3dData);
+		super(niParticleColorModifier, j3dNiParticlesData, niToJ3dData);
 		niColorData = (NiColorData) niToJ3dData.get(niParticleColorModifier.colorData);
 	}
 
@@ -21,18 +21,20 @@ public class J3dNiParticleColorModifier extends J3dNiParticleModifier
 	{
 		// this has a keygroup, which should be controlled by an interpolator
 		// but in the case of not I'll just set the first one
-		 
 
-		float[] cs = j3dNiAutoNormalParticlesData.particleColors;
+		float[] cs = j3dNiParticlesData.particleColors;
 
-		for (int i = 0; i < j3dNiAutoNormalParticlesData.activeParticleCount; i++)
+		for (int i = 0; i < j3dNiParticlesData.activeParticleCount; i++)
 		{
-			cs[i * 4 + 0] = ((NifColor4) niColorData.data.keys[0].value).r;
-			cs[i * 4 + 1] = ((NifColor4) niColorData.data.keys[0].value).g;
-			cs[i * 4 + 2] = ((NifColor4) niColorData.data.keys[0].value).b;
-			cs[i * 4 + 3] = ((NifColor4) niColorData.data.keys[0].value).a;
+			NifColor4 nc = (NifColor4) niColorData.data.keys[0].value;
+			cs[i * 4 + 0] = nc.r;
+			cs[i * 4 + 1] = nc.g;
+			cs[i * 4 + 2] = nc.b;
+			cs[i * 4 + 3] = nc.a;
 		}
-		j3dNiAutoNormalParticlesData.resetAllGaColors();
+		//TODO: this system is crazy must use the incoming elapsed time to interpolate a a value
+		// in fact currently I'm setting colors to 0,0,0,1 which should blank everythign out if it's running why not?
+		j3dNiParticlesData.resetAllGaColors();
 
 	}
 }
