@@ -24,7 +24,7 @@ public class J3dNiParticlesData
 
 	public int activeParticleCount;
 
-	public float[] particleColors;
+	public float particlesBaseRadius;
 
 	public long[] particleSpawnTime;
 
@@ -44,54 +44,31 @@ public class J3dNiParticlesData
 
 	public float[] particleVelocity;
 
-	//public int[] particleImageIds;
+	public float[] particleColors;
+
+	public int[] particleImageIds;
 
 	private IndexedPointArray ga;
 
 	private int gaVertexCount;
 
-	private float[] gaTexCoords;
-
-	private int[] gaCoordIndices; //fixed at intitialization, DO NOT ALTER	
+	private int[] gaCoordIndices; //fixed at initialization, DO NOT ALTER	
 
 	private float[] gaCoords;
 
 	private float[] gaColors;
 
-	protected NiParticlesData niParticlesData = null;
+	private float[] gaTexCoords;
 
 	//private FloatBuffer sizes;
-	private float[] sizesF;
+	private float[] gaVsizesF;
 
-	private float[] rotationsF;
+	private float[] gaVrotationsF;
 
-	public float particlesBaseRadius;
+	protected NiParticlesData niParticlesData = null;
 
-	//https://www.opengl.org/discussion_boards/showthread.php/166796-GLSL-PointSprites-different-sizes
-
-	/**
-	 * NOTE!!!! all calls to this class must be in a GeomteryUpdater only. And violently single threaded
-	 * 
-	 * @param niPSysData
-	 */
 	public J3dNiParticlesData(NiParticlesData niParticlesData)
 	{
-		//Particles are points
-
-		//numVertices
-		//hasVertices
-		//vertices
-		// normals = no
-		// center
-		//radius
-		// vertex colors
-		// no uv
-		//numParticles
-		//particlesRadius;
-		//numAcitve
-		// has sizes
-		//sizes
-
 		this.niParticlesData = niParticlesData;
 
 		this.particlesBaseRadius = niParticlesData.particlesRadius;
@@ -113,6 +90,8 @@ public class J3dNiParticlesData
 		gaCoords = new float[gaVertexCount * 3];
 		gaTexCoords = new float[gaVertexCount * 2];
 		gaCoordIndices = new int[gaVertexCount];
+		if (niParticlesData.hasVertexColors)
+			gaColors = new float[gaVertexCount * 4];
 
 		particleSpawnTime = new long[maxParticleCount * 1];
 		particleAge = new long[maxParticleCount * 1];
@@ -123,13 +102,10 @@ public class J3dNiParticlesData
 		particleRotationAngle = new float[maxParticleCount * 1];
 		particleRotationSpeed = new float[maxParticleCount * 1];
 		particleVelocity = new float[maxParticleCount * velocityStride];
-		//particleImageIds = new int[maxParticleCount * 1];
+		particleImageIds = new int[maxParticleCount * 1];
 
 		if (niParticlesData.hasVertexColors)
-		{
 			particleColors = new float[maxParticleCount * colorStride];
-			gaColors = new float[gaVertexCount * 4];
-		}
 
 		//fixed for all time
 		for (int i = 0; i < gaVertexCount; i++)
@@ -147,10 +123,10 @@ public class J3dNiParticlesData
 		//ByteBuffer bb = ByteBuffer.allocateDirect(maxParticleCount);
 		//bb.order(ByteOrder.nativeOrder());
 		//sizes = bb.asFloatBuffer();
-		sizesF = new float[maxParticleCount];
-		ga.setVertexAttrRefFloat(0, sizesF);
-		rotationsF = new float[maxParticleCount];
-		ga.setVertexAttrRefFloat(1, rotationsF);
+		gaVsizesF = new float[maxParticleCount];
+		ga.setVertexAttrRefFloat(0, gaVsizesF);
+		gaVrotationsF = new float[maxParticleCount];
+		ga.setVertexAttrRefFloat(1, gaVrotationsF);
 		ga.setCapability(GeometryArray.ALLOW_VERTEX_ATTR_WRITE);
 
 		activeParticleCount = niParticlesData.numActive;
@@ -160,7 +136,7 @@ public class J3dNiParticlesData
 	}
 
 	public void reset()
-	{		
+	{
 		activeParticleCount = niParticlesData.numActive;
 		setupInitialParticles();
 	}
@@ -183,8 +159,6 @@ public class J3dNiParticlesData
 			particleTranslation[indx * 3 + 2] = v.z;
 		}
 
-		recalcAllGaCoords();
-
 		if (niParticlesData.hasVertexColors)
 		{
 			for (int indx = 0; indx < maxParticleCount; indx++)
@@ -197,8 +171,6 @@ public class J3dNiParticlesData
 				particleColors[indx * 4 + 2] = niParticlesData.vertexColorsOptBuf.get(indx * 4 + 2);
 				particleColors[indx * 4 + 3] = niParticlesData.vertexColorsOptBuf.get(indx * 4 + 3);
 			}
-
-			resetAllGaColors();
 		}
 
 		for (int indx = 0; indx < maxParticleCount; indx++)
@@ -208,7 +180,8 @@ public class J3dNiParticlesData
 				s = niParticlesData.sizes[indx];
 			particleRadius[indx] = s * niParticlesData.particlesRadius;
 		}
-		recalcSizes();
+
+		updateData();
 
 	}
 
@@ -219,19 +192,10 @@ public class J3dNiParticlesData
 	 */
 	public void inactivateParticle(int indx)
 	{
+
 		if (indx < activeParticleCount)
 		{
 			int partsToMove = (activeParticleCount - indx) - 1; //particles After Indx To Move left
-
-			shiftArray(gaCoords, indx, gaCoordStride, partsToMove);
-
-			if (niParticlesData.hasVertexColors)
-				shiftArray(gaColors, indx, gaColorStride, partsToMove);
-
-			shiftArray(gaTexCoords, indx, gaTexCoordStride, partsToMove);
-
-			if (niParticlesData.hasVertexColors)
-				shiftArray(particleColors, indx, colorStride, partsToMove);
 
 			shiftArray(particleSpawnTime, indx, 1, partsToMove);
 
@@ -251,10 +215,13 @@ public class J3dNiParticlesData
 
 			shiftArray(particleVelocity, indx, velocityStride, partsToMove);
 
-			//shiftArray(particleImageIds, indx, 1, partsToMove);
+			if (niParticlesData.hasVertexColors)
+				shiftArray(particleColors, indx, colorStride, partsToMove);
+
+			shiftArray(particleImageIds, indx, 1, partsToMove);
 
 			activeParticleCount--;
-			ga.setValidIndexCount(activeParticleCount);
+			//ga.setValidIndexCount(activeParticleCount); is called in geom update
 		}
 	}
 
@@ -280,7 +247,7 @@ public class J3dNiParticlesData
 		if (activeParticleCount < maxParticleCount)
 		{
 			int indx = activeParticleCount;
-			// odd only 1-40 are first then 56-59 are being used as active??
+
 			//System.out.println("new particle = " + indx);
 
 			particleSpawnTime[indx] = System.currentTimeMillis();
@@ -292,17 +259,13 @@ public class J3dNiParticlesData
 			particleGeneration[indx] = generation;
 
 			particleRadius[indx] = radius;
-			sizesF[indx] = particleRadius[indx] * 2; // * 2 because it's a radius
 
 			particleTranslation[indx * 3 + 0] = x;
 			particleTranslation[indx * 3 + 1] = y;
 			particleTranslation[indx * 3 + 2] = z;
-			gaCoords[indx * 3 + 0] = x;
-			gaCoords[indx * 3 + 1] = y;
-			gaCoords[indx * 3 + 2] = z;
 
 			particleRotationAngle[indx] = 0f;
-			rotationsF[indx] = particleRotationAngle[indx];
+			particleRotationSpeed[indx] = 0f;
 
 			particleVelocity[indx * 3 + 0] = velx;
 			particleVelocity[indx * 3 + 1] = vely;
@@ -314,73 +277,74 @@ public class J3dNiParticlesData
 				particleColors[indx * 4 + 1] = g;
 				particleColors[indx * 4 + 2] = b;
 				particleColors[indx * 4 + 3] = a;
-				gaColors[indx * 4 + 0] = r;
-				gaColors[indx * 4 + 1] = g;
-				gaColors[indx * 4 + 2] = b;
-				gaColors[indx * 4 + 3] = a;
 			}
 
-			initTexCoords(indx);
+			particleImageIds[indx] = 0;
 
 			activeParticleCount++;
-			ga.setValidIndexCount(activeParticleCount);
+			//ga.setValidIndexCount(activeParticleCount); called in geom update
 			return indx;
 		}
 
 		return -1;
 	}
 
-	private void initTexCoords(int indx)
-	{
-
-		//TODO: looks like there is no atlas system for particles
-		//there is no UV at all! so I can just use the point xy
-		//divided by size as uv into texture in frag
-
-		// simply fixed
-		gaTexCoords[indx * 2 + 0] = 0.5f;
-		gaTexCoords[indx * 2 + 1] = 0.5f;
-
-	}
-
-	/** if you alter the translation or rotation arrays directly this must be called
-	 * 
+	/**
+	 * NOTE!!!! all calls to this method must be in a GeomteryUpdater only. And violently single threaded
+	 * If particleTranslation array is altered this must be called 
+	 * @param particle
 	 */
 	public void recalcAllGaCoords()
 	{
 		for (int i = 0; i < activeParticleCount; i++)
 		{
 			// with points we simply push the particles across to the gaCoords, in fact we only need agCoords
-
-			float x = particleTranslation[i * 3 + 0];
-			float y = particleTranslation[i * 3 + 1];
-			float z = particleTranslation[i * 3 + 2];
-
-			gaCoords[i * 3 + 0] = x;
-			gaCoords[i * 3 + 1] = y;
-			gaCoords[i * 3 + 2] = z;
+			gaCoords[i * 3 + 0] = particleTranslation[i * 3 + 0];
+			gaCoords[i * 3 + 1] = particleTranslation[i * 3 + 1];
+			gaCoords[i * 3 + 2] = particleTranslation[i * 3 + 2];
 		}
+
+		//TODO: I get the impression that the black dot is
+		// a badly formed final particle somehow? 
+		// If I take the last 5 off they are not there, but they flash during re-loop
+
+		// set by add or inactivate but called here
+		if (activeParticleCount > 5)
+			ga.setValidIndexCount(activeParticleCount - 5);
+		else
+			ga.setValidIndexCount(activeParticleCount);
 	}
 
+	/**
+	 * NOTE!!!! all calls to this method must be in a GeomteryUpdater only. And violently single threaded
+	 * If particleRadius array is altered this must be called 
+	 * @param particle
+	 */
 	public void recalcSizes()
 	{
 		for (int indx = 0; indx < activeParticleCount; indx++)
 		{
 			//sizes.put(indx, particleRadius[indx]);
-			sizesF[indx] = particleRadius[indx] * 2; // *2 because it's a radius
-		}
-	}
-
-	public void recalcRotations()
-	{
-		for (int indx = 0; indx < activeParticleCount; indx++)
-		{
-			rotationsF[indx] = particleRotationAngle[indx];
+			gaVsizesF[indx] = particleRadius[indx] * 2; // *2 because it's a radius
 		}
 	}
 
 	/**
-	 * If theparticleColors array is altered this must be called per each altered entry
+	 * NOTE!!!! all calls to this method must be in a GeomteryUpdater only. And violently single threaded
+	 * If particleRotationAngle array is altered this must be called 
+	 * @param particle
+	 */
+	public void recalcRotations()
+	{
+		for (int indx = 0; indx < activeParticleCount; indx++)
+		{
+			gaVrotationsF[indx] = particleRotationAngle[indx];
+		}
+	}
+
+	/**
+	 * NOTE!!!! all calls to this method must be in a GeomteryUpdater only. And violently single threaded
+	 * If particleColors array is altered this must be called  
 	 * @param particle
 	 */
 	public void resetAllGaColors()
@@ -389,19 +353,28 @@ public class J3dNiParticlesData
 		{
 			for (int i = 0; i < activeParticleCount; i++)
 			{
+				gaColors[i * 4 + 0] = particleColors[i * 4 + 0];
+				gaColors[i * 4 + 1] = particleColors[i * 4 + 1];
+				gaColors[i * 4 + 2] = particleColors[i * 4 + 2];
+				gaColors[i * 4 + 3] = particleColors[i * 4 + 3];
+			}
+		}
 
-				//TODO: the texture shader has a gradient color texture under grayscale texture holder
-				//textures\effects\gradients\GradFlame01.dds
+	}
 
-				float r = particleColors[i * 4 + 0];
-				float g = particleColors[i * 4 + 1];
-				float b = particleColors[i * 4 + 2];
-				float a = particleColors[i * 4 + 3];
+	public void resetTexCoords()
+	{
+		for (int i = 0; i < activeParticleCount; i++)
+		{
+			//TODO: looks like there is no atlas system for particles
+			//there is no UV at all! so I can just use the point xy
+			//divided by size as uv into texture in frag
 
-				gaColors[i * 4 + 0] = r;
-				gaColors[i * 4 + 1] = g;
-				gaColors[i * 4 + 2] = b;
-				gaColors[i * 4 + 3] = a;
+			// simply fixed 
+			if (particleImageIds[i] == 0)
+			{
+				gaTexCoords[i * 2 + 0] = 0.5f;
+				gaTexCoords[i * 2 + 1] = 0.5f;
 			}
 		}
 
@@ -410,6 +383,15 @@ public class J3dNiParticlesData
 	public IndexedPointArray getGeometryArray()
 	{
 		return ga;
+	}
+
+	public void updateData()
+	{
+		recalcAllGaCoords();
+		resetAllGaColors();
+		recalcSizes();
+		recalcRotations();
+		resetTexCoords();
 	}
 
 }

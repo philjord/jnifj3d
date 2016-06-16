@@ -34,7 +34,7 @@ public class J3dNiParticleColorModifier extends J3dNiParticleModifier
 			cs[i * 4 + 0] = nc.x;
 			cs[i * 4 + 1] = nc.y;
 			cs[i * 4 + 2] = nc.z;
-			cs[i * 4 + 3] = nc.w;
+			cs[i * 4 + 3] = nc.w; 
 		}
 		
 

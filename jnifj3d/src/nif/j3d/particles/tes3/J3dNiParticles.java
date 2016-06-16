@@ -111,6 +111,12 @@ public class J3dNiParticles extends J3dNiGeometry
 		}
 	}
 
+	/**
+	 * NOt in fact called because I think things shouldn't be reset ever, even for non looping particles
+	 * @param niParticles
+	 * @param niToJ3dData
+	 * @param textureSource
+	 */
 	protected void reset(NiParticles niParticles, NiToJ3dData niToJ3dData, TextureSource textureSource)
 	{
 		j3dNiParticlesData.reset();
@@ -163,8 +169,12 @@ public class J3dNiParticles extends J3dNiGeometry
 			addChild(j3dNiParticleSystemController);
 
 			setUpModifers(niToJ3dData);
+			
+			
+			//FIXME: should I auto fire this guy? how to know when to remove magic effects for example?
+			j3dNiParticleSystemController.fireSequenceLooping();
 		}
-		//TODO: how is this null?
+		 
 	}
 
 	public void particleCreated(int newParticleId)
@@ -219,9 +229,19 @@ public class J3dNiParticles extends J3dNiGeometry
 		return true;
 	}
 
+	public void fireSequenceLooping()
+	{
+		if (niParticleSystemController != null)
+		{
+			j3dNiParticleSystemController.fireSequenceLooping();
+		}
+	}
+
 	public void fireSequence()
 	{
 		// non looping always reset the data before firing
+		// I feel this is rubbish in fact
+		//reset(NiParticles niParticles, NiToJ3dData niToJ3dData, TextureSource textureSource)
 
 		if (niParticleSystemController != null)
 		{

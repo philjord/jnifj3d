@@ -225,7 +225,7 @@ public class J3dNiParticleEmitter
 		aaY.setAngle(pa);
 		t.set(aaZ);
 		t2.set(aaY);
-		t.mul(t2);
+		t.mul(t2, t);
 		vel.set(0, 1, 0);
 		t.transform(vel);
 		vel.scale(particleSpeed);
@@ -246,8 +246,7 @@ public class J3dNiParticleEmitter
 		int newParticleId = j3dNiParticlesData.addActive(radius, (long) particleLifeSpan, generation, pos.x, pos.y, pos.z, col.x, col.y,
 				col.z, col.w, vel.x, vel.y, vel.z);
 
-		j3dNiParticleSystemController.particleCreated(newParticleId);
-
+		j3dNiParticleSystemController.particleCreated(newParticleId);	
 	}
 
 }

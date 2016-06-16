@@ -128,6 +128,7 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 
 	public void particleCreated(int newParticleId)
 	{
+		//System.out.println("new particle created " + newParticleId);
 		if (newParticleId != -1)
 		{
 			// now tell all modifiers about the new particles so they can make updates to it (like add rotation etc)
@@ -141,6 +142,11 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 	@Override
 	public void update(float timeSec)
 	{
+
+		//if we've looped around set prev to 0
+		if (prevUpdateValue > timeSec)
+			prevUpdateValue = 0;
+
 		// the float received here is time (from 0-2 for the example)
 
 		long elpasedTimeSinceLastUpdate = (long) ((timeSec - prevUpdateValue) * 1000);
@@ -159,10 +165,7 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 			@Override
 			public void updateData(Geometry geometry)
 			{
-				j3dNiParticlesData.recalcAllGaCoords();
-				j3dNiParticlesData.resetAllGaColors();
-				j3dNiParticlesData.recalcSizes();
-				j3dNiParticlesData.recalcRotations();
+				j3dNiParticlesData.updateData();
 			}
 		});
 
@@ -181,7 +184,13 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 			// is the particle past it's lifespan?
 			if (lss[i] < as[i])
 			{
-				//System.out.println("killing " + i);
+
+				// I don't think they are fading enough before being devactitaed??
+				// no I've got a crazy system, things are turning back on after inactivated without
+				// having data reset
+
+				//System.out.println("killing " + i + " as[i] " + as[i] + " lss[i] " + lss[i]);
+
 				j3dNiParticlesData.inactivateParticle(i);
 			}
 		}
@@ -233,12 +242,21 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 	 */
 	public void fireSequence()
 	{
+		fireSequence(false);
+	}
+
+	public void fireSequenceLooping()
+	{
+		fireSequence(true);
+	}
+
+	private void fireSequence(boolean looping)
+	{
 		sequenceBehavior.setEnable(false);
 
 		prevUpdateValue = 0;
 
-		//in theory the start time is working right here right now?
-		sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, false);
+		sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, looping);
 		sequenceAlpha.start();
 
 		sequenceBehavior.setEnable(true);// disables after loop if required
