@@ -59,6 +59,27 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 
 		// the shape will not be added so we can choose to add it to a root we like in a moment
 		super(niParticleSystem, niToJ3dData, textureSource, new Shape3D());
+		
+		
+		
+		
+		
+		
+		
+		///////////////////////////DISABLED!!!!!!!
+				if(true)return;
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
 		shape = getShape();
 		shape.clearCapabilities();
 		shape.setPickable(false);

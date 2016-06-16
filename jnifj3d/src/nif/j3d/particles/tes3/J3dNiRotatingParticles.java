@@ -25,4 +25,5 @@ public class J3dNiRotatingParticles extends J3dNiParticles
 
 		super.init(niParticles, niToJ3dData, textureSource);
 	}
+	
 }

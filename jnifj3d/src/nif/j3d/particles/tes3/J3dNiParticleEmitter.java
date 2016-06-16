@@ -28,7 +28,12 @@ public class J3dNiParticleEmitter
 	private J3dNiParticles parent;
 
 	private J3dNiNode emitter;
+
 	private J3dNiAVObject root;
+
+	private float emitStart = 0;
+
+	private float emitStop = 0;
 
 	private boolean autoAdjust = true;
 
@@ -65,7 +70,7 @@ public class J3dNiParticleEmitter
 
 		emitter = (J3dNiNode) niToJ3dData.get((NiAVObject) niToJ3dData.get(niParticleSystemController.emitter));
 		emitter.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-		
+
 		//try to find nif root
 		root = emitter.topOfParent;
 		root.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
@@ -83,7 +88,8 @@ public class J3dNiParticleEmitter
 			pt.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
 			pt = pt.topOfParent;
 		}
-
+		emitStart = niParticleSystemController.emitStartTime;
+		emitStop = niParticleSystemController.emitStopTime;
 		autoAdjust = niParticleSystemController.emitFlags == 0;
 		birthRate = niParticleSystemController.emitRate;
 		speed = niParticleSystemController.speed;
@@ -147,7 +153,7 @@ public class J3dNiParticleEmitter
 	protected void getCreationPoint(Point3f pos)
 	{
 		// Notice this is location of the node, but I'm going to add to this node so I need to
-		//find the relative position
+		// find the relative position
 		// which means using the getTreeTransfom and the root node for both the emitter
 		// and the particle system location
 		emitter.getTreeTransform(t3, root);
@@ -173,29 +179,30 @@ public class J3dNiParticleEmitter
 
 	private Transform3D t2 = new Transform3D();
 
-	public void update(long elapsedMillisec)
+	/**
+	 * Note not the same interface as a modifier
+	 */
+	public void update(float timeSec, long elapsedMillisec)
 	{
-		if (autoAdjust)
+		if (timeSec >= emitStart && timeSec <= emitStop)
 		{
-			if (j3dNiParticlesData.activeParticleCount < j3dNiParticlesData.maxParticleCount)
-				addParticle();
-		}
-		else
-		{
-			float birthRatePerUpdateTime = (birthRate / 1000f) * elapsedMillisec;
-
-			while (birthRatePerUpdateTime > 1)
+			if (autoAdjust)
 			{
-				addParticle();
-				birthRatePerUpdateTime -= 1;
+				// just fill up to the max
+				while (j3dNiParticlesData.activeParticleCount < j3dNiParticlesData.maxParticleCount)
+				{
+					addParticle();
+				}
 			}
-
-			boolean shouldAdd = Math.random() < birthRatePerUpdateTime;
-
-			//See file:///C:/Emergent/Gamebryo-LightSpeed-Binary/Documentation/HTML/Art/Max/Particles.htm
-			if (shouldAdd)
+			else
 			{
-				addParticle();
+				float birthRatePerUpdateTime = (birthRate / 1000f) * elapsedMillisec;
+
+				while (birthRatePerUpdateTime > 0)
+				{
+					addParticle();
+					birthRatePerUpdateTime -= 1;
+				}
 			}
 		}
 
@@ -203,9 +210,6 @@ public class J3dNiParticleEmitter
 
 	private void addParticle()
 	{
-		//NOTE NOTE, possibly it's just rotate around Z then pivot that point around Z??
-		// yes confirmed, starts pointing up, declination rotates around Z (toward either + or - X) then PA pivots around Z
-
 		float particleSpeed = speed;
 		particleSpeed += J3dNiParticleModifier.var(speedVariation);
 		particleSpeed = ConvertFromNif.toJ3d(particleSpeed);
@@ -230,7 +234,6 @@ public class J3dNiParticleEmitter
 
 		float radius = initialRadius; // notice NO convert for radius, it's screen
 		radius += J3dNiParticleModifier.var(radiusVariation * 2);
-
 
 		float particleLifeSpan = lifeSpan;
 		particleLifeSpan += J3dNiParticleModifier.var(lifeSpanVariation);

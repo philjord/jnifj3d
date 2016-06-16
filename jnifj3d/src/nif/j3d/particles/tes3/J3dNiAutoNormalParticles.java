@@ -25,5 +25,7 @@ public class J3dNiAutoNormalParticles extends J3dNiParticles
 
 		super.init(niParticles, niToJ3dData, textureSource);
 	}
+	
+	 
 
 }

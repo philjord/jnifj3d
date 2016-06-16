@@ -65,6 +65,8 @@ public class J3dNiParticlesData
 
 	private float[] rotationsF;
 
+	public float particlesBaseRadius;
+
 	//https://www.opengl.org/discussion_boards/showthread.php/166796-GLSL-PointSprites-different-sizes
 
 	/**
@@ -91,6 +93,8 @@ public class J3dNiParticlesData
 		//sizes
 
 		this.niParticlesData = niParticlesData;
+
+		this.particlesBaseRadius = niParticlesData.particlesRadius;
 
 		maxParticleCount = niParticlesData.numVertices;
 		gaVertexCount = maxParticleCount;
@@ -153,6 +157,12 @@ public class J3dNiParticlesData
 
 		setupInitialParticles();
 
+	}
+
+	public void reset()
+	{		
+		activeParticleCount = niParticlesData.numActive;
+		setupInitialParticles();
 	}
 
 	protected void setupInitialParticles()
@@ -271,7 +281,7 @@ public class J3dNiParticlesData
 		{
 			int indx = activeParticleCount;
 			// odd only 1-40 are first then 56-59 are being used as active??
-			System.out.println("new particle = " + indx);
+			//System.out.println("new particle = " + indx);
 
 			particleSpawnTime[indx] = System.currentTimeMillis();
 
@@ -365,7 +375,6 @@ public class J3dNiParticlesData
 	{
 		for (int indx = 0; indx < activeParticleCount; indx++)
 		{
-			//sizes.put(indx, particleRadius[indx]);
 			rotationsF[indx] = particleRotationAngle[indx];
 		}
 	}
@@ -376,21 +385,24 @@ public class J3dNiParticlesData
 	 */
 	public void resetAllGaColors()
 	{
-		for (int i = 0; i < activeParticleCount; i++)
+		if (niParticlesData.hasVertexColors)
 		{
+			for (int i = 0; i < activeParticleCount; i++)
+			{
 
-			//TODO: the texture shader has a gradient color texture under grayscale texture holder
-			//textures\effects\gradients\GradFlame01.dds
+				//TODO: the texture shader has a gradient color texture under grayscale texture holder
+				//textures\effects\gradients\GradFlame01.dds
 
-			float r = particleColors[i * 4 + 0];
-			float g = particleColors[i * 4 + 1];
-			float b = particleColors[i * 4 + 2];
-			float a = particleColors[i * 4 + 3];
+				float r = particleColors[i * 4 + 0];
+				float g = particleColors[i * 4 + 1];
+				float b = particleColors[i * 4 + 2];
+				float a = particleColors[i * 4 + 3];
 
-			gaColors[i * 4 + 0] = r;
-			gaColors[i * 4 + 1] = g;
-			gaColors[i * 4 + 2] = b;
-			gaColors[i * 4 + 3] = a;
+				gaColors[i * 4 + 0] = r;
+				gaColors[i * 4 + 1] = g;
+				gaColors[i * 4 + 2] = b;
+				gaColors[i * 4 + 3] = a;
+			}
 		}
 
 	}

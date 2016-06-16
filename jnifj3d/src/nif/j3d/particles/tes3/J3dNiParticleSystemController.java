@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import javax.media.j3d.Alpha;
 import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.Bounds;
+import javax.media.j3d.Geometry;
+import javax.media.j3d.GeometryUpdater;
 import javax.media.j3d.Node;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
@@ -25,6 +27,8 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 {
 	protected ArrayList<J3dNiParticleModifier> modifiersInOrder = new ArrayList<J3dNiParticleModifier>();
 
+	private NiParticleSystemController niParticleSystemController;
+
 	private J3dNiInterpolator j3dNiInterpolator;
 
 	private J3dNiParticleSystemController nextJ3dNiParticleSystemController;
@@ -34,16 +38,15 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 	private J3dNiParticleEmitter j3dNiParticleEmitter;
 
 	private SequenceAlpha sequenceAlpha;
+	private float prevUpdateValue = 0;
 
 	private SequenceBehavior sequenceBehavior = new SequenceBehavior(this);
 
-	protected long lengthMS = 0;
+	private float startTimeS = 0;
 
-	protected float startTimeS = 0;
+	private float stopTimeS = 0;
 
-	protected float stopTimeS = 0;
-
-	protected float lengthS = 0;
+	private float lengthS = 0;
 
 	public J3dNiParticleSystemController(NiParticleSystemController niParticleSystemController, J3dNiParticles parent,
 			J3dNiParticlesData j3dNiParticlesData, NiToJ3dData niToJ3dData)
@@ -51,6 +54,7 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 		super(niParticleSystemController, null);
 
 		this.j3dNiParticlesData = j3dNiParticlesData;
+		this.niParticleSystemController = niParticleSystemController;
 
 		startTimeS = niParticleSystemController.startTime;
 		stopTimeS = niParticleSystemController.stopTime;
@@ -64,6 +68,15 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 
 		j3dNiParticleEmitter = new J3dNiParticleEmitter(niParticleSystemController, parent, this, j3dNiParticlesData, niToJ3dData);
 
+		sequenceBehavior.setEnable(false);
+		sequenceBehavior.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
+		addChild(sequenceBehavior);
+
+		reset();
+	}
+
+	public void reset()
+	{
 		// now add initial data to the particles
 		for (int indx = 0; indx < niParticleSystemController.numValid; indx++)
 		{
@@ -77,9 +90,6 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 			j3dNiParticlesData.particleLifeSpan[indx] = (long) (p.lifespan * 1000);
 		}
 
-		sequenceBehavior.setEnable(false);
-		sequenceBehavior.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
-		addChild(sequenceBehavior);
 	}
 
 	/**
@@ -129,25 +139,34 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 	}
 
 	@Override
-	public void update(float value)
+	public void update(float timeSec)
 	{
 		// the float received here is time (from 0-2 for the example)
-		// but I'm not sure that matters much?
-		long fixedTime = 50L;
+
+		long elpasedTimeSinceLastUpdate = (long) ((timeSec - prevUpdateValue) * 1000);
 
 		// there is no modifier to control these 2 aspects so done here
-		updateAge(fixedTime);
-		updatePosition(fixedTime);
-		j3dNiParticleEmitter.update(fixedTime);
+		updateAge(elpasedTimeSinceLastUpdate);
+		updatePosition(elpasedTimeSinceLastUpdate);
+		j3dNiParticleEmitter.update(timeSec, elpasedTimeSinceLastUpdate);
 
 		for (J3dNiParticleModifier j3dNiParticleModifier : modifiersInOrder)
 		{
-			//TODO: this is hard coded to the PerTime behaviour above, needs to work out real time?
-			j3dNiParticleModifier.updateParticles(fixedTime);
+			j3dNiParticleModifier.updateParticles(elpasedTimeSinceLastUpdate);
 		}
 
-		// Because updatePosition and  gravity affect this
-		j3dNiParticlesData.recalcAllGaCoords();
+		j3dNiParticlesData.getGeometryArray().updateData(new GeometryUpdater() {
+			@Override
+			public void updateData(Geometry geometry)
+			{
+				j3dNiParticlesData.recalcAllGaCoords();
+				j3dNiParticlesData.resetAllGaColors();
+				j3dNiParticlesData.recalcSizes();
+				j3dNiParticlesData.recalcRotations();
+			}
+		});
+
+		prevUpdateValue = timeSec;
 	}
 
 	public void updateAge(long elapsedMillisec)
@@ -158,10 +177,11 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 		for (int i = 0; i < j3dNiParticlesData.activeParticleCount; i++)
 		{
 			as[i] += elapsedMillisec;
+
 			// is the particle past it's lifespan?
 			if (lss[i] < as[i])
 			{
-				System.out.println("killing " + i);
+				//System.out.println("killing " + i);
 				j3dNiParticlesData.inactivateParticle(i);
 			}
 		}
@@ -183,6 +203,7 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 			ts[i * 3 + 2] += vs[i * 3 + 2] * fractionOfSec;
 		}
 		// note j3dNiAutoNormalParticlesData.recalcAllGaCoords(); will be called once by the particle system after all modifiers have run
+
 	}
 
 	@Override
@@ -213,6 +234,8 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 	public void fireSequence()
 	{
 		sequenceBehavior.setEnable(false);
+
+		prevUpdateValue = 0;
 
 		//in theory the start time is working right here right now?
 		sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, false);

@@ -42,6 +42,11 @@ public class J3dNiParticles extends J3dNiGeometry
 {
 	private static boolean SHOW_DEBUG_LINES = false;
 
+	// keep for a rest
+	private NiParticles niParticles;
+	private NiToJ3dData niToJ3dData;
+	private TextureSource textureSource;
+
 	protected J3dNiParticlesData j3dNiParticlesData;
 
 	private J3dNiParticleSystemController j3dNiParticleSystemController = null;
@@ -60,6 +65,11 @@ public class J3dNiParticles extends J3dNiGeometry
 	{
 		// the shape will not be added so we can choose to add it to a root we like in a moment
 		super(niParticles, niToJ3dData, textureSource, new Shape3D());
+
+		this.niParticles = niParticles;
+		this.niToJ3dData = niToJ3dData;
+		this.textureSource = textureSource;
+
 		shape = getShape();
 		shape.clearCapabilities();
 		shape.setPickable(false);
@@ -67,11 +77,8 @@ public class J3dNiParticles extends J3dNiGeometry
 
 		niToJ3dData.put(niParticles, this);
 		allParticleSystems.add(this);
-		
-		///////////////////////////////////////////////test!!!!!!
-		
-	//	if (niParticles.refId == 10)
-			init(niParticles, niToJ3dData, textureSource);
+
+		init(niParticles, niToJ3dData, textureSource);
 
 	}
 
@@ -101,6 +108,15 @@ public class J3dNiParticles extends J3dNiGeometry
 				configureOutLines();
 
 			}
+		}
+	}
+
+	protected void reset(NiParticles niParticles, NiToJ3dData niToJ3dData, TextureSource textureSource)
+	{
+		j3dNiParticlesData.reset();
+		if (niParticleSystemController != null)
+		{
+			j3dNiParticleSystemController.reset();
 		}
 	}
 
@@ -143,7 +159,7 @@ public class J3dNiParticles extends J3dNiGeometry
 			// this is done here because all nodes need to be added as we use get transform tree
 			j3dNiParticleSystemController = new J3dNiParticleSystemController(niParticleSystemController, this, j3dNiParticlesData,
 					niToJ3dData);
-			
+
 			addChild(j3dNiParticleSystemController);
 
 			setUpModifers(niToJ3dData);
@@ -205,6 +221,8 @@ public class J3dNiParticles extends J3dNiGeometry
 
 	public void fireSequence()
 	{
+		// non looping always reset the data before firing
+
 		if (niParticleSystemController != null)
 		{
 			j3dNiParticleSystemController.fireSequence();

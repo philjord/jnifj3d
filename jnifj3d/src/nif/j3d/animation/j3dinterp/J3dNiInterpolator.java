@@ -7,7 +7,6 @@ import javax.media.j3d.Group;
 import javax.media.j3d.Interpolator;
 import javax.media.j3d.TransformGroup;
 
-import nif.j3d.J3dNiAVObject;
 import nif.j3d.animation.j3dinterp.interp.Interpolated;
 import tools3d.utils.Utils3D;
 
@@ -69,7 +68,6 @@ public abstract class J3dNiInterpolator extends Group
 	{
 		Interpolator interp = new Interpolator(baseAlpha)
 		{
-			@SuppressWarnings("rawtypes")
 			@Override
 			public void processStimulus(Enumeration criteria)
 			{

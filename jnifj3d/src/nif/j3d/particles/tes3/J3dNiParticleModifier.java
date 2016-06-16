@@ -22,7 +22,13 @@ public abstract class J3dNiParticleModifier
 		//default ignore
 	}
 
-	// Called by particle system to get the modifier to apply it's effect
+	/**
+	 * Called by particle system controller to get the modifier to apply it's effect
+	 * elapased time is how long since the last call for fixed progress effects like gravity
+	 * all other effect happen based on the life time of the particles themselves
+	 * elpased time is in ms
+	 */
+
 	public abstract void updateParticles(long elapsedMillisec);
 
 	public static J3dNiParticleModifier createJ3dNiParticleModifier(NiParticleModifier niParticleModifier,

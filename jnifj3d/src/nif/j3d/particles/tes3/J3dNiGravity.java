@@ -40,6 +40,7 @@ public class J3dNiGravity extends J3dNiParticleModifier
 	@Override
 	public void updateParticles(long elapsedMillisec)
 	{
+
 		if (type == FieldType.FIELD_POINT)
 		{
 			gravityLoc.set(0, 0, 0);

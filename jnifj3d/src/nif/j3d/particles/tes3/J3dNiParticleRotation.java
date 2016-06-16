@@ -5,13 +5,11 @@ import nif.niobject.particle.NiParticleRotation;
 
 public class J3dNiParticleRotation extends J3dNiParticleModifier
 {
-
 	private NiParticleRotation niParticleRotation;
 
 	private float initialRotSpeed;
 
-	public J3dNiParticleRotation(NiParticleRotation niParticleRotation, J3dNiParticlesData j3dNiParticlesData,
-			NiToJ3dData niToJ3dData)
+	public J3dNiParticleRotation(NiParticleRotation niParticleRotation, J3dNiParticlesData j3dNiParticlesData, NiToJ3dData niToJ3dData)
 	{
 		super(niParticleRotation, j3dNiParticlesData, niToJ3dData);
 		this.niParticleRotation = niParticleRotation;
@@ -27,10 +25,9 @@ public class J3dNiParticleRotation extends J3dNiParticleModifier
 	@Override
 	public void updateParticles(long elapsedMillisec)
 	{
+		float fractionOfSec = elapsedMillisec / 1000;
 		// simply grab the rotation speed for an active particle and add it on to the current rotation
 		// velocitys are in meters per second
-
-		float fractionOfSec = elapsedMillisec / 1000f;
 
 		float[] rss = j3dNiParticlesData.particleRotationSpeed;
 		float[] ras = j3dNiParticlesData.particleRotationAngle;
@@ -38,9 +35,6 @@ public class J3dNiParticleRotation extends J3dNiParticleModifier
 		{
 			ras[i] += rss[i] * fractionOfSec;
 		}
-		j3dNiParticlesData.recalcRotations();
-		// note j3dPSysData.recalcAllGaCoords(); will be called once by the particle system after all modifiers have run
-
 	}
 
 	@Override
