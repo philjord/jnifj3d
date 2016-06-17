@@ -42,10 +42,10 @@ public class J3dNiParticles extends J3dNiGeometry
 {
 	private static boolean SHOW_DEBUG_LINES = false;
 
-	// keep for a rest
-	private NiParticles niParticles;
-	private NiToJ3dData niToJ3dData;
-	private TextureSource textureSource;
+	// keep for a reset
+//	private NiParticles niParticles;
+//	private NiToJ3dData niToJ3dData;
+//	private TextureSource textureSource;
 
 	protected J3dNiParticlesData j3dNiParticlesData;
 
@@ -66,9 +66,9 @@ public class J3dNiParticles extends J3dNiGeometry
 		// the shape will not be added so we can choose to add it to a root we like in a moment
 		super(niParticles, niToJ3dData, textureSource, new Shape3D());
 
-		this.niParticles = niParticles;
-		this.niToJ3dData = niToJ3dData;
-		this.textureSource = textureSource;
+//		this.niParticles = niParticles;
+//		this.niToJ3dData = niToJ3dData;
+//		this.textureSource = textureSource;
 
 		shape = getShape();
 		shape.clearCapabilities();
@@ -172,7 +172,7 @@ public class J3dNiParticles extends J3dNiGeometry
 			
 			
 			//FIXME: should I auto fire this guy? how to know when to remove magic effects for example?
-			j3dNiParticleSystemController.fireSequenceLooping();
+			j3dNiParticleSystemController.fireSequenceLooping();			
 		}
 		 
 	}

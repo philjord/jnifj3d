@@ -17,10 +17,7 @@ public abstract class J3dNiParticleModifier
 	}
 
 	// Called by particle system to get the modifier to apply it's effect, to a newly created particle
-	public void particleCreated(int pId)
-	{
-		//default ignore
-	}
+	public abstract void particleCreated(int pId);
 
 	/**
 	 * Called by particle system controller to get the modifier to apply it's effect

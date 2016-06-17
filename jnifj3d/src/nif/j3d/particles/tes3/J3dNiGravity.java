@@ -24,9 +24,9 @@ public class J3dNiGravity extends J3dNiParticleModifier
 	{
 		super(niGravity, j3dNiParticlesData, niToJ3dData);
 
-		position = ConvertFromNif.toJ3dNoScale(niGravity.position); // normal no scale 
+		position = ConvertFromNif.toJ3d(niGravity.position); // point  
 		direction = ConvertFromNif.toJ3dNoScale(niGravity.direction); // normal no scale 
-		decay = ConvertFromNif.toJ3d(niGravity.unknownFloat1);// TODO: is this right?
+		decay = 1;//ConvertFromNif.toJ3d(niGravity.unknownFloat1);// TODO: is this right?
 		force = ConvertFromNif.toJ3d(niGravity.force);
 		type = niGravity.type.type;
 
@@ -37,18 +37,15 @@ public class J3dNiGravity extends J3dNiParticleModifier
 
 	private Vector3f gravityApplied = new Vector3f();
 
+	private Point3f loc = new Point3f();
+
 	@Override
 	public void updateParticles(long elapsedMillisec)
 	{
 
 		if (type == FieldType.FIELD_POINT)
 		{
-			gravityLoc.set(0, 0, 0);
-
-			gravityApplied.set(position);
-
-			gravityApplied.normalize();
-			Point3f loc = new Point3f();
+			gravityLoc.set(position);
 
 			float fractionOfSec = elapsedMillisec / 1000f;
 
@@ -58,8 +55,10 @@ public class J3dNiGravity extends J3dNiParticleModifier
 			for (int i = 0; i < j3dNiParticlesData.activeParticleCount; i++)
 			{
 				loc.set(ts[i * 3 + 0], ts[i * 3 + 1], ts[i * 3 + 2]);
-				float distFromGravity = gravityLoc.distance(loc);
-				float actualDecay = (decay * distFromGravity) * (decay * distFromGravity);
+				gravityApplied.sub(gravityLoc, loc);
+				float distFromGravity = gravityApplied.length();
+				gravityApplied.normalize();
+				float actualDecay = 0;// TODO: do  I have decay? (decay * distFromGravity) * (decay * distFromGravity);
 				float actualStrength = force - actualDecay;
 				actualStrength = actualStrength < 0 ? 0 : actualStrength;
 
@@ -70,8 +69,30 @@ public class J3dNiGravity extends J3dNiParticleModifier
 		}
 		else if (type == FieldType.FIELD_WIND)
 		{
-			//TODO:
+			gravityApplied.set(direction);
+
+			gravityApplied.normalize();
+
+			float fractionOfSec = elapsedMillisec / 1000f;
+
+			float[] vs = j3dNiParticlesData.particleVelocity;
+
+			for (int i = 0; i < j3dNiParticlesData.activeParticleCount; i++)
+			{
+				float actualStrength = force;
+				actualStrength = actualStrength < 0 ? 0 : actualStrength;
+
+				vs[i * 3 + 0] += gravityApplied.x * fractionOfSec * actualStrength;
+				vs[i * 3 + 1] += gravityApplied.y * fractionOfSec * actualStrength;
+				vs[i * 3 + 2] += gravityApplied.z * fractionOfSec * actualStrength;
+			}
 		}
 
+	}
+
+	@Override
+	public void particleCreated(int pId)
+	{
+		//no gravity just yet		
 	}
 }

@@ -114,11 +114,16 @@ public class J3dNiParticlesData
 		}
 
 		ga.setCoordRefFloat(gaCoords);
+		ga.setCapability(GeometryArray.ALLOW_COORDINATE_WRITE);
 		ga.setTexCoordRefFloat(0, gaTexCoords);
+		ga.setCapability(GeometryArray.ALLOW_TEXCOORD_WRITE);
 		ga.setCoordIndicesRef(gaCoordIndices);
 
 		if (niParticlesData.hasVertexColors)
+		{
 			ga.setColorRefFloat(gaColors);
+			ga.setCapability(GeometryArray.ALLOW_COLOR_WRITE);
+		}
 
 		//ByteBuffer bb = ByteBuffer.allocateDirect(maxParticleCount);
 		//bb.order(ByteOrder.nativeOrder());
@@ -248,8 +253,6 @@ public class J3dNiParticlesData
 		{
 			int indx = activeParticleCount;
 
-			//System.out.println("new particle = " + indx);
-
 			particleSpawnTime[indx] = System.currentTimeMillis();
 
 			particleAge[indx] = 0;
@@ -309,10 +312,10 @@ public class J3dNiParticlesData
 		// If I take the last 5 off they are not there, but they flash during re-loop
 
 		// set by add or inactivate but called here
-		if (activeParticleCount > 5)
-			ga.setValidIndexCount(activeParticleCount - 5);
-		else
-			ga.setValidIndexCount(activeParticleCount);
+		//	if (activeParticleCount > 5)
+		//		ga.setValidIndexCount(activeParticleCount - 5);
+		//	else
+		ga.setValidIndexCount(activeParticleCount);
 	}
 
 	/**
@@ -357,6 +360,10 @@ public class J3dNiParticlesData
 				gaColors[i * 4 + 1] = particleColors[i * 4 + 1];
 				gaColors[i * 4 + 2] = particleColors[i * 4 + 2];
 				gaColors[i * 4 + 3] = particleColors[i * 4 + 3];
+
+				//			System.out.println("Set color for " + i + " " + gaColors[i * 4 + 0] + " " + gaColors[i * 4 + 1]//
+				//					+ " " + gaColors[i * 4 + 2] + " " + gaColors[i * 4 + 3]);
+
 			}
 		}
 
@@ -392,6 +399,54 @@ public class J3dNiParticlesData
 		recalcSizes();
 		recalcRotations();
 		resetTexCoords();
+	}
+
+	public void printoutParticleData()
+	{
+		System.out.println("Active Particle count = " + activeParticleCount);
+		for (int indx = 0; indx < activeParticleCount; indx++)
+		{
+			System.out.print("" + indx);
+			//System.out.print(" SpawnTime " + particleSpawnTime[indx]);
+
+			System.out.print(" Age " + particleAge[indx]);
+
+			System.out.print(" LifeSpan " + particleLifeSpan[indx]);
+
+			//System.out.print(" Generation " + particleGeneration[indx]);
+
+			System.out.print(" Radius " + particleRadius[indx]);
+
+			System.out.print(" T(x=" + particleTranslation[indx * 3 + 0]);
+			System.out.print(",y=" + particleTranslation[indx * 3 + 1]);
+			System.out.print(",z=" + particleTranslation[indx * 3 + 2] + ")\t");
+
+			System.out.print(" RotAngle " + particleRotationAngle[indx]);
+			System.out.print(" RotSpeed " + particleRotationSpeed[indx]);
+
+			System.out.print(" V(x=" + particleVelocity[indx * 3 + 0]);
+			System.out.print(",y=" + particleVelocity[indx * 3 + 1]);
+			System.out.print(",z=" + particleVelocity[indx * 3 + 2] + ")\t");
+
+			if (niParticlesData.hasVertexColors)
+			{
+				System.out.print(" C(r= " + particleColors[indx * 4 + 0]);
+				System.out.print(",g=" + particleColors[indx * 4 + 1]);
+				System.out.print(",b=" + particleColors[indx * 4 + 2]);
+				System.out.print(",a=" + particleColors[indx * 4 + 3] + ")\t");
+
+				System.out.print(" gaC(r= " + gaColors[indx * 4 + 0]);
+				System.out.print(",g=" + gaColors[indx * 4 + 1]);
+				System.out.print(",b=" + gaColors[indx * 4 + 2]);
+				System.out.print(",a=" + gaColors[indx * 4 + 3] + ")\t");
+
+			}
+
+			System.out.print(" ImageId " + particleImageIds[indx]);
+			System.out.println("");
+
+		}
+
 	}
 
 }

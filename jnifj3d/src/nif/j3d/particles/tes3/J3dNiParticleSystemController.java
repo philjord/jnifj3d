@@ -142,12 +142,11 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 	@Override
 	public void update(float timeSec)
 	{
+		// the float received here is time (from 0-2 for the example)
 
 		//if we've looped around set prev to 0
 		if (prevUpdateValue > timeSec)
 			prevUpdateValue = 0;
-
-		// the float received here is time (from 0-2 for the example)
 
 		long elpasedTimeSinceLastUpdate = (long) ((timeSec - prevUpdateValue) * 1000);
 
@@ -170,6 +169,12 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 		});
 
 		prevUpdateValue = timeSec;
+
+	/*	if (niParticleSystemController.refId == -1)
+		{
+			System.out.println("Particles Updated timeSec:" + timeSec + " elpasedTimeSinceLastUpdate:" + elpasedTimeSinceLastUpdate);
+			j3dNiParticlesData.printoutParticleData();
+		}*/
 	}
 
 	public void updateAge(long elapsedMillisec)

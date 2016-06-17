@@ -34,9 +34,8 @@ public class J3dNiParticleColorModifier extends J3dNiParticleModifier
 			cs[i * 4 + 0] = nc.x;
 			cs[i * 4 + 1] = nc.y;
 			cs[i * 4 + 2] = nc.z;
-			cs[i * 4 + 3] = nc.w; 
+			cs[i * 4 + 3] = nc.w;
 		}
-		
 
 	}
 
@@ -69,5 +68,17 @@ public class J3dNiParticleColorModifier extends J3dNiParticleModifier
 		}
 
 		return ret;
+	}
+
+	@Override
+	public void particleCreated(int pId)
+	{
+		NifColor4 nc = (NifColor4) niColorData.data.keys[0].value;
+		float[] cs = j3dNiParticlesData.particleColors;
+		cs[pId * 4 + 0] = nc.r;
+		cs[pId * 4 + 1] = nc.g;
+		cs[pId * 4 + 2] = nc.b;
+		cs[pId * 4 + 3] = nc.a;
+
 	}
 }
