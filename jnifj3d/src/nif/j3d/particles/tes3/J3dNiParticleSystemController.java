@@ -48,6 +48,8 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 
 	private float lengthS = 0;
 
+	private Bounds bounds = new BoundingSphere(new Point3d(0.0, 0.0, 0.0), 100);
+
 	public J3dNiParticleSystemController(NiParticleSystemController niParticleSystemController, J3dNiParticles parent,
 			J3dNiParticlesData j3dNiParticlesData, NiToJ3dData niToJ3dData)
 	{
@@ -69,7 +71,7 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 		j3dNiParticleEmitter = new J3dNiParticleEmitter(niParticleSystemController, parent, this, j3dNiParticlesData, niToJ3dData);
 
 		sequenceBehavior.setEnable(false);
-		sequenceBehavior.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
+		sequenceBehavior.setSchedulingBounds(bounds);
 		addChild(sequenceBehavior);
 
 		reset();
@@ -99,7 +101,7 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 	@Override
 	public Bounds getBounds()
 	{
-		return Utils3D.defaultBounds;
+		return bounds;
 	}
 
 	public void setInterpolator(J3dNiInterpolator j3dNiInterpolator2, Alpha baseAlpha2)
@@ -170,11 +172,11 @@ public class J3dNiParticleSystemController extends J3dNiTimeController
 
 		prevUpdateValue = timeSec;
 
-	/*	if (niParticleSystemController.refId == -1)
-		{
-			System.out.println("Particles Updated timeSec:" + timeSec + " elpasedTimeSinceLastUpdate:" + elpasedTimeSinceLastUpdate);
-			j3dNiParticlesData.printoutParticleData();
-		}*/
+		/*	if (niParticleSystemController.refId == -1)
+			{
+				System.out.println("Particles Updated timeSec:" + timeSec + " elpasedTimeSinceLastUpdate:" + elpasedTimeSinceLastUpdate);
+				j3dNiParticlesData.printoutParticleData();
+			}*/
 	}
 
 	public void updateAge(long elapsedMillisec)
