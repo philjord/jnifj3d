@@ -75,13 +75,6 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 
 			// Some times the nif just has no texture, odd. see BSShaderNoLightingProperty
 
-			// Various parts to allow fading in and out
-			normalTA = normalApp.getTransparencyAttributes();
-			normalApp.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_READ);
-			normalApp.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_WRITE);
-			faderTA = new TransparencyAttributes(TransparencyAttributes.BLENDED, 0f);
-			faderTA.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE);
-
 		}
 
 	}
@@ -124,7 +117,7 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 
 		return null;
 	}
-	
+
 	public static TextureUnitState loadTextureUnitState(String texName, TextureSource ts)
 	{
 		if (ts != null && texName != null && texName.length() > 0)
@@ -152,26 +145,39 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 	@Override
 	public void fade(float percent)
 	{
-		// setting transparency is expensive early out it if possible
-		if (currentTrans != percent)
+		// check for setup indicator
+		if (percent == -1f)
 		{
-			if (percent <= 0 || percent >= 1.0f)
+			// Various parts to allow fading in and out
+			normalTA = normalApp.getTransparencyAttributes();
+			normalApp.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_READ);
+			normalApp.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_WRITE);
+			faderTA = new TransparencyAttributes(TransparencyAttributes.BLENDED, 0f);
+			faderTA.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE);
+		}
+		else
+		{
+			// setting transparency is expensive early out it if possible
+			if (currentTrans != percent)
 			{
-				if (normalApp.getTransparencyAttributes() != normalTA)
+				if (percent <= 0 || percent >= 1.0f)
 				{
-					// System.out.println("set normal");
-					normalApp.setTransparencyAttributes(normalTA);
+					if (normalApp.getTransparencyAttributes() != normalTA)
+					{
+						// System.out.println("set normal");
+						normalApp.setTransparencyAttributes(normalTA);
+					}
 				}
-			}
-			else
-			{
-				if (normalApp.getTransparencyAttributes() != faderTA)
-					normalApp.setTransparencyAttributes(faderTA);
+				else
+				{
+					if (normalApp.getTransparencyAttributes() != faderTA)
+						normalApp.setTransparencyAttributes(faderTA);
 
-				// System.out.println("fade set to " + percent);
-				faderTA.setTransparency(percent);
+					// System.out.println("fade set to " + percent);
+					faderTA.setTransparency(percent);
+				}
+				currentTrans = percent;
 			}
-			currentTrans = percent;
 		}
 	}
 
