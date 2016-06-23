@@ -9,6 +9,7 @@ import javax.media.j3d.BranchGroup;
 
 import nif.NifJ3dVisRoot;
 import nif.NifToJ3d;
+import nif.character.AttachedParts.Part;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiGeometry;
 import nif.j3d.J3dNiNode;
@@ -16,7 +17,7 @@ import nif.j3d.animation.J3dNiGeomMorpherController;
 import nif.j3d.animation.SequenceAlpha;
 import nif.j3d.animation.tes3.J3dNiControllerSequenceTes3;
 import nif.j3d.animation.tes3.J3dNiSequenceStreamHelper;
-import nif.j3d.particles.tes3.J3dNiBSParticleNode;
+import nif.j3d.particles.tes3.J3dNiParticles;
 import nif.niobject.NiGeometry;
 import nif.niobject.NiNode;
 import utils.source.MediaSources;
@@ -29,7 +30,8 @@ public class NifCharacterTes3 extends NifCharacter
 
 	protected ArrayList<J3dNiGeomMorpherController> allMorphs = new ArrayList<J3dNiGeomMorpherController>();
 
-	public NifCharacterTes3(String skeletonNifFilename, List<String> skinNifModelFilenames, MediaSources mediaSources)
+	public NifCharacterTes3(String skeletonNifFilename, List<String> skinNifModelFilenames, AttachedParts attachedParts,
+			MediaSources mediaSources)
 	{
 		super(skeletonNifFilename, skinNifModelFilenames, mediaSources, null);
 
@@ -49,133 +51,88 @@ public class NifCharacterTes3 extends NifCharacter
 						allMorphs.add(j3dNiGeomMorpherController);
 					}
 				}
+			}
+		}
 
-				boolean leftRequired = false;
-				//For TES3: add any unskinned trishapes in the skin file onto the bones
-				for (J3dNiAVObject j3dNiAVObject : model.getNiToJ3dData().j3dNiAVObjectValues())
+		if (attachedParts != null)
+		{
+
+			for (Part part : attachedParts.parts.keySet())
+			{
+				String nifFileName = attachedParts.parts.get(part);
+				if (nifFileName != null && nifFileName.length() > 0)
 				{
-					// don't re attach particles as the anme is not right
-					if (j3dNiAVObject instanceof J3dNiGeometry)
+					NifJ3dVisRoot model = NifToJ3d.loadShapes(nifFileName, mediaSources.getMeshSource(), mediaSources.getTextureSource());
+
+					if (model != null)
 					{
-						if (j3dNiAVObject instanceof J3dNiBSParticleNode)
+						// head attachment can definately have a morph in it 
+						for (J3dNiAVObject j3dNiAVObject : model.getNiToJ3dData().j3dNiAVObjectValues())
 						{
-							//FIXME: possibly just leave these where ever tehy are?
-							// or should they be a special character attachment
-							// attached to root bone and able toe be fired?
-						}
-						else
-						{
-							J3dNiGeometry j3dNiGeometry = (J3dNiGeometry) j3dNiAVObject;
-							NiGeometry niGeometry = (NiGeometry) j3dNiGeometry.getNiAVObject();
-							if (niGeometry.skin.ref == -1)
+							J3dNiGeomMorpherController j3dNiGeomMorpherController = j3dNiAVObject.getJ3dNiGeomMorpherController();
+							if (j3dNiGeomMorpherController != null)
 							{
-								String attachNodeName = niGeometry.name;
-								NiNode parent = niGeometry.parent;
-								if (parent != null)
-								{
-									attachNodeName = parent.name;
-								}
+								allMorphs.add(j3dNiGeomMorpherController);
+							}
+						}
 
-								//map known values
-								if (attachNodeName.contains("_Head"))
-									attachNodeName = "Head";
-								else if (attachNodeName.contains("_Hair"))
-									attachNodeName = "Head";
-								else if (attachNodeName.contains("_Neck"))
-									attachNodeName = "Neck";
-								else if (attachNodeName.contains("_Groin"))
-									attachNodeName = "Groin";
-								else if (attachNodeName.contains("_Ankle"))
-									attachNodeName = "Right Ankle";
-								else if (attachNodeName.contains("_Forearm"))
-									attachNodeName = "Right Forearm";
-								else if (attachNodeName.contains("_Foot"))
-									attachNodeName = "Right Foot";
-								else if (attachNodeName.contains("_Knee"))
-									attachNodeName = "Right Knee";
-								else if (attachNodeName.contains("_Upper Arm"))
-									attachNodeName = "Right Upper Arm";
-								else if (attachNodeName.contains("_Upper Leg"))
-									attachNodeName = "Right Upper Leg";
-								else if (attachNodeName.contains("_Wrist"))
-									attachNodeName = "Right Wrist";
-
-								J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton().get(attachNodeName);
-								if (attachnode != null)
+						//For TES3: add any unskinned trishapes in the skin file onto the bones
+						//these will not be done by the super because the following is not true
+						//NiStringExtraData nsed = (NiStringExtraData) ned;if (nsed.name.equalsIgnoreCase("PRN"))
+						for (J3dNiAVObject j3dNiAVObject : model.getNiToJ3dData().j3dNiAVObjectValues())
+						{
+							// don't re attach particles as the anme is not right
+							if (j3dNiAVObject instanceof J3dNiGeometry)
+							{
+								if (j3dNiAVObject instanceof J3dNiParticles)
 								{
-									CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, j3dNiGeometry, true, false);
-									this.addChild(ca);
-									attachments.add(ca);
+									//FIXME: possibly just leave these where ever they are?
+									// or should they be a special character attachment
+									// attached to root bone and able to be fired?
 								}
 								else
 								{
-									System.out.println("attach node not found ? " + attachNodeName + " in "
-											+ j3dNiGeometry.getNiAVObject().nVer.fileName);
-								}
+									J3dNiGeometry j3dNiGeometry = (J3dNiGeometry) j3dNiAVObject;
+									NiGeometry niGeometry = (NiGeometry) j3dNiGeometry.getNiAVObject();
+									if (niGeometry.skin.ref == -1)
+									{
+										String attachNodeName = niGeometry.name;
+										NiNode parent = niGeometry.parent;
+										if (parent != null)
+										{
+											attachNodeName = parent.name;
+										}
+										attachNodeName = part.getNode();
 
-								// please excuse crazy time now, both sides needed
-								if (attachNodeName.contains("Right "))
-								{
-									leftRequired = true;
+										J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton()
+												.get(attachNodeName);
+										if (attachnode != null)
+										{
+											CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, j3dNiGeometry, true,
+													AttachedParts.isLeftSide(part.getLoc()));
+											this.addChild(ca);
+											attachments.add(ca);
+										}
+										else
+										{
+											System.err.println("attach node not found ? " + attachNodeName + " in "
+													+ j3dNiGeometry.getNiAVObject().nVer.fileName);
+										}
+									}
+									else
+									{
+										System.err.println("How did a skin ref get into the attachment system? " + nifFileName);
+									}
 								}
 							}
 						}
 					}
-				}
-
-				if (leftRequired)
-				{
-					NifJ3dVisRoot model2 = NifToJ3d.loadShapes(skinNifModelFilename, mediaSources.getMeshSource(),
-							mediaSources.getTextureSource());
-
-					for (J3dNiAVObject j3dNiAVObject : model2.getNiToJ3dData().j3dNiAVObjectValues())
+					else
 					{
-						if (j3dNiAVObject instanceof J3dNiGeometry)
-						{
-							J3dNiGeometry j3dNiGeometry = (J3dNiGeometry) j3dNiAVObject;
-
-							NiGeometry niGeometry = (NiGeometry) j3dNiGeometry.getNiAVObject();
-							if (niGeometry.skin.ref == -1)
-							{
-								String attachNodeName = niGeometry.name;
-								NiNode parent = niGeometry.parent;
-								if (parent != null)
-								{
-									attachNodeName = parent.name;
-								}
-
-								//map known values
-								if (attachNodeName.contains("_Ankle"))
-									attachNodeName = "Left Ankle";
-								else if (attachNodeName.contains("_Forearm"))
-									attachNodeName = "Left Forearm";
-								else if (attachNodeName.contains("_Foot"))
-									attachNodeName = "Left Foot";
-								else if (attachNodeName.contains("_Knee"))
-									attachNodeName = "Left Knee";
-								else if (attachNodeName.contains("_Upper Arm"))
-									attachNodeName = "Left Upper Arm";
-								else if (attachNodeName.contains("_Upper Leg"))
-									attachNodeName = "Left Upper Leg";
-								else if (attachNodeName.contains("_Wrist"))
-									attachNodeName = "Left Wrist";
-
-								J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton().get(attachNodeName);
-								if (attachnode != null)
-								{
-									CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, j3dNiGeometry, true, true);
-									this.addChild(ca);
-									attachments.add(ca);
-								}
-								else
-								{
-									System.out.println("left attach node not found ? " + attachNodeName + " in "
-											+ j3dNiGeometry.getNiAVObject().nVer.fileName);
-								}
-							}
-						}
-
+						System.err.println("Bad model name in NifCharacterTes3 " + nifFileName);
 					}
+					 
+
 				}
 			}
 		}
@@ -213,6 +170,7 @@ public class NifCharacterTes3 extends NifCharacter
 			}
 		}
 		else
+
 		{
 			System.out.println("No TES3 kf file for " + skeletonNifFilename + " (missing .nif)");
 		}
@@ -305,4 +263,5 @@ public class NifCharacterTes3 extends NifCharacter
 	protected long prevMorphTime = 0;
 
 	protected float nextFireTime = 0;
+
 }

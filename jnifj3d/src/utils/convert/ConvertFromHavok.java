@@ -18,7 +18,7 @@ public class ConvertFromHavok
 	//Skrim has x10'ed on me! so converter must look up values
 	public static float SKYRIM_HAVOK_TO_METERS_SCALE = ESConfig.ES_TO_METERS_SCALE * 69.994f;
 
-	// humans are about 120 units high which at 0.02 makes them 2.4 meters tall - 0.016f; would be correct size
+	// humans are about 128 units high which at  makes them 1.6256 meters tall would be correct size
 	public static float PRE_SKYRIM_HAVOK_TO_METERS_SCALE = ESConfig.ES_TO_METERS_SCALE * 6.9994f;//it is 7 times the nif
 
 	public static float getHavokScale(NifVer nifVer)

@@ -59,7 +59,7 @@ import utils.source.MediaSources;
 
 public class NifCharacter extends BranchGroup implements Fadable
 {
-	
+
 	public static boolean BULK_BUFFER_UPDATES = false;
 	private MediaSources mediaSources;
 
@@ -117,65 +117,72 @@ public class NifCharacter extends BranchGroup implements Fadable
 				NifJ3dVisRoot model = NifToJ3d.loadShapes(skinNifModelFilename, mediaSources.getMeshSource(),
 						mediaSources.getTextureSource());
 
-				// create skins from the skeleton and skin nif
-				ArrayList<J3dNiSkinInstance> skins = J3dNiSkinInstance.createSkins(model.getNiToJ3dData(),
-						blendedSkeletons.getOutputSkeleton());
-
-				if (skins.size() > 0)
+				if (model != null)
 				{
-					// add the skins to the scene
-					for (J3dNiSkinInstance j3dNiSkinInstance : skins)
-					{
-						bg.addChild(j3dNiSkinInstance);
-					}
+					// create skins from the skeleton and skin nif
+					ArrayList<J3dNiSkinInstance> skins = J3dNiSkinInstance.createSkins(model.getNiToJ3dData(),
+							blendedSkeletons.getOutputSkeleton());
 
-					allSkins.addAll(skins);
-				}
-				else
-				{
-					// add any non skin based gear from other files like hats!!
-					allOtherModels.add(model);
-
-					// use an nistringextra of weapon and shield, node name of prn for extra data
-					for (NiExtraData ned : model.getVisualRoot().getExtraDataList())
+					if (skins.size() > 0)
 					{
-						if (ned instanceof NiStringExtraData)
+						// add the skins to the scene
+						for (J3dNiSkinInstance j3dNiSkinInstance : skins)
 						{
-							NiStringExtraData nsed = (NiStringExtraData) ned;
-							if (nsed.name.equalsIgnoreCase("PRN"))
+							bg.addChild(j3dNiSkinInstance);
+						}
+
+						allSkins.addAll(skins);
+					}
+					else
+					{
+						// add any non skin based gear from other files like hats!!
+						allOtherModels.add(model);
+
+						// use an nistringextra of weapon and shield, node name of prn for extra data
+						for (NiExtraData ned : model.getVisualRoot().getExtraDataList())
+						{
+							if (ned instanceof NiStringExtraData)
 							{
-								J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton()
-										.get(nsed.stringData);
-								if (attachnode != null)
+								NiStringExtraData nsed = (NiStringExtraData) ned;
+								if (nsed.name.equalsIgnoreCase("PRN"))
 								{
-
-									boolean headAttachRotNeeded = false;
-									if (attachnode.getNiAVObject().name.equals("Bip01 Head")
-											&& skeletonNifFilename.contains("characters\\_male"))
+									J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton()
+											.get(nsed.stringData);
+									if (attachnode != null)
 									{
-										headAttachRotNeeded = mediaSources.getMeshSource().nifFileExists(
-												skinNifModelFilename.substring(0, skinNifModelFilename.length() - 3) + "egm");
+
+										boolean headAttachRotNeeded = false;
+										if (attachnode.getNiAVObject().name.equals("Bip01 Head")
+												&& skeletonNifFilename.contains("characters\\_male"))
+										{
+											headAttachRotNeeded = mediaSources.getMeshSource().nifFileExists(
+													skinNifModelFilename.substring(0, skinNifModelFilename.length() - 3) + "egm");
+										}
+
+										// For Oblivion heads
+										// head gear in oblivion has an egm file next to it
+										// hair attached badly, imperial iron helmet (and steel) attached badly,
+										// chainmail helmet attached good, chain mail has bone nodes and is nicely placed,
+										// not really attachment style, just a regular body part
+										// I notice helmet.egm file next to helmet.nif?? egm starts with FREGM002
+										// F:\game media\Oblivion\meshes\armor\iron\m
+
+										CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, headAttachRotNeeded,
+												model.getVisualRoot());
+										this.addChild(ca);
+										attachments.add(ca);
+										break;
 									}
-
-									// For Oblivion heads
-									// head gear in oblivion has an egm file next to it
-									// hair attached badly, imperial iron helmet (and steel) attached badly,
-									// chainmail helmet attached good, chain mail has bone nodes and is nicely placed,
-									// not really attachment style, just a regular body part
-									// I notice helmet.egm file next to helmet.nif?? egm starts with FREGM002
-									// F:\game media\Oblivion\meshes\armor\iron\m
-
-									CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, headAttachRotNeeded,
-											model.getVisualRoot());
-									this.addChild(ca);
-									attachments.add(ca);
-									break;
 								}
 							}
 						}
 					}
-				}
 
+				}
+				else
+				{
+					System.err.println("Bad model name in NifCharacter " + skinNifModelFilename);
+				}
 			}
 		}
 
