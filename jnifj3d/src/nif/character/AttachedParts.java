@@ -21,12 +21,6 @@ public class AttachedParts
 		return ret;
 	}
 
-	public void addPartNoSwap(Part part, String nifFileName)
-	{
-		if (parts.get(part) == null)
-			parts.put(part, nifFileName);
-	}
-
 	public boolean hasPart(Part part)
 	{
 		return parts.get(part) != null;
@@ -51,8 +45,8 @@ public class AttachedParts
 				loc == Part.Skirt.loc || //
 				loc == Part.Right_Hand.loc || //
 				loc == Part.Left_Hand.loc || //
-				loc == Part.Right_Foot.loc || //
-				loc == Part.Left_Foot.loc;//
+				(includeFeet && loc == Part.Right_Foot.loc) || //
+				(includeFeet && loc == Part.Left_Foot.loc);//
 	}
 
 	public static Part getPartForLoc(int loc)
@@ -63,6 +57,7 @@ public class AttachedParts
 
 	public enum Part
 	{
+		
 		Head(0, "Head"), //
 		Hair(1, "Head"), //or helmet I assume
 		Neck(2, "Neck"), //
@@ -89,7 +84,8 @@ public class AttachedParts
 		Right_Clavicle(23, "Right Clavicle"), //"Right Pauldron"), 
 		Left_Clavicle(24, "Left Clavicle"), //"Left Pauldron"), 
 		Weapon(25, "Weapon"), //
-		Tail(26, "Tail");
+		Tail(26, "Tail"),//
+		Root(27, "Root Bone");// made up for CREA to use
 
 		private Part(int loc, String node)
 		{

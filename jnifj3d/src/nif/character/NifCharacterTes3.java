@@ -1,7 +1,6 @@
 package nif.character;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 import javax.media.j3d.Alpha;
@@ -13,6 +12,7 @@ import nif.character.AttachedParts.Part;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiGeometry;
 import nif.j3d.J3dNiNode;
+import nif.j3d.J3dNiSkinInstance;
 import nif.j3d.animation.J3dNiGeomMorpherController;
 import nif.j3d.animation.SequenceAlpha;
 import nif.j3d.animation.tes3.J3dNiControllerSequenceTes3;
@@ -30,43 +30,99 @@ public class NifCharacterTes3 extends NifCharacter
 
 	protected ArrayList<J3dNiGeomMorpherController> allMorphs = new ArrayList<J3dNiGeomMorpherController>();
 
-	public NifCharacterTes3(String skeletonNifFilename, List<String> skinNifModelFilenames, AttachedParts attachedParts,
-			MediaSources mediaSources)
+	public NifCharacterTes3(String skeletonNifFilename, AttachedParts attachedSkinsAndParts, MediaSources mediaSources)
 	{
-		super(skeletonNifFilename, skinNifModelFilenames, mediaSources, null);
+		super(skeletonNifFilename, mediaSources);
 
-		for (String skinNifModelFilename : skinNifModelFilenames)
+		 
+
+		if (attachedSkinsAndParts != null)
 		{
-			if (skinNifModelFilename != null && skinNifModelFilename.length() > 0)
+			for (Part part : attachedSkinsAndParts.parts.keySet())
 			{
-				NifJ3dVisRoot model = NifToJ3d.loadShapes(skinNifModelFilename, mediaSources.getMeshSource(),
-						mediaSources.getTextureSource());
-
-				//TODO: add all morphs into a bunch for fun , but dump once kf it running geomorphs properly
-				for (J3dNiAVObject j3dNiAVObject : model.getNiToJ3dData().j3dNiAVObjectValues())
-				{
-					J3dNiGeomMorpherController j3dNiGeomMorpherController = j3dNiAVObject.getJ3dNiGeomMorpherController();
-					if (j3dNiGeomMorpherController != null)
-					{
-						allMorphs.add(j3dNiGeomMorpherController);
-					}
-				}
-			}
-		}
-
-		if (attachedParts != null)
-		{
-
-			for (Part part : attachedParts.parts.keySet())
-			{
-				String nifFileName = attachedParts.parts.get(part);
+				String nifFileName = attachedSkinsAndParts.parts.get(part);
 				if (nifFileName != null && nifFileName.length() > 0)
 				{
 					NifJ3dVisRoot model = NifToJ3d.loadShapes(nifFileName, mediaSources.getMeshSource(), mediaSources.getTextureSource());
 
 					if (model != null)
-					{
-						// head attachment can definately have a morph in it 
+					{						
+						// create skins from the skeleton and skin nif
+						ArrayList<J3dNiSkinInstance> skins = J3dNiSkinInstance.createSkins(model.getNiToJ3dData(),
+								blendedSkeletons.getOutputSkeleton());
+
+						if (skins.size() > 0)
+						{
+							// add the skins to the scene
+							for (J3dNiSkinInstance j3dNiSkinInstance : skins)
+							{
+								root.addChild(j3dNiSkinInstance);
+							}
+
+							allSkins.addAll(skins);
+						}
+						else
+						{
+							
+							//For TES3: add any unskinned trishapes in the skin file onto the bones
+							//these will not be done by the super because the following is not true
+							//NiStringExtraData nsed = (NiStringExtraData) ned;if (nsed.name.equalsIgnoreCase("PRN"))
+							for (J3dNiAVObject j3dNiAVObject : model.getNiToJ3dData().j3dNiAVObjectValues())
+							{
+								// don't re attach particles as the anme is not right
+								if (j3dNiAVObject instanceof J3dNiGeometry)
+								{
+									if (j3dNiAVObject instanceof J3dNiParticles)
+									{
+										//FIXME: possibly just leave these where ever they are?
+										// or should they be a special character attachment
+										// attached to root bone and able to be fired?
+									}
+									else
+									{
+										J3dNiGeometry j3dNiGeometry = (J3dNiGeometry) j3dNiAVObject;
+										NiGeometry niGeometry = (NiGeometry) j3dNiGeometry.getNiAVObject();
+										if (niGeometry.skin.ref == -1)
+										{
+											String attachNodeName = niGeometry.name;
+											NiNode parent = niGeometry.parent;
+											if (parent != null)
+											{
+												attachNodeName = parent.name;
+											}
+											attachNodeName = part.getNode();
+
+											J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton()
+													.get(attachNodeName);
+											if (attachnode != null)
+											{
+												CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, j3dNiGeometry, true,
+														AttachedParts.isLeftSide(part.getLoc()));
+												this.addChild(ca);
+												attachments.add(ca);
+											}
+											else
+											{
+												System.err.println("attach node not found ? " + attachNodeName + " in "
+														+ j3dNiGeometry.getNiAVObject().nVer.fileName);
+											}
+										}
+										else
+										{
+											System.err.println("How did a skin ref get into the attachment system? " + nifFileName);
+										}
+									}
+								}
+							}
+							
+							
+							// add any non skin based gear from other files like hats!!
+							//TODO: do I need to? allOtherModels.add(model);
+
+						}
+						
+						
+						// head attachment can definitely have a morph in it 
 						for (J3dNiAVObject j3dNiAVObject : model.getNiToJ3dData().j3dNiAVObjectValues())
 						{
 							J3dNiGeomMorpherController j3dNiGeomMorpherController = j3dNiAVObject.getJ3dNiGeomMorpherController();
@@ -76,62 +132,12 @@ public class NifCharacterTes3 extends NifCharacter
 							}
 						}
 
-						//For TES3: add any unskinned trishapes in the skin file onto the bones
-						//these will not be done by the super because the following is not true
-						//NiStringExtraData nsed = (NiStringExtraData) ned;if (nsed.name.equalsIgnoreCase("PRN"))
-						for (J3dNiAVObject j3dNiAVObject : model.getNiToJ3dData().j3dNiAVObjectValues())
-						{
-							// don't re attach particles as the anme is not right
-							if (j3dNiAVObject instanceof J3dNiGeometry)
-							{
-								if (j3dNiAVObject instanceof J3dNiParticles)
-								{
-									//FIXME: possibly just leave these where ever they are?
-									// or should they be a special character attachment
-									// attached to root bone and able to be fired?
-								}
-								else
-								{
-									J3dNiGeometry j3dNiGeometry = (J3dNiGeometry) j3dNiAVObject;
-									NiGeometry niGeometry = (NiGeometry) j3dNiGeometry.getNiAVObject();
-									if (niGeometry.skin.ref == -1)
-									{
-										String attachNodeName = niGeometry.name;
-										NiNode parent = niGeometry.parent;
-										if (parent != null)
-										{
-											attachNodeName = parent.name;
-										}
-										attachNodeName = part.getNode();
-
-										J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton()
-												.get(attachNodeName);
-										if (attachnode != null)
-										{
-											CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, j3dNiGeometry, true,
-													AttachedParts.isLeftSide(part.getLoc()));
-											this.addChild(ca);
-											attachments.add(ca);
-										}
-										else
-										{
-											System.err.println("attach node not found ? " + attachNodeName + " in "
-													+ j3dNiGeometry.getNiAVObject().nVer.fileName);
-										}
-									}
-									else
-									{
-										System.err.println("How did a skin ref get into the attachment system? " + nifFileName);
-									}
-								}
-							}
-						}
+						
 					}
 					else
 					{
 						System.err.println("Bad model name in NifCharacterTes3 " + nifFileName);
 					}
-					 
 
 				}
 			}
@@ -139,6 +145,7 @@ public class NifCharacterTes3 extends NifCharacter
 
 		KfJ3dRoot kfJ3dRoot = null;
 		if (skeletonNifFilename.toLowerCase().indexOf(".nif") != -1)
+
 		{
 			String kfName = skeletonNifFilename.substring(0, skeletonNifFilename.toLowerCase().indexOf(".nif")) + ".kf";
 			kfJ3dRoot = NifToJ3d.loadKf(kfName, mediaSources.getMeshSource());

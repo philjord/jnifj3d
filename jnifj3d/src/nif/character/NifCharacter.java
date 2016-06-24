@@ -63,7 +63,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 	public static boolean BULK_BUFFER_UPDATES = false;
 	private MediaSources mediaSources;
 
-	private ArrayList<J3dNiSkinInstance> allSkins = new ArrayList<J3dNiSkinInstance>();
+	protected ArrayList<J3dNiSkinInstance> allSkins = new ArrayList<J3dNiSkinInstance>();
 
 	protected ArrayList<NifJ3dVisRoot> allOtherModels = new ArrayList<NifJ3dVisRoot>();
 
@@ -75,6 +75,8 @@ public class NifCharacter extends BranchGroup implements Fadable
 
 	protected List<String> idleAnimations;
 
+	protected Group root = new Group();
+
 	private KfJ3dRoot currentkfJ3dRoot;
 
 	protected BlendedSkeletons blendedSkeletons;
@@ -85,12 +87,9 @@ public class NifCharacter extends BranchGroup implements Fadable
 
 	protected ArrayList<CharacterAttachment> attachments = new ArrayList<CharacterAttachment>();
 
-	public NifCharacter(String skeletonNifFilename, List<String> skinNifModelFilenames, MediaSources mediaSources,
-			List<String> idleAnimations)
+	protected NifCharacter(String skeletonNifFilename, MediaSources mediaSources)
 	{
 		this.mediaSources = mediaSources;
-
-		this.idleAnimations = idleAnimations;
 
 		this.setCapability(Group.ALLOW_CHILDREN_WRITE);
 		this.setCapability(Group.ALLOW_CHILDREN_EXTEND);
@@ -102,13 +101,20 @@ public class NifCharacter extends BranchGroup implements Fadable
 
 		blendedSkeletons = new BlendedSkeletons(skeletonNifFilename, mediaSources.getMeshSource());
 
-		Group bg = new Group();
-		addChild(bg);
+		addChild(root);
 
 		if (NifJ3dSkeletonRoot.showBoneMarkers || J3dNiSkinInstance.showSkinBoneMarkers)
 		{
-			bg.addChild(blendedSkeletons);
+			root.addChild(blendedSkeletons);
 		}
+	}
+
+	public NifCharacter(String skeletonNifFilename, List<String> skinNifModelFilenames, MediaSources mediaSources,
+			List<String> idleAnimations)
+	{
+		this(skeletonNifFilename, mediaSources);
+
+		this.idleAnimations = idleAnimations;
 
 		for (String skinNifModelFilename : skinNifModelFilenames)
 		{
@@ -128,7 +134,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 						// add the skins to the scene
 						for (J3dNiSkinInstance j3dNiSkinInstance : skins)
 						{
-							bg.addChild(j3dNiSkinInstance);
+							root.addChild(j3dNiSkinInstance);
 						}
 
 						allSkins.addAll(skins);
