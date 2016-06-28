@@ -115,9 +115,33 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 
 		//clear out current in order to accum into it
 		//TODO: a bulk copy of a blank array might be faster here?
-		for (int i = 0; i < currentCoordRefFloat.limit(); i++)
+		if (NifCharacter.BULK_BUFFER_UPDATES)
 		{
-			currentCoordRefFloat.put(i, 0);
+			// let's try bulk get/set
+			if (baseCoordRefFloatbf == null || baseCoordRefFloatbf.length != baseCoordRefFloat.limit())
+			{
+				baseCoordRefFloatbf = new float[baseCoordRefFloat.limit()];
+				baseCoordRefFloat.position(0);
+				baseCoordRefFloat.get(baseCoordRefFloatbf);
+			}
+			if (currentCoordRefFloatbf == null || currentCoordRefFloatbf.length != currentCoordRefFloat.limit())
+			{
+				currentCoordRefFloatbf = new float[currentCoordRefFloat.capacity()];
+				currentCoordRefFloat.position(0);
+				currentCoordRefFloat.get(currentCoordRefFloatbf);
+			}
+			
+			for (int i = 0; i < currentCoordRefFloat.limit(); i++)
+			{
+				currentCoordRefFloatbf[i] = 0;
+			}
+		}
+		else
+		{
+			for (int i = 0; i < currentCoordRefFloat.limit(); i++)
+			{
+				currentCoordRefFloat.put(i, 0);
+			}
 		}
 
 		// pre multiply transforms for repeated use for each vertex
@@ -144,18 +168,9 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 
 			// apply it's effect to it's dependant vertices
 			NifSkinData nsd = niSkinData.boneList[spBoneId];
-			
+
 			if (NifCharacter.BULK_BUFFER_UPDATES)
 			{
-				// let's try bulk get/set
-				if (baseCoordRefFloatbf == null || baseCoordRefFloatbf.length != baseCoordRefFloat.limit())
-					baseCoordRefFloatbf = new float[baseCoordRefFloat.limit()];
-				baseCoordRefFloat.position(0);
-				baseCoordRefFloat.get(baseCoordRefFloatbf);
-				if (currentCoordRefFloatbf == null || currentCoordRefFloatbf.length != currentCoordRefFloat.limit())
-					currentCoordRefFloatbf = new float[currentCoordRefFloat.capacity()];
-				currentCoordRefFloat.position(0);
-				currentCoordRefFloat.get(currentCoordRefFloatbf);
 
 				for (NifSkinWeight vw : nsd.vertexWeights)
 				{

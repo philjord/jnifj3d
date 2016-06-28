@@ -19,7 +19,6 @@ import nif.j3d.animation.SequenceAlpha;
 import nif.j3d.animation.j3dinterp.J3dNiFloatInterpolator;
 import nif.j3d.animation.j3dinterp.J3dNiInterpolator;
 import nif.niobject.particle.NiParticleSystemController;
-import tools3d.utils.Utils3D;
 import tools3d.utils.scenegraph.VaryingLODBehaviour;
 import utils.convert.ConvertFromNif;
 

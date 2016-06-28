@@ -232,7 +232,6 @@ public class J3dNiParticlesData
 
 	private static void shiftArray(Object arr, int indx, int stride, int remCount)
 	{
-
 		int srcStart = indx * stride + stride;
 		int destStart = indx * stride;
 		int len = remCount * stride;
@@ -299,13 +298,9 @@ public class J3dNiParticlesData
 	 */
 	public void recalcAllGaCoords()
 	{
-		for (int i = 0; i < activeParticleCount; i++)
-		{
-			// with points we simply push the particles across to the gaCoords, in fact we only need agCoords
-			gaCoords[i * 3 + 0] = particleTranslation[i * 3 + 0];
-			gaCoords[i * 3 + 1] = particleTranslation[i * 3 + 1];
-			gaCoords[i * 3 + 2] = particleTranslation[i * 3 + 2];
-		}
+		//TODO: this MUST be a double buffer pointer swap system, not this copy rubbish
+		System.arraycopy(particleTranslation, 0, gaCoords, 0, activeParticleCount*3);
+		 
 
 		//TODO: I get the impression that the black dot is
 		// a badly formed final particle somehow? 
@@ -325,11 +320,7 @@ public class J3dNiParticlesData
 	 */
 	public void recalcSizes()
 	{
-		for (int indx = 0; indx < activeParticleCount; indx++)
-		{
-			//sizes.put(indx, particleRadius[indx]);
-			gaVsizesF[indx] = particleRadius[indx] * 2; // *2 because it's a radius
-		}
+		System.arraycopy(particleRadius, 0, gaVsizesF, 0, activeParticleCount*1);		 
 	}
 
 	/**
@@ -339,10 +330,7 @@ public class J3dNiParticlesData
 	 */
 	public void recalcRotations()
 	{
-		for (int indx = 0; indx < activeParticleCount; indx++)
-		{
-			gaVrotationsF[indx] = particleRotationAngle[indx];
-		}
+		System.arraycopy(particleRotationAngle, 0, gaVrotationsF, 0, activeParticleCount*1);		 
 	}
 
 	/**
@@ -354,23 +342,14 @@ public class J3dNiParticlesData
 	{
 		if (niParticlesData.hasVertexColors)
 		{
-			for (int i = 0; i < activeParticleCount; i++)
-			{
-				gaColors[i * 4 + 0] = particleColors[i * 4 + 0];
-				gaColors[i * 4 + 1] = particleColors[i * 4 + 1];
-				gaColors[i * 4 + 2] = particleColors[i * 4 + 2];
-				gaColors[i * 4 + 3] = particleColors[i * 4 + 3];
-
-				//			System.out.println("Set color for " + i + " " + gaColors[i * 4 + 0] + " " + gaColors[i * 4 + 1]//
-				//					+ " " + gaColors[i * 4 + 2] + " " + gaColors[i * 4 + 3]);
-
-			}
+			System.arraycopy(particleColors, 0, gaColors, 0, activeParticleCount*4);
+			 
 		}
 
 	}
 
 	public void resetTexCoords()
-	{
+	{ 
 		for (int i = 0; i < activeParticleCount; i++)
 		{
 			//TODO: looks like there is no atlas system for particles
@@ -398,7 +377,7 @@ public class J3dNiParticlesData
 		resetAllGaColors();
 		recalcSizes();
 		recalcRotations();
-		resetTexCoords();
+		// pointless for now, only altases need itresetTexCoords();
 	}
 
 	public void printoutParticleData()
