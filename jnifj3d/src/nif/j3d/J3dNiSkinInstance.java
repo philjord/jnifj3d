@@ -85,7 +85,7 @@ public class J3dNiSkinInstance extends Group implements Fadable
 			j3dNifSkinData.fade(percent);
 		}
 	}
-	
+
 	@Override
 	public void setOutline(Color3f c)
 	{
@@ -94,6 +94,8 @@ public class J3dNiSkinInstance extends Group implements Fadable
 			j3dNifSkinData.setOutline(c);
 		}
 	}
+
+	 
 
 	public static ArrayList<J3dNiSkinInstance> createSkins(NiToJ3dData niToJ3dData, NifJ3dSkeletonRoot nifJ3dSkeletonRoot)
 	{

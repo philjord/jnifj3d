@@ -154,12 +154,17 @@ public class J3dNiControllerSequence extends Group
 		return sequenceAlpha == null || sequenceAlpha.finished();
 	}
 
+	public void rampDown()
+	{
+		sequenceAlpha.beginExit();
+	}
+
 	/**
 	 * Fires the sequence in a explicitly non looping manner
 	 */
 	public void fireSequenceOnce()
 	{
-		fireSequence(true);
+		fireSequence(true, 0);
 	}
 
 	/**
@@ -168,15 +173,20 @@ public class J3dNiControllerSequence extends Group
 	 */
 	public void fireSequence()
 	{
-		fireSequence(false);
+		fireSequence(false, 0);
 	}
 
-	public void rampDown()
+	public void fireSequenceOnce(long triggerTime)
 	{
-		sequenceAlpha.beginExit();
+		fireSequence(true, triggerTime);
 	}
 
-	protected void fireSequence(boolean forceOnce)
+	public void fireSequence(long triggerTime)
+	{
+		fireSequence(false, triggerTime);
+	}
+
+	protected void fireSequence(boolean forceOnce, long triggerTime)
 	{
 		sequenceEventsbehave.setEnable(false);
 		sequenceBehavior.setEnable(false);
@@ -184,19 +194,19 @@ public class J3dNiControllerSequence extends Group
 		if (forceOnce)
 		{
 			//in theory the start time is working right here right now?
-			sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, false);
+			sequenceAlpha = new SequenceAlpha(startTimeS, triggerTime, stopTimeS, false);
 		}
 		else
 		{
 			float loopStartS = j3dNiTextKeyExtraData.getStartLoopTime();
 			if (loopStartS == -1)
 			{
-				sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, (cycleType == NiControllerSequence.CYCLE_LOOP));
+				sequenceAlpha = new SequenceAlpha(startTimeS, triggerTime, stopTimeS, (cycleType == NiControllerSequence.CYCLE_LOOP));
 			}
 			else
 			{
 				float loopStopS = j3dNiTextKeyExtraData.getEndLoopTime();
-				sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, loopStartS, loopStopS, true);
+				sequenceAlpha = new SequenceAlpha(startTimeS, triggerTime, stopTimeS, loopStartS, loopStopS, true);
 			}
 		}
 		prevSquenceAlphaValue = 0;
@@ -324,8 +334,7 @@ public class J3dNiControllerSequence extends Group
 		public SequenceBehavior(Node node)
 		{
 			// NOTE!!!! these MUST be active, otherwise the headless locale that might be running physics doesn't continuously render
-			super(node, new float[]
-			{ 40, 120, 280 }, false, true);
+			super(node, new float[] { 40, 120, 280 }, false, true);
 		}
 
 		@Override
@@ -354,13 +363,13 @@ public class J3dNiControllerSequence extends Group
 	{
 		private WakeupOnElapsedFrames passiveWakeupCriterion = new WakeupOnElapsedFrames(5, true);
 
+		@Override
 		public void initialize()
 		{
 			wakeupOn(passiveWakeupCriterion);
 		}
 
-		@SuppressWarnings(
-		{ "unchecked", "rawtypes" })
+		@Override
 		public void processStimulus(Enumeration critiria)
 		{
 			publishSequenceEvents();

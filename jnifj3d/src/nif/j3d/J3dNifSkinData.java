@@ -130,7 +130,7 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 				currentCoordRefFloat.position(0);
 				currentCoordRefFloat.get(currentCoordRefFloatbf);
 			}
-			
+
 			for (int i = 0; i < currentCoordRefFloat.limit(); i++)
 			{
 				currentCoordRefFloatbf[i] = 0;
@@ -228,7 +228,7 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 						//scale by the weight of the bone
 						px *= weight;
 						py *= weight;
-						pz *= weight;
+						pz *= weight;						 
 
 						// accumulate into the output
 						currentCoordRefFloat.put(vIdx * 3 + 0, currentCoordRefFloat.get(vIdx * 3 + 0) + px);

@@ -25,7 +25,18 @@ public class SequenceAlpha extends Alpha
 
 	public SequenceAlpha(float startTimeS, float stopTimeS, boolean shouldLoop)
 	{
-		super((shouldLoop ? -1 : 1), 0, (long) (startTimeS * 1000L), ((long) (stopTimeS * 1000L) - (long) (startTimeS * 1000L)), 0, 0);
+		this(startTimeS, 0, stopTimeS, shouldLoop);
+	}
+
+	public SequenceAlpha(float startTimeS, float stopTimeS, float loopStartTimeS, float loopEndTimeS, boolean shouldLoop)
+	{
+		this(startTimeS, 0, stopTimeS, loopStartTimeS, loopEndTimeS, shouldLoop);
+	}
+
+	public SequenceAlpha(float startTimeS, long triggerTime, float stopTimeS, boolean shouldLoop)
+	{
+		super((shouldLoop ? -1 : 1), triggerTime, (long) (startTimeS * 1000L), ((long) (stopTimeS * 1000L) - (long) (startTimeS * 1000L)),
+				0, 0);
 		this.lengthMS = ((long) (stopTimeS * 1000L) - (long) (startTimeS * 1000L));
 
 		//this.setStartTime(System.nanoTime() / 1000000);
@@ -34,9 +45,9 @@ public class SequenceAlpha extends Alpha
 
 	}
 
-	public SequenceAlpha(float startTimeS, float stopTimeS, float loopStartTimeS, float loopEndTimeS, boolean shouldLoop)
+	public SequenceAlpha(float startTimeS, long triggerTime, float stopTimeS, float loopStartTimeS, float loopEndTimeS, boolean shouldLoop)
 	{
-		this(startTimeS, stopTimeS, shouldLoop);
+		this(startTimeS, triggerTime, stopTimeS, shouldLoop);
 		this.loopStartTimeS = loopStartTimeS;
 		this.loopEndTimeS = loopEndTimeS;
 		loopStartTimeMS = (long) (loopStartTimeS * 1000L);
@@ -48,7 +59,7 @@ public class SequenceAlpha extends Alpha
 	{
 		this.setStartTime(System.currentTimeMillis());
 	}
-	
+
 	/**
 	 * Means finish the current cycle and don't loop at the next next loopend event
 	 */

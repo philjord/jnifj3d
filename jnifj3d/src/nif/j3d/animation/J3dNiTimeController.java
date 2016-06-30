@@ -117,12 +117,17 @@ public abstract class J3dNiTimeController extends Group implements InterpolatorL
 	 */
 	public static Alpha createLoopingAlpha(float startTimeS, float stopTimeS)
 	{
+		return createLoopingAlpha(startTimeS, 0, stopTimeS);
+	}
+
+	public static Alpha createLoopingAlpha(float startTimeS, long triggerTime, float stopTimeS)
+	{
 		long startTimeMS = (long) (startTimeS * 1000f);
 		long stopTimeMS = (long) (stopTimeS * 1000f);
 		long lengthMS = stopTimeMS - startTimeMS;
 
 		// note 0 trigger, see SequenceAlpha for better system
-		return new Alpha(-1, 0, startTimeMS, lengthMS, 0, 0);
+		return new Alpha(-1, triggerTime, startTimeMS, lengthMS, 0, 0);
 	}
 
 	/**

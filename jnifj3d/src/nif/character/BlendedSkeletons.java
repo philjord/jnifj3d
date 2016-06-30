@@ -88,6 +88,8 @@ public class BlendedSkeletons extends Group
 			if (outputBone != outputSkeleton.getSkeletonRoot())
 			{
 
+				//TODO: all these hashmaps are terrible for performance!!!!!
+
 				//TODO: blending now causes massive issues see blockhit for example!				
 				alphaValue = 1f;
 				if (alphaValue == 0f)
@@ -150,7 +152,7 @@ public class BlendedSkeletons extends Group
 	 * @param nonAccumRoot 
 	 * @param spBoneId 
 	 */
-	private void calcBoneVWTrans(J3dNiNode skeletonBone, J3dNiAVObject nonAccumRoot)
+	public static void calcBoneVWTrans(J3dNiNode skeletonBone, J3dNiAVObject nonAccumRoot)
 	{
 		//stop at accum root and skeleton 
 		if (skeletonBone.topOfParent != null && skeletonBone.topOfParent instanceof J3dNiNode)

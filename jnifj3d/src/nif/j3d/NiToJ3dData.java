@@ -31,6 +31,8 @@ public class NiToJ3dData
 
 	private SparseArray<TextureAttributes> textureAttributesLookup = new SparseArray<TextureAttributes>();
 
+	private long animationTriggerTime = -1;
+
 	/**
 	 * Note by now the data in NiObjectList is totally static
 	 * @param niObjectList
@@ -133,6 +135,16 @@ public class NiToJ3dData
 		}
 
 		return null;
+	}
+
+	public long getAnimationTriggerTime()
+	{
+		return animationTriggerTime;
+	}
+
+	public void setAnimationTriggerTime(long animationTriggerTime)
+	{
+		this.animationTriggerTime = animationTriggerTime;
 	}
 
 }

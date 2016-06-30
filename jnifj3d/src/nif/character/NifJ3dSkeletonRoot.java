@@ -30,12 +30,27 @@ public class NifJ3dSkeletonRoot extends Group
 
 	public NifJ3dSkeletonRoot(String skeletonNifModelFile, MeshSource meshSource)
 	{
-		NifJ3dVisRoot skeleton = NifToJ3d.loadShapes(skeletonNifModelFile, meshSource, true);
-		// NifFile sNifFile = NifToJ3d.loadNiObjects(skeletonNifModelFile, meshSource);
+		this(NifToJ3d.loadShapes(skeletonNifModelFile, meshSource, true));
+	}
 
-		this.root = skeleton.getVisualRoot();
-		niToJ3dData = skeleton.getNiToJ3dData();
-		addChild(root);
+	public NifJ3dSkeletonRoot(NifJ3dVisRoot skeleton)
+	{
+		this(skeleton.getVisualRoot(), skeleton.getNiToJ3dData());
+	}
+
+	/**
+	 * Do not call unless hasSkeletonRoot = true!
+	 * @param root
+	 * @param niToJ3dData
+	 */
+	public NifJ3dSkeletonRoot(J3dNiAVObject root, NiToJ3dData niToJ3dData)
+	{
+		this.root = root;		
+		this.niToJ3dData = niToJ3dData;
+		if (root.getParent() == null)
+		{
+			addChild(root);
+		}
 
 		for (J3dNiAVObject j3dNiAVObject : niToJ3dData.j3dNiAVObjectValues())
 		{
@@ -86,11 +101,27 @@ public class NifJ3dSkeletonRoot extends Group
 		{
 			// TES3 often has not these, let's see if the parent of Bip01 will do
 			// new Throwable("nonAccumRoot == null").printStackTrace();
-			nonAccumRoot = skeleton.getVisualRoot();
+			nonAccumRoot = root;
 		}
 
 		if (skeletonRoot == null)
 			new Throwable("skeletonRoot == null").printStackTrace();
+	}
+
+	public static boolean hasSkeletonRoot(NiToJ3dData niToJ3dData)
+	{
+		for (J3dNiAVObject j3dNiAVObject : niToJ3dData.j3dNiAVObjectValues())
+		{
+			if (j3dNiAVObject.getClass() == J3dNiNode.class)
+			{
+				J3dNiNode j3dNiNode = (J3dNiNode) j3dNiAVObject;
+				NiNode niNode = (NiNode) j3dNiNode.getNiAVObject();
+
+				if (isRootBoneName(niNode.name))
+					return true;
+			}
+		}
+		return false;
 	}
 
 	public static boolean isRootBoneName(String name)
@@ -132,6 +163,30 @@ public class NifJ3dSkeletonRoot extends Group
 	public NiToJ3dData getniToJ3dData()
 	{
 		return niToJ3dData;
+	}
+
+	/**
+	 * Called to update teh transform, not used by blened skeleton system
+	 */
+	public void updateBones()
+	{
+
+		// set each to zero to indicate not calced yet
+		for (String boneName : allBonesInSkeleton.keySet())
+		{
+			J3dNiNode outputBone = (J3dNiNode) allBonesInSkeleton.get(boneName);// wild cast			
+			outputBone.getBoneCurrentAccumedTrans().setZero();//mark as not yet worked out
+		}
+
+		// store a accumed boneyTransform into each bone 
+		for (String boneName : allBonesInSkeleton.keySet())
+		{
+			J3dNiNode outputBone = (J3dNiNode) allBonesInSkeleton.get(boneName);
+			if (outputBone != skeletonRoot)
+			{
+				BlendedSkeletons.calcBoneVWTrans(outputBone, nonAccumRoot);
+			}
+		}
 	}
 
 }

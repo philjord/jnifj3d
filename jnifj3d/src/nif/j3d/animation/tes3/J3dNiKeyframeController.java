@@ -47,6 +47,13 @@ public class J3dNiKeyframeController extends J3dNiTimeController
 			float stopTimeS = controller.stopTime;
 			totalLengthS = stopTimeS - startTimeS;
 
+			// all animations in one model should fire at the same time, but each model should be offset
+			if (niToJ3dData.getAnimationTriggerTime() == -1)
+			{
+				long randStart = (long) (Math.random() * (totalLengthS * 1000));
+				niToJ3dData.setAnimationTriggerTime(randStart);
+			}
+
 			NiKeyframeData niTransformData = (NiKeyframeData) niToJ3dData.get(controller.data);
 			if (niTransformData != null)
 			{
@@ -58,7 +65,7 @@ public class J3dNiKeyframeController extends J3dNiTimeController
 				{
 					addChild(j3dNiInterpolator);
 
-					baseAlpha = J3dNiTimeController.createLoopingAlpha(startTimeS, stopTimeS);
+					baseAlpha = J3dNiTimeController.createLoopingAlpha(startTimeS, niToJ3dData.getAnimationTriggerTime(), stopTimeS);
 					j3dNiInterpolator.fire(baseAlpha);
 				}
 			}
