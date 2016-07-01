@@ -21,6 +21,13 @@ public class AttachedParts
 		return ret;
 	}
 
+	public boolean removePart(Part part)
+	{
+		boolean ret = parts.get(part) != null;
+		parts.remove(part);
+		return ret;
+	}
+
 	public boolean hasPart(Part part)
 	{
 		return parts.get(part) != null;
@@ -37,6 +44,27 @@ public class AttachedParts
 				loc == Part.Left_Knee.loc || //
 				loc == Part.Left_Upper_Leg.loc || //
 				loc == Part.Left_Clavicle.loc;//
+	}
+
+	public static boolean hasFirstPersonModel(Part part)
+	{
+		return part == Part.Left_Hand || //
+				part == Part.Right_Hand; //
+	}
+
+	public static boolean isFirstPersonVisible(Part part)
+	{
+		return part == Part.Left_Hand || //
+				part == Part.Left_Wrist || //
+				part == Part.Left_Forearm || //
+				part == Part.Left_Upper_Arm || //
+				part == Part.Right_Hand || //
+				part == Part.Right_Wrist || //
+				part == Part.Right_Forearm || //
+				part == Part.Right_Upper_Arm || //
+				part == Part.Shield || //
+				part == Part.Weapon; //
+
 	}
 
 	public static boolean isSkinned(int loc, boolean includeFeet)
@@ -57,7 +85,7 @@ public class AttachedParts
 
 	public enum Part
 	{
-		
+
 		Head(0, "Head"), //
 		Hair(1, "Head"), //or helmet I assume
 		Neck(2, "Neck"), //
@@ -84,7 +112,7 @@ public class AttachedParts
 		Right_Clavicle(23, "Right Clavicle"), //"Right Pauldron"), 
 		Left_Clavicle(24, "Left Clavicle"), //"Left Pauldron"), 
 		Weapon(25, "Weapon"), //
-		Tail(26, "Tail"),//
+		Tail(26, "Tail"), //
 		Root(27, "Root Bone");// made up for CREA to use
 
 		private Part(int loc, String node)
