@@ -70,7 +70,7 @@ public class J3dControllerLink extends Group
 				controllerType = lookUpPaletteString(controllerTypeOffset, niToJ3dData, controllerLink.stringPalette);
 		}
 
-		nodeTarget = allBonesInSkeleton.get(nodeName);
+		nodeTarget = allBonesInSkeleton.getByName(nodeName);
 		NiToJ3dData targetNiToJ3dData = niToJ3dData;
 
 		// sometimes we are also controlling NiGeomorpherController from the skin files

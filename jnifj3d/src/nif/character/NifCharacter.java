@@ -153,7 +153,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 								if (nsed.name.equalsIgnoreCase("PRN"))
 								{
 									J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton()
-											.get(nsed.stringData);
+											.getByName(nsed.stringData);
 									if (attachnode != null)
 									{
 

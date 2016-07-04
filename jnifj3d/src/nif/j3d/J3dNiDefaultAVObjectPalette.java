@@ -1,8 +1,8 @@
 package nif.j3d;
 
-import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.Set;
+
+import com.frostwire.util.SparseArray;
 
 import nif.compound.NifAVObject;
 import nif.niobject.NiAVObject;
@@ -11,6 +11,8 @@ import nif.niobject.NiDefaultAVObjectPalette;
 public class J3dNiDefaultAVObjectPalette
 {
 	private LinkedHashMap<String, J3dNiAVObject> palette = new LinkedHashMap<String, J3dNiAVObject>();
+
+	private SparseArray<J3dNiAVObject> paletteSA = new SparseArray<J3dNiAVObject>();
 
 	public J3dNiDefaultAVObjectPalette()
 	{
@@ -26,42 +28,41 @@ public class J3dNiDefaultAVObjectPalette
 			if (niAVObject != null)
 			{
 				palette.put(name, niToJ3dData.get(niAVObject));
+
+				paletteSA.put(niAVObject.refId, niToJ3dData.get(niAVObject));
 			}
 		}
 	}
 
-	public void put(String key, J3dNiAVObject v)
+	public void put(J3dNiAVObject v)
 	{
-		palette.put(key, v);
+		palette.put(v.niAVObject.name, v);
+		paletteSA.put(v.niAVObject.refId, v);
 	}
 
-	public J3dNiAVObject get(String key)
+	public J3dNiAVObject get(int refId)
 	{
-		return palette.get(key);
-	}
-
-	public J3dNiAVObject get(NiAVObject key)
-	{
-		return get(key.name);
-	}
-
-	public void put(NiAVObject niAVObject, J3dNiAVObject j3dNiAVObject)
-	{
-		put(niAVObject.name, j3dNiAVObject);
+		return paletteSA.get(refId);
 	}
 
 	public void putAll(J3dNiDefaultAVObjectPalette other)
 	{
-		palette.putAll(other.palette);
+		paletteSA.putAll(other.paletteSA);
 	}
 
-	public Collection<J3dNiAVObject> values()
+	public int[] keySet()
 	{
-		return palette.values();
+		return paletteSA.keySet();
 	}
 
-	public Set<String> keySet()
+	/**
+	 * !Expensive!
+	 * @param refId
+	 * @return
+	 */
+	public J3dNiAVObject getByName(String nodeName)
 	{
-		return palette.keySet();
+		return palette.get(nodeName);
 	}
+
 }

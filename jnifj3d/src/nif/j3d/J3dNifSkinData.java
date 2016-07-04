@@ -1,7 +1,7 @@
 package nif.j3d;
 
 import java.nio.FloatBuffer;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 
 import javax.media.j3d.Geometry;
 import javax.media.j3d.GeometryArray;
@@ -35,7 +35,7 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 	private J3dNiTriShape j3dNiTriShape;
 
 	public J3dNifSkinData(NiSkinData niSkinData, J3dNiTriShape j3dNiTriShape, J3dNiNode[] skinBonesInOrder,
-			LinkedHashMap<String, J3dNiNode> skeletonBones)
+			HashMap<String, J3dNiNode> skeletonBones)
 	{
 		//http://sourceforge.net/p/niftools/niflib/ci/0b2d0541c5a17af892ab2f416acbbfd2fdc369b2/tree/src/obj/NiSkinData.cpp
 

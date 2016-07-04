@@ -90,7 +90,7 @@ public class NifCharacterTes3 extends NifCharacter
 											attachNodeName = part.getNode();
 
 											J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton()
-													.get(attachNodeName);
+													.getByName(attachNodeName);
 											if (attachnode != null)
 											{
 												CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, j3dNiGeometry,

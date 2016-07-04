@@ -1,12 +1,11 @@
 package nif.j3d;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 
 import javax.media.j3d.Group;
 import javax.vecmath.Color3f;
 
-import tools3d.utils.scenegraph.Fadable;
 import nif.basic.NifPtr;
 import nif.character.NifJ3dSkeletonRoot;
 import nif.niobject.NiAVObject;
@@ -15,16 +14,13 @@ import nif.niobject.NiNode;
 import nif.niobject.NiSkinData;
 import nif.niobject.NiSkinInstance;
 import nif.niobject.NiTriShape;
+import tools3d.utils.scenegraph.Fadable;
 
 public class J3dNiSkinInstance extends Group implements Fadable
 {
 	public static boolean showSkinBoneMarkers = false;
 
-	private J3dNiNode[] skinBonesInOrder;
-
 	private J3dNifSkinData j3dNifSkinData;
-
-	private LinkedHashMap<String, J3dNiNode> skeletonBones = new LinkedHashMap<String, J3dNiNode>();
 
 	private J3dNiAVObject skinSkeletonRoot;
 
@@ -44,7 +40,9 @@ public class J3dNiSkinInstance extends Group implements Fadable
 		addChild(j3dNiTriShape);
 
 		//add bones to list
-		skinBonesInOrder = new J3dNiNode[niSkinInstance.bones.length];
+		J3dNiNode[] skinBonesInOrder = new J3dNiNode[niSkinInstance.bones.length];
+		HashMap<String, J3dNiNode> skeletonBones = new HashMap<String, J3dNiNode>();
+
 		for (int boneIdx = 0; boneIdx < niSkinInstance.bones.length; boneIdx++)
 		{
 			NifPtr p = niSkinInstance.bones[boneIdx];
@@ -56,7 +54,8 @@ public class J3dNiSkinInstance extends Group implements Fadable
 
 				skinBonesInOrder[boneIdx] = skinBone;
 
-				J3dNiNode skeletonBone = (J3dNiNode) allSkeletonBones.get(n.name);
+				// notice we are the skin now, so our node refId are not at all the skeleton bone refIds
+				J3dNiNode skeletonBone = (J3dNiNode) allSkeletonBones.getByName(n.name);
 				skeletonBones.put(n.name, skeletonBone);
 			}
 		}
@@ -94,8 +93,6 @@ public class J3dNiSkinInstance extends Group implements Fadable
 			j3dNifSkinData.setOutline(c);
 		}
 	}
-
-	 
 
 	public static ArrayList<J3dNiSkinInstance> createSkins(NiToJ3dData niToJ3dData, NifJ3dSkeletonRoot nifJ3dSkeletonRoot)
 	{

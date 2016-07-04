@@ -55,11 +55,11 @@ public class BlendedSkeletons extends Group
 
 		Transform3D temp = new Transform3D();
 
-		for (String boneName : outputSkeleton.getAllBonesInSkeleton().keySet())
+		for (int refId : outputSkeleton.getAllBonesInSkeleton().keySet())
 		{
-			J3dNiAVObject outputBone = outputSkeleton.getAllBonesInSkeleton().get(boneName);
+			J3dNiAVObject outputBone = outputSkeleton.getAllBonesInSkeleton().get(refId);
 
-			J3dNiAVObject prevBone = prevSkeleton.getAllBonesInSkeleton().get(boneName);
+			J3dNiAVObject prevBone = prevSkeleton.getAllBonesInSkeleton().get(refId);
 
 			outputBone.getTransform(temp);
 			prevBone.setTransform(temp);
@@ -81,35 +81,32 @@ public class BlendedSkeletons extends Group
 	{
 		float alphaValue = currentAlpha.value();
 
-		for (String boneName : outputSkeleton.getAllBonesInSkeleton().keySet())
+		for (int refId : outputSkeleton.getAllBonesInSkeleton().keySet())
 		{
-			J3dNiAVObject outputBone = outputSkeleton.getAllBonesInSkeleton().get(boneName);
+			J3dNiAVObject outputBone = outputSkeleton.getAllBonesInSkeleton().get(refId);
 			//skip calcing accum for now
 			if (outputBone != outputSkeleton.getSkeletonRoot())
 			{
-
-				//TODO: all these hashmaps are terrible for performance!!!!!
-
 				//TODO: blending now causes massive issues see blockhit for example!				
 				alphaValue = 1f;
 				if (alphaValue == 0f)
 				{
-					J3dNiAVObject prevBone = prevSkeleton.getAllBonesInSkeleton().get(boneName);
+					J3dNiAVObject prevBone = prevSkeleton.getAllBonesInSkeleton().get(refId);
 					prevBone.getTransform(prevT);
 					outputT.set(prevT);
 				}
 				else if (alphaValue == 1f)
 				{
-					J3dNiAVObject inputBone = inputSkeleton.getAllBonesInSkeleton().get(boneName);
+					J3dNiAVObject inputBone = inputSkeleton.getAllBonesInSkeleton().get(refId);
 					inputBone.getTransform(inputT);
 					outputT.set(inputT);
 				}
 				else
 				{
 					// get out 3 transfrom groups			
-					J3dNiAVObject prevBone = prevSkeleton.getAllBonesInSkeleton().get(boneName);
+					J3dNiAVObject prevBone = prevSkeleton.getAllBonesInSkeleton().get(refId);
 
-					J3dNiAVObject inputBone = inputSkeleton.getAllBonesInSkeleton().get(boneName);
+					J3dNiAVObject inputBone = inputSkeleton.getAllBonesInSkeleton().get(refId);
 
 					// combine prev and input for second transform3d
 					prevBone.getTransform(prevT);
@@ -129,16 +126,16 @@ public class BlendedSkeletons extends Group
 		}
 
 		// set each to zero to indicate not calced yet
-		for (String boneName : outputSkeleton.getAllBonesInSkeleton().keySet())
+		for (int refId : outputSkeleton.getAllBonesInSkeleton().keySet())
 		{
-			J3dNiNode outputBone = (J3dNiNode) outputSkeleton.getAllBonesInSkeleton().get(boneName);// wild cast			
+			J3dNiNode outputBone = (J3dNiNode) outputSkeleton.getAllBonesInSkeleton().get(refId);// wild cast			
 			outputBone.getBoneCurrentAccumedTrans().setZero();//mark as not yet worked out
 		}
 
 		// store a accumed boneyTransform into each bone 
-		for (String boneName : outputSkeleton.getAllBonesInSkeleton().keySet())
+		for (int refId : outputSkeleton.getAllBonesInSkeleton().keySet())
 		{
-			J3dNiNode outputBone = (J3dNiNode) outputSkeleton.getAllBonesInSkeleton().get(boneName);
+			J3dNiNode outputBone = (J3dNiNode) outputSkeleton.getAllBonesInSkeleton().get(refId);
 			if (outputBone != outputSkeleton.getSkeletonRoot())
 			{
 				calcBoneVWTrans(outputBone, outputSkeleton.getNonAccumRoot());

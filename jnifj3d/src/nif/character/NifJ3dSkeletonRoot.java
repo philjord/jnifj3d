@@ -45,7 +45,7 @@ public class NifJ3dSkeletonRoot extends Group
 	 */
 	public NifJ3dSkeletonRoot(J3dNiAVObject root, NiToJ3dData niToJ3dData)
 	{
-		this.root = root;		
+		this.root = root;
 		this.niToJ3dData = niToJ3dData;
 		if (root.getParent() == null)
 		{
@@ -92,7 +92,8 @@ public class NifJ3dSkeletonRoot extends Group
 
 					skeletonRoot.setTransform(new Transform3D());
 				}
-				allBonesInSkeleton.put(j3dNiNode.getName(), j3dNiNode);
+
+				allBonesInSkeleton.put(j3dNiNode);
 
 			}
 		}
@@ -172,16 +173,16 @@ public class NifJ3dSkeletonRoot extends Group
 	{
 
 		// set each to zero to indicate not calced yet
-		for (String boneName : allBonesInSkeleton.keySet())
+		for (int refId : allBonesInSkeleton.keySet())
 		{
-			J3dNiNode outputBone = (J3dNiNode) allBonesInSkeleton.get(boneName);// wild cast			
+			J3dNiNode outputBone = (J3dNiNode) allBonesInSkeleton.get(refId);// wild cast			
 			outputBone.getBoneCurrentAccumedTrans().setZero();//mark as not yet worked out
 		}
 
 		// store a accumed boneyTransform into each bone 
-		for (String boneName : allBonesInSkeleton.keySet())
+		for (int refId : allBonesInSkeleton.keySet())
 		{
-			J3dNiNode outputBone = (J3dNiNode) allBonesInSkeleton.get(boneName);
+			J3dNiNode outputBone = (J3dNiNode) allBonesInSkeleton.get(refId);
 			if (outputBone != skeletonRoot)
 			{
 				BlendedSkeletons.calcBoneVWTrans(outputBone, nonAccumRoot);

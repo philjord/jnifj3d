@@ -55,7 +55,7 @@ public class J3dNiSequenceStreamHelper extends J3dNiAVObject
 		while (controller != null)
 		{
 			String nodeName = nsed.stringData;
-			J3dNiAVObject nodeTarget = allBonesInSkeleton.get(nodeName);
+			J3dNiAVObject nodeTarget = allBonesInSkeleton.getByName(nodeName);
 			if (nodeTarget == null)
 			{
 				// this is likely fine, animations for nifs that miss out the bone, ignore.
