@@ -96,7 +96,7 @@ public class AttachedParts
 		Left_Hand(7, "Left Hand"), //Skinned
 		Right_Wrist(8, "Right Wrist"), //
 		Left_Wrist(9, "Left Wrist"), //
-		Shield(10, "Shield"), //
+		Shield(10, "Shield Bone"), // there is also a Shield node that has a rotation in it off this bone
 		Right_Forearm(11, "Right Forearm"), //
 		Left_Forearm(12, "Left Forearm"), //
 		Right_Upper_Arm(13, "Right Upper Arm"), //

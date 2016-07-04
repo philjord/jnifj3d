@@ -25,13 +25,16 @@ public class J3dNiControllerSequenceTes3 extends J3dNiControllerSequence
 	 * This is a group but it needs to be attached/detached from scene many times, it owns it's own branch
 	 * @param fireName
 	 * @param tkvs
+	 * @param keyValuesStartposition 
 	 * @param j3dNiKeyframeControllers
 	 */
-	public J3dNiControllerSequenceTes3(String fireName, TimeKeyValue[] tkvs, J3dNiKeyframeController[] j3dNiKeyframeControllers)
+	public J3dNiControllerSequenceTes3(String fireName, TimeKeyValue[] tkvs, int keyValuesStartposition,
+			J3dNiKeyframeController[] j3dNiKeyframeControllers)
 	{
 		this.fireName = fireName;
+		cycleType = NiControllerSequence.CYCLE_LOOP;// encourage looping
 
-		j3dNiTextKeyExtraData = new J3dNiTextKeyExtraDataTes3(fireName, tkvs);
+		j3dNiTextKeyExtraData = new J3dNiTextKeyExtraDataTes3(fireName, tkvs, keyValuesStartposition);
 
 		//notice these are not the same definitions as J3dNiControllerSequence
 		offsetStartS = j3dNiTextKeyExtraData.getStartTime();
@@ -42,8 +45,6 @@ public class J3dNiControllerSequenceTes3 extends J3dNiControllerSequence
 		lengthS = stopTimeS - startTimeS;
 
 		lengthMS = (long) (lengthS * 1000);
-
-		cycleType = NiControllerSequence.CYCLE_CLAMP;
 
 		controlledBlocks = new J3dNiControllerLinkTes3[j3dNiKeyframeControllers.length];
 

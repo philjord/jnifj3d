@@ -71,7 +71,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 
 	protected String nextAnimation = "";
 
-	protected boolean returnToIdleWhenDone = true;
+	protected boolean returnToIdleWhenDone = true; // if false this means just loop current
 
 	protected List<String> idleAnimations;
 
@@ -220,6 +220,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 	 */
 	protected void updateAnimation()
 	{
+
 		if (nextAnimation.length() > 0 && nextAnimation.endsWith(".kf"))
 		{
 			currentAnimation = nextAnimation;
@@ -263,9 +264,11 @@ public class NifCharacter extends BranchGroup implements Fadable
 			}
 
 		}
-		else if (idleAnimations.size() > 0 && (currentkfJ3dRoot == null || //
-				(currentkfJ3dRoot.getJ3dNiControllerSequence().isNotRunning() && returnToIdleWhenDone) || //
-				System.currentTimeMillis() - prevAnimTime > 10000))
+		else if (returnToIdleWhenDone && // 
+				idleAnimations.size() > 0 && //
+				(currentkfJ3dRoot == null || //
+						currentkfJ3dRoot.getJ3dNiControllerSequence().isNotRunning() || //
+						System.currentTimeMillis() - prevAnimTime > 10000))
 		{
 			// The above measures time in idle and changes from once it's been 10 seconds in case of looping idle
 			// otherwise drop back to idle if the current has finished
@@ -415,4 +418,5 @@ public class NifCharacter extends BranchGroup implements Fadable
 		}
 
 	}
+
 }

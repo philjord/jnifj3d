@@ -61,6 +61,7 @@ public class J3dNiControllerSequence extends Group
 		sequenceBehavior.setEnable(false);
 		sequenceBehavior.setSchedulingBounds(new BoundingSphere(new Point3d(0.0, 0.0, 0.0), Double.POSITIVE_INFINITY));
 		addChild(sequenceBehavior);
+
 	}
 
 	public J3dNiControllerSequence(NiControllerSequence niControllerSequence, NiToJ3dData niToJ3dData)
@@ -173,30 +174,25 @@ public class J3dNiControllerSequence extends Group
 	 */
 	public void fireSequence()
 	{
-		fireSequence(false, 0);
+		fireSequence(true, 0);
 	}
 
 	public void fireSequenceOnce(long triggerTime)
 	{
-		fireSequence(true, triggerTime);
+		fireSequence(false, triggerTime);
 	}
 
 	public void fireSequence(long triggerTime)
 	{
-		fireSequence(false, triggerTime);
+		fireSequence(true, triggerTime);
 	}
 
-	protected void fireSequence(boolean forceOnce, long triggerTime)
+	public void fireSequence(boolean loop, long triggerTime)
 	{
 		sequenceEventsbehave.setEnable(false);
 		sequenceBehavior.setEnable(false);
 
-		if (forceOnce)
-		{
-			//in theory the start time is working right here right now?
-			sequenceAlpha = new SequenceAlpha(startTimeS, triggerTime, stopTimeS, false);
-		}
-		else
+		if (loop)
 		{
 			float loopStartS = j3dNiTextKeyExtraData.getStartLoopTime();
 			if (loopStartS == -1)
@@ -208,6 +204,11 @@ public class J3dNiControllerSequence extends Group
 				float loopStopS = j3dNiTextKeyExtraData.getEndLoopTime();
 				sequenceAlpha = new SequenceAlpha(startTimeS, triggerTime, stopTimeS, loopStartS, loopStopS, true);
 			}
+		}
+		else
+		{
+			//in theory the start time is working right here right now?
+			sequenceAlpha = new SequenceAlpha(startTimeS, triggerTime, stopTimeS, false);
 		}
 		prevSquenceAlphaValue = 0;
 		sequenceAlpha.start();

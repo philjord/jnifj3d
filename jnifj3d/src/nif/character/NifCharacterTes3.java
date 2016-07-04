@@ -34,8 +34,6 @@ public class NifCharacterTes3 extends NifCharacter
 	{
 		super(skeletonNifFilename, mediaSources);
 
-		 
-
 		if (attachedSkinsAndParts != null)
 		{
 			for (Part part : attachedSkinsAndParts.parts.keySet())
@@ -46,7 +44,7 @@ public class NifCharacterTes3 extends NifCharacter
 					NifJ3dVisRoot model = NifToJ3d.loadShapes(nifFileName, mediaSources.getMeshSource(), mediaSources.getTextureSource());
 
 					if (model != null)
-					{						
+					{
 						// create skins from the skeleton and skin nif
 						ArrayList<J3dNiSkinInstance> skins = J3dNiSkinInstance.createSkins(model.getNiToJ3dData(),
 								blendedSkeletons.getOutputSkeleton());
@@ -63,7 +61,6 @@ public class NifCharacterTes3 extends NifCharacter
 						}
 						else
 						{
-							
 							//For TES3: add any unskinned trishapes in the skin file onto the bones
 							//these will not be done by the super because the following is not true
 							//NiStringExtraData nsed = (NiStringExtraData) ned;if (nsed.name.equalsIgnoreCase("PRN"))
@@ -96,8 +93,8 @@ public class NifCharacterTes3 extends NifCharacter
 													.get(attachNodeName);
 											if (attachnode != null)
 											{
-												CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, j3dNiGeometry, true,
-														AttachedParts.isLeftSide(part.getLoc()));
+												CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, j3dNiGeometry,
+														true, AttachedParts.isLeftSide(part.getLoc()));
 												this.addChild(ca);
 												attachments.add(ca);
 											}
@@ -114,14 +111,8 @@ public class NifCharacterTes3 extends NifCharacter
 									}
 								}
 							}
-							
-							
-							// add any non skin based gear from other files like hats!!
-							//TODO: do I need to? allOtherModels.add(model);
-
 						}
-						
-						
+
 						// head attachment can definitely have a morph in it 
 						for (J3dNiAVObject j3dNiAVObject : model.getNiToJ3dData().j3dNiAVObjectValues())
 						{
@@ -132,7 +123,6 @@ public class NifCharacterTes3 extends NifCharacter
 							}
 						}
 
-						
 					}
 					else
 					{
@@ -145,7 +135,6 @@ public class NifCharacterTes3 extends NifCharacter
 
 		KfJ3dRoot kfJ3dRoot = null;
 		if (skeletonNifFilename.toLowerCase().indexOf(".nif") != -1)
-
 		{
 			String kfName = skeletonNifFilename.substring(0, skeletonNifFilename.toLowerCase().indexOf(".nif")) + ".kf";
 			kfJ3dRoot = NifToJ3d.loadKf(kfName, mediaSources.getMeshSource());
@@ -194,7 +183,7 @@ public class NifCharacterTes3 extends NifCharacter
 	 */
 	@Override
 	protected void updateAnimation()
-	{
+	{		
 		if (nextAnimation.length() > 0)
 		{
 			currentAnimation = nextAnimation;
@@ -227,10 +216,11 @@ public class NifCharacterTes3 extends NifCharacter
 			// assign currents
 			currentKfBg = newKfBg;
 		}
-		else if (idleAnimations != null && //
+		else if (returnToIdleWhenDone && //
+				idleAnimations != null && //
 				idleAnimations.size() > 0 && //
 				(currentSequence == null || //
-						(currentSequence.isNotRunning() && returnToIdleWhenDone) || //
+						(currentSequence.isNotRunning()) || //
 						System.currentTimeMillis() - prevAnimTime > 10000))
 		{
 			int r = (int) (Math.random() * idleAnimations.size());

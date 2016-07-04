@@ -9,6 +9,7 @@ import javax.media.j3d.Bounds;
 import javax.vecmath.Point3d;
 
 import nif.NifJ3dVisRoot;
+import nif.character.TextKeyExtraDataKey;
 import nif.compound.NifKey;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiDefaultAVObjectPalette;
@@ -78,20 +79,31 @@ public class J3dNiSequenceStreamHelper extends J3dNiAVObject
 		HashSet<String> namesFound = new HashSet<String>();
 		List<J3dNiControllerSequenceTes3> j3dNiControllerSequenceList = new ArrayList<J3dNiControllerSequenceTes3>();
 		TimeKeyValue[] tkvs = parseTimeKeyValues(ntked);
-		for (TimeKeyValue tkv : tkvs)
+		for (int i = 0; i < tkvs.length; i++)
 		{
+			TimeKeyValue tkv = tkvs[i];
 			for (KeyValue kv : tkv.keyValues)
 			{
 				String key = kv.key.toLowerCase();
-				// skip sounds for now (can be mixed case)
-				if (!key.equals("soundgen") //
-						&& !key.equals("sound"))
+				TextKeyExtraDataKey tked = new TextKeyExtraDataKey(kv.value, tkv.time);
+
+				// only form a J3dNiControllerSequenceTes3 from the value start (it will search for it's own stop)
+				if (tked.getTextKey().toLowerCase().trim().endsWith("start"))
 				{
 					if (!namesFound.contains(key))
 					{
 						namesFound.add(key);
-						j3dNiControllerSequenceList.add(new J3dNiControllerSequenceTes3(key, tkvs, j3dNiKeyframeControllers));
+						j3dNiControllerSequenceList.add(new J3dNiControllerSequenceTes3(key, tkvs, i, j3dNiKeyframeControllers));
 					}
+					else
+					{
+						// this is apparently totally possible, and using the first seems ok 
+						//as the sequence resets itself to the second anyway
+						//Key start found twice!!! attack2 at 6.7333336 in Meshes\r\xCliffRacer.kf
+						
+						//System.err.println(" Key start found twice!!! " + key + " at " + tkv.time + " in " + niToJ3dData.nifVer.fileName);
+					}
+
 				}
 			}
 		}
