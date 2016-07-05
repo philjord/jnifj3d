@@ -82,14 +82,16 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 	 */
 	public void makeMorphable()
 	{
-		// TODO: is there any gain? certainly a loss from being wrong
-		//TODO: this cause first person hands to disappear more often
-		/*		if (USE_FIXED_BOUNDS)
-				{
-					getShape().setBoundsAutoCompute(false);// expensive to do regularly so animated node just get one
-					getShape().setBounds(new BoundingSphere(new Point3d(data.center.x, data.center.y, data.center.z),
-							isMorphable ? data.radius * 10 : data.radius));
-				}*/
+		// TODO: is there any gain? certainly a loss from being wrong, 
+		//gain in updateData no recompute required
+
+		if (USE_FIXED_BOUNDS)
+		{
+			float radius = isMorphable ? data.radius * 10 : data.radius;
+			radius = radius < 10 ? 10 : radius;// min 10 to be sure
+			getShape().setBoundsAutoCompute(false);// expensive to do regularly so animated node just get one
+			getShape().setBounds(new BoundingSphere(new Point3d(data.center.x, data.center.y, data.center.z), radius));
+		}
 		if (!isMorphable)
 		{
 
