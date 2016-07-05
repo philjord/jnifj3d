@@ -111,7 +111,7 @@ public class AttachedParts
 		Left_Upper_Leg(22, "Left Upper Leg"), //
 		Right_Clavicle(23, "Right Clavicle"), //"Right Pauldron"), 
 		Left_Clavicle(24, "Left Clavicle"), //"Left Pauldron"), 
-		Weapon(25, "Weapon"), //
+		Weapon(25, "Weapon Bone"), //like shield above odd rotate in Weapon node
 		Tail(26, "Tail"), //
 		Root(27, "Root Bone");// made up for CREA to use
 
