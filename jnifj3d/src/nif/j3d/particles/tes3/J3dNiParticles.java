@@ -41,7 +41,20 @@ import utils.source.TextureSource;
 public class J3dNiParticles extends J3dNiGeometry
 {
 	//THIS MUST BE SET WHEN SCREEN SIZE CHANGES!!!
-	public static float screenWidth = 800;
+	private static float screenWidth = -1;
+
+	private static ShaderAttributeValue screenWidthShaderAttributeValue = new ShaderAttributeValue("screenWidth", new Float(screenWidth));
+
+	static
+	{
+		screenWidthShaderAttributeValue.setCapability(ShaderAttributeValue.ALLOW_VALUE_WRITE);
+	}
+
+	public static void setScreenWidth(float newWidth)
+	{
+		screenWidth = newWidth;
+		screenWidthShaderAttributeValue.setValue(new Float(screenWidth));
+	}
 
 	private static boolean SHOW_DEBUG_LINES = false;
 
@@ -328,7 +341,9 @@ public class J3dNiParticles extends J3dNiGeometry
 		TransparencyAttributes ta = new TransparencyAttributes();
 
 		ShaderAttributeSet shaderAttributeSet = new ShaderAttributeSet();
-		shaderAttributeSet.put(new ShaderAttributeValue("screenWidth", new Float(screenWidth)));
+		if (screenWidth == -1)
+			System.out.println("J3dNiParticles.screenWidth must be set for particles to show!!");
+		shaderAttributeSet.put(screenWidthShaderAttributeValue);
 
 		for (int p = 0; p < props.length; p++)
 		{

@@ -63,7 +63,7 @@ public class J3dNiParticleGrowFade extends J3dNiParticleModifier
 		}
 
 		float[] ss = j3dNiParticlesData.particleRadius;
-		ss[pId] = ConvertFromNif.toJ3d(s * j3dNiParticlesData.particlesBaseRadius);
+		ss[pId] = ConvertFromNif.toJ3d(s * j3dNiParticlesData.particlesBaseRadius/2f);
 
 	}
 

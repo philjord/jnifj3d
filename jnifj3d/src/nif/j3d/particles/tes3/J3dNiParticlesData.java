@@ -184,7 +184,7 @@ public class J3dNiParticlesData
 			float s = 1f;
 			if (niParticlesData.hasSizes)
 				s = niParticlesData.sizes[indx];
-			particleRadius[indx] = ConvertFromNif.toJ3d(s * niParticlesData.particlesRadius);
+			particleRadius[indx] = ConvertFromNif.toJ3d(s * niParticlesData.particlesRadius/2f);
 		}
 
 		updateData();

@@ -99,7 +99,7 @@ public class J3dNiParticleEmitter
 		planarAngle = niParticleSystemController.horizontalDirection;
 		planarAngleVariation = niParticleSystemController.horizontalAngle;
 		initialColor = new Color4f(1, 1, 1, 1);// maybe reset by the color modifier
-		initialRadius = niParticleSystemController.size;// notice NO convert for radius, it's screen
+		initialRadius = niParticleSystemController.size;
 		radiusVariation = 0;
 		lifeSpan = niParticleSystemController.lifetime;
 		lifeSpanVariation = niParticleSystemController.lifetimeRandom;
@@ -232,8 +232,8 @@ public class J3dNiParticleEmitter
 
 		col.set(initialColor);
 
-		float radius = ConvertFromNif.toJ3d(initialRadius);  
-		radius += J3dNiParticleModifier.var(radiusVariation * 2);
+		float radius = ConvertFromNif.toJ3d(initialRadius/2f);
+		radius += J3dNiParticleModifier.var(ConvertFromNif.toJ3d(radiusVariation) * 2);
 
 		float particleLifeSpan = lifeSpan;
 		particleLifeSpan += J3dNiParticleModifier.var(lifeSpanVariation);
@@ -246,7 +246,7 @@ public class J3dNiParticleEmitter
 		int newParticleId = j3dNiParticlesData.addActive(radius, (long) particleLifeSpan, generation, pos.x, pos.y, pos.z, col.x, col.y,
 				col.z, col.w, vel.x, vel.y, vel.z);
 
-		j3dNiParticleSystemController.particleCreated(newParticleId);	
+		j3dNiParticleSystemController.particleCreated(newParticleId);
 	}
 
 }
