@@ -40,12 +40,15 @@ import utils.source.TextureSource;
 
 public class J3dNiParticles extends J3dNiGeometry
 {
+	//THIS MUST BE SET WHEN SCREEN SIZE CHANGES!!!
+	public static float screenWidth = 800;
+
 	private static boolean SHOW_DEBUG_LINES = false;
 
 	// keep for a reset
-//	private NiParticles niParticles;
-//	private NiToJ3dData niToJ3dData;
-//	private TextureSource textureSource;
+	//	private NiParticles niParticles;
+	//	private NiToJ3dData niToJ3dData;
+	//	private TextureSource textureSource;
 
 	protected J3dNiParticlesData j3dNiParticlesData;
 
@@ -66,9 +69,9 @@ public class J3dNiParticles extends J3dNiGeometry
 		// the shape will not be added so we can choose to add it to a root we like in a moment
 		super(niParticles, niToJ3dData, textureSource, new Shape3D());
 
-//		this.niParticles = niParticles;
-//		this.niToJ3dData = niToJ3dData;
-//		this.textureSource = textureSource;
+		//		this.niParticles = niParticles;
+		//		this.niToJ3dData = niToJ3dData;
+		//		this.textureSource = textureSource;
 
 		shape = getShape();
 		shape.clearCapabilities();
@@ -169,12 +172,11 @@ public class J3dNiParticles extends J3dNiGeometry
 			addChild(j3dNiParticleSystemController);
 
 			setUpModifers(niToJ3dData);
-			
-			
+
 			//FIXME: should I auto fire this guy? how to know when to remove magic effects for example?
-			j3dNiParticleSystemController.fireSequenceLooping();			
+			j3dNiParticleSystemController.fireSequenceLooping();
 		}
-		 
+
 	}
 
 	public void particleCreated(int newParticleId)
@@ -315,7 +317,7 @@ public class J3dNiParticles extends J3dNiGeometry
 			};
 			shaderProgram.setShaders(shaders);
 
-			shaderProgram.setShaderAttrNames(new String[] { "BaseMap" });
+			shaderProgram.setShaderAttrNames(new String[] { "BaseMap", "screenWidth" });
 			String[] vertexAttrNames = new String[] { "Size", "Rotation" };
 			shaderProgram.setVertexAttrNames(vertexAttrNames);
 		}
@@ -326,6 +328,7 @@ public class J3dNiParticles extends J3dNiGeometry
 		TransparencyAttributes ta = new TransparencyAttributes();
 
 		ShaderAttributeSet shaderAttributeSet = new ShaderAttributeSet();
+		shaderAttributeSet.put(new ShaderAttributeValue("screenWidth", new Float(screenWidth)));
 
 		for (int p = 0; p < props.length; p++)
 		{
@@ -363,7 +366,6 @@ public class J3dNiParticles extends J3dNiGeometry
 							String textureUnitName = "BaseMap";
 							shaderAttributeSet.put(new ShaderAttributeValue(textureUnitName, new Integer(0)));
 						}
-
 					}
 				}
 				else if (prop instanceof NiAlphaProperty)

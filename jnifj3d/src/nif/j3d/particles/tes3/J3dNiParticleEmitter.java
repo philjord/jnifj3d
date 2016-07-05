@@ -232,7 +232,7 @@ public class J3dNiParticleEmitter
 
 		col.set(initialColor);
 
-		float radius = initialRadius; // notice NO convert for radius, it's screen
+		float radius = ConvertFromNif.toJ3d(initialRadius);  
 		radius += J3dNiParticleModifier.var(radiusVariation * 2);
 
 		float particleLifeSpan = lifeSpan;

@@ -5,6 +5,7 @@ import javax.media.j3d.IndexedPointArray;
 import javax.vecmath.Vector3f;
 
 import nif.niobject.particle.NiParticlesData;
+import utils.convert.ConvertFromNif;
 
 public class J3dNiParticlesData
 {
@@ -183,7 +184,7 @@ public class J3dNiParticlesData
 			float s = 1f;
 			if (niParticlesData.hasSizes)
 				s = niParticlesData.sizes[indx];
-			particleRadius[indx] = s * niParticlesData.particlesRadius;
+			particleRadius[indx] = ConvertFromNif.toJ3d(s * niParticlesData.particlesRadius);
 		}
 
 		updateData();

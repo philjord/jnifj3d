@@ -2,6 +2,7 @@ package nif.j3d.particles.tes3;
 
 import nif.j3d.NiToJ3dData;
 import nif.niobject.particle.NiParticleGrowFade;
+import utils.convert.ConvertFromNif;
 
 public class J3dNiParticleGrowFade extends J3dNiParticleModifier
 {
@@ -62,7 +63,7 @@ public class J3dNiParticleGrowFade extends J3dNiParticleModifier
 		}
 
 		float[] ss = j3dNiParticlesData.particleRadius;
-		ss[pId] = s * j3dNiParticlesData.particlesBaseRadius;
+		ss[pId] = ConvertFromNif.toJ3d(s * j3dNiParticlesData.particlesBaseRadius);
 
 	}
 
