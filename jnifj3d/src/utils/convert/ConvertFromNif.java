@@ -5,6 +5,7 @@ import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
 import javax.vecmath.TexCoord2f;
+import javax.vecmath.Tuple3f;
 import javax.vecmath.Vector3f;
 
 import utils.ESConfig;
@@ -42,7 +43,7 @@ public class ConvertFromNif
 		return createScaledPoint(v.x, v.y, v.z);
 	}
 
-	public static void toJ3d(Point3f p)
+	public static void toJ3d(Tuple3f p)
 	{
 		p.set(p.x * ESConfig.ES_TO_METERS_SCALE, //
 				p.z * ESConfig.ES_TO_METERS_SCALE, //
