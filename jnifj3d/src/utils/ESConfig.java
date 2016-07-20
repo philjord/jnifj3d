@@ -8,7 +8,7 @@ public class ESConfig
 
 	// 1/0.02 = 50
 	// TES units are in fact definitively one half inch per unit!
-	public static float ES_TO_METERS_SCALE = 0.0254f / 2f;
+	public static float ES_TO_METERS_SCALE = 0.0254f / 2f; //0.0127
 
 	public static String TES_TEXTURE_PATH = "Textures\\";
 

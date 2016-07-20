@@ -47,11 +47,12 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 
 	//  Oblivion does not ignore root rotations (will return false here
 	// all other games assume the placement type operations happen on the root node
+	// excpet morrowind does not ignore Bip01 node transforms
 	public static boolean ignoreTopTransformRot(NiAVObject niAVObject)
 	{
 		boolean ignoreTopTransform = (niAVObject instanceof BSFadeNode) || //fallout and upwards
 				(niAVObject.nVer.LOAD_VER < NifVer.VER_10_0_1_0 && // morrowind
-						niAVObject instanceof NiNode && niAVObject.parent == null); // check for root
+						niAVObject instanceof NiNode && niAVObject.parent == null && !niAVObject.name.equals("Bip01")); // check for root
 		return ignoreTopTransform;
 	}
 
