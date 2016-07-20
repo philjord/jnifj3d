@@ -51,6 +51,12 @@ public class NifCharacterTes3 extends NifCharacter
 
 						if (skins.size() > 0)
 						{
+
+							if (nifFileName.contains("skins"))
+							{
+								trimSkinsToPart(part, skins);
+							}
+
 							// add the skins to the scene
 							for (J3dNiSkinInstance j3dNiSkinInstance : skins)
 							{
@@ -58,12 +64,15 @@ public class NifCharacterTes3 extends NifCharacter
 							}
 
 							allSkins.addAll(skins);
+
 						}
 						else
 						{
 							//For TES3: add any unskinned trishapes in the skin file onto the bones
 							//these will not be done by the super because the following is not true
-							//NiStringExtraData nsed = (NiStringExtraData) ned;if (nsed.name.equalsIgnoreCase("PRN"))
+							//NiStringExtraData nsed = (NiStringExtraData) ned;
+							//if (nsed.name.equalsIgnoreCase("PRN"))
+
 							for (J3dNiAVObject j3dNiAVObject : model.getNiToJ3dData().j3dNiAVObjectValues())
 							{
 								// don't re attach particles as the anme is not right
@@ -183,7 +192,7 @@ public class NifCharacterTes3 extends NifCharacter
 	 */
 	@Override
 	protected void updateAnimation()
-	{		
+	{
 		if (nextAnimation.length() > 0)
 		{
 			currentAnimation = nextAnimation;
@@ -260,5 +269,25 @@ public class NifCharacterTes3 extends NifCharacter
 	protected long prevMorphTime = 0;
 
 	protected float nextFireTime = 0;
+
+	/**
+	 * Note this trims chest, hand, feet and tail if beast
+	 * @param part
+	 * @param skins
+	 */
+	private static void trimSkinsToPart(Part part, ArrayList<J3dNiSkinInstance> skins)
+	{
+		for (int i = 0; i < skins.size(); i++)
+		{
+			J3dNiSkinInstance j3dNiSkinInstance = skins.get(i);
+
+			// all skins nodes are of a form "Tri Left Hand 0" so the node name should appear
+			if (!j3dNiSkinInstance.getJ3dNiTriShape().getName().contains(part.getNode()))
+			{
+				skins.remove(i);
+				i--;
+			}
+		}
+	}
 
 }

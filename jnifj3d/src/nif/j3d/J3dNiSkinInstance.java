@@ -20,6 +20,8 @@ public class J3dNiSkinInstance extends Group implements Fadable
 {
 	public static boolean showSkinBoneMarkers = false;
 
+	private J3dNiTriShape j3dNiTriShape;
+
 	private J3dNifSkinData j3dNifSkinData;
 
 	private J3dNiAVObject skinSkeletonRoot;
@@ -27,6 +29,7 @@ public class J3dNiSkinInstance extends Group implements Fadable
 	public J3dNiSkinInstance(NiSkinInstance niSkinInstance, J3dNiTriShape j3dNiTriShape, NiToJ3dData niToJ3dData,
 			NifJ3dSkeletonRoot nifJ3dSkeletonRoot)
 	{
+		this.j3dNiTriShape = j3dNiTriShape;
 		J3dNiDefaultAVObjectPalette allSkeletonBones = nifJ3dSkeletonRoot.getAllBonesInSkeleton();
 
 		if (j3dNiTriShape.getParent() != null)
@@ -66,6 +69,11 @@ public class J3dNiSkinInstance extends Group implements Fadable
 			j3dNifSkinData = new J3dNifSkinData(niSkinData, j3dNiTriShape, skinBonesInOrder, skeletonBones);
 		}
 
+	}
+
+	public J3dNiTriShape getJ3dNiTriShape()
+	{
+		return j3dNiTriShape;
 	}
 
 	public void processSkinInstance()
