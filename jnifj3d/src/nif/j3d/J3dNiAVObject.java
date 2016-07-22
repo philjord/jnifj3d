@@ -1,5 +1,7 @@
 package nif.j3d;
 
+import java.util.ArrayList;
+
 import javax.media.j3d.Node;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
@@ -17,6 +19,8 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 	protected NiAVObject niAVObject;
 
 	public Cube visualMarker;
+
+	private ArrayList<TransformListener> transformListeners = null;
 
 	public J3dNiAVObject(NiAVObject niAVObject, NiToJ3dData niToJ3dData)
 	{
@@ -145,7 +149,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 	}
 
 	/**
-	 * It stops multipling when it meets the root object, it does NOT include thte trasn of the root!
+	 * It stops multiplying when it meets the root object, it does NOT include the trans of the root!
 	 * @param t
 	 * @param rootJ3dNiAVObject
 	 */
@@ -213,12 +217,21 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 	// this is turned on if transformMul is called at all (from the getTreeTransformImpl)
 	private Transform3D transformCache;
 
+	@Override
 	public void setTransform(Transform3D t1)
 	{
 		if (transformCache != null)
 			transformCache.set(t1);
 
 		super.setTransform(t1);
+
+		if (transformListeners != null)
+		{
+			for (TransformListener tl : transformListeners)
+			{
+				tl.transformSet(t1);
+			}
+		}
 	}
 
 	public void transformMul(Transform3D t)
@@ -303,6 +316,25 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 	{
 		// TODO: is there anything to do now? iterate through children?
 
+	}
+
+	public void addTransformListener(TransformListener tl)
+	{
+		if (transformListeners == null)
+			transformListeners = new ArrayList<TransformListener>();
+
+		transformListeners.add(tl);
+	}
+
+	public void removeTransformListener(TransformListener tl)
+	{
+		if (transformListeners != null)
+			transformListeners.remove(tl);
+	}
+
+	public interface TransformListener
+	{
+		public void transformSet(Transform3D t1);
 	}
 
 }

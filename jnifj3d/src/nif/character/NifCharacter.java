@@ -81,6 +81,8 @@ public class NifCharacter extends BranchGroup implements Fadable
 
 	protected BlendedSkeletons blendedSkeletons;
 
+
+
 	protected BranchGroup currentKfBg;
 
 	private NifCharUpdateBehavior updateBehavior;
@@ -300,7 +302,12 @@ public class NifCharacter extends BranchGroup implements Fadable
 			nextAnimation = fileName;
 		}
 	}
-
+	
+	public NifJ3dSkeletonRoot getOutputSkeleton()
+	{
+		return blendedSkeletons.getOutputSkeleton();
+	}
+	
 	// TODO: this and the sound sequence listener below should be generic'ed
 	protected void addObjectSound(PointSound sound, String soundKey, float edge)
 	{
