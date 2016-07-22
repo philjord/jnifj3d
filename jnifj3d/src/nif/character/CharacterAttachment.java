@@ -74,7 +74,7 @@ public class CharacterAttachment extends BranchGroup implements Fadable
 			if (headAttachRotNeeded)
 			{
 				Transform3D upright = new Transform3D();
-				upright.rotZ(-Math.PI / 4f);
+				upright.rotZ(-Math.PI / 2f);
 				Quat4f up = new Quat4f();
 				upright.get(up);
 				trans.setRotation(up);
