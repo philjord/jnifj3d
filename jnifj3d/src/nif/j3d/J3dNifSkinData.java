@@ -102,6 +102,7 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 	private Transform3D accumulatorTrans = new Transform3D();
 
 	private float[] currentCoordRefFloatbf;
+	private static float[] currentCoordRefFloatbfClearer = new float[20000];// is 20k big enough?
 	private float[] baseCoordRefFloatbf;
 
 	@Override
@@ -131,10 +132,11 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 				currentCoordRefFloat.get(currentCoordRefFloatbf);
 			}
 
-			for (int i = 0; i < currentCoordRefFloat.limit(); i++)
-			{
-				currentCoordRefFloatbf[i] = 0;
-			}
+			System.arraycopy(currentCoordRefFloatbfClearer, 0, currentCoordRefFloatbf, 0, currentCoordRefFloatbf.length);
+			/*	for (int i = 0; i < currentCoordRefFloat.limit(); i++)
+				{
+					currentCoordRefFloatbf[i] = 0;
+				}*/
 		}
 		else
 		{
@@ -171,7 +173,6 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 
 			if (NifCharacter.BULK_BUFFER_UPDATES)
 			{
-
 				for (NifSkinWeight vw : nsd.vertexWeights)
 				{
 					int vIdx = vw.index;
@@ -228,7 +229,7 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 						//scale by the weight of the bone
 						px *= weight;
 						py *= weight;
-						pz *= weight;						 
+						pz *= weight;
 
 						// accumulate into the output
 						currentCoordRefFloat.put(vIdx * 3 + 0, currentCoordRefFloat.get(vIdx * 3 + 0) + px);
