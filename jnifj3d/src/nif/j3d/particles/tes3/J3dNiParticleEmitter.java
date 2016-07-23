@@ -1,5 +1,7 @@
 package nif.j3d.particles.tes3;
 
+import java.util.ArrayList;
+
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
 import javax.vecmath.AxisAngle4f;
@@ -21,6 +23,8 @@ import utils.convert.ConvertFromNif;
  */
 public class J3dNiParticleEmitter
 {
+	public static final float SIZE_MULTIPLY = 0.25f;
+
 	private J3dNiParticleSystemController j3dNiParticleSystemController;
 
 	private J3dNiParticlesData j3dNiParticlesData;
@@ -28,6 +32,9 @@ public class J3dNiParticleEmitter
 	private J3dNiParticles parent;
 
 	private J3dNiNode emitter;
+
+	private ArrayList<J3dNiNode> dummyNodeEmitters = null;
+	private int nextDummyNodeEmitterToUse = 0;
 
 	private J3dNiAVObject root;
 
@@ -69,7 +76,32 @@ public class J3dNiParticleEmitter
 		this.j3dNiParticlesData = j3dNiParticlesData;
 
 		emitter = (J3dNiNode) niToJ3dData.get((NiAVObject) niToJ3dData.get(niParticleSystemController.emitter));
-		emitter.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+		// in this case we will in fact use the dummy nodes in a circular fashion and hope
+		if (emitter.getName().equals("Bip01 Pelvis"))
+		{
+			dummyNodeEmitters = new ArrayList<J3dNiNode>();
+			for (J3dNiAVObject n : niToJ3dData.j3dNiAVObjectValues())
+			{
+				if (n.getNiAVObject().name.contains("Dummy"))
+				{
+					dummyNodeEmitters.add((J3dNiNode) n);
+					n.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+
+					//try to find nif root
+					J3dNiAVObject r2 = n.topOfParent;
+					r2.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+					while (r2.topOfParent != null)
+					{
+						r2 = r2.topOfParent;
+						r2.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+					}
+				}
+			}
+		}
+		else
+		{
+			emitter.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+		}
 
 		//try to find nif root
 		root = emitter.topOfParent;
@@ -152,11 +184,24 @@ public class J3dNiParticleEmitter
 	 */
 	protected void getCreationPoint(Point3f pos)
 	{
+
+		if (dummyNodeEmitters == null)
+		{
+
+			emitter.getTreeTransform(t3, root);
+		}
+		else
+		{
+			dummyNodeEmitters.get(nextDummyNodeEmitterToUse).getTreeTransform(t3, root);
+			nextDummyNodeEmitterToUse++;
+			if (nextDummyNodeEmitterToUse >= dummyNodeEmitters.size())
+				nextDummyNodeEmitterToUse = 0;
+		}
+
 		// Notice this is location of the node, but I'm going to add to this node so I need to
 		// find the relative position
 		// which means using the getTreeTransfom and the root node for both the emitter
 		// and the particle system location
-		emitter.getTreeTransform(t3, root);
 		t3.get(v1);
 
 		parent.getTreeTransform(t3, root);
@@ -179,6 +224,8 @@ public class J3dNiParticleEmitter
 
 	private Transform3D t2 = new Transform3D();
 
+	private float numToBirth = 0;
+
 	/**
 	 * Note not the same interface as a modifier
 	 */
@@ -189,7 +236,7 @@ public class J3dNiParticleEmitter
 			if (autoAdjust)
 			{
 				// just fill up to the max
-				while (j3dNiParticlesData.activeParticleCount < j3dNiParticlesData.maxParticleCount)
+				while (j3dNiParticlesData.canAdd())
 				{
 					addParticle();
 				}
@@ -198,10 +245,12 @@ public class J3dNiParticleEmitter
 			{
 				float birthRatePerUpdateTime = (birthRate / 1000f) * elapsedMillisec;
 
-				while (birthRatePerUpdateTime > 0)
+				numToBirth += birthRatePerUpdateTime;
+				
+				while (numToBirth > 1)
 				{
 					addParticle();
-					birthRatePerUpdateTime -= 1;
+					numToBirth -= 1;
 				}
 			}
 		}
@@ -210,43 +259,47 @@ public class J3dNiParticleEmitter
 
 	private void addParticle()
 	{
-		float particleSpeed = speed;
-		particleSpeed += J3dNiParticleModifier.var(speedVariation);
-		particleSpeed = ConvertFromNif.toJ3d(particleSpeed);
+		if (j3dNiParticlesData.canAdd())
+		{
 
-		float dec = declination;
-		dec += J3dNiParticleModifier.var(declinationVariation * 2);
+			float particleSpeed = speed;
+			particleSpeed += J3dNiParticleModifier.var(speedVariation);
+			particleSpeed = ConvertFromNif.toJ3d(particleSpeed);
 
-		float pa = planarAngle;
-		pa += J3dNiParticleModifier.var(planarAngleVariation * 2);
+			float dec = declination;
+			dec += J3dNiParticleModifier.var(declinationVariation * 2);
 
-		// calculate the velocity vector
-		aaZ.setAngle(dec);
-		aaY.setAngle(pa);
-		t.set(aaZ);
-		t2.set(aaY);
-		t.mul(t2, t);
-		vel.set(0, 1, 0);
-		t.transform(vel);
-		vel.scale(particleSpeed);
+			float pa = planarAngle;
+			pa += J3dNiParticleModifier.var(planarAngleVariation * 2);
 
-		col.set(initialColor);
+			// calculate the velocity vector
+			aaZ.setAngle(dec);
+			aaY.setAngle(pa);
+			t.set(aaZ);
+			t2.set(aaY);
+			t.mul(t2, t);
+			vel.set(0, 1, 0);
+			t.transform(vel);
+			vel.scale(particleSpeed);
 
-		float radius = ConvertFromNif.toJ3d(initialRadius/2f);
-		radius += J3dNiParticleModifier.var(ConvertFromNif.toJ3d(radiusVariation) * 2);
+			col.set(initialColor);
 
-		float particleLifeSpan = lifeSpan;
-		particleLifeSpan += J3dNiParticleModifier.var(lifeSpanVariation);
-		particleLifeSpan *= 1000;// it's in seconds, convert to ms
+			float radius = ConvertFromNif.toJ3d(initialRadius * SIZE_MULTIPLY);
+			radius += J3dNiParticleModifier.var(ConvertFromNif.toJ3d(radiusVariation) * 2);
 
-		getCreationPoint(pos);
+			float particleLifeSpan = lifeSpan;
+			particleLifeSpan += J3dNiParticleModifier.var(lifeSpanVariation);
+			particleLifeSpan *= 1000;// it's in seconds, convert to ms
 
-		int generation = 0;
+			getCreationPoint(pos);
 
-		int newParticleId = j3dNiParticlesData.addActive(radius, (long) particleLifeSpan, generation, pos.x, pos.y, pos.z, col.x, col.y,
-				col.z, col.w, vel.x, vel.y, vel.z);
+			int generation = 0;
 
-		j3dNiParticleSystemController.particleCreated(newParticleId);
+			int newParticleId = j3dNiParticlesData.addActive(radius, (long) particleLifeSpan, generation, pos.x, pos.y, pos.z, col.x, col.y,
+					col.z, col.w, vel.x, vel.y, vel.z);
+
+			j3dNiParticleSystemController.particleCreated(newParticleId);
+		}
 	}
 
 }

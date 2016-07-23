@@ -76,15 +76,22 @@ public class J3dNiGravity extends J3dNiParticleModifier
 			float fractionOfSec = elapsedMillisec / 1000f;
 
 			float[] vs = j3dNiParticlesData.particleVelocity;
+			//long[] as = j3dNiParticlesData.particleAge;
 
 			for (int i = 0; i < j3dNiParticlesData.activeParticleCount; i++)
 			{
 				float actualStrength = force;
 				actualStrength = actualStrength < 0 ? 0 : actualStrength;
 
+				// this is what gravity should be
+				// multipler of life to gravity effect, why not
+				//float secs = as[i] / 1000f;
+				//actualStrength = actualStrength * secs * secs;
+				// without the fractionOfSec below, however this ruins candles and seems a bit strong
+
 				vs[i * 3 + 0] += gravityApplied.x * fractionOfSec * actualStrength;
 				vs[i * 3 + 1] += gravityApplied.y * fractionOfSec * actualStrength;
-				vs[i * 3 + 2] += gravityApplied.z * fractionOfSec * actualStrength;
+				vs[i * 3 + 2] += gravityApplied.z * fractionOfSec * actualStrength;				
 			}
 		}
 

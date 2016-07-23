@@ -184,7 +184,7 @@ public class J3dNiParticlesData
 			float s = 1f;
 			if (niParticlesData.hasSizes)
 				s = niParticlesData.sizes[indx];
-			particleRadius[indx] = ConvertFromNif.toJ3d(s * niParticlesData.particlesRadius/2f);
+			particleRadius[indx] = ConvertFromNif.toJ3d(s * niParticlesData.particlesRadius / 2f);
 		}
 
 		updateData();
@@ -238,6 +238,11 @@ public class J3dNiParticlesData
 		int len = remCount * stride;
 		System.arraycopy(arr, srcStart, arr, destStart, len);
 
+	}
+
+	public boolean canAdd()
+	{
+		return activeParticleCount < maxParticleCount;
 	}
 
 	//TODO: add many more inits and also the COPY from particle id type
@@ -300,8 +305,7 @@ public class J3dNiParticlesData
 	public void recalcAllGaCoords()
 	{
 		//TODO: this MUST be a double buffer pointer swap system, not this copy rubbish
-		System.arraycopy(particleTranslation, 0, gaCoords, 0, activeParticleCount*3);
-		 
+		System.arraycopy(particleTranslation, 0, gaCoords, 0, activeParticleCount * 3);
 
 		//TODO: I get the impression that the black dot is
 		// a badly formed final particle somehow? 
@@ -321,7 +325,7 @@ public class J3dNiParticlesData
 	 */
 	public void recalcSizes()
 	{
-		System.arraycopy(particleRadius, 0, gaVsizesF, 0, activeParticleCount*1);		 
+		System.arraycopy(particleRadius, 0, gaVsizesF, 0, activeParticleCount * 1);
 	}
 
 	/**
@@ -331,7 +335,7 @@ public class J3dNiParticlesData
 	 */
 	public void recalcRotations()
 	{
-		System.arraycopy(particleRotationAngle, 0, gaVrotationsF, 0, activeParticleCount*1);		 
+		System.arraycopy(particleRotationAngle, 0, gaVrotationsF, 0, activeParticleCount * 1);
 	}
 
 	/**
@@ -343,14 +347,14 @@ public class J3dNiParticlesData
 	{
 		if (niParticlesData.hasVertexColors)
 		{
-			System.arraycopy(particleColors, 0, gaColors, 0, activeParticleCount*4);
-			 
+			System.arraycopy(particleColors, 0, gaColors, 0, activeParticleCount * 4);
+
 		}
 
 	}
 
 	public void resetTexCoords()
-	{ 
+	{
 		for (int i = 0; i < activeParticleCount; i++)
 		{
 			//TODO: looks like there is no atlas system for particles

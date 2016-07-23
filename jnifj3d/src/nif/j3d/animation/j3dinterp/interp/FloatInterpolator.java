@@ -46,7 +46,6 @@ public class FloatInterpolator implements Interpolated
 		if (currentKnotIndex != 0 || currentInterpolationValue != 0f)
 		{
 			value = values[currentKnotIndex] + (values[currentKnotIndex + 1] - values[currentKnotIndex]) * currentInterpolationValue;
-
 		}
 		listener.update(value);
 	}
