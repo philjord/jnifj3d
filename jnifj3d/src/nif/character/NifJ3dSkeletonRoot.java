@@ -102,9 +102,8 @@ public class NifJ3dSkeletonRoot extends Group
 
 					skeletonRoot = j3dNiNode;
 				}
-
+								
 				allBonesInSkeleton.put(j3dNiNode);
-
 			}
 		}
 
@@ -212,7 +211,7 @@ public class NifJ3dSkeletonRoot extends Group
 	}
 
 	/**
-	 * Called to update teh transform, not used by blened skeleton system
+	 * Called to update the transform, not used by blended skeleton system
 	 */
 	public void updateBones()
 	{
@@ -230,7 +229,7 @@ public class NifJ3dSkeletonRoot extends Group
 			J3dNiNode outputBone = (J3dNiNode) allBonesInSkeleton.get(refId);
 			if (outputBone != skeletonRoot)
 			{
-				BlendedSkeletons.calcBoneVWTrans(outputBone, nonAccumRoot);
+				BlendedSkeletons.calcBoneVWTrans(outputBone, nonAccumRoot);				
 			}
 		}
 	}

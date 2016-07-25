@@ -59,8 +59,8 @@ import utils.source.MediaSources;
 
 public class NifCharacter extends BranchGroup implements Fadable
 {
-
-	public static boolean BULK_BUFFER_UPDATES = false;
+	public static boolean BULK_BUFFER_UPDATES = true;
+	
 	private MediaSources mediaSources;
 
 	protected ArrayList<J3dNiSkinInstance> allSkins = new ArrayList<J3dNiSkinInstance>();

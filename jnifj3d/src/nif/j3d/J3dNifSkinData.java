@@ -101,7 +101,7 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 	//reused in loop
 	private Transform3D accumulatorTrans = new Transform3D();
 
-	private float[] currentCoordRefFloatbf;
+	private float[] currentCoordRefFloatbf;	
 	private static float[] currentCoordRefFloatbfClearer = new float[20000];// is 20k big enough?
 	private float[] baseCoordRefFloatbf;
 
@@ -114,8 +114,6 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 		FloatBuffer baseCoordRefFloat = (FloatBuffer) baseIndexedGeometryArray.getCoordRefBuffer().getBuffer();
 		FloatBuffer currentCoordRefFloat = (FloatBuffer) currentIndexedGeometryArray.getCoordRefBuffer().getBuffer();
 
-		//clear out current in order to accum into it
-		//TODO: a bulk copy of a blank array might be faster here?
 		if (NifCharacter.BULK_BUFFER_UPDATES)
 		{
 			// let's try bulk get/set
@@ -127,25 +125,23 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 			}
 			if (currentCoordRefFloatbf == null || currentCoordRefFloatbf.length != currentCoordRefFloat.limit())
 			{
-				currentCoordRefFloatbf = new float[currentCoordRefFloat.capacity()];
+				currentCoordRefFloatbf = new float[currentCoordRefFloat.capacity()];				
 				currentCoordRefFloat.position(0);
 				currentCoordRefFloat.get(currentCoordRefFloatbf);
 			}
-
+			//clear out current in order to accum into it
 			System.arraycopy(currentCoordRefFloatbfClearer, 0, currentCoordRefFloatbf, 0, currentCoordRefFloatbf.length);
-			/*	for (int i = 0; i < currentCoordRefFloat.limit(); i++)
-				{
-					currentCoordRefFloatbf[i] = 0;
-				}*/
 		}
-		else
+		else			
 		{
+			//clear out current in order to accum into it
+			// sadly no real bulk operation here :(
 			for (int i = 0; i < currentCoordRefFloat.limit(); i++)
 			{
 				currentCoordRefFloat.put(i, 0);
 			}
 		}
-
+		
 		// pre multiply transforms for repeated use for each vertex
 		for (int spBoneId = 0; spBoneId < niSkinData.boneList.length; spBoneId++)
 		{
@@ -156,6 +152,7 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 			{
 				continue;
 			}
+
 			// this getBoneCurrentAccumedTrans has been just updated in the bone update behavior
 			skeletonBoneVWTrans.set(skeletonBone.getBoneCurrentAccumedTrans());
 
@@ -203,8 +200,7 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 					}
 
 				}
-				currentCoordRefFloat.position(0);
-				currentCoordRefFloat.put(currentCoordRefFloatbf);
+				
 			}
 			else
 			{
@@ -240,7 +236,12 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 				}
 			}
 		}
-
+		
+		if (NifCharacter.BULK_BUFFER_UPDATES)
+		{
+			currentCoordRefFloat.position(0);
+			currentCoordRefFloat.put(currentCoordRefFloatbf);
+		}
 	}
 
 }

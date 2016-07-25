@@ -82,6 +82,8 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 						if (child.name.equals(niNode.name + " NonAccum"))
 						{
 							// we are an accum node! we take on movements etc of the model
+							// not clearing this cause oblivion character to be pelvis height
+							// above the ground?? I wonder why							
 							this.setTransform(new Transform3D());
 						}
 						else
