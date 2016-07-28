@@ -31,6 +31,8 @@ public class J3dNiParticleEmitter
 
 	private J3dNiParticles parent;
 
+	private Vector3f startRandom;
+
 	private J3dNiNode emitter;
 
 	private ArrayList<J3dNiNode> dummyNodeEmitters = null;
@@ -120,19 +122,21 @@ public class J3dNiParticleEmitter
 			pt.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
 			pt = pt.topOfParent;
 		}
+
+		startRandom = ConvertFromNif.toJ3d(niParticleSystemController.startRandom);
 		emitStart = niParticleSystemController.emitStartTime;
 		emitStop = niParticleSystemController.emitStopTime;
 		autoAdjust = niParticleSystemController.emitFlags == 0;
 		birthRate = niParticleSystemController.emitRate;
-		speed = niParticleSystemController.speed;
-		speedVariation = niParticleSystemController.speedRandom;
+		speed = ConvertFromNif.toJ3d(niParticleSystemController.speed);
+		speedVariation = ConvertFromNif.toJ3d(niParticleSystemController.speedRandom);
 		declination = niParticleSystemController.verticalDirection;
 		declinationVariation = niParticleSystemController.verticalAngle;
 		planarAngle = niParticleSystemController.horizontalDirection;
 		planarAngleVariation = niParticleSystemController.horizontalAngle;
 		initialColor = new Color4f(1, 1, 1, 1);// maybe reset by the color modifier
-		initialRadius = niParticleSystemController.size;
-		radiusVariation = 0;
+		initialRadius = ConvertFromNif.toJ3d(niParticleSystemController.size);
+		radiusVariation = ConvertFromNif.toJ3d(0);
 		lifeSpan = niParticleSystemController.lifetime;
 		lifeSpanVariation = niParticleSystemController.lifetimeRandom;
 
@@ -177,17 +181,17 @@ public class J3dNiParticleEmitter
 	private Vector3f v1 = new Vector3f();
 	private Vector3f v2 = new Vector3f();
 	private Transform3D t3 = new Transform3D();
+	private Vector3f out = new Vector3f();
 
 	/**
 	 * return 3 float x,y,z
 	 * @return
 	 */
-	protected void getCreationPoint(Point3f pos)
+	private void getCreationPoint(Point3f pos)
 	{
 
 		if (dummyNodeEmitters == null)
 		{
-
 			emitter.getTreeTransform(t3, root);
 		}
 		else
@@ -208,6 +212,8 @@ public class J3dNiParticleEmitter
 		t3.get(v2);
 		v1.sub(v2);// get the diff
 		pos.set(v1);
+
+		pos.add(J3dNiParticleModifier.var(startRandom, out));
 	}
 
 	private AxisAngle4f aaZ = new AxisAngle4f(0, 0, 1, 0);
@@ -246,7 +252,7 @@ public class J3dNiParticleEmitter
 				float birthRatePerUpdateTime = (birthRate / 1000f) * elapsedMillisec;
 
 				numToBirth += birthRatePerUpdateTime;
-				
+
 				while (numToBirth > 1)
 				{
 					addParticle();
@@ -263,14 +269,13 @@ public class J3dNiParticleEmitter
 		{
 
 			float particleSpeed = speed;
-			particleSpeed += J3dNiParticleModifier.var(speedVariation);
-			particleSpeed = ConvertFromNif.toJ3d(particleSpeed);
+			particleSpeed += Math.random() * speedVariation;
 
 			float dec = declination;
-			dec += J3dNiParticleModifier.var(declinationVariation * 2);
+			dec += Math.random() * declinationVariation;
 
 			float pa = planarAngle;
-			pa += J3dNiParticleModifier.var(planarAngleVariation * 2);
+			pa += Math.random() * planarAngleVariation;
 
 			// calculate the velocity vector
 			aaZ.setAngle(dec);
@@ -284,8 +289,8 @@ public class J3dNiParticleEmitter
 
 			col.set(initialColor);
 
-			float radius = ConvertFromNif.toJ3d(initialRadius * SIZE_MULTIPLY);
-			radius += J3dNiParticleModifier.var(ConvertFromNif.toJ3d(radiusVariation) * 2);
+			float radius = initialRadius * SIZE_MULTIPLY;
+			radius += J3dNiParticleModifier.var(radiusVariation);
 
 			float particleLifeSpan = lifeSpan;
 			particleLifeSpan += J3dNiParticleModifier.var(lifeSpanVariation);

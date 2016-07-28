@@ -1,5 +1,7 @@
 package nif.j3d.particles.tes3;
 
+import javax.vecmath.Vector3f;
+
 import nif.j3d.NiToJ3dData;
 import nif.niobject.NiGravity;
 import nif.niobject.particle.NiParticleColorModifier;
@@ -57,6 +59,15 @@ public abstract class J3dNiParticleModifier
 
 	public static float var(float range)
 	{
-		return (float) (Math.random() * range) - range / 2f;
+		return (float) (Math.random() * range * 2) - range;
 	}
+
+	public static Vector3f var(Vector3f range, Vector3f out)
+	{
+		out.set((float) (Math.random() * range.x * 2) - range.x, (float) (Math.random() * range.y * 2) - range.y,
+				(float) (Math.random() * range.z * 2) - range.z);
+		return out;
+	}
+
+	 
 }
