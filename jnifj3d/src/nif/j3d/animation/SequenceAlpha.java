@@ -9,6 +9,9 @@ import javax.media.j3d.Alpha;
  */
 public class SequenceAlpha extends Alpha
 {
+
+	private SequenceAlphaListener sequenceAlphaListener;
+
 	private long lengthMS = -1;
 
 	private long loopStartTimeMS = -1;
@@ -58,6 +61,10 @@ public class SequenceAlpha extends Alpha
 	public void start()
 	{
 		this.setStartTime(System.currentTimeMillis());
+		if (sequenceAlphaListener != null)
+		{
+			sequenceAlphaListener.sequenceStarted();
+		}
 	}
 
 	/**
@@ -68,12 +75,18 @@ public class SequenceAlpha extends Alpha
 		shouldLoop = false;
 	}
 
+	private float prevVal = -1;// used to detect over end looping
+
 	@Override
 	public float value(long atTime)
 	{
 		float val = super.value(atTime);
+
 		if (shouldLoop == false)
 		{
+			if (val == 1.0 && sequenceAlphaListener != null)
+				sequenceAlphaListener.sequenceFinished();
+
 			return val;
 		}
 		else
@@ -81,12 +94,25 @@ public class SequenceAlpha extends Alpha
 			// loop round if needed
 			if (loopStartTimeMS != -1 && (val * lengthMS) > loopEndTimeMS)
 			{
-				// see if I've rolled past loopend then ADD loop length to the current start time?
+				// see if I've rolled past loopEnd then ADD loop length to the current start time?
 				long newLoopedStart = getStartTime() + loopLengthMS;
 				this.setStartTime(newLoopedStart);
+
+				if( sequenceAlphaListener != null)
+				sequenceAlphaListener.sequenceLooped(true);
+
 				// now get the alpha to recalc
-				return super.value(atTime);
+				val = super.value(atTime);
 			}
+
+			// detect over end loop and call non innner loop callback
+			if (prevVal != -1)
+			{
+				if (val < prevVal&& sequenceAlphaListener != null)
+					sequenceAlphaListener.sequenceLooped(false);
+			}
+
+			prevVal = val;
 			return val;
 		}
 	}
@@ -99,5 +125,24 @@ public class SequenceAlpha extends Alpha
 	public float getLoopEndTimeS()
 	{
 		return loopEndTimeS;
+	}
+
+	public SequenceAlphaListener getSequenceAlphaListener()
+	{
+		return sequenceAlphaListener;
+	}
+
+	public void setSequenceAlphaListener(SequenceAlphaListener sequenceAlphaListener)
+	{
+		this.sequenceAlphaListener = sequenceAlphaListener;
+	}
+
+	public interface SequenceAlphaListener
+	{
+		public void sequenceStarted();
+
+		public void sequenceFinished();
+
+		public void sequenceLooped(boolean inner);
 	}
 }

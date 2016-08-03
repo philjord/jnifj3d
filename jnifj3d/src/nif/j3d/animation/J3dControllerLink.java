@@ -12,17 +12,20 @@ import nif.compound.NifControllerLink;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiDefaultAVObjectPalette;
 import nif.j3d.NiToJ3dData;
+import nif.j3d.animation.SequenceAlpha.SequenceAlphaListener;
 import nif.j3d.animation.j3dinterp.J3dNiInterpolator;
 import nif.j3d.animation.j3dinterp.J3dNiTransformInterpolatorFactory;
 import nif.niobject.NiStringPalette;
 import nif.niobject.controller.NiTimeController;
 import nif.niobject.interpolator.NiInterpolator;
 
-public class J3dControllerLink extends Group
+public class J3dControllerLink extends Group implements SequenceAlphaListener
 {
 	protected J3dNiInterpolator j3dNiInterpolator = null;
 
 	protected J3dNiAVObject nodeTarget = null;
+
+	protected boolean isAccumNodeTarget = false;
 
 	private J3dNiGeomMorpherController j3dNiGeomMorpherController = null;
 
@@ -164,9 +167,9 @@ public class J3dControllerLink extends Group
 		{
 			return nodeTarget.getBounds();
 		}
-		
+
 		//TODO: how is this not set correctly? but I need a better bounds system anyway
-		
+
 		return null;
 	}
 
@@ -200,6 +203,35 @@ public class J3dControllerLink extends Group
 			System.out.println("Bad NifVer for string palette lookup! " + niToJ3dData.nifVer);
 		}
 		return null;
+	}
+
+	@Override
+	public void sequenceStarted()
+	{
+		//is it the accum node?
+		if (isAccumNodeTarget)
+		{
+			nodeTarget.sequenceStarted();
+		}
+	}
+
+	@Override
+	public void sequenceFinished()
+	{
+		//is it the accum node?
+		if (isAccumNodeTarget)
+		{
+			nodeTarget.sequenceFinished();
+		}
+	}
+
+	@Override
+	public void sequenceLooped(boolean inner)
+	{
+		if (isAccumNodeTarget)
+		{
+			nodeTarget.sequenceLooped(inner);
+		}
 	}
 
 }

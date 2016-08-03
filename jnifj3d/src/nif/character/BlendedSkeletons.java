@@ -193,6 +193,11 @@ public class BlendedSkeletons extends Group
 		return outputSkeleton;
 	}
 
+	public NifJ3dSkeletonRoot getInputSkeleton()
+	{
+		return inputSkeleton;
+	}
+
 	//deburners
 	private Quat4f tempQuat0 = new Quat4f();
 

@@ -13,8 +13,6 @@ import nif.niobject.NiControllerSequence;
 
 public class J3dNiControllerSequenceTes3 extends J3dNiControllerSequence
 {
-	//TODO: where is babelfishes head? and it's a geom morph too (hopefully that's a freebie)
-
 	private BranchGroup bg = new BranchGroup();
 
 	private float offsetStartS = 0;

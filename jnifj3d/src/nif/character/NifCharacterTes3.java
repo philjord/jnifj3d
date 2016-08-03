@@ -26,8 +26,6 @@ public class NifCharacterTes3 extends NifCharacter
 {
 	private J3dNiSequenceStreamHelper j3dNiSequenceStreamHelper;
 
-	private J3dNiControllerSequenceTes3 currentSequence;
-
 	protected ArrayList<J3dNiGeomMorpherController> allMorphs = new ArrayList<J3dNiGeomMorpherController>();
 
 	public NifCharacterTes3(String skeletonNifFilename, AttachedParts attachedSkinsAndParts, MediaSources mediaSources)
@@ -164,7 +162,10 @@ public class NifCharacterTes3 extends NifCharacter
 				// now set the list of idle animations from the kf file 
 				idleAnimations = new ArrayList<String>();
 				for (String fireName : j3dNiSequenceStreamHelper.getAllSequences())
-					idleAnimations.add(fireName);
+				{
+					if (fireName.toLowerCase().contains("idle"))
+						idleAnimations.add(fireName);
+				}
 
 				//set us up with the idle anim
 				updateAnimation();
@@ -211,25 +212,35 @@ public class NifCharacterTes3 extends NifCharacter
 				currentKfBg.detach();
 			}
 
-			currentSequence = j3dNiSequenceStreamHelper.getSequence(currentAnimation);
+			currentControllerSequence = j3dNiSequenceStreamHelper.getSequence(currentAnimation);
+			if (currentControllerSequence != null)
+			{
 
-			// now add the root to the scene so the controller sequence is live
-			BranchGroup newKfBg = currentSequence.getBranchGroup();
+				// now add the root to the scene so the controller sequence is live
+				BranchGroup newKfBg = ((J3dNiControllerSequenceTes3) currentControllerSequence).getBranchGroup();
 
-			// add it on
-			addChild(newKfBg);
+				// in case it is already attached
+				newKfBg.detach();
+				
+				// add it on
+				addChild(newKfBg);
 
-			currentSequence.addSequenceListener(new SequenceSoundListener());
-			currentSequence.fireSequence();
-
-			// assign currents
-			currentKfBg = newKfBg;
+				currentControllerSequence.addSequenceListener(new SequenceSoundListener());
+				currentControllerSequence.fireSequence(!returnToIdleWhenDone, 0);
+				
+				// assign currents
+				currentKfBg = newKfBg;
+			}
+			else
+			{
+				System.out.println("bad animation " + currentAnimation);
+			}
 		}
 		else if (returnToIdleWhenDone && //
 				idleAnimations != null && //
 				idleAnimations.size() > 0 && //
-				(currentSequence == null || //
-						(currentSequence.isNotRunning()) || //
+				(currentControllerSequence == null || //
+						(currentControllerSequence.isNotRunning()) || //
 						System.currentTimeMillis() - prevAnimTime > 10000))
 		{
 			int r = (int) (Math.random() * idleAnimations.size());

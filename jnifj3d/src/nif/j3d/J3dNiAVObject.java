@@ -7,6 +7,7 @@ import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
 
 import nif.NifVer;
+import nif.j3d.animation.SequenceAlpha.SequenceAlphaListener;
 import nif.niobject.NiAVObject;
 import nif.niobject.NiNode;
 import nif.niobject.NiSequenceStreamHelper;
@@ -14,13 +15,13 @@ import nif.niobject.bs.BSFadeNode;
 import tools3d.utils.leafnode.Cube;
 import utils.convert.ConvertFromNif;
 
-public abstract class J3dNiAVObject extends J3dNiObjectNET
+public abstract class J3dNiAVObject extends J3dNiObjectNET implements SequenceAlphaListener
 {
 	protected NiAVObject niAVObject;
 
 	public Cube visualMarker;
 
-	private ArrayList<TransformListener> transformListeners = null;
+	private ArrayList<AccumNodeListener> transformListeners = null;
 
 	public J3dNiAVObject(NiAVObject niAVObject, NiToJ3dData niToJ3dData)
 	{
@@ -220,18 +221,20 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 	@Override
 	public void setTransform(Transform3D t1)
 	{
+		//notice that the listener can modify the transform if desired
+		if (transformListeners != null)
+		{
+			for (AccumNodeListener tl : transformListeners)
+			{
+				tl.transformSet(t1);
+			}
+		}
+
 		if (transformCache != null)
 			transformCache.set(t1);
 
 		super.setTransform(t1);
 
-		if (transformListeners != null)
-		{
-			for (TransformListener tl : transformListeners)
-			{
-				tl.transformSet(t1);
-			}
-		}
 	}
 
 	public void transformMul(Transform3D t)
@@ -318,23 +321,60 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET
 
 	}
 
-	public void addTransformListener(TransformListener tl)
+	public void addTransformListener(AccumNodeListener tl)
 	{
 		if (transformListeners == null)
-			transformListeners = new ArrayList<TransformListener>();
+			transformListeners = new ArrayList<AccumNodeListener>();
 
 		transformListeners.add(tl);
 	}
 
-	public void removeTransformListener(TransformListener tl)
+	public void removeTransformListener(AccumNodeListener tl)
 	{
 		if (transformListeners != null)
 			transformListeners.remove(tl);
 	}
 
-	public interface TransformListener
+	public interface AccumNodeListener extends SequenceAlphaListener
 	{
 		public void transformSet(Transform3D t1);
+
+	}
+
+	@Override
+	public void sequenceFinished()
+	{
+		if (transformListeners != null)
+		{
+			for (AccumNodeListener tl : transformListeners)
+			{
+				tl.sequenceFinished();
+			}
+		}
+	}
+
+	@Override
+	public void sequenceStarted()
+	{
+		if (transformListeners != null)
+		{
+			for (AccumNodeListener tl : transformListeners)
+			{
+				tl.sequenceStarted();
+			}
+		}
+	}
+
+	@Override
+	public void sequenceLooped(boolean inner)
+	{
+		if (transformListeners != null)
+		{
+			for (AccumNodeListener tl : transformListeners)
+			{
+				tl.sequenceLooped(inner);
+			}
+		}
 	}
 
 }

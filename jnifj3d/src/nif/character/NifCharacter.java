@@ -23,6 +23,7 @@ import nif.NifToJ3d;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiNode;
 import nif.j3d.J3dNiSkinInstance;
+import nif.j3d.animation.J3dNiControllerSequence;
 import nif.j3d.animation.J3dNiControllerSequence.SequenceListener;
 import nif.j3d.animation.SequenceAlpha;
 import nif.niobject.NiExtraData;
@@ -60,7 +61,7 @@ import utils.source.MediaSources;
 public class NifCharacter extends BranchGroup implements Fadable
 {
 	public static boolean BULK_BUFFER_UPDATES = true;
-	
+
 	private MediaSources mediaSources;
 
 	protected ArrayList<J3dNiSkinInstance> allSkins = new ArrayList<J3dNiSkinInstance>();
@@ -81,14 +82,15 @@ public class NifCharacter extends BranchGroup implements Fadable
 
 	protected BlendedSkeletons blendedSkeletons;
 
-
-
 	protected BranchGroup currentKfBg;
 
 	private NifCharUpdateBehavior updateBehavior;
 
 	protected ArrayList<CharacterAttachment> attachments = new ArrayList<CharacterAttachment>();
 
+	protected J3dNiControllerSequence currentControllerSequence;
+
+	//For use by Tes3 constructor
 	protected NifCharacter(String skeletonNifFilename, MediaSources mediaSources)
 	{
 		this.mediaSources = mediaSources;
@@ -222,7 +224,6 @@ public class NifCharacter extends BranchGroup implements Fadable
 	 */
 	protected void updateAnimation()
 	{
-
 		if (nextAnimation.length() > 0 && nextAnimation.endsWith(".kf"))
 		{
 			currentAnimation = nextAnimation;
@@ -246,9 +247,10 @@ public class NifCharacter extends BranchGroup implements Fadable
 				newKfBg.addChild(kfJ3dRoot);
 				// add it on
 				addChild(newKfBg);
+				currentControllerSequence = kfJ3dRoot.getJ3dNiControllerSequence();
 
-				kfJ3dRoot.getJ3dNiControllerSequence().addSequenceListener(new SequenceSoundListener());
-				kfJ3dRoot.getJ3dNiControllerSequence().fireSequence();
+				currentControllerSequence.addSequenceListener(new SequenceSoundListener());
+				currentControllerSequence.fireSequence(!returnToIdleWhenDone, 0);
 
 				// remove the old one
 				if (currentKfBg != null)
@@ -268,8 +270,8 @@ public class NifCharacter extends BranchGroup implements Fadable
 		}
 		else if (returnToIdleWhenDone && // 
 				idleAnimations.size() > 0 && //
-				(currentkfJ3dRoot == null || //
-						currentkfJ3dRoot.getJ3dNiControllerSequence().isNotRunning() || //
+				(currentControllerSequence == null || //
+						(currentControllerSequence.isNotRunning()) || //
 						System.currentTimeMillis() - prevAnimTime > 10000))
 		{
 			// The above measures time in idle and changes from once it's been 10 seconds in case of looping idle
@@ -294,20 +296,53 @@ public class NifCharacter extends BranchGroup implements Fadable
 	 * @param fileName
 	 * @param returnToIdle
 	 */
-	public void startAnimation(String fileName, boolean returnToIdle)
+	public void addToQueue(String fileName, boolean returnToIdle)
 	{
+		//TODO: why not restart it? probably what is wanted?
 		if (!fileName.equals(currentAnimation))
 		{
 			this.returnToIdleWhenDone = returnToIdle;
 			nextAnimation = fileName;
 		}
 	}
-	
+
+	/**
+	 * This will immediately cancel the current animation and start the new one
+	 * Note the animation is laoded on this thread so this could be a slow call
+	 * 
+	 * 
+	 * @param fileName
+	 * @param returnToIdle
+	 */
+	public void startAnimation(String fileName, boolean returnToIdle)
+	{
+		//TODO: why not restart it? probably what is wanted?
+
+		this.returnToIdleWhenDone = returnToIdle;
+		nextAnimation = fileName;
+		updateAnimation();
+	}
+
+	public String getCurrentAnimation()
+	{
+		return currentAnimation;
+	}
+
+	public J3dNiControllerSequence getCurrentControllerSequence()
+	{
+		return currentControllerSequence;
+	}
+
 	public NifJ3dSkeletonRoot getOutputSkeleton()
 	{
 		return blendedSkeletons.getOutputSkeleton();
 	}
-	
+
+	public NifJ3dSkeletonRoot getInputSkeleton()
+	{
+		return blendedSkeletons.getInputSkeleton();
+	}
+
 	// TODO: this and the sound sequence listener below should be generic'ed
 	protected void addObjectSound(PointSound sound, String soundKey, float edge)
 	{
@@ -351,6 +386,8 @@ public class NifCharacter extends BranchGroup implements Fadable
 					// TODO: stop previous sound perhaps, walk sounds? use teh animation end event
 					// FIXME: fallout gets major bad wav formats
 					// addObjectSound(sound1, params[0], 10.0f);
+
+					System.out.println("oh my god sound fired? take a look in NifCharacter! " + params[0]);
 
 				}
 				catch (SoundException e)

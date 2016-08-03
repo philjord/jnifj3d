@@ -16,11 +16,12 @@ import nif.character.TextKeyExtraDataKey;
 import nif.j3d.J3dNiDefaultAVObjectPalette;
 import nif.j3d.J3dNiTextKeyExtraData;
 import nif.j3d.NiToJ3dData;
+import nif.j3d.animation.SequenceAlpha.SequenceAlphaListener;
 import nif.niobject.NiControllerSequence;
 import nif.niobject.NiTextKeyExtraData;
 import tools3d.utils.scenegraph.VaryingLODBehaviour;
 
-public class J3dNiControllerSequence extends Group
+public class J3dNiControllerSequence extends Group implements SequenceAlphaListener
 {
 	private SequenceEventsBehavior sequenceEventsbehave = new SequenceEventsBehavior();
 
@@ -187,10 +188,14 @@ public class J3dNiControllerSequence extends Group
 		fireSequence(true, triggerTime);
 	}
 
+	//TODO: I very very much need a run for a fixed time and stop style of this call
+
 	public void fireSequence(boolean loop, long triggerTime)
 	{
 		sequenceEventsbehave.setEnable(false);
 		sequenceBehavior.setEnable(false);
+		// tell people the current is finished, only the behavior may have already
+		sequenceFinished();
 
 		if (loop)
 		{
@@ -211,6 +216,7 @@ public class J3dNiControllerSequence extends Group
 			sequenceAlpha = new SequenceAlpha(startTimeS, triggerTime, stopTimeS, false);
 		}
 		prevSquenceAlphaValue = 0;
+		sequenceAlpha.setSequenceAlphaListener(this);
 		sequenceAlpha.start();
 
 		// fire off any time ==0 events
@@ -346,8 +352,12 @@ public class J3dNiControllerSequence extends Group
 
 			//turn off at the end
 			if (sequenceAlpha.finished())
+			{
 				setEnable(false);
+				sequenceFinished();
+			}
 		}
+
 	}
 
 	/**
@@ -375,6 +385,42 @@ public class J3dNiControllerSequence extends Group
 		{
 			publishSequenceEvents();
 			wakeupOn(passiveWakeupCriterion);
+		}
+
+	}
+
+	@Override
+	public void sequenceStarted()
+	{
+		for (J3dControllerLink j3dControllerLink : controlledBlocks)
+		{
+			//stupid geommorph test
+			if (!j3dControllerLink.isControlsGeomMorpher() || j3dControllerLink == singleGeomMorpher)
+				j3dControllerLink.sequenceStarted();
+		}
+
+	}
+
+	@Override
+	public void sequenceFinished()
+	{
+		for (J3dControllerLink j3dControllerLink : controlledBlocks)
+		{
+			//stupid geommorph test
+			if (!j3dControllerLink.isControlsGeomMorpher() || j3dControllerLink == singleGeomMorpher)
+				j3dControllerLink.sequenceFinished();
+		}
+
+	}
+
+	@Override
+	public void sequenceLooped(boolean inner)
+	{
+		for (J3dControllerLink j3dControllerLink : controlledBlocks)
+		{
+			//stupid geommorph test
+			if (!j3dControllerLink.isControlsGeomMorpher() || j3dControllerLink == singleGeomMorpher)
+				j3dControllerLink.sequenceLooped(inner);
 		}
 
 	}

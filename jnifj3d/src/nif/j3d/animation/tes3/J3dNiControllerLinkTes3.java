@@ -23,7 +23,12 @@ public class J3dNiControllerLinkTes3 extends J3dControllerLink
 		this.j3dNiKeyframeController = j3dNiKeyframeController;
 		this.nodeTarget = j3dNiKeyframeController.getNodeTarget();
 		if (nodeTarget != null)
+		{
 			nodeTarget.setCapability(ALLOW_BOUNDS_READ);
+
+			isAccumNodeTarget = nodeTarget.getName().equals("Bip01");
+		}
+
 		this.offSetStartS = offSetStartS;
 		this.startTimeS = startTimeS;
 		this.stopTimeS = stopTimeS;
@@ -31,15 +36,18 @@ public class J3dNiControllerLinkTes3 extends J3dControllerLink
 		j3dNiInterpolator = j3dNiKeyframeController.getJ3dNiInterpolator();
 	}
 
+	@Override
 	public void process(float alphaValue)
 	{
-		// translate from 0-1 over the whole interp to just  tiny bit for the start-stop portion 
-		float chunkStart = offSetStartS / j3dNiKeyframeController.getTotalLengthS();
-		float chunkLen = stopTimeS / j3dNiKeyframeController.getTotalLengthS();
-		float chunkAlphaValue = chunkStart + (alphaValue * chunkLen);
 		if (j3dNiInterpolator != null)
 		{
+			// translate from 0-1 over the whole interp to just  tiny bit for the start-stop portion 
+			float chunkStart = offSetStartS / j3dNiKeyframeController.getTotalLengthS();
+			float chunkLen = stopTimeS / j3dNiKeyframeController.getTotalLengthS();
+			float chunkAlphaValue = chunkStart + (alphaValue * chunkLen);
+
 			j3dNiInterpolator.process(chunkAlphaValue);
 		}
 	}
+
 }
