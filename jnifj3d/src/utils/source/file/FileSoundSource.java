@@ -1,6 +1,7 @@
 package utils.source.file;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +15,13 @@ public class FileSoundSource implements SoundSource
 
 	public FileSoundSource()
 	{
+	}
+
+	@Override
+	public InputStream getInputStream(String mediaName)
+	{
+		//TODO:
+		return null;
 	}
 
 	@Override

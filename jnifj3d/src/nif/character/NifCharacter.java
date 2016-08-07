@@ -1,5 +1,6 @@
 package nif.character;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +29,7 @@ import nif.j3d.animation.J3dNiControllerSequence.SequenceListener;
 import nif.j3d.animation.SequenceAlpha;
 import nif.niobject.NiExtraData;
 import nif.niobject.NiStringExtraData;
+import tools3d.audio.SimpleSounds;
 import tools3d.utils.Utils3D;
 import tools3d.utils.scenegraph.Fadable;
 import tools3d.utils.scenegraph.VaryingLODBehaviour;
@@ -461,6 +463,27 @@ public class NifCharacter extends BranchGroup implements Fadable
 			ca.setOutline(c);
 		}
 
+	}
+
+	/**
+	 * start at the Sound\\ folder for media source
+	 * @param soundFileName
+	 */
+	public void playSound(String soundFileName)
+	{
+
+		if (soundFileName.endsWith("mp3"))
+		{
+			InputStream is = mediaSources.getSoundSource().getInputStream(soundFileName);
+			BranchGroup soundBG = SimpleSounds.createPointSoundMp3(is);
+			if (soundBG != null)
+				this.addChild(soundBG);
+		}
+		else
+		{
+			BranchGroup soundBG = SimpleSounds.createPointSound(mediaSources.getSoundSource().getMediaContainer(soundFileName));
+			this.addChild(soundBG);
+		}
 	}
 
 }
