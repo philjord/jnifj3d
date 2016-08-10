@@ -287,7 +287,7 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 	 * Fires off in a single loop of the fire in question
 	 * @param action
 	 */
-	public void fireFrameName(String action)
+	public void fireFrameName(String action, boolean loop)
 	{
 		//Notice geomorphs are controlled by kf files for above TES3
 		// talking head appears to be skin/bones (including eyes/eyelids and teeth too)
@@ -322,7 +322,7 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 					sequenceBehavior.setEnable(false);
 					currentNifMorph = niMorphData.morphs[i];
 					currentJ3dNiInterpolator = j3dNiInterpolators.get(i);
-					sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, false);
+					sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, loop);
 
 					sequenceBehavior.setEnable(true);// disables after loop if required
 					return;
@@ -335,7 +335,7 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 					sequenceBehavior.setEnable(false);
 					currentNifMorph = niMorphData.morphs[i];
 					currentJ3dNiInterpolator = j3dNiInterpolators.get(i);
-					sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, false);
+					sequenceAlpha = new SequenceAlpha(startTimeS, stopTimeS, loop);
 
 					sequenceBehavior.setEnable(true);// disables after loop if required
 					return;

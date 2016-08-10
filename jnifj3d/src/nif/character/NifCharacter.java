@@ -469,19 +469,21 @@ public class NifCharacter extends BranchGroup implements Fadable
 	 * start at the Sound\\ folder for media source
 	 * @param soundFileName
 	 */
-	public void playSound(String soundFileName)
+	public void playSound(String soundFileName, int maximumAttenuationDistance, int loopCount)
 	{
 
+		//TODO: I need to detach and discard these sounds once played the loop count times
 		if (soundFileName.endsWith("mp3"))
 		{
 			InputStream is = mediaSources.getSoundSource().getInputStream(soundFileName);
-			BranchGroup soundBG = SimpleSounds.createPointSoundMp3(is);
+			BranchGroup soundBG = SimpleSounds.createPointSoundMp3(is, maximumAttenuationDistance, loopCount);
 			if (soundBG != null)
 				this.addChild(soundBG);
 		}
 		else
 		{
-			BranchGroup soundBG = SimpleSounds.createPointSound(mediaSources.getSoundSource().getMediaContainer(soundFileName));
+			MediaContainer mc = mediaSources.getSoundSource().getMediaContainer(soundFileName);
+			BranchGroup soundBG = SimpleSounds.createPointSound(mc, maximumAttenuationDistance, loopCount);
 			this.addChild(soundBG);
 		}
 	}

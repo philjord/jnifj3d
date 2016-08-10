@@ -132,6 +132,11 @@ public class J3dNiControllerSequence extends Group implements SequenceAlphaListe
 	// only the last one will fire
 	private J3dControllerLink singleGeomMorpher = null;
 
+	public J3dControllerLink getSingleGeomMorpher()
+	{
+		return singleGeomMorpher;
+	}
+
 	public void setAnimatedNodes(J3dNiDefaultAVObjectPalette allBonesInSkeleton, ArrayList<NifJ3dVisRoot> allOtherModels)
 	{
 		controlledBlocks = new J3dControllerLink[niControllerSequence.numControlledBlocks];

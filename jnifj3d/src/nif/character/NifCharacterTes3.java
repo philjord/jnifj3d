@@ -26,7 +26,7 @@ public class NifCharacterTes3 extends NifCharacter
 {
 	private J3dNiSequenceStreamHelper j3dNiSequenceStreamHelper;
 
-	protected ArrayList<J3dNiGeomMorpherController> allMorphs = new ArrayList<J3dNiGeomMorpherController>();
+	private ArrayList<J3dNiGeomMorpherController> allMorphs = new ArrayList<J3dNiGeomMorpherController>();
 
 	public NifCharacterTes3(String skeletonNifFilename, AttachedParts attachedSkinsAndParts, MediaSources mediaSources)
 	{
@@ -163,7 +163,8 @@ public class NifCharacterTes3 extends NifCharacter
 				idleAnimations = new ArrayList<String>();
 				for (String fireName : j3dNiSequenceStreamHelper.getAllSequences())
 				{
-					if (fireName.toLowerCase().contains("idle"))
+					//idle1-9
+					if (fireName.toLowerCase().startsWith("idle") && fireName.length() <= 5 )
 						idleAnimations.add(fireName);
 				}
 
@@ -221,13 +222,13 @@ public class NifCharacterTes3 extends NifCharacter
 
 				// in case it is already attached
 				newKfBg.detach();
-				
+
 				// add it on
 				addChild(newKfBg);
 
 				currentControllerSequence.addSequenceListener(new SequenceSoundListener());
 				currentControllerSequence.fireSequence(!returnToIdleWhenDone, 0);
-				
+
 				// assign currents
 				currentKfBg = newKfBg;
 			}
@@ -252,18 +253,18 @@ public class NifCharacterTes3 extends NifCharacter
 			prevAnimTime = System.currentTimeMillis();
 		}
 
-		if (System.currentTimeMillis() - prevMorphTime > nextFireTime)
+		if (!noIdleMorphs && System.currentTimeMillis() - prevMorphTime > nextFireTime)
 		{
 			float maxLength = 0;
 			if (allMorphs != null)
 			{
-				for (J3dNiGeomMorpherController j3dNiGeomMorpherController : allMorphs)
+				for (J3dNiGeomMorpherController j3dNiGeomMorpherController : getAllMorphs())
 				{
 					String[] morphsFrames = j3dNiGeomMorpherController.getAllMorphFrameNames();
 					int r2 = (int) (Math.random() * morphsFrames.length);
 					r2 = r2 == morphsFrames.length ? 0 : r2;
 					String frame = morphsFrames[r2];
-					j3dNiGeomMorpherController.fireFrameName(frame);
+					j3dNiGeomMorpherController.fireFrameName(frame, false);
 
 					if (maxLength < j3dNiGeomMorpherController.getLength())
 						maxLength = j3dNiGeomMorpherController.getLength();
@@ -280,6 +281,8 @@ public class NifCharacterTes3 extends NifCharacter
 	protected long prevMorphTime = 0;
 
 	protected float nextFireTime = 0;
+
+	private boolean noIdleMorphs = false;
 
 	/**
 	 * Note this trims chest, hand, feet and tail if beast
@@ -299,6 +302,16 @@ public class NifCharacterTes3 extends NifCharacter
 				i--;
 			}
 		}
+	}
+
+	public ArrayList<J3dNiGeomMorpherController> getAllMorphs()
+	{
+		return allMorphs;
+	}
+
+	public void setNoMorphs()
+	{
+		noIdleMorphs = true;
 	}
 
 }
