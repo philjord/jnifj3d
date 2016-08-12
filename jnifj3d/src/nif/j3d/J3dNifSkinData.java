@@ -102,7 +102,7 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 	private Transform3D accumulatorTrans = new Transform3D();
 
 	private float[] currentCoordRefFloatbf;	
-	private static float[] currentCoordRefFloatbfClearer = new float[20000];// is 20k big enough?
+	private static float[] currentCoordRefFloatbfClearer = new float[40000];// is 20k big enough?
 	private float[] baseCoordRefFloatbf;
 
 	@Override
