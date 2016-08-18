@@ -67,7 +67,15 @@ public class J3dNiTextKeyExtraDataTes3 extends J3dNiTextKeyExtraData
 					{
 						endLoopTime = tked.getTime();
 					}
-					else if (tked.getTextKey().toLowerCase().equals("stop") || tked.getTextKey().toLowerCase().equals("stop."))
+					else if (tked.getTextKey().toLowerCase().equals("stop") || tked.getTextKey().toLowerCase().equals("stop.")
+
+							|| (keyValue.key.toLowerCase().contains("handtohand")
+									&& tked.getTextKey().toLowerCase().equals("small follow stop"))
+									
+									|| (keyValue.key.toLowerCase().contains("weapon")
+											&& tked.getTextKey().toLowerCase().equals("small follow stop"))
+
+					)
 					{
 						endTime = tked.getTime();
 						// no more values for us now
@@ -81,7 +89,7 @@ public class J3dNiTextKeyExtraDataTes3 extends J3dNiTextKeyExtraData
 					// lots of crazy spell cast ones
 					else
 					{
-				//		System.out.println("Unknown keyValue fireName=[" + keyValue.key + "] key=[" + keyValue.value + "]");
+						//		System.out.println("Unknown keyValue fireName=[" + keyValue.key + "] key=[" + keyValue.value + "]");
 					}
 				}
 				else if (keyValue.key.equalsIgnoreCase("sound") || keyValue.key.equalsIgnoreCase("soundgen"))
@@ -131,5 +139,15 @@ public class J3dNiTextKeyExtraDataTes3 extends J3dNiTextKeyExtraData
 		}
 		kfSequenceTimeData = new TextKeyExtraDataKey[kfSequenceTimeDataList.size()];
 		kfSequenceTimeDataList.toArray(kfSequenceTimeData);
+
+	/*	if (fireName.toLowerCase().contains("weapon"))
+		{
+			System.out.println("fireName " + fireName);
+			System.out.println("startTime " + startTime);
+			System.out.println("startLoopTime " + startLoopTime);
+			System.out.println("endLoopTime " + endLoopTime);
+			System.out.println("endTime " + endTime);
+
+		}*/
 	}
 }

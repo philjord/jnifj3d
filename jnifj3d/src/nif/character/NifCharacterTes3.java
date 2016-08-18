@@ -1,10 +1,12 @@
 package nif.character;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
 import javax.media.j3d.Alpha;
 import javax.media.j3d.BranchGroup;
+import javax.media.j3d.Transform3D;
 
 import nif.NifJ3dVisRoot;
 import nif.NifToJ3d;
@@ -17,9 +19,7 @@ import nif.j3d.animation.J3dNiGeomMorpherController;
 import nif.j3d.animation.SequenceAlpha;
 import nif.j3d.animation.tes3.J3dNiControllerSequenceTes3;
 import nif.j3d.animation.tes3.J3dNiSequenceStreamHelper;
-import nif.j3d.particles.tes3.J3dNiParticles;
 import nif.niobject.NiGeometry;
-import nif.niobject.NiNode;
 import utils.source.MediaSources;
 
 public class NifCharacterTes3 extends NifCharacter
@@ -27,6 +27,8 @@ public class NifCharacterTes3 extends NifCharacter
 	private J3dNiSequenceStreamHelper j3dNiSequenceStreamHelper;
 
 	private ArrayList<J3dNiGeomMorpherController> allMorphs = new ArrayList<J3dNiGeomMorpherController>();
+
+	protected HashMap<Part, CharacterAttachment> attachmentByPart = new HashMap<Part, CharacterAttachment>();
 
 	public NifCharacterTes3(String skeletonNifFilename, AttachedParts attachedSkinsAndParts, MediaSources mediaSources)
 	{
@@ -63,6 +65,42 @@ public class NifCharacterTes3 extends NifCharacter
 
 							allSkins.addAll(skins);
 
+							// TODO: check this for regular characters (the parent class)
+							// right now lot's of spikes and particles effect also exist in this model potentially
+
+							for (J3dNiAVObject j3dNiAVObject : model.getNiToJ3dData().j3dNiAVObjectValues())
+							{
+								if (j3dNiAVObject instanceof J3dNiGeometry)
+								{
+									J3dNiGeometry j3dNiGeometry = (J3dNiGeometry) j3dNiAVObject;
+									NiGeometry niGeometry = (NiGeometry) j3dNiGeometry.getNiAVObject();
+									if (niGeometry.skin.ref == -1)
+									{
+										String attachNodeName = niGeometry.parent.name;
+
+										J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton()
+												.getByName(attachNodeName);
+										if (attachnode == null)
+										{
+											attachnode = blendedSkeletons.getOutputSkeleton().getSkeletonRoot();
+
+										}
+										
+										//FIXME: look at frost atronach, particles are not listening to the
+										// skeleton, but just to the skin nif bones
+										//J3dNiParticleEmitter needs to be handed the bones and reset it's 
+										// emitter listening system, but not the CharacterAttachment system :(
+										
+										CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, j3dNiGeometry, true,
+												false);
+										this.addChild(ca);
+										attachments.add(ca);
+										// no parts involved here
+
+									}
+								}
+							}
+
 						}
 						else
 						{
@@ -71,52 +109,24 @@ public class NifCharacterTes3 extends NifCharacter
 							//NiStringExtraData nsed = (NiStringExtraData) ned;
 							//if (nsed.name.equalsIgnoreCase("PRN"))
 
-							for (J3dNiAVObject j3dNiAVObject : model.getNiToJ3dData().j3dNiAVObjectValues())
-							{
-								// don't re attach particles as the anme is not right
-								if (j3dNiAVObject instanceof J3dNiGeometry)
-								{
-									if (j3dNiAVObject instanceof J3dNiParticles)
-									{
-										//FIXME: possibly just leave these where ever they are?
-										// or should they be a special character attachment
-										// attached to root bone and able to be fired?
-									}
-									else
-									{
-										J3dNiGeometry j3dNiGeometry = (J3dNiGeometry) j3dNiAVObject;
-										NiGeometry niGeometry = (NiGeometry) j3dNiGeometry.getNiAVObject();
-										if (niGeometry.skin.ref == -1)
-										{
-											String attachNodeName = niGeometry.name;
-											NiNode parent = niGeometry.parent;
-											if (parent != null)
-											{
-												attachNodeName = parent.name;
-											}
-											attachNodeName = part.getNode();
+							String attachNodeName = part.getNode();
 
-											J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton()
-													.getByName(attachNodeName);
-											if (attachnode != null)
-											{
-												CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, j3dNiGeometry,
-														true, AttachedParts.isLeftSide(part.getLoc()));
-												this.addChild(ca);
-												attachments.add(ca);
-											}
-											else
-											{
-												System.err.println("attach node not found ? " + attachNodeName + " in "
-														+ j3dNiGeometry.getNiAVObject().nVer.fileName);
-											}
-										}
-										else
-										{
-											System.err.println("How did a skin ref get into the attachment system? " + nifFileName);
-										}
-									}
-								}
+							J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton()
+									.getByName(attachNodeName);
+							if (attachnode != null)
+							{
+								 
+								CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, model.getVisualRoot(), true,
+										AttachedParts.isLeftSide(part.getLoc()));
+								ca.setCapability(BranchGroup.ALLOW_DETACH);
+								this.addChild(ca);
+								attachments.add(ca);
+								attachmentByPart.put(part, ca);
+							}
+							else
+							{
+								System.err.println("attach node not found ? " + attachNodeName + " in "
+										+ model.getVisualRoot().getNiAVObject().nVer.fileName);
 							}
 						}
 
@@ -142,6 +152,7 @@ public class NifCharacterTes3 extends NifCharacter
 
 		KfJ3dRoot kfJ3dRoot = null;
 		if (skeletonNifFilename.toLowerCase().indexOf(".nif") != -1)
+
 		{
 			String kfName = skeletonNifFilename.substring(0, skeletonNifFilename.toLowerCase().indexOf(".nif")) + ".kf";
 			kfJ3dRoot = NifToJ3d.loadKf(kfName, mediaSources.getMeshSource());
@@ -164,7 +175,7 @@ public class NifCharacterTes3 extends NifCharacter
 				for (String fireName : j3dNiSequenceStreamHelper.getAllSequences())
 				{
 					//idle1-9
-					if (fireName.toLowerCase().startsWith("idle") && fireName.length() <= 5 )
+					if (fireName.toLowerCase().startsWith("idle") && fireName.length() <= 5)
 						idleAnimations.add(fireName);
 				}
 
@@ -195,6 +206,7 @@ public class NifCharacterTes3 extends NifCharacter
 	@Override
 	protected void updateAnimation()
 	{
+
 		if (nextAnimation.length() > 0)
 		{
 			currentAnimation = nextAnimation;
@@ -213,7 +225,9 @@ public class NifCharacterTes3 extends NifCharacter
 				currentKfBg.detach();
 			}
 
+			//System.out.println("currentAnimation "+currentAnimation);
 			currentControllerSequence = j3dNiSequenceStreamHelper.getSequence(currentAnimation);
+			//System.out.println("currentControllerSequence "+currentControllerSequence);
 			if (currentControllerSequence != null)
 			{
 
@@ -276,6 +290,48 @@ public class NifCharacterTes3 extends NifCharacter
 
 		}
 
+	}
+
+	public void removePart(Part part)
+	{
+		//TODO: attachmentByPArt allows one thing per part, is that right?
+		CharacterAttachment ca = attachmentByPart.get(part);
+		if (ca != null)
+		{
+			this.removeChild(ca);
+			attachments.remove(ca);
+			attachmentByPart.remove(part);
+		}
+	}
+
+	public void addPart(Part part, String nifFileName)
+	{
+		//TODO: no skins no morphs for now
+		if (nifFileName != null && nifFileName.length() > 0)
+		{
+			NifJ3dVisRoot model = NifToJ3d.loadShapes(nifFileName, mediaSources.getMeshSource(), mediaSources.getTextureSource());
+
+			if (model != null)
+			{
+				String attachNodeName = part.getNode();
+
+				J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton().getByName(attachNodeName);
+				if (attachnode != null)
+				{
+					CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, model.getVisualRoot(), true,
+							AttachedParts.isLeftSide(part.getLoc()));
+					ca.setCapability(BranchGroup.ALLOW_DETACH);
+					this.addChild(ca);
+					attachments.add(ca);
+					attachmentByPart.put(part, ca);
+				}
+				else
+				{
+					System.err.println(
+							"attach node not found ? " + attachNodeName + " in " + model.getVisualRoot().getNiAVObject().nVer.fileName);
+				}
+			}
+		}
 	}
 
 	protected long prevMorphTime = 0;

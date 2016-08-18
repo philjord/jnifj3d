@@ -93,6 +93,10 @@ public class J3dNiSequenceStreamHelper extends J3dNiAVObject
 					if (!namesFound.contains(key))
 					{
 						namesFound.add(key);
+
+						//	if (niToJ3dData.nifVer.fileName.contains("base_anim"))
+						//		System.out.println("Key " + key + "\t" + kv.value);
+
 						j3dNiControllerSequenceList.add(new J3dNiControllerSequenceTes3(key, tkvs, i, j3dNiKeyframeControllers));
 					}
 					else
@@ -100,7 +104,7 @@ public class J3dNiSequenceStreamHelper extends J3dNiAVObject
 						// this is apparently totally possible, and using the first seems ok 
 						//as the sequence resets itself to the second anyway
 						//Key start found twice!!! attack2 at 6.7333336 in Meshes\r\xCliffRacer.kf
-						
+
 						//System.err.println(" Key start found twice!!! " + key + " at " + tkv.time + " in " + niToJ3dData.nifVer.fileName);
 					}
 
@@ -158,7 +162,12 @@ public class J3dNiSequenceStreamHelper extends J3dNiAVObject
 		TimeKeyValue[] ret = new TimeKeyValue[ntked.textKeys.length];
 		for (int i = 0; i < ntked.textKeys.length; i++)
 		{
+
 			NifKey key = ntked.textKeys[i];
+
+			//if (((String) key.value).toLowerCase().contains("weapon"))
+			//	System.out.println("key.value " + key.value);
+
 			ret[i] = new TimeKeyValue(key.time, parseKeyValues((String) key.value));
 		}
 		return ret;
@@ -185,7 +194,19 @@ public class J3dNiSequenceStreamHelper extends J3dNiAVObject
 			int sIdx = kvPart.indexOf(": ");
 			if (sIdx != -1)
 			{
-				keyValues.add(new KeyValue(kvPart.substring(0, sIdx).trim(), kvPart.substring(sIdx + 2).trim()));
+
+				// Spell cast and handtohand have sub types for now
+				// so also grab the next word
+				String key = kvPart.substring(0, sIdx).trim();
+				String value = kvPart.substring(sIdx + 2).trim();
+				if (key.startsWith("Weapon") || key.equals("HandToHand") || key.equals("SpellCast"))
+				{
+					key = key + " " + value.substring(0, value.indexOf(" "));
+					value = value.substring(value.indexOf(" ") + 1);
+				}
+
+				keyValues.add(new KeyValue(key, value));
+
 			}
 			pos = end + 1;
 		}
@@ -194,7 +215,17 @@ public class J3dNiSequenceStreamHelper extends J3dNiAVObject
 		int sIdx = kvPart.indexOf(": ");
 		if (sIdx != -1)
 		{
-			keyValues.add(new KeyValue(kvPart.substring(0, sIdx).trim(), kvPart.substring(sIdx + 2).trim()));
+			// Spell cast and handtohand have sub types for now
+			// so also grab the next word
+			String key = kvPart.substring(0, sIdx).trim();
+			String value = kvPart.substring(sIdx + 2).trim();
+			if (key.startsWith("Weapon") || key.equals("HandToHand") || key.equals("SpellCast"))
+			{
+				key = key + " " + value.substring(0, value.indexOf(" "));
+				value = value.substring(value.indexOf(" ") + 1);
+			}
+
+			keyValues.add(new KeyValue(key, value));
 		}
 
 		KeyValue[] ret = new KeyValue[keyValues.size()];

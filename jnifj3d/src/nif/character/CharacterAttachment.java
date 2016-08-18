@@ -2,6 +2,7 @@ package nif.character;
 
 import javax.media.j3d.BranchGroup;
 import javax.media.j3d.Group;
+import javax.media.j3d.Node;
 import javax.media.j3d.PolygonAttributes;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
@@ -13,6 +14,7 @@ import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiGeometry;
 import nif.j3d.J3dNiNode;
 import nif.niobject.NiAVObject;
+import nif.niobject.NiNode;
 import tools3d.utils.scenegraph.Fadable;
 
 /**
@@ -94,30 +96,52 @@ public class CharacterAttachment extends BranchGroup implements Fadable
 			//- scale does the mirror job, and all looks good now?
 			trans.setScale(new Vector3d(-niAVObject.scale, niAVObject.scale, niAVObject.scale));
 
-			//Tri winding will be backwards now so flip faces
-			if (model instanceof J3dNiGeometry)
-			{
-				J3dNiGeometry j3dNiGeometry = (J3dNiGeometry) model;
-				PolygonAttributes pa = j3dNiGeometry.getShape().getAppearance().getPolygonAttributes();
-				if (pa == null)
-				{
-					pa = new PolygonAttributes();
-					j3dNiGeometry.getShape().getAppearance().setPolygonAttributes(pa);
-				}
-
-				pa.setBackFaceNormalFlip(true);
-				pa.setCullFace(PolygonAttributes.CULL_FRONT);
-			}
+			reverseWindings(model);
 		}
 		else
 		{
 			trans.setScale(niAVObject.scale);
 		}
 
+		//FIXME: TES3 fix up  
+		//TODO: what so crazy key frame single translation madness
+		//c_m_shirt_expens_3_ua has odd extra transform
+
 		TransformGroup tg2 = new TransformGroup();
 		tg2.setTransform(trans);
 		tg2.addChild(model);
 		attachmentTrans.addChild(tg2);
+	}
+
+	private void reverseWindings(J3dNiAVObject model)
+	{
+
+		//Tri winding will be backwards now so flip faces
+		if (model instanceof J3dNiNode)
+		{
+			J3dNiNode j3dNiNode = ((J3dNiNode) model);
+			for (int i = 0; i < j3dNiNode.numChildren(); i++)
+			{
+				Node child = j3dNiNode.getChild(i);
+				if (child instanceof J3dNiAVObject)
+				{
+					reverseWindings((J3dNiAVObject) child);
+				}
+			}
+		}
+		else if (model instanceof J3dNiGeometry)
+		{
+			J3dNiGeometry j3dNiGeometry = (J3dNiGeometry) model;
+			PolygonAttributes pa = j3dNiGeometry.getShape().getAppearance().getPolygonAttributes();
+			if (pa == null)
+			{
+				pa = new PolygonAttributes();
+				j3dNiGeometry.getShape().getAppearance().setPolygonAttributes(pa);
+			}
+
+			pa.setBackFaceNormalFlip(true);
+			pa.setCullFace(PolygonAttributes.CULL_FRONT);
+		}
 	}
 
 	@Override

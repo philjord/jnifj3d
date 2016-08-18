@@ -64,7 +64,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 {
 	public static boolean BULK_BUFFER_UPDATES = true;
 
-	private MediaSources mediaSources;
+	protected MediaSources mediaSources;
 
 	protected ArrayList<J3dNiSkinInstance> allSkins = new ArrayList<J3dNiSkinInstance>();
 
@@ -487,5 +487,22 @@ public class NifCharacter extends BranchGroup implements Fadable
 			this.addChild(soundBG);
 		}
 	}
+	
+	public void playBackgroundSound(String soundFileName, int loopCount, float gain)
+	{
+		if (soundFileName.endsWith("mp3"))
+		{
+			InputStream is = mediaSources.getSoundSource().getInputStream(soundFileName);
+			SimpleSounds.playBackgroundSoundMp3(is, loopCount, gain);
+		}
+		else
+		{
+			MediaContainer mc = mediaSources.getSoundSource().getMediaContainer(soundFileName);
+			SimpleSounds.playBackgroundSound(mc, loopCount, gain);
+		}
+	}
+	
+
+	
 
 }
