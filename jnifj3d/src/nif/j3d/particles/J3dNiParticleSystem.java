@@ -81,7 +81,6 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 				
 				
 		shape = getShape();
-		shape.clearCapabilities();
 		shape.setPickable(false);
 		shape.setCollidable(false);
 
@@ -150,7 +149,6 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 			//TODO: textures and debug shapes are WAY off from each other
 
 			Shape3D outliner = new Shape3D();
-			outliner.clearCapabilities();
 			outliner.setPickable(false);
 			outliner.setCollidable(false);
 			outliner.setGeometry(j3dPSysData.getGeometryArray());

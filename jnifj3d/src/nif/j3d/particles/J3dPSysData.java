@@ -360,7 +360,6 @@ public class J3dPSysData
 		ShaderAttributeSet shaderAttributeSet = new ShaderAttributeSet();
 
 		ShaderAppearance app = new ShaderAppearance();
-		app.clearCapabilities();
 		if (shaderProgram == null)
 		{
 
@@ -422,12 +421,11 @@ public class J3dPSysData
 
 		}
 
-		((ShaderAppearance) app).setShaderProgram(shaderProgram);
-		((ShaderAppearance) app).setShaderAttributeSet(shaderAttributeSet);
+		app.setShaderProgram(shaderProgram);
+		app.setShaderAttributeSet(shaderAttributeSet);
 
 		TextureUnitState[] tus = new TextureUnitState[1];
 		TextureUnitState tus0 = new TextureUnitState();
-		tus0.clearCapabilities();
 		tus0.setTexture(tex);
 
 		//TextureCubeMap textureCubeMap = new TextureCubeMap();

@@ -72,6 +72,7 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 {
 	private static WeakHashMap<Object, TextureAttributes> textureAttributesLookup = new WeakHashMap<Object, TextureAttributes>();
 
+	@Override
 	public Appearance configureAppearance(NiGeometry niGeometry, NiToJ3dData niToJ3dData, TextureSource textureSource, Shape3D shape,
 			J3dNiAVObject target)
 	{
@@ -85,8 +86,6 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 		app.setMaterial(mat);
 
 		// NOTE must set these as teh default behavior with null breaks stenciling
-		// TODO: raise a bug about this and stencils in the bugzilla
-		// RAISE_BUG:
 		RenderingAttributes ra = new RenderingAttributes();
 		app.setRenderingAttributes(ra);
 

@@ -12,7 +12,6 @@ import javax.vecmath.Point3d;
 
 import nif.niobject.NiTriStrips;
 import nif.niobject.NiTriStripsData;
-import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
 /**
@@ -96,13 +95,11 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 				{
 					itsa = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable, false), texCoordCount, texMap, 2,
 							new int[] { 3, 3 }, length, stripLengths);
-					itsa.clearCapabilities();
 				}
 				else
 				{
 					itsa = new IndexedTriangleStripArray(data.numVertices, getFormat(data, morphable, false), texCoordCount, texMap, length,
 							stripLengths);
-					itsa.clearCapabilities();
 				}
 
 				if (morphable || BUFFERS)
@@ -157,13 +154,11 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 				{
 					itsa = new JoglesIndexedTriangleStripArray(data.numVertices, getFormat(data, false, true), texCoordCount, texMap, 2,
 							new int[] { 3, 3 }, length, stripLengths);
-					itsa.clearCapabilities();
 				}
 				else
 				{
 					itsa = new JoglesIndexedTriangleStripArray(data.numVertices, getFormat(data, false, true), texCoordCount, texMap,
 							length, stripLengths);
-					itsa.clearCapabilities();
 				}
 
 				itsa.setCoordIndicesRefBuffer(points);

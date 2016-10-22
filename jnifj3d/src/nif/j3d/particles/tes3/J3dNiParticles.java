@@ -87,7 +87,6 @@ public class J3dNiParticles extends J3dNiGeometry
 		//		this.textureSource = textureSource;
 
 		shape = getShape();
-		shape.clearCapabilities();
 		shape.setPickable(false);
 		shape.setCollidable(false);
 
@@ -150,7 +149,6 @@ public class J3dNiParticles extends J3dNiGeometry
 			//TODO: textures and debug shapes are WAY off from each other
 
 			Shape3D outliner = new Shape3D();
-			outliner.clearCapabilities();
 			outliner.setPickable(false);
 			outliner.setCollidable(false);
 			outliner.setGeometry(j3dNiParticlesData.getGeometryArray());
@@ -296,9 +294,7 @@ public class J3dNiParticles extends J3dNiGeometry
 
 	public static Appearance createAppearance(NifRef[] props, NiToJ3dData niToJ3dData, TextureSource textureSource)
 	{
-
 		ShaderAppearance app = new ShaderAppearance();
-		app.clearCapabilities();
 		if (shaderProgram == null)
 		{
 
@@ -371,7 +367,6 @@ public class J3dNiParticles extends J3dNiGeometry
 						{
 							TextureUnitState[] tus = new TextureUnitState[1];
 							TextureUnitState tus0 = new TextureUnitState();
-							tus0.clearCapabilities();
 							tus0.setTexture(tex);
 							tus0.setName(fileName);
 

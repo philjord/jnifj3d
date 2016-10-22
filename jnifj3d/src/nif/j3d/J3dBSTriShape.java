@@ -73,7 +73,6 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 					app.getTextureUnitState(0).getTextureAttributes().setTextureMode(TextureAttributes.REPLACE);
 
 			Shape3D shape = new Shape3D();
-			shape.clearCapabilities();
 			shape.setPickable(false);
 			shape.setCollidable(false);
 			shape.setAppearance(app);
@@ -266,12 +265,10 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 				{
 					ita = new JoglesIndexedTriangleArray(bsTriShape.numVertices, vertexFormat, 1, texMap, 2, new int[] { 3, 3 },
 							bsTriShape.numTriangles * 3);
-					ita.clearCapabilities();
 				}
 				else
 				{
 					ita = new JoglesIndexedTriangleArray(bsTriShape.numVertices, vertexFormat, 1, texMap, bsTriShape.numTriangles * 3);
-					ita.clearCapabilities();
 				}
 
 				ByteBuffer bb = ByteBuffer.allocateDirect(bsTriShape.trianglesOpt.length * 2);
@@ -290,12 +287,10 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 				{
 					iga = new IndexedTriangleArray(bsTriShape.numVertices, vertexFormat, 1, texMap, 2, new int[] { 3, 3 },
 							bsTriShape.numTriangles * 3);
-					iga.clearCapabilities();
 				}
 				else
 				{
 					iga = new IndexedTriangleArray(bsTriShape.numVertices, vertexFormat, 1, texMap, bsTriShape.numTriangles * 3);
-					iga.clearCapabilities();
 				}
 
 				if (morphable || BUFFERS)

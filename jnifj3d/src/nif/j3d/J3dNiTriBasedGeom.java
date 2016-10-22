@@ -32,7 +32,6 @@ import nif.tools.MiniFloat;
 import tools.WeakValueHashMap;
 import tools3d.utils.SimpleShaderAppearance;
 import tools3d.utils.Utils3D;
-import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
 /**
@@ -123,7 +122,6 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 		{
 			// prepare a root for outline to be added to
 			outlinerBG1 = new BranchGroup();
-			outlinerBG1.clearCapabilities();
 			outlinerBG1.setCapability(Group.ALLOW_CHILDREN_EXTEND);
 			outlinerBG1.setCapability(Group.ALLOW_CHILDREN_WRITE);
 			addChild(outlinerBG1);
@@ -132,17 +130,10 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 			//-Dj3d.stencilClear=true  
 
-			// this is generally working now, below are earlier notes, it doesn't play 
-			// badly with transparency once everything has renderingattributes
-			// possibly issue 249 https://java.net/jira/browse/JAVA3D-224
-			// transparency buggers with stencils https://java.net/jira/browse/JAVA3D-314
-			// Notice issues with transparent textures not working well, the "filled in" part must be being run after the line 
-
 			Appearance sapp = getShape().getAppearance();
 
 			RenderingAttributes ra1 = sapp.getRenderingAttributes();
 
-			//RAISE_BUG:
 			// note ra1 must not be null ever, for stencils all apps should have ras
 			// see pipeline resetRenderingAtttributes for possible fix
 			if (ra1 == null)
@@ -177,7 +168,6 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 			if (outliner == null)
 			{
 				outliner = new Shape3D();
-				outliner.clearCapabilities();
 				outliner.setPickable(false);
 				outliner.setCollidable(false);
 
@@ -224,7 +214,6 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 				colorAtt.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
 
 				outlinerBG2 = new BranchGroup();
-				outlinerBG2.clearCapabilities();
 				outlinerBG2.setCapability(BranchGroup.ALLOW_DETACH);
 				outlinerBG2.addChild(outliner);
 				outlinerBG1.addChild(outlinerBG2);

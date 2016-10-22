@@ -13,7 +13,6 @@ import javax.vecmath.Point3d;
 import nif.niobject.NiTriShape;
 import nif.niobject.NiTriShapeData;
 import nif.niobject.bs.BSLODTriShape;
-import utils.convert.ConvertFromNif;
 import utils.source.TextureSource;
 
 public class J3dNiTriShape extends J3dNiTriBasedGeom
@@ -105,13 +104,11 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 				{
 					ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, false), texCoordCount, texMap, 2,
 							new int[] { 3, 3 }, data.numTrianglePoints);
-					ita.clearCapabilities();
 				}
 				else
 				{
 					ita = new IndexedTriangleArray(data.numVertices, getFormat(data, morphable, false), texCoordCount, texMap,
 							data.numTrianglePoints);
-					ita.clearCapabilities();
 				}
 
 				if (morphable || BUFFERS)
@@ -134,13 +131,11 @@ public class J3dNiTriShape extends J3dNiTriBasedGeom
 				{
 					ita = new JoglesIndexedTriangleArray(data.numVertices, getFormat(data, false, true), texCoordCount, texMap, 2,
 							new int[] { 3, 3 }, data.numTrianglePoints);
-					ita.clearCapabilities();
 				}
 				else
 				{
 					ita = new JoglesIndexedTriangleArray(data.numVertices, getFormat(data, false, true), texCoordCount, texMap,
 							data.numTrianglePoints);
-					ita.clearCapabilities();
 				}
 
 				ByteBuffer bb = ByteBuffer.allocateDirect(data.trianglesOpt.length * 2);
