@@ -2,8 +2,8 @@ package nif.j3d;
 
 import java.util.Enumeration;
 
-import javax.media.j3d.Node;
-import javax.media.j3d.OrderedGroup;
+import org.jogamp.java3d.Node;
+import org.jogamp.java3d.OrderedGroup;
 
 import nif.niobject.bs.BSOrderedNode;
 import utils.source.TextureSource;

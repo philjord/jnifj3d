@@ -3,13 +3,14 @@ package nif.j3d.animation;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-import javax.media.j3d.Behavior;
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.Bounds;
-import javax.media.j3d.Group;
-import javax.media.j3d.Node;
-import javax.media.j3d.WakeupOnElapsedFrames;
 import javax.vecmath.Point3d;
+
+import org.jogamp.java3d.Behavior;
+import org.jogamp.java3d.BoundingSphere;
+import org.jogamp.java3d.Bounds;
+import org.jogamp.java3d.Group;
+import org.jogamp.java3d.Node;
+import org.jogamp.java3d.WakeupOnElapsedFrames;
 
 import nif.NifJ3dVisRoot;
 import nif.character.TextKeyExtraDataKey;
@@ -318,7 +319,7 @@ public class J3dNiControllerSequence extends Group implements SequenceAlphaListe
 	/**
 	 * Our physical bounds is all children bounds nound
 	 * but damn slow to re calc so let's cache up! woot
-	 * @see javax.media.j3d.Node#getBounds()
+	 * @see org.jogamp.java3d.Node#getBounds()
 	 */
 	protected Bounds cachedBounds = null;
 

@@ -2,8 +2,8 @@ package nif.j3d.animation;
 
 import java.util.ArrayList;
 
-import javax.media.j3d.Bounds;
-import javax.media.j3d.Group;
+import org.jogamp.java3d.Bounds;
+import org.jogamp.java3d.Group;
 
 import nif.NifJ3dVisRoot;
 import nif.NifVer;

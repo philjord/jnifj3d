@@ -1,7 +1,7 @@
 package nif.j3d.animation;
 
-import javax.media.j3d.Alpha;
-import javax.media.j3d.Node;
+import org.jogamp.java3d.Alpha;
+import org.jogamp.java3d.Node;
 
 import nif.compound.NifKeyGroup;
 import nif.enums.TexTransform;

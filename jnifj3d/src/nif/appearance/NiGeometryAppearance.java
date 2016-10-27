@@ -1,7 +1,7 @@
 package nif.appearance;
 
-import javax.media.j3d.Appearance;
-import javax.media.j3d.Shape3D;
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.Shape3D;
 
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.NiToJ3dData;

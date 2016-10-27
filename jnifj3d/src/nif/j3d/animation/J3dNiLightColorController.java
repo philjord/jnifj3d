@@ -2,10 +2,11 @@ package nif.j3d.animation;
 
 import java.util.ArrayList;
 
-import javax.media.j3d.Light;
-import javax.media.j3d.PointLight;
 import javax.vecmath.Color3f;
 import javax.vecmath.Point3f;
+
+import org.jogamp.java3d.Light;
+import org.jogamp.java3d.PointLight;
 
 import nif.j3d.J3dNiAVObject;
 import nif.niobject.controller.NiLightColorController;

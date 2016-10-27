@@ -1,8 +1,9 @@
 package nif.j3d.particles.tes3;
 
-import javax.media.j3d.GeometryArray;
-import javax.media.j3d.IndexedPointArray;
 import javax.vecmath.Vector3f;
+
+import org.jogamp.java3d.GeometryArray;
+import org.jogamp.java3d.IndexedPointArray;
 
 import nif.niobject.particle.NiParticlesData;
 import utils.convert.ConvertFromNif;

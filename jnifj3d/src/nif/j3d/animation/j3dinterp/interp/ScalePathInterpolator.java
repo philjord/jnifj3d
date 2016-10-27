@@ -1,6 +1,6 @@
 package nif.j3d.animation.j3dinterp.interp;
 
-import javax.media.j3d.Transform3D;
+import org.jogamp.java3d.Transform3D;
 
 public class ScalePathInterpolator extends KnotInterpolator
 {

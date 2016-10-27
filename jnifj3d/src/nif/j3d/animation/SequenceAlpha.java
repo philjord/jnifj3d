@@ -1,6 +1,6 @@
 package nif.j3d.animation;
 
-import javax.media.j3d.Alpha;
+import org.jogamp.java3d.Alpha;
 
 /**
  * Basically an alpha that loops if given a loop start and end and stop when told to

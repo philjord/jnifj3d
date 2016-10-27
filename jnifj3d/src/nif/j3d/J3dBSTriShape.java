@@ -4,23 +4,24 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
 
-import javax.media.j3d.Appearance;
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.GeometryArray;
-import javax.media.j3d.IndexedGeometryArray;
-import javax.media.j3d.IndexedTriangleArray;
-import javax.media.j3d.J3DBuffer;
-import javax.media.j3d.JoglesIndexedTriangleArray;
-import javax.media.j3d.PolygonAttributes;
-import javax.media.j3d.Shape3D;
-import javax.media.j3d.TextureAttributes;
-import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
-import javax.media.j3d.TriangleArray;
 import javax.vecmath.Matrix3f;
 import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
+
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.BoundingSphere;
+import org.jogamp.java3d.GeometryArray;
+import org.jogamp.java3d.IndexedGeometryArray;
+import org.jogamp.java3d.IndexedTriangleArray;
+import org.jogamp.java3d.J3DBuffer;
+import org.jogamp.java3d.JoglesIndexedTriangleArray;
+import org.jogamp.java3d.PolygonAttributes;
+import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.TextureAttributes;
+import org.jogamp.java3d.Transform3D;
+import org.jogamp.java3d.TransformGroup;
+import org.jogamp.java3d.TriangleArray;
 
 import nif.basic.NifRef;
 import nif.compound.NifMatrix33;

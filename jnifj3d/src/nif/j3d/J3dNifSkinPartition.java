@@ -2,11 +2,11 @@ package nif.j3d;
 
 import java.util.LinkedHashMap;
 
-import javax.media.j3d.Geometry;
-import javax.media.j3d.GeometryArray;
-import javax.media.j3d.GeometryUpdater;
-import javax.media.j3d.Group;
-import javax.media.j3d.Transform3D;
+import org.jogamp.java3d.Geometry;
+import org.jogamp.java3d.GeometryArray;
+import org.jogamp.java3d.GeometryUpdater;
+import org.jogamp.java3d.Group;
+import org.jogamp.java3d.Transform3D;
 
 import nif.compound.NifSkinPartition;
 /**
@@ -94,7 +94,7 @@ public class J3dNifSkinPartition extends Group implements GeometryUpdater
 
 	/**
 	 * Mega optomised, natural copy below
-	 * @see javax.media.j3d.GeometryUpdater#updateData(javax.media.j3d.Geometry)
+	 * @see org.jogamp.java3d.GeometryUpdater#updateData(org.jogamp.java3d.Geometry)
 	 */
 	@Override
 	public void updateData(Geometry geometry)

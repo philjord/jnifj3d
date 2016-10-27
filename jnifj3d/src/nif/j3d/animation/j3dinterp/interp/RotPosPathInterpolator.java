@@ -1,10 +1,11 @@
 package nif.j3d.animation.j3dinterp.interp;
 
-import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
 import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
+
+import org.jogamp.java3d.Transform3D;
+import org.jogamp.java3d.TransformGroup;
 
 /**
  * RotPosPathInterpolator is my copy if the j3d RotPosPathInterpolator

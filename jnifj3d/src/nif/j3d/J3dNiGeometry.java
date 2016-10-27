@@ -1,10 +1,10 @@
 package nif.j3d;
 
-import javax.media.j3d.Appearance;
-import javax.media.j3d.Shape3D;
-import javax.media.j3d.Texture;
-import javax.media.j3d.TextureUnitState;
-import javax.media.j3d.TransparencyAttributes;
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.Texture;
+import org.jogamp.java3d.TextureUnitState;
+import org.jogamp.java3d.TransparencyAttributes;
 
 import nif.appearance.NiGeometryAppearance;
 import nif.niobject.NiGeometry;

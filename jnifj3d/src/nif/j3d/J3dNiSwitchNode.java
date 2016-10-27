@@ -2,8 +2,8 @@ package nif.j3d;
 
 import java.util.Enumeration;
 
-import javax.media.j3d.Node;
-import javax.media.j3d.Switch;
+import org.jogamp.java3d.Node;
+import org.jogamp.java3d.Switch;
 
 import nif.niobject.NiSwitchNode;
 import utils.source.TextureSource;

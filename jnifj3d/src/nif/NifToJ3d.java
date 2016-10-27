@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import javax.media.j3d.Group;
+import org.jogamp.java3d.Group;
 
 import nif.character.KfJ3dRoot;
 import nif.j3d.J3dBSTreeNode;

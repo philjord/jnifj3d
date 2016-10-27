@@ -2,9 +2,9 @@ package nif.j3d.animation;
 
 import java.util.ArrayList;
 
-import javax.media.j3d.Material;
-import javax.media.j3d.RenderingAttributes;
-import javax.media.j3d.Shape3D;
+import org.jogamp.java3d.Material;
+import org.jogamp.java3d.RenderingAttributes;
+import org.jogamp.java3d.Shape3D;
 
 import nif.enums.TargetColor;
 import nif.j3d.J3dNiAVObject;

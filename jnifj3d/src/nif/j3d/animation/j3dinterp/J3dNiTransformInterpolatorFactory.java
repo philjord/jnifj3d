@@ -1,6 +1,6 @@
 package nif.j3d.animation.j3dinterp;
 
-import javax.media.j3d.TransformGroup;
+import org.jogamp.java3d.TransformGroup;
 
 import nif.j3d.NiToJ3dData;
 import nif.niobject.interpolator.NiBSplineCompTransformInterpolator;

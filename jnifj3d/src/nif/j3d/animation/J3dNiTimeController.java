@@ -1,10 +1,11 @@
 package nif.j3d.animation;
 
-import javax.media.j3d.Alpha;
-import javax.media.j3d.Bounds;
-import javax.media.j3d.Group;
-import javax.media.j3d.Node;
 import javax.vecmath.Point3f;
+
+import org.jogamp.java3d.Alpha;
+import org.jogamp.java3d.Bounds;
+import org.jogamp.java3d.Group;
+import org.jogamp.java3d.Node;
 
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.NiToJ3dData;

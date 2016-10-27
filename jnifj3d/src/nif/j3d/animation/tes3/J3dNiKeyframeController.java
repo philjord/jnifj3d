@@ -1,8 +1,8 @@
 package nif.j3d.animation.tes3;
 
-import javax.media.j3d.Alpha;
-import javax.media.j3d.Node;
-import javax.media.j3d.TransformGroup;
+import org.jogamp.java3d.Alpha;
+import org.jogamp.java3d.Node;
+import org.jogamp.java3d.TransformGroup;
 
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.NiToJ3dData;

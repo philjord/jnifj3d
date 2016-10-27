@@ -4,10 +4,11 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-import javax.media.j3d.TransformGroup;
 import javax.vecmath.Point3f;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
+
+import org.jogamp.java3d.TransformGroup;
 
 import nif.compound.NifKey;
 import nif.compound.NifKeyGroup;

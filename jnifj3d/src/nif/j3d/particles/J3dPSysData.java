@@ -1,22 +1,23 @@
 package nif.j3d.particles;
 
-import javax.media.j3d.Appearance;
-import javax.media.j3d.GLSLShaderProgram;
-import javax.media.j3d.GeometryArray;
-import javax.media.j3d.IndexedPointArray;
-import javax.media.j3d.Material;
-import javax.media.j3d.RenderingAttributes;
-import javax.media.j3d.Shader;
-import javax.media.j3d.ShaderAppearance;
-import javax.media.j3d.ShaderAttribute;
-import javax.media.j3d.ShaderAttributeArray;
-import javax.media.j3d.ShaderAttributeSet;
-import javax.media.j3d.ShaderAttributeValue;
-import javax.media.j3d.ShaderProgram;
-import javax.media.j3d.SourceCodeShader;
-import javax.media.j3d.Texture;
-import javax.media.j3d.TextureUnitState;
 import javax.vecmath.Point2f;
+
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.GLSLShaderProgram;
+import org.jogamp.java3d.GeometryArray;
+import org.jogamp.java3d.IndexedPointArray;
+import org.jogamp.java3d.Material;
+import org.jogamp.java3d.RenderingAttributes;
+import org.jogamp.java3d.Shader;
+import org.jogamp.java3d.ShaderAppearance;
+import org.jogamp.java3d.ShaderAttribute;
+import org.jogamp.java3d.ShaderAttributeArray;
+import org.jogamp.java3d.ShaderAttributeSet;
+import org.jogamp.java3d.ShaderAttributeValue;
+import org.jogamp.java3d.ShaderProgram;
+import org.jogamp.java3d.SourceCodeShader;
+import org.jogamp.java3d.Texture;
+import org.jogamp.java3d.TextureUnitState;
 
 import nif.niobject.particle.NiPSysData;
 import tools3d.utils.ShaderSourceIO;

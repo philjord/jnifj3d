@@ -2,8 +2,8 @@ package nif.j3d.animation.tes3;
 
 import java.util.ArrayList;
 
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.Group;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.Group;
 
 import nif.NifJ3dVisRoot;
 import nif.j3d.J3dNiDefaultAVObjectPalette;

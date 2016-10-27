@@ -2,7 +2,7 @@ package nif.character;
 
 import java.util.ArrayList;
 
-import javax.media.j3d.BranchGroup;
+import org.jogamp.java3d.BranchGroup;
 
 import nif.NifJ3dVisRoot;
 import nif.j3d.J3dNiDefaultAVObjectPalette;

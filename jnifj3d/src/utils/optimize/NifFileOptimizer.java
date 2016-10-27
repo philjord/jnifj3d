@@ -5,11 +5,12 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.HashSet;
 
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.Transform3D;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
+
+import org.jogamp.java3d.BoundingSphere;
+import org.jogamp.java3d.Transform3D;
 
 import nif.NifFile;
 import nif.NifVer;

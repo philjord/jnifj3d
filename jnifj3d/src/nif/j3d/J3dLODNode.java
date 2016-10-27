@@ -1,9 +1,10 @@
 package nif.j3d;
 
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.DistanceLOD;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
+
+import org.jogamp.java3d.BoundingSphere;
+import org.jogamp.java3d.DistanceLOD;
 
 import nif.compound.NifLODRange;
 import nif.niobject.NiLODData;

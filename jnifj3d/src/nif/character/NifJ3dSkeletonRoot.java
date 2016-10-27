@@ -1,7 +1,7 @@
 package nif.character;
 
-import javax.media.j3d.Group;
-import javax.media.j3d.Transform3D;
+import org.jogamp.java3d.Group;
+import org.jogamp.java3d.Transform3D;
 
 import nif.NifJ3dVisRoot;
 import nif.NifToJ3d;

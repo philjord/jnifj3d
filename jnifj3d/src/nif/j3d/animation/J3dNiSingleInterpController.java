@@ -1,7 +1,7 @@
 package nif.j3d.animation;
 
-import javax.media.j3d.Alpha;
-import javax.media.j3d.Node;
+import org.jogamp.java3d.Alpha;
+import org.jogamp.java3d.Node;
 
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.NiToJ3dData;

@@ -2,10 +2,10 @@ package nif.j3d.animation.j3dinterp;
 
 import java.util.Enumeration;
 
-import javax.media.j3d.Alpha;
-import javax.media.j3d.Group;
-import javax.media.j3d.Interpolator;
-import javax.media.j3d.TransformGroup;
+import org.jogamp.java3d.Alpha;
+import org.jogamp.java3d.Group;
+import org.jogamp.java3d.Interpolator;
+import org.jogamp.java3d.TransformGroup;
 
 import nif.j3d.animation.j3dinterp.interp.Interpolated;
 import tools3d.utils.Utils3D;

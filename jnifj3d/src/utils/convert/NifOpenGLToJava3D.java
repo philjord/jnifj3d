@@ -1,8 +1,8 @@
 package utils.convert;
 
-import javax.media.j3d.Material;
-import javax.media.j3d.RenderingAttributes;
-import javax.media.j3d.TransparencyAttributes;
+import org.jogamp.java3d.Material;
+import org.jogamp.java3d.RenderingAttributes;
+import org.jogamp.java3d.TransparencyAttributes;
 
 import nif.enums.CompareMode;
 import nif.enums.StencilAction;

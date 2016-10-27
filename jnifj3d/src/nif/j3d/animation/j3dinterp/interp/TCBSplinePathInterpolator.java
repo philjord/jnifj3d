@@ -1,6 +1,6 @@
 package nif.j3d.animation.j3dinterp.interp;
 
-import javax.media.j3d.TransformGroup;
+import org.jogamp.java3d.TransformGroup;
 
 import nif.j3d.animation.j3dinterp.interp.data.TCBKeyFrame;
 

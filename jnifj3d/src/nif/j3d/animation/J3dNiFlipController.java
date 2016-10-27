@@ -1,8 +1,8 @@
 package nif.j3d.animation;
 
-import javax.media.j3d.Appearance;
-import javax.media.j3d.Texture;
-import javax.media.j3d.TextureUnitState;
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.Texture;
+import org.jogamp.java3d.TextureUnitState;
 
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiGeometry;

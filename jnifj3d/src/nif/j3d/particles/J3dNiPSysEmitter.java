@@ -1,10 +1,11 @@
 package nif.j3d.particles;
 
-import javax.media.j3d.Transform3D;
 import javax.vecmath.AxisAngle4f;
 import javax.vecmath.Color4f;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
+
+import org.jogamp.java3d.Transform3D;
 
 import nif.j3d.NiToJ3dData;
 import nif.niobject.particle.NiPSysEmitter;

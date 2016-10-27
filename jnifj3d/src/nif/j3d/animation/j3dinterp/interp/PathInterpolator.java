@@ -1,6 +1,6 @@
 package nif.j3d.animation.j3dinterp.interp;
 
-import javax.media.j3d.TransformGroup;
+import org.jogamp.java3d.TransformGroup;
 
 /**
  * This is a  copy of the PathInterpolator from j3d, with target swapped out for a multiple targets and axis dumped

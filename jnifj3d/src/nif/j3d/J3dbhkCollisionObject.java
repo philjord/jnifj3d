@@ -2,14 +2,6 @@ package nif.j3d;
 
 import java.util.Vector;
 
-import javax.media.j3d.GeometryArray;
-import javax.media.j3d.Group;
-import javax.media.j3d.J3DBuffer;
-import javax.media.j3d.Shape3D;
-import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
-import javax.media.j3d.TriangleArray;
-import javax.media.j3d.TriangleStripArray;
 import javax.vecmath.Color3f;
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Point3d;
@@ -21,6 +13,14 @@ import javax.vecmath.Vector3f;
 import org.j3d.geom.CylinderGenerator;
 import org.j3d.geom.GeometryData;
 import org.j3d.geom.SphereGenerator;
+import org.jogamp.java3d.GeometryArray;
+import org.jogamp.java3d.Group;
+import org.jogamp.java3d.J3DBuffer;
+import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.Transform3D;
+import org.jogamp.java3d.TransformGroup;
+import org.jogamp.java3d.TriangleArray;
+import org.jogamp.java3d.TriangleStripArray;
 
 import com.bulletphysics.collision.shapes.ConvexHullShape;
 import com.bulletphysics.collision.shapes.ShapeHull;

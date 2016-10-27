@@ -1,12 +1,13 @@
 package nif.j3d.animation;
 
-import javax.media.j3d.Appearance;
-import javax.media.j3d.TextureAttributes;
-import javax.media.j3d.TextureUnitState;
-import javax.media.j3d.Transform3D;
 import javax.vecmath.AxisAngle4f;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
+
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.TextureAttributes;
+import org.jogamp.java3d.TextureUnitState;
+import org.jogamp.java3d.Transform3D;
 
 import nif.enums.TexTransform;
 import nif.j3d.J3dNiAVObject;

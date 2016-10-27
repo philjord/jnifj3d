@@ -3,7 +3,7 @@ package nif.j3d;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import javax.media.j3d.TextureAttributes;
+import org.jogamp.java3d.TextureAttributes;
 
 import nif.NiObjectList;
 import nif.NifVer;

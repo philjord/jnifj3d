@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
-import javax.media.j3d.Alpha;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.Transform3D;
+import org.jogamp.java3d.Alpha;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.Transform3D;
 
 import nif.NifJ3dVisRoot;
 import nif.NifToJ3d;

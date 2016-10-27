@@ -1,7 +1,8 @@
 package nif.j3d;
 
-import javax.media.j3d.BranchGroup;
 import javax.vecmath.Color3f;
+
+import org.jogamp.java3d.BranchGroup;
 
 import tools3d.utils.scenegraph.Fadable;
 

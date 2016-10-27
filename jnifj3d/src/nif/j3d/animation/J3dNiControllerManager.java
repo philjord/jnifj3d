@@ -1,7 +1,7 @@
 package nif.j3d.animation;
 
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.Bounds;
+import org.jogamp.java3d.BoundingSphere;
+import org.jogamp.java3d.Bounds;
 
 import nif.j3d.J3dNiDefaultAVObjectPalette;
 import nif.j3d.NiToJ3dData;

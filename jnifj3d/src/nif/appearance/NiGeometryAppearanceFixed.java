@@ -3,18 +3,19 @@ package nif.appearance;
 import java.io.IOException;
 import java.util.WeakHashMap;
 
-import javax.media.j3d.Alpha;
-import javax.media.j3d.Appearance;
-import javax.media.j3d.Material;
-import javax.media.j3d.PolygonAttributes;
-import javax.media.j3d.RenderingAttributes;
-import javax.media.j3d.Shape3D;
-import javax.media.j3d.Texture;
-import javax.media.j3d.TextureAttributes;
-import javax.media.j3d.TextureUnitState;
-import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransparencyAttributes;
 import javax.vecmath.Vector3d;
+
+import org.jogamp.java3d.Alpha;
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.Material;
+import org.jogamp.java3d.PolygonAttributes;
+import org.jogamp.java3d.RenderingAttributes;
+import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.Texture;
+import org.jogamp.java3d.TextureAttributes;
+import org.jogamp.java3d.TextureUnitState;
+import org.jogamp.java3d.Transform3D;
+import org.jogamp.java3d.TransparencyAttributes;
 
 import nif.BgsmSource;
 import nif.NifVer;

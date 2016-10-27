@@ -1,7 +1,7 @@
 package nif.j3d.animation;
 
-import javax.media.j3d.Appearance;
-import javax.media.j3d.TransparencyAttributes;
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.TransparencyAttributes;
 
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiGeometry;

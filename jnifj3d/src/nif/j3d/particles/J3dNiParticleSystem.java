@@ -5,14 +5,15 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.Geometry;
-import javax.media.j3d.GeometryUpdater;
-import javax.media.j3d.Group;
-import javax.media.j3d.Shape3D;
 import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
+
+import org.jogamp.java3d.BoundingSphere;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.Geometry;
+import org.jogamp.java3d.GeometryUpdater;
+import org.jogamp.java3d.Group;
+import org.jogamp.java3d.Shape3D;
 
 import nif.basic.NifRef;
 import nif.j3d.J3dNiGeometry;

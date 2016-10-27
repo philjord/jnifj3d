@@ -2,15 +2,16 @@ package nif.j3d.particles.tes3;
 
 import java.util.ArrayList;
 
-import javax.media.j3d.Alpha;
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.Bounds;
-import javax.media.j3d.Geometry;
-import javax.media.j3d.GeometryUpdater;
-import javax.media.j3d.Node;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
+
+import org.jogamp.java3d.Alpha;
+import org.jogamp.java3d.BoundingSphere;
+import org.jogamp.java3d.Bounds;
+import org.jogamp.java3d.Geometry;
+import org.jogamp.java3d.GeometryUpdater;
+import org.jogamp.java3d.Node;
 
 import nif.compound.NifParticle;
 import nif.j3d.NiToJ3dData;

@@ -3,7 +3,7 @@ package utils.source;
 import java.io.InputStream;
 import java.util.List;
 
-import javax.media.j3d.MediaContainer;
+import org.jogamp.java3d.MediaContainer;
 
 public interface SoundSource
 {

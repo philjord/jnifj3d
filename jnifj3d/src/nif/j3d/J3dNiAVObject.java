@@ -2,9 +2,9 @@ package nif.j3d;
 
 import java.util.ArrayList;
 
-import javax.media.j3d.Node;
-import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
+import org.jogamp.java3d.Node;
+import org.jogamp.java3d.Transform3D;
+import org.jogamp.java3d.TransformGroup;
 
 import nif.NifVer;
 import nif.j3d.animation.SequenceAlpha.SequenceAlphaListener;

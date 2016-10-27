@@ -5,22 +5,23 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
-import javax.media.j3d.Appearance;
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.ColoringAttributes;
-import javax.media.j3d.GeometryArray;
-import javax.media.j3d.Group;
-import javax.media.j3d.IndexedGeometryArray;
-import javax.media.j3d.J3DBuffer;
-import javax.media.j3d.JoglesIndexedTriangleArray;
-import javax.media.j3d.JoglesIndexedTriangleStripArray;
-import javax.media.j3d.LineAttributes;
-import javax.media.j3d.PolygonAttributes;
-import javax.media.j3d.RenderingAttributes;
-import javax.media.j3d.Shape3D;
 import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
+
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.BoundingSphere;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.ColoringAttributes;
+import org.jogamp.java3d.GeometryArray;
+import org.jogamp.java3d.Group;
+import org.jogamp.java3d.IndexedGeometryArray;
+import org.jogamp.java3d.J3DBuffer;
+import org.jogamp.java3d.JoglesIndexedTriangleArray;
+import org.jogamp.java3d.JoglesIndexedTriangleStripArray;
+import org.jogamp.java3d.LineAttributes;
+import org.jogamp.java3d.PolygonAttributes;
+import org.jogamp.java3d.RenderingAttributes;
+import org.jogamp.java3d.Shape3D;
 
 import nif.NifVer;
 import nif.basic.NifRef;

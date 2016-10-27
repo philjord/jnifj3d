@@ -4,20 +4,21 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.media.j3d.Alpha;
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.Group;
-import javax.media.j3d.MediaContainer;
-import javax.media.j3d.Node;
-import javax.media.j3d.PointSound;
-import javax.media.j3d.Sound;
-import javax.media.j3d.SoundException;
-import javax.media.j3d.Transform3D;
 import javax.vecmath.Color3f;
 import javax.vecmath.Point2f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
+
+import org.jogamp.java3d.Alpha;
+import org.jogamp.java3d.BoundingSphere;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.Group;
+import org.jogamp.java3d.MediaContainer;
+import org.jogamp.java3d.Node;
+import org.jogamp.java3d.PointSound;
+import org.jogamp.java3d.Sound;
+import org.jogamp.java3d.SoundException;
+import org.jogamp.java3d.Transform3D;
 
 import nif.NifJ3dVisRoot;
 import nif.NifToJ3d;

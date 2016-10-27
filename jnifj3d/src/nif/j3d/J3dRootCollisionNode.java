@@ -2,7 +2,7 @@ package nif.j3d;
 
 import java.util.ArrayList;
 
-import javax.media.j3d.Group;
+import org.jogamp.java3d.Group;
 
 import nif.niobject.AvoidNode;
 import nif.niobject.NiAVObject;

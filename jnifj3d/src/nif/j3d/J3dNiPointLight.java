@@ -1,10 +1,11 @@
 package nif.j3d;
 
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.PointLight;
 import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
+
+import org.jogamp.java3d.BoundingSphere;
+import org.jogamp.java3d.PointLight;
 
 import nif.niobject.NiPointLight;
 

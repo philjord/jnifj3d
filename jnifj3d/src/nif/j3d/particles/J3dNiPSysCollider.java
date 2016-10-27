@@ -1,9 +1,10 @@
 package nif.j3d.particles;
 
-import javax.media.j3d.Group;
-import javax.media.j3d.Node;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
+
+import org.jogamp.java3d.Group;
+import org.jogamp.java3d.Node;
 
 import nif.j3d.J3dNiNode;
 import nif.j3d.NiToJ3dData;
