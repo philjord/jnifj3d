@@ -1,6 +1,6 @@
 package nif.j3d.animation.j3dinterp;
 
-import javax.vecmath.Point3f;
+import org.jogamp.vecmath.Point3f;
 
 import nif.compound.NifKey;
 import nif.compound.NifKeyGroup;

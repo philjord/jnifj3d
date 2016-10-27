@@ -3,13 +3,12 @@ package nif.j3d.animation;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 
-import javax.vecmath.Point3d;
-
 import org.jogamp.java3d.BoundingSphere;
 import org.jogamp.java3d.Geometry;
 import org.jogamp.java3d.GeometryArray;
 import org.jogamp.java3d.GeometryUpdater;
 import org.jogamp.java3d.Node;
+import org.jogamp.vecmath.Point3d;
 
 import nif.NifVer;
 import nif.basic.NifRef;

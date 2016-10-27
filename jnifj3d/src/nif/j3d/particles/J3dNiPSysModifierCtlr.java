@@ -1,9 +1,8 @@
 package nif.j3d.particles;
 
-import javax.vecmath.Point3f;
-
 import org.jogamp.java3d.Alpha;
 import org.jogamp.java3d.Bounds;
+import org.jogamp.vecmath.Point3f;
 
 import nif.j3d.NiToJ3dData;
 import nif.j3d.animation.J3dNiTimeController;

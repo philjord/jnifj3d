@@ -1,14 +1,15 @@
 package utils.convert;
 
-import javax.vecmath.Color4f;
-import javax.vecmath.Point3d;
-import javax.vecmath.Point3f;
-import javax.vecmath.Quat4f;
-import javax.vecmath.TexCoord2f;
-import javax.vecmath.Tuple3f;
-import javax.vecmath.Vector3f;
-
 import utils.ESConfig;
+
+import org.jogamp.vecmath.Color4f;
+import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Point3f;
+import org.jogamp.vecmath.Quat4f;
+import org.jogamp.vecmath.TexCoord2f;
+import org.jogamp.vecmath.Tuple3f;
+import org.jogamp.vecmath.Vector3f;
+
 import nif.compound.NifColor4;
 import nif.compound.NifMatrix33;
 import nif.compound.NifQuaternion;

@@ -1,6 +1,6 @@
 package nif.j3d.particles.tes3;
 
-import javax.vecmath.Vector3f;
+import org.jogamp.vecmath.Vector3f;
 
 import nif.j3d.NiToJ3dData;
 import nif.niobject.NiGravity;

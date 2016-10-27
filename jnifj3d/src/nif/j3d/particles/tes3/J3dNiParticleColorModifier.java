@@ -1,6 +1,6 @@
 package nif.j3d.particles.tes3;
 
-import javax.vecmath.Color4f;
+import org.jogamp.vecmath.Color4f;
 
 import nif.compound.NifColor4;
 import nif.compound.NifKey;

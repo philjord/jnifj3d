@@ -4,10 +4,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import javax.vecmath.Point3d;
-
 import org.jogamp.java3d.BoundingSphere;
 import org.jogamp.java3d.Bounds;
+import org.jogamp.vecmath.Point3d;
 
 import nif.NifJ3dVisRoot;
 import nif.character.TextKeyExtraDataKey;

@@ -2,9 +2,8 @@ package nif.j3d;
 
 import java.util.ArrayList;
 
-import javax.vecmath.Color3f;
-
 import org.jogamp.java3d.Transform3D;
+import org.jogamp.vecmath.Color3f;
 
 import nif.NifToJ3d;
 import nif.j3d.particles.J3dNiParticleSystem;

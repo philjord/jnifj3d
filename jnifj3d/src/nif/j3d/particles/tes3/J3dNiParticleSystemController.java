@@ -2,16 +2,15 @@ package nif.j3d.particles.tes3;
 
 import java.util.ArrayList;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Point3f;
-import javax.vecmath.Vector3f;
-
 import org.jogamp.java3d.Alpha;
 import org.jogamp.java3d.BoundingSphere;
 import org.jogamp.java3d.Bounds;
 import org.jogamp.java3d.Geometry;
 import org.jogamp.java3d.GeometryUpdater;
 import org.jogamp.java3d.Node;
+import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Point3f;
+import org.jogamp.vecmath.Vector3f;
 
 import nif.compound.NifParticle;
 import nif.j3d.NiToJ3dData;

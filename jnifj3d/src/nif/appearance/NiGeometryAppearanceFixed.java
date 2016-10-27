@@ -3,8 +3,6 @@ package nif.appearance;
 import java.io.IOException;
 import java.util.WeakHashMap;
 
-import javax.vecmath.Vector3d;
-
 import org.jogamp.java3d.Alpha;
 import org.jogamp.java3d.Appearance;
 import org.jogamp.java3d.Material;
@@ -16,6 +14,7 @@ import org.jogamp.java3d.TextureAttributes;
 import org.jogamp.java3d.TextureUnitState;
 import org.jogamp.java3d.Transform3D;
 import org.jogamp.java3d.TransparencyAttributes;
+import org.jogamp.vecmath.Vector3d;
 
 import nif.BgsmSource;
 import nif.NifVer;

@@ -1,8 +1,7 @@
 package nif.j3d.animation.j3dinterp.interp;
 
-import javax.vecmath.Quat4f;
-
 import org.jogamp.java3d.Transform3D;
+import org.jogamp.vecmath.Quat4f;
 
 public class RotationPathInterpolator extends KnotInterpolator
 {

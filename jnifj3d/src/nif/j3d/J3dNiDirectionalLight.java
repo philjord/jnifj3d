@@ -1,11 +1,10 @@
 package nif.j3d;
 
-import javax.vecmath.Color3f;
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3f;
-
 import org.jogamp.java3d.BoundingSphere;
 import org.jogamp.java3d.DirectionalLight;
+import org.jogamp.vecmath.Color3f;
+import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Vector3f;
 
 import nif.niobject.NiDirectionalLight;
 

@@ -1,12 +1,11 @@
 package nif.character;
 
-import javax.vecmath.Matrix4d;
-import javax.vecmath.Quat4f;
-import javax.vecmath.Vector3f;
-
 import org.jogamp.java3d.Alpha;
 import org.jogamp.java3d.Group;
 import org.jogamp.java3d.Transform3D;
+import org.jogamp.vecmath.Matrix4d;
+import org.jogamp.vecmath.Quat4f;
+import org.jogamp.vecmath.Vector3f;
 
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiDefaultAVObjectPalette;

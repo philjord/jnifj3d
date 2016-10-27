@@ -2,11 +2,10 @@ package nif.j3d.animation;
 
 import java.util.ArrayList;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Point3f;
-
 import org.jogamp.java3d.BoundingSphere;
 import org.jogamp.java3d.PointLight;
+import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Point3f;
 
 import nif.j3d.J3dNiAVObject;
 import nif.niobject.controller.NiLightRadiusController;

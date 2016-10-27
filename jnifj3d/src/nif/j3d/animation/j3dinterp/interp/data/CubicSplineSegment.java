@@ -1,9 +1,9 @@
 package nif.j3d.animation.j3dinterp.interp.data;
 
-import javax.vecmath.Point3f;
-import javax.vecmath.Quat4f;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector3f;
+import org.jogamp.vecmath.Point3f;
+import org.jogamp.vecmath.Quat4f;
+import org.jogamp.vecmath.Vector3d;
+import org.jogamp.vecmath.Vector3f;
 
 /**
  * The CubicSplineSegment class creates the representation of a 

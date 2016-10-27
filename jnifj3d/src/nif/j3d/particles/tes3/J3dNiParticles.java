@@ -1,8 +1,5 @@
 package nif.j3d.particles.tes3;
 
-import javax.vecmath.Color3f;
-import javax.vecmath.Point3d;
-
 import org.jogamp.java3d.Appearance;
 import org.jogamp.java3d.BoundingSphere;
 import org.jogamp.java3d.BranchGroup;
@@ -20,6 +17,8 @@ import org.jogamp.java3d.SourceCodeShader;
 import org.jogamp.java3d.Texture;
 import org.jogamp.java3d.TextureUnitState;
 import org.jogamp.java3d.TransparencyAttributes;
+import org.jogamp.vecmath.Color3f;
+import org.jogamp.vecmath.Point3d;
 
 import nif.NifVer;
 import nif.basic.NifRef;

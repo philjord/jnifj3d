@@ -1,9 +1,8 @@
 package nif.j3d.animation.j3dinterp.interp;
 
-import javax.vecmath.Quat4f;
-import javax.vecmath.Vector3d;
-
 import org.jogamp.java3d.Transform3D;
+import org.jogamp.vecmath.Quat4f;
+import org.jogamp.vecmath.Vector3d;
 
 import tools3d.utils.Utils3D;
 

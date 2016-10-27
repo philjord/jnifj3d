@@ -1,15 +1,14 @@
 package nif.character;
 
-import javax.vecmath.Color3f;
-import javax.vecmath.Quat4f;
-import javax.vecmath.Vector3d;
-
 import org.jogamp.java3d.BranchGroup;
 import org.jogamp.java3d.Group;
 import org.jogamp.java3d.Node;
 import org.jogamp.java3d.PolygonAttributes;
 import org.jogamp.java3d.Transform3D;
 import org.jogamp.java3d.TransformGroup;
+import org.jogamp.vecmath.Color3f;
+import org.jogamp.vecmath.Quat4f;
+import org.jogamp.vecmath.Vector3d;
 
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiGeometry;

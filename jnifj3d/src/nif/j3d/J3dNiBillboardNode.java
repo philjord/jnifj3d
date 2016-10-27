@@ -2,13 +2,12 @@ package nif.j3d;
 
 import java.util.Enumeration;
 
-import javax.vecmath.Point3f;
-import javax.vecmath.Vector3f;
-
 import org.jogamp.java3d.Billboard;
 import org.jogamp.java3d.Node;
 import org.jogamp.java3d.Transform3D;
 import org.jogamp.java3d.TransformGroup;
+import org.jogamp.vecmath.Point3f;
+import org.jogamp.vecmath.Vector3f;
 
 import nif.NifVer;
 import nif.enums.BillboardMode;

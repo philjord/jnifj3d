@@ -1,7 +1,5 @@
 package nif.j3d.particles;
 
-import javax.vecmath.Point2f;
-
 import org.jogamp.java3d.Appearance;
 import org.jogamp.java3d.GLSLShaderProgram;
 import org.jogamp.java3d.GeometryArray;
@@ -18,6 +16,7 @@ import org.jogamp.java3d.ShaderProgram;
 import org.jogamp.java3d.SourceCodeShader;
 import org.jogamp.java3d.Texture;
 import org.jogamp.java3d.TextureUnitState;
+import org.jogamp.vecmath.Point2f;
 
 import nif.niobject.particle.NiPSysData;
 import tools3d.utils.ShaderSourceIO;

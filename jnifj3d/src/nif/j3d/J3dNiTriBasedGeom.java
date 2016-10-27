@@ -5,9 +5,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
-import javax.vecmath.Color3f;
-import javax.vecmath.Point3d;
-
 import org.jogamp.java3d.Appearance;
 import org.jogamp.java3d.BoundingSphere;
 import org.jogamp.java3d.BranchGroup;
@@ -22,6 +19,8 @@ import org.jogamp.java3d.LineAttributes;
 import org.jogamp.java3d.PolygonAttributes;
 import org.jogamp.java3d.RenderingAttributes;
 import org.jogamp.java3d.Shape3D;
+import org.jogamp.vecmath.Color3f;
+import org.jogamp.vecmath.Point3d;
 
 import nif.NifVer;
 import nif.basic.NifRef;

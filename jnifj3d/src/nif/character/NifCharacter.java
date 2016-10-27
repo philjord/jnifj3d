@@ -4,11 +4,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.vecmath.Color3f;
-import javax.vecmath.Point2f;
-import javax.vecmath.Point3d;
-import javax.vecmath.Point3f;
-
 import org.jogamp.java3d.Alpha;
 import org.jogamp.java3d.BoundingSphere;
 import org.jogamp.java3d.BranchGroup;
@@ -19,6 +14,10 @@ import org.jogamp.java3d.PointSound;
 import org.jogamp.java3d.Sound;
 import org.jogamp.java3d.SoundException;
 import org.jogamp.java3d.Transform3D;
+import org.jogamp.vecmath.Color3f;
+import org.jogamp.vecmath.Point2f;
+import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Point3f;
 
 import nif.NifJ3dVisRoot;
 import nif.NifToJ3d;

@@ -4,12 +4,11 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
 
-import javax.vecmath.Point3d;
-
 import org.jogamp.java3d.BoundingSphere;
 import org.jogamp.java3d.IndexedGeometryArray;
 import org.jogamp.java3d.IndexedTriangleArray;
 import org.jogamp.java3d.JoglesIndexedTriangleArray;
+import org.jogamp.vecmath.Point3d;
 
 import nif.niobject.NiTriShape;
 import nif.niobject.NiTriShapeData;

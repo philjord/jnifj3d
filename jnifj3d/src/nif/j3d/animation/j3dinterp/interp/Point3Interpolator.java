@@ -1,6 +1,6 @@
 package nif.j3d.animation.j3dinterp.interp;
 
-import javax.vecmath.Point3f;
+import org.jogamp.vecmath.Point3f;
 
 public class Point3Interpolator implements Interpolated
 {

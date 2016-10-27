@@ -1,7 +1,7 @@
 package nif.j3d.particles;
 
-import javax.vecmath.Point3f;
-import javax.vecmath.Vector3f;
+import org.jogamp.vecmath.Point3f;
+import org.jogamp.vecmath.Vector3f;
 
 import nif.j3d.NiToJ3dData;
 import nif.niobject.particle.NiPSysSphereEmitter;

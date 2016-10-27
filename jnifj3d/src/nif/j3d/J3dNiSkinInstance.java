@@ -3,9 +3,8 @@ package nif.j3d;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import javax.vecmath.Color3f;
-
 import org.jogamp.java3d.Group;
+import org.jogamp.vecmath.Color3f;
 
 import nif.basic.NifPtr;
 import nif.character.NifJ3dSkeletonRoot;

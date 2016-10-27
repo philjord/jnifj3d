@@ -2,13 +2,12 @@ package nif.j3d.particles.tes3;
 
 import java.util.ArrayList;
 
-import javax.vecmath.AxisAngle4f;
-import javax.vecmath.Color4f;
-import javax.vecmath.Point3f;
-import javax.vecmath.Vector3f;
-
 import org.jogamp.java3d.Transform3D;
 import org.jogamp.java3d.TransformGroup;
+import org.jogamp.vecmath.AxisAngle4f;
+import org.jogamp.vecmath.Color4f;
+import org.jogamp.vecmath.Point3f;
+import org.jogamp.vecmath.Vector3f;
 
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiNode;

@@ -3,13 +3,12 @@ package nif.j3d;
 import java.nio.FloatBuffer;
 import java.util.HashMap;
 
-import javax.vecmath.Color3f;
-
 import org.jogamp.java3d.Geometry;
 import org.jogamp.java3d.GeometryArray;
 import org.jogamp.java3d.GeometryUpdater;
 import org.jogamp.java3d.Group;
 import org.jogamp.java3d.Transform3D;
+import org.jogamp.vecmath.Color3f;
 
 import nif.character.NifCharacter;
 import nif.compound.NifSkinData;

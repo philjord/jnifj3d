@@ -3,14 +3,13 @@ package nif.j3d.animation;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-import javax.vecmath.Point3d;
-
 import org.jogamp.java3d.Behavior;
 import org.jogamp.java3d.BoundingSphere;
 import org.jogamp.java3d.Bounds;
 import org.jogamp.java3d.Group;
 import org.jogamp.java3d.Node;
 import org.jogamp.java3d.WakeupOnElapsedFrames;
+import org.jogamp.vecmath.Point3d;
 
 import nif.NifJ3dVisRoot;
 import nif.character.TextKeyExtraDataKey;

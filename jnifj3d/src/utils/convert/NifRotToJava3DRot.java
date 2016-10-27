@@ -3,8 +3,8 @@ package utils.convert;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-import javax.vecmath.Matrix3f;
-import javax.vecmath.Quat4f;
+import org.jogamp.vecmath.Matrix3f;
+import org.jogamp.vecmath.Quat4f;
 
 import nif.compound.NifMatrix33;
 
