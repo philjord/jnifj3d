@@ -87,8 +87,6 @@ public class J3dNiParticles extends J3dNiGeometry
 		//		this.textureSource = textureSource;
 
 		shape = getShape();
-		shape.setPickable(false);
-		shape.setCollidable(false);
 
 		niToJ3dData.put(niParticles, this);
 		allParticleSystems.add(this);
@@ -149,8 +147,6 @@ public class J3dNiParticles extends J3dNiGeometry
 			//TODO: textures and debug shapes are WAY off from each other
 
 			Shape3D outliner = new Shape3D();
-			outliner.setPickable(false);
-			outliner.setCollidable(false);
 			outliner.setGeometry(j3dNiParticlesData.getGeometryArray());
 			outliner.setAppearance(PhysAppearance.makeAppearance());
 

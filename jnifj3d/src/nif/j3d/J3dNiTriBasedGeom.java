@@ -168,8 +168,6 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 			if (outliner == null)
 			{
 				outliner = new Shape3D();
-				outliner.setPickable(false);
-				outliner.setCollidable(false);
 
 				if (USE_FIXED_BOUNDS && data != null)
 				{
