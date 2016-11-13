@@ -19,6 +19,7 @@ import org.jogamp.java3d.LineAttributes;
 import org.jogamp.java3d.PolygonAttributes;
 import org.jogamp.java3d.RenderingAttributes;
 import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.utils.shader.SimpleShaderAppearance;
 import org.jogamp.vecmath.Color3f;
 import org.jogamp.vecmath.Point3d;
 
@@ -30,7 +31,6 @@ import nif.niobject.NiTriBasedGeom;
 import nif.niobject.NiTriBasedGeomData;
 import nif.tools.MiniFloat;
 import tools.WeakValueHashMap;
-import tools3d.utils.SimpleShaderAppearance;
 import tools3d.utils.Utils3D;
 import utils.source.TextureSource;
 
