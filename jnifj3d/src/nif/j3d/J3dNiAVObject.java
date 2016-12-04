@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.jogamp.java3d.Node;
 import org.jogamp.java3d.Transform3D;
 import org.jogamp.java3d.TransformGroup;
+import org.jogamp.java3d.utils.shader.Cube;
 
 import nif.NifVer;
 import nif.j3d.animation.SequenceAlpha.SequenceAlphaListener;
@@ -12,7 +13,6 @@ import nif.niobject.NiAVObject;
 import nif.niobject.NiNode;
 import nif.niobject.NiSequenceStreamHelper;
 import nif.niobject.bs.BSFadeNode;
-import tools3d.utils.leafnode.Cube;
 import utils.convert.ConvertFromNif;
 
 public abstract class J3dNiAVObject extends J3dNiObjectNET implements SequenceAlphaListener
