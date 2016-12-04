@@ -3,6 +3,7 @@ package nif.j3d;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.jogamp.java3d.SparseArray;
 import org.jogamp.java3d.TextureAttributes;
 
 import nif.NiObjectList;
@@ -15,7 +16,6 @@ import nif.niobject.NiAVObject;
 import nif.niobject.NiObject;
 import nif.niobject.controller.NiTimeController;
 import nif.niobject.interpolator.NiInterpolator;
-import utils.SparseArray;
 
 public class NiToJ3dData
 {
