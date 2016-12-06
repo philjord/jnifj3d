@@ -1,7 +1,7 @@
 package nif.j3d.animation;
 
 import java.util.ArrayList;
-import java.util.Enumeration;
+import java.util.Iterator;
 
 import org.jogamp.java3d.Behavior;
 import org.jogamp.java3d.BoundingSphere;
@@ -386,7 +386,7 @@ public class J3dNiControllerSequence extends Group implements SequenceAlphaListe
 		}
 
 		@Override
-		public void processStimulus(Enumeration critiria)
+		public void processStimulus(Iterator critiria)
 		{
 			publishSequenceEvents();
 			wakeupOn(passiveWakeupCriterion);

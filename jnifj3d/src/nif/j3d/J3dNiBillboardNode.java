@@ -1,6 +1,6 @@
 package nif.j3d;
 
-import java.util.Enumeration;
+import java.util.Iterator;
 
 import org.jogamp.java3d.Billboard;
 import org.jogamp.java3d.Node;
@@ -134,7 +134,7 @@ public class J3dNiBillboardNode extends J3dNiNode
 	}
 
 	@Override
-	public Enumeration<Node> getAllChildren()
+	public Iterator<Node> getAllChildren()
 	{
 		return up.getAllChildren();
 	}

@@ -18,7 +18,7 @@ public class BgsmSource
 	private static MeshSource MESH_SOURCE = null;
 
 	private static HashMap<String, BSMaterial> materialFiles = new HashMap<String, BSMaterial>();
-
+	
 	public static void setBgsmSource(MeshSource meshSource)
 	{
 		MESH_SOURCE = meshSource;

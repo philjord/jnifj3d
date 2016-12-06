@@ -1,11 +1,12 @@
 package nif.j3d.animation.j3dinterp;
 
-import java.util.Enumeration;
+import java.util.Iterator;
 
 import org.jogamp.java3d.Alpha;
 import org.jogamp.java3d.Group;
 import org.jogamp.java3d.Interpolator;
 import org.jogamp.java3d.TransformGroup;
+import org.jogamp.java3d.WakeupCriterion;
 
 import nif.j3d.animation.j3dinterp.interp.Interpolated;
 import tools3d.utils.Utils3D;
@@ -69,7 +70,7 @@ public abstract class J3dNiInterpolator extends Group
 		Interpolator interp = new Interpolator(baseAlpha)
 		{
 			@Override
-			public void processStimulus(Enumeration criteria)
+			public void processStimulus(Iterator<WakeupCriterion> criteria)
 			{
 				process(getAlpha().value());
 				wakeupOn(defaultWakeupCriterion);
