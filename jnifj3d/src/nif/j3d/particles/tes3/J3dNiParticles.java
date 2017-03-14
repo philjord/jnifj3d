@@ -361,6 +361,8 @@ public class J3dNiParticles extends J3dNiGeometry
 						}
 						else
 						{
+							//POINT array data can't use mipmaps, texture loader default to nicest min filter
+							tex.setMinFilter(Texture.BASE_LEVEL_LINEAR);
 							TextureUnitState[] tus = new TextureUnitState[1];
 							TextureUnitState tus0 = new TextureUnitState();
 							tus0.setTexture(tex);
