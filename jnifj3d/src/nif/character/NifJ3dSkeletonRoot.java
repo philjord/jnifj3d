@@ -102,7 +102,7 @@ public class NifJ3dSkeletonRoot extends Group
 
 					skeletonRoot = j3dNiNode;
 				}
-								
+
 				allBonesInSkeleton.put(j3dNiNode);
 			}
 		}
@@ -111,7 +111,9 @@ public class NifJ3dSkeletonRoot extends Group
 		// http://gamebryo32docchs.googlecode.com/svn/trunk/gamebryo3_2_doc_chs/HTML/Convert/Previous/NiAnimation_Conversion.htm
 		if (skeletonRoot == null)
 		{
-			if (accumRoot != null && accumRoot.getParent() != null)
+			//TODO: sometime the parent is a NifJ3dSkeletonRoot which can't be cast to J3dNiAvObject
+			// possibly this code is being called twice and hoping for a null parent
+			if (accumRoot != null && accumRoot.getParent() != null && (accumRoot.getParent() instanceof J3dNiAVObject))
 				skeletonRoot = (J3dNiAVObject) accumRoot.getParent();
 		}
 
@@ -123,7 +125,7 @@ public class NifJ3dSkeletonRoot extends Group
 
 		//FIXME : TES3 reset this for now to show the motions of accum, but
 		//not the final system at all, accum needs to be animated properly by itself
-		// I notice this does not currently break anythign
+		// I notice this does not currently break anything
 		// tes3 probably wants this to be bip01 pelvis?? but that collides with other games bones
 		nonAccumRoot = accumRoot;
 
@@ -229,7 +231,7 @@ public class NifJ3dSkeletonRoot extends Group
 			J3dNiNode outputBone = (J3dNiNode) allBonesInSkeleton.get(refId);
 			if (outputBone != skeletonRoot)
 			{
-				BlendedSkeletons.calcBoneVWTrans(outputBone, nonAccumRoot);				
+				BlendedSkeletons.calcBoneVWTrans(outputBone, nonAccumRoot);
 			}
 		}
 	}

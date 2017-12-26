@@ -21,12 +21,13 @@ public class FileMediaRoots
 
 	private static boolean defaultUsageWarningGiven = false;
 
-	/** crazy defaults not for real use by anyone but the laziest devs
+	/** crazy defaults not for real use by anyone but the laziest devs (really really lazy ones)
 	 * 
 	 */
 	static
 	{
-		defaultMediaRoots.add("f:/game_media/morrowind/");
+		// NOTE must be lower case and use / not \\ bejusus
+		defaultMediaRoots.add("f:/game_media/morrowind gotye/morrowind/data files");
 		defaultMediaRoots.add("f:/game_media/oblivion/");
 		defaultMediaRoots.add("f:/game_media/fallout3/");
 		defaultMediaRoots.add("f:/game_media/falloutnv/");
