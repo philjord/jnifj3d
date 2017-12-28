@@ -6,11 +6,8 @@ import java.util.List;
 
 import org.jogamp.java3d.Texture;
 import org.jogamp.java3d.TextureUnitState;
+import org.jogamp.java3d.compressedtexture.CompressedTextureLoader;
 
-import tools.compressedtexture.CompressedTextureLoader;
-import tools.compressedtexture.astc.ASTCTextureLoader;
-import tools.compressedtexture.dds.DDSTextureLoader;
-import tools.compressedtexture.ktx.KTXTextureLoader;
 import utils.source.TextureSource;
 
 public class FileTextureSource implements TextureSource
@@ -111,15 +108,15 @@ public class FileTextureSource implements TextureSource
 
 			if (texName.endsWith(".dds"))
 			{
-				tex = DDSTextureLoader.getTexture(new File(parts[0] + parts[1]));
+				tex = CompressedTextureLoader.DDS.getTexture(new File(parts[0] + parts[1]));
 			}
 			else if (texName.endsWith(".astc") || texName.endsWith(".atc"))
 			{
-				tex = ASTCTextureLoader.getTexture(new File(parts[0] + parts[1]));
+				tex = CompressedTextureLoader.ASTC.getTexture(new File(parts[0] + parts[1]));
 			}
 			else if (texName.endsWith(".ktx") )
 			{
-				tex = KTXTextureLoader.getTexture(new File(parts[0] + parts[1]));
+				tex = CompressedTextureLoader.KTX.getTexture(new File(parts[0] + parts[1]));
 			}
 			else
 
@@ -185,15 +182,15 @@ public class FileTextureSource implements TextureSource
 
 			if (texName.endsWith(".dds"))
 			{
-				tex = DDSTextureLoader.getTextureUnitState(new File(parts[0] + parts[1]));
+				tex = CompressedTextureLoader.DDS.getTextureUnitState(new File(parts[0] + parts[1]));
 			}
 			else if (texName.endsWith(".astc") || texName.endsWith(".atc"))
 			{
-				tex = ASTCTextureLoader.getTextureUnitState(new File(parts[0] + parts[1]));
+				tex = CompressedTextureLoader.ASTC.getTextureUnitState(new File(parts[0] + parts[1]));
 			}
 			else if (texName.endsWith(".ktx") )
 			{
-				tex = KTXTextureLoader.getTextureUnitState(new File(parts[0] + parts[1]));
+				tex = CompressedTextureLoader.KTX.getTextureUnitState(new File(parts[0] + parts[1]));
 			}
 			else
 
