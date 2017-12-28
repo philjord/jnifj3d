@@ -6,8 +6,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/jnif"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/jbullet1.1"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jre1.8.0_66a"/>
-	<classpathentry kind="lib" path="/external_jars/external jars/jogamp/jar/gluegen-rt.jar"/>
-	<classpathentry kind="lib" path="/external_jars/external jars/jogamp/jar/jogl-all.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/java3d-core-and"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/vecmath"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/java3d-utils-and"/>
