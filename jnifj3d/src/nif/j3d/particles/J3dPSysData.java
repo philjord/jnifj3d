@@ -19,7 +19,7 @@ import org.jogamp.java3d.TextureUnitState;
 import org.jogamp.vecmath.Point2f;
 
 import nif.niobject.particle.NiPSysData;
-import tools3d.utils.ShaderSourceIO;
+import nif.shader.ShaderSourceIO;
 
 public class J3dPSysData
 {
@@ -368,12 +368,14 @@ public class J3dPSysData
 
 			Shader[] shaders = new Shader[2];
 			shaders[0] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_VERTEX, vertexProgram) {
+				@Override
 				public String toString()
 				{
 					return "vertexProgram";
 				}
 			};
 			shaders[1] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_FRAGMENT, fragmentProgram) {
+				@Override
 				public String toString()
 				{
 					return "fragmentProgram";
@@ -383,6 +385,7 @@ public class J3dPSysData
 			final String[] shaderAttrNames = { "envMap", "numWaves", "amplitude", "wavelength", "speed", "direction", "time" };
 
 			shaderProgram = new GLSLShaderProgram() {
+				@Override
 				public String toString()
 				{
 					return "Water Shader Program";

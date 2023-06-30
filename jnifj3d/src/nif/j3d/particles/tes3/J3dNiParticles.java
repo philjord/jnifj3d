@@ -32,9 +32,9 @@ import nif.niobject.NiTexturingProperty;
 import nif.niobject.particle.NiParticleModifier;
 import nif.niobject.particle.NiParticleSystemController;
 import nif.niobject.particle.NiParticles;
+import nif.shader.ShaderSourceIO;
 import tools.WeakListenerList;
 import tools3d.utils.PhysAppearance;
-import tools3d.utils.ShaderSourceIO;
 import utils.convert.NifOpenGLToJava3D;
 import utils.source.TextureSource;
 

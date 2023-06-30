@@ -1,0 +1,7 @@
+# debug test shaders very simplified
+
+check HEADER/Version != -1
+
+texcoords 0 base
+
+shaders trivial.vert trivial.frag

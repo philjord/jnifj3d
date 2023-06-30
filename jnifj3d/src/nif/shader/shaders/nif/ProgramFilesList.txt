@@ -1,0 +1,24 @@
+#For android to pull programs from the jar it must have the names listed here
+# uncomment trivial to override the world with simple shaders un-lit textured fogged alpha tested
+#trivial.prog
+fo4_effectshader.prog
+fo4_env.prog
+ob_normal+glowmap_vcol.prog
+ob_normal+glowmap.prog
+ob_normalmap_vcol_ad.prog
+ob_normalmap_vcol_e.prog
+ob_normalmap.prog
+ob_parallax_vcol_ad.prog
+ob_parallax_vcol_e.prog
+ob_parallax.prog
+ob_parallax+glowmap.prog
+sk_effectshader.prog
+sk_env.prog
+sk_glowmap.prog
+sk_msn.prog
+sk_multilayer.prog
+sk_parallax.prog
+# defaults go last
+sk_default.prog
+fo4_default.prog
+z_ffp_default.prog

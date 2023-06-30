@@ -1,0 +1,9 @@
+# FFP catch all default shader
+
+check HEADER/Version != -1
+
+texcoords 0 base
+#texcoords 1 tangents
+#texcoords 2 bitangents
+
+shaders z_ffp_default.vert z_ffp_default.frag
