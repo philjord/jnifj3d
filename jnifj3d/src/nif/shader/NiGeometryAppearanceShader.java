@@ -108,8 +108,6 @@ public class NiGeometryAppearanceShader
 
 	private GLSLShaderProgram2 shaderProgram = null;
 
-	private ShaderAttributeSet shaderAttributeSet = null;
-
 	private ArrayList<ShaderAttributeValue2> allShaderAttributeValues = new ArrayList<ShaderAttributeValue2>();
 	private ArrayList<Binding> allTextureUnitStateBindings = new ArrayList<Binding>();
 
@@ -794,10 +792,6 @@ public class NiGeometryAppearanceShader
 		//honestly the textureunitstates should also be by texturing property and bsep and bslsp
 		// so where they are reused more than once they are the exact same objects
 
-		// Shape merging demand aggressive appearance sharing, and hence component re-use
-		// Shaders are newer and not well support for Shape merging
-		shaderAttributeSet = getShaderAttributeSet(shaderProgram, allShaderAttributeValues);
-
 		// don't share if we will be controlled or transformed
 		boolean sharable = (controller == null && textureScale.x == 1 && textureScale.y == 1 && textureOffset.x == 0
 				&& textureOffset.y == 0);
@@ -819,7 +813,7 @@ public class NiGeometryAppearanceShader
 			}
 
 			if (tus[i] != null)
-			{
+			{				
 				if ((textureScale.x != 1 || textureScale.y != 1 || textureOffset.x != 0 || textureOffset.y != 0))
 				{
 					Transform3D textureTransform = new Transform3D();
@@ -836,7 +830,11 @@ public class NiGeometryAppearanceShader
 			}
 
 		}
-
+		
+		// Shape merging demand aggressive appearance sharing, and hence component re-use
+		// Shaders are newer and not well support for Shape merging
+		ShaderAttributeSet shaderAttributeSet = getShaderAttributeSet(shaderProgram, allShaderAttributeValues);
+				
 		app.setTextureUnitState(tus);
 		app.setShaderProgram(shaderProgram);
 		app.setShaderAttributeSet(shaderAttributeSet);
@@ -856,7 +854,7 @@ public class NiGeometryAppearanceShader
 		allTextureUnitStateBindings.clear();
 
 		//so for now I'm sharing the texture attributes to ensure tex transforms, 
-		//but how about alpha and vertex colors and Flip? they won't be shared, so the second usage made not animate?
+		//but how about alpha and vertex colors and Flip? they won't be shared, so the second usage may not animate?
 
 		//Setting up controller must be done after the appearance is properly set up so the 
 		// controller can get at the pieces
@@ -1314,6 +1312,8 @@ public class NiGeometryAppearanceShader
 			}
 		}
 
+		// Each TexureUnit needs to be allocated to a sampler2D in the shader by getting setting the
+		// TUS id to be the value of the uniform, like any other uniform
 		uni1i(binding.samplerName, texunit++);
 		return tus;
 	}

@@ -621,7 +621,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 							if (niBinaryExtraData.name.equals("Tangent space (binormal & tangent vectors)"))
 							{
 								ByteBuffer stream = ByteBuffer.wrap(niBinaryExtraData.binaryData.data);
-
+								stream.order(ByteOrder.LITTLE_ENDIAN);
 								try
 								{
 									data.loadTangentAndBinormalsFromExtraData(stream, data.nVer);
