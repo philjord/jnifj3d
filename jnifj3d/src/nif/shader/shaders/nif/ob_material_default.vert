@@ -79,10 +79,11 @@ void main( void )
 	
 	ViewVec = tbnMatrix * -v.xyz;
 	LightDir = tbnMatrix * glLightSource[0].position.xyz;
+
 	
 	A = glLightModelambient;
 	D = glLightSource[0].diffuse;
 	
-	ColorEA = glFrontMaterial.emission + glLightModelambient * A;
+	ColorEA = glFrontMaterial.emission + glFrontMaterial.ambient * A; 
 	ColorD = glFrontMaterial.diffuse * D;
 }
