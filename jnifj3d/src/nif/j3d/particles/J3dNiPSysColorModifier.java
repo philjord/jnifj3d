@@ -31,7 +31,7 @@ public class J3dNiPSysColorModifier extends J3dNiPSysModifier
 			cs[i * 4 + 2] = ((NifColor4) niColorData.data.keys[0].value).b;
 			cs[i * 4 + 3] = ((NifColor4) niColorData.data.keys[0].value).a;
 		}
-		j3dPSysData.resetAllGaColors();
+		j3dPSysData.recalcAllGaColors();
 	}
 
 }

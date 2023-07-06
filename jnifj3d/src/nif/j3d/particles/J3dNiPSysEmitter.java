@@ -171,7 +171,7 @@ public abstract class J3dNiPSysEmitter extends J3dNiPSysModifier
 
 		int generation = 0;
 
-		int newParticleId = j3dNiParticleSystem.j3dPSysData.addActive(radius, (long) particleLifeSpan, generation, pos.x, pos.y, pos.z,
+		int newParticleId = j3dNiParticleSystem.j3dPSysData.addActive(radius, 1f, (long) particleLifeSpan, generation, pos.x, pos.y, pos.z,
 				col.x, col.y, col.z, col.w, vel.x, vel.y, vel.z);
 
 		j3dNiParticleSystem.particleCreated(newParticleId);

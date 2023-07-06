@@ -147,13 +147,18 @@ public class NifJ3dSkeletonRoot extends Group
 				J3dNiNode j3dNiNode = (J3dNiNode) j3dNiAVObject;
 				NiNode niNode = (NiNode) j3dNiNode.getNiAVObject();
 
-				if (isRootBoneName(niNode.name) || isAccumNodeName(niNode.name))
+				if (isAccumNodeName(niNode.name))
 					return true;
 			}
 		}
 		return false;
 	}
 
+	/**
+	 * Note many nif have this node that are not related to skeletons
+	 * @param name
+	 * @return
+	 */
 	public static boolean isRootBoneName(String name)
 	{
 		return name.indexOf("Scene Root") != -1;

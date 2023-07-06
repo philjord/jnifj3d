@@ -43,10 +43,11 @@ public class J3dNiParticles extends J3dNiGeometry
 	//THIS MUST BE SET WHEN SCREEN SIZE CHANGES!!!
 	private static float screenWidth = -1;
 
-	private static ShaderAttributeValue screenWidthShaderAttributeValue = new ShaderAttributeValue("screenWidth", new Float(screenWidth));
+	public static ShaderAttributeValue screenWidthShaderAttributeValue = new ShaderAttributeValue("screenWidth", new Float(screenWidth));
 
 	static
 	{
+		screenWidthShaderAttributeValue.setCapability(ShaderAttributeValue.ALLOW_VALUE_READ);
 		screenWidthShaderAttributeValue.setCapability(ShaderAttributeValue.ALLOW_VALUE_WRITE);
 	}
 
@@ -91,6 +92,7 @@ public class J3dNiParticles extends J3dNiGeometry
 		niToJ3dData.put(niParticles, this);
 		allParticleSystems.add(this);
 
+		//note this will call the sub classes init which has a super for the init below
 		init(niParticles, niToJ3dData, textureSource);
 
 	}
@@ -294,8 +296,8 @@ public class J3dNiParticles extends J3dNiGeometry
 		if (shaderProgram == null)
 		{
 
-			String vertexProgram = ShaderSourceIO.getTextFileAsString("shaders/particles.vert");
-			String fragmentProgram = ShaderSourceIO.getTextFileAsString("shaders/particles.frag");
+			String vertexProgram = ShaderSourceIO.getTextFileAsString("shaders/tes3particles.vert");
+			String fragmentProgram = ShaderSourceIO.getTextFileAsString("shaders/tes3particles.frag");
 
 			Shader[] shaders = new Shader[2];
 			shaders[0] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_VERTEX, vertexProgram) {

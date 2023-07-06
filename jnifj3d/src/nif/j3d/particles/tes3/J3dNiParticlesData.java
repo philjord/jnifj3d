@@ -382,7 +382,7 @@ public class J3dNiParticlesData
 		resetAllGaColors();
 		recalcSizes();
 		recalcRotations();
-		// pointless for now, only altases need itresetTexCoords();
+		// pointless for now, only altases need it resetTexCoords();
 	}
 
 	public void printoutParticleData()

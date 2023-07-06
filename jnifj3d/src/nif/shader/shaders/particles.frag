@@ -16,17 +16,15 @@ in mat3 v_rotationMatrix;
 
 out vec4 glFragColor;
 
-
 void main( void )
-{	 
-	//mediump vec2 realTexCoord = glTexCoord0 + (gl_PointCoord * TextureSize);
-	mediump vec2 realTexCoord = gl_PointCoord;
-	mediump vec3 rotTexCoord = v_rotationMatrix * vec3(realTexCoord, 1.0);
-    mediump vec4 fragColor = texture(BaseMap, rotTexCoord.st ); 
-
-
+{	 	
+	//rotate the point coord in the space of one sub texture
+	mediump vec3 rotCoord = v_rotationMatrix * vec3((gl_PointCoord * TextureSize), 1.0); 
+	// move across to the actual in use sub texture
+ 	mediump vec2 realTexCoord = glTexCoord0 + rotCoord.st;
+ 	// get the color	
+    mediump vec4 fragColor = texture(BaseMap, realTexCoord.st); 
 
     glFragColor = fragColor * C;
-    glFragColor.a *= transparencyAlpha;
-   
+    glFragColor.a *= transparencyAlpha;   
 }

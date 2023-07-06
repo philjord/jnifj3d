@@ -47,6 +47,7 @@ public class J3dNiPSysSpawnModifier extends J3dNiPSysModifier
 			col.set(particleColors[id * 4 + 0], particleColors[id * 4 + 1], particleColors[id * 4 + 2], particleColors[id * 4 + 3]);
 
 			float particleRadius = j3dPSysData.particleRadius[id];
+			float particleSize = j3dPSysData.particleSize[id];
 
 			float[] particleTranslation = j3dPSysData.particleTranslation;
 			pos.set(particleTranslation[id * 3 + 0], particleTranslation[id * 3 + 1], particleTranslation[id * 3 + 2]);
@@ -68,7 +69,7 @@ public class J3dNiPSysSpawnModifier extends J3dNiPSysModifier
 
 				//TODO: do speed and direction chaos now
 
-				int newParticleId = j3dNiParticleSystem.j3dPSysData.addActive(particleRadius, (long) lifeSpan, particleGeneration, pos.x,
+				int newParticleId = j3dNiParticleSystem.j3dPSysData.addActive(particleRadius, particleSize,  (long) lifeSpan, particleGeneration, pos.x,
 						pos.y, pos.z, col.x, col.y, col.z, col.w, vel.x, vel.y, vel.z);
 
 				j3dNiParticleSystem.particleCreated(newParticleId);

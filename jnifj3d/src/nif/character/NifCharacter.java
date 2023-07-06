@@ -385,11 +385,11 @@ public class NifCharacter extends BranchGroup implements Fadable
 				try
 				{
 					// PointSound sound1 = new PointSound();
-					// TODO: stop previous sound perhaps, walk sounds? use teh animation end event
+					// TODO: stop previous sound perhaps, walk sounds? use the animation end event
 					// FIXME: fallout gets major bad wav formats
 					// addObjectSound(sound1, params[0], 10.0f);
 
-					System.out.println("oh my god sound fired? take a look in NifCharacter! " + params[0]);
+					//System.out.println("oh my god sound fired? take a look in NifCharacter! " + params[0]);
 
 				}
 				catch (SoundException e)

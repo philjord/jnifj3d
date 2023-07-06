@@ -5,19 +5,39 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 
+import org.jogamp.java3d.Appearance;
 import org.jogamp.java3d.BoundingSphere;
 import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.GLSLShaderProgram;
 import org.jogamp.java3d.Geometry;
 import org.jogamp.java3d.GeometryUpdater;
 import org.jogamp.java3d.Group;
+import org.jogamp.java3d.Material;
+import org.jogamp.java3d.PointAttributes;
+import org.jogamp.java3d.Shader;
+import org.jogamp.java3d.ShaderAppearance;
+import org.jogamp.java3d.ShaderAttributeSet;
+import org.jogamp.java3d.ShaderAttributeValue;
+import org.jogamp.java3d.ShaderProgram;
 import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.SourceCodeShader;
+import org.jogamp.java3d.Texture;
+import org.jogamp.java3d.TextureUnitState;
+import org.jogamp.java3d.TransparencyAttributes;
 import org.jogamp.vecmath.Color3f;
 import org.jogamp.vecmath.Point3d;
 
+import nif.NifVer;
 import nif.basic.NifRef;
 import nif.j3d.J3dNiGeometry;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.animation.J3dNiTimeController;
+import nif.j3d.particles.tes3.J3dNiParticles;
+import nif.niobject.NiAlphaProperty;
+import nif.niobject.NiMaterialProperty;
+import nif.niobject.NiProperty;
+import nif.niobject.NiSourceTexture;
+import nif.niobject.NiTexturingProperty;
 import nif.niobject.bs.BSStripParticleSystem;
 import nif.niobject.controller.NiTimeController;
 import nif.niobject.particle.NiMeshParticleSystem;
@@ -25,14 +45,16 @@ import nif.niobject.particle.NiPSysData;
 import nif.niobject.particle.NiPSysModifier;
 import nif.niobject.particle.NiPSysModifierCtlr;
 import nif.niobject.particle.NiParticleSystem;
+import nif.shader.ShaderSourceIO;
 import tools.WeakListenerList;
 import tools3d.utils.PhysAppearance;
 import utils.PerTimeUpdateBehavior;
+import utils.convert.NifOpenGLToJava3D;
 import utils.source.TextureSource;
 
 public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdater
-{
-	private static boolean SHOW_DEBUG_LINES = false;
+{		
+	private static boolean SHOW_DEBUG_LINES = true;
 
 	private ArrayList<J3dNiPSysModifier> modifiersInOrder = new ArrayList<J3dNiPSysModifier>();
 
@@ -60,26 +82,6 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		// the shape will not be added so we can choose to add it to a root we like in a moment
 		super(niParticleSystem, niToJ3dData, textureSource, new Shape3D());
 		
-		
-		
-		
-		
-		
-		
-		///////////////////////////DISABLED!!!!!!!
-				if(true)return;
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
 		shape = getShape();
 
 		this.niParticleSystem = niParticleSystem;
@@ -93,20 +95,23 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 
 			j3dPSysData = new J3dPSysData(niPSysData);
 
-			getShape().setGeometry(j3dPSysData.getGeometryArray());
+			shape.setGeometry(j3dPSysData.getGeometryArray());
+			
+			//override any default shader appearance
+			shape.setAppearance(createAppearance(niParticleSystem.properties, niToJ3dData, textureSource));
 
 			if (niParticleSystem.worldSpace)
 			{
-				niToJ3dData.getJ3dRoot().addChildBeforeTrans(getShape());
+				niToJ3dData.getJ3dRoot().addChildBeforeTrans(shape);
 			}
 			else
 			{
-				addChild(getShape());
+				addChild(shape);
 			}
 
 			//TODO: is this a good idea? thread show blocked on update bounds
-			getShape().setBoundsAutoCompute(false);
-			getShape().setBounds(new BoundingSphere(new Point3d(0, 0, 0), 100));
+			shape.setBoundsAutoCompute(false);
+			shape.setBounds(new BoundingSphere(new Point3d(0, 0, 0), 10));
 
 			// get updated every 50 milliseconds
 			addChild(new PerTimeUpdateBehavior(50, new PerTimeUpdateBehavior.CallBack() {
@@ -194,7 +199,12 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		}
 
 		// now we tell the particles to update the nett effects
+		j3dPSysData.updateAllTexCoords();
 		j3dPSysData.recalcAllGaCoords();
+		j3dPSysData.recalcSizes();
+		j3dPSysData.recalcRotations();
+		j3dPSysData.recalcAllGaColors();
+		
 
 	}
 
@@ -294,7 +304,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 	@Override
 	public void setOutline(Color3f c)
 	{
-		// TODO: needs an indicatr color for particles to use, note J3dNiParticleSystem.SHOW_DEBUG_LINES is the system for now
+		// TODO: needs an indicator color for particles to use, note J3dNiParticleSystem.SHOW_DEBUG_LINES is the system for now
 
 	}
 
@@ -310,6 +320,171 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		{
 			ps.configureOutLines();
 		}
+	}
+	
+	private static ShaderProgram shaderProgram = null;
+
+	public static Appearance createAppearance(NifRef[] props, NiToJ3dData niToJ3dData, TextureSource textureSource)
+	{
+		ShaderAppearance app = new ShaderAppearance();
+		if (shaderProgram == null)
+		{
+
+			String vertexProgram = ShaderSourceIO.getTextFileAsString("shaders/particles.vert");
+			String fragmentProgram = ShaderSourceIO.getTextFileAsString("shaders/particles.frag");
+
+			Shader[] shaders = new Shader[2];
+			shaders[0] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_VERTEX, vertexProgram) {
+				@Override
+				public String toString()
+				{
+					return "vertexProgram";
+				}
+			};
+			shaders[1] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_FRAGMENT, fragmentProgram) {
+				@Override
+				public String toString()
+				{
+					return "fragmentProgram";
+				}
+			};
+
+			shaderProgram = new GLSLShaderProgram() {
+				@Override
+				public String toString()
+				{
+					return "Particles Shader Program";
+				}
+			};
+			shaderProgram.setShaders(shaders);
+
+			shaderProgram.setShaderAttrNames(new String[] { "BaseMap", "screenWidth" });
+			shaderProgram.setVertexAttrNames(new String[] { "Size", "Rotation", "SubTextureSize" });
+		}
+
+		app.setShaderProgram(shaderProgram);
+
+		app.setMaterial(getMaterial());
+		TransparencyAttributes ta = new TransparencyAttributes();
+
+		ShaderAttributeSet shaderAttributeSet = new ShaderAttributeSet();
+		if (J3dNiParticles.screenWidthShaderAttributeValue.getValue().equals(new Float(-1)))
+			System.out.println("J3dNiParticles.screenWidth must be set for particles to show!!");
+		shaderAttributeSet.put(J3dNiParticles.screenWidthShaderAttributeValue);
+
+		for (int p = 0; p < props.length; p++)
+		{
+			NiProperty prop = (NiProperty) niToJ3dData.get(props[p]);
+			if (prop != null)
+			{
+				//TODO: the NiGeometryAppearance lists heaps more texture thingies!
+				// but just get oblivion working for now which is this one
+				if (prop instanceof NiTexturingProperty)
+				{
+					NiTexturingProperty ntp = (NiTexturingProperty) prop;
+
+					// now set the texture
+					if (ntp != null && ntp.hasBaseTexture && ntp.baseTexture.source.ref != -1)
+					{
+						NiSourceTexture niSourceTexture = (NiSourceTexture) niToJ3dData.get(ntp.baseTexture.source);
+						String fileName = niSourceTexture.fileName.string;
+
+						Texture tex = J3dNiGeometry.loadTexture(fileName, textureSource);
+						if (tex == null)
+						{
+							System.out.println(
+									"TextureUnitState bind " + fileName + " no Texture found for nif " + niSourceTexture.nVer.fileName);
+							// notice tus left as null!
+						}
+						else
+						{
+							//POINT array data can't use mipmaps, texture loader default to nicest min filter
+							if(!tex.isLive() && !tex.isCompiled())
+								tex.setMinFilter(Texture.BASE_LEVEL_LINEAR);
+							
+							TextureUnitState[] tus = new TextureUnitState[1];
+							TextureUnitState tus0 = new TextureUnitState();
+							tus0.setTexture(tex);
+							tus0.setName(fileName);
+
+							tus[0] = tus0;
+							app.setTextureUnitState(tus);
+
+							String textureUnitName = "BaseMap";
+							shaderAttributeSet.put(new ShaderAttributeValue(textureUnitName, new Integer(0)));
+						}
+					}
+				}
+				else if (prop instanceof NiAlphaProperty)
+				{
+					NiAlphaProperty nap = (NiAlphaProperty) prop;
+
+					if (nap.alphaBlendingEnable())
+					{
+
+						ta.setTransparencyMode(TransparencyAttributes.BLENDED);
+						ta.setSrcBlendFunction(NifOpenGLToJava3D.convertBlendMode(nap.sourceBlendMode(), true));
+						ta.setDstBlendFunction(NifOpenGLToJava3D.convertBlendMode(nap.destinationBlendMode(), false));
+					}
+
+					//if(nap.alphaTestEnabled()	){nap.alphaTestMode(), nap.threshold
+
+				}
+				else if (prop instanceof NiMaterialProperty)
+				{
+					NiMaterialProperty nmp = (NiMaterialProperty) prop;
+					Material mat = new Material();
+					mat.setLightingEnable(true);
+					mat.setColorTarget(Material.AMBIENT_AND_DIFFUSE);
+
+					if (!(nmp.nVer.LOAD_VER == NifVer.VER_20_2_0_7 && (nmp.nVer.LOAD_USER_VER == 11 || nmp.nVer.LOAD_USER_VER == 12)
+							&& nmp.nVer.LOAD_USER_VER2 > 21))
+					{
+						mat.setAmbientColor(nmp.ambientColor.r, nmp.ambientColor.g, nmp.ambientColor.b);
+						mat.setDiffuseColor(nmp.diffuseColor.r, nmp.diffuseColor.g, nmp.diffuseColor.b);
+					}
+
+					mat.setEmissiveColor(nmp.emissiveColor.r, nmp.emissiveColor.g, nmp.emissiveColor.b);
+
+					//in nifskope they blend teh nmp.alpha value with teh colors but that makes evrythign dissappear for me when alpha is 0
+
+					if (nmp.alpha != 1.0)
+					{
+						ta.setTransparencyMode(TransparencyAttributes.BLENDED);
+					}
+
+					mat.setShininess(0.0f);
+					mat.setSpecularColor(0, 0, 0);
+
+					app.setMaterial(mat);
+				}
+			}
+			
+		}
+		app.setTransparencyAttributes(ta);
+		app.setShaderAttributeSet(shaderAttributeSet);
+
+		// this is required to turn on the point size feature sometimes
+		// note this point size is ignored in the vert shader the point vertex attributes are used
+		app.setPointAttributes(new PointAttributes(1, true));
+
+		return app;
+	}
+
+	private static Material m;
+
+	public static Material getMaterial()
+	{
+		if (m == null)
+		{
+			m = new Material();
+			m.setShininess(0);
+			m.setDiffuseColor(1.0f, 1.0f, 1.0f);
+			m.setSpecularColor(1.0f, 1.0f, 1.0f);
+			m.setColorTarget(Material.AMBIENT_AND_DIFFUSE);
+		}
+
+		return m;
 	}
 
 }

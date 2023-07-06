@@ -24,11 +24,13 @@ in float Rotation;
 out mat3 v_rotationMatrix;
 out vec4 C;
 
-// The size of the sprite being rendered as a sub texture for an atlas. 
-in vec2 SubTextureSize;
+// The size of the sprite being rendered. My sprites are square
+// so I'm just passing in a float.  For non-square sprites pass in
+// the width and height as a vec2.
+//uniform float TextureCoordPointSize;
 
-out vec2 glTexCoord0;
-out vec2 TextureSize;
+//out vec2 glTexCoord0;
+//out vec2 TextureSize;
 
  
 uniform float screenWidth;      //screen width in pixels
@@ -38,9 +40,8 @@ void main( void )
 	mat4 glModelViewMatrix = glViewMatrix * glModelMatrix;
 	gl_Position = glProjectionMatrix * glModelViewMatrix * glVertex;//glModelViewProjectionMatrix * glVertex;
 	
-	//just hand these vertex attributes across to the frag shader direct
-	glTexCoord0 = glMultiTexCoord0;
-	TextureSize = SubTextureSize;
+	//glTexCoord0 = glMultiTexCoord0;
+	//TextureSize = vec2(TextureCoordPointSize, TextureCoordPointSize);
 	
 	vec4 v2 =  glModelViewMatrix * glVertex;
 	vec4 projCorner = glProjectionMatrix * vec4(0.5*Size, 0.5*Size, v2.z, v2.w);
@@ -54,11 +55,9 @@ void main( void )
 	//Expensive??
 	float cos = cos(Rotation);
     float sin = sin(Rotation);
-    // rotation matrix is just for the UV coords, so mix the atlas sub texture size in
     v_rotationMatrix = mat3(cos, sin, 0.0,
                         -sin, cos, 0.0,
-                        (sin-cos+1.0)*SubTextureSize.s*0.5, (-sin-cos+1.0)*SubTextureSize.t*0.5, 1.0);
-                        //double check that s and t are in the right slots
+                        (sin-cos+1.0)*0.5, (-sin-cos+1.0)*0.5, 1.0);
                         
 
 }

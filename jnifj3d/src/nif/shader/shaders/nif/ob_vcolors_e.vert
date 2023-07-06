@@ -1,6 +1,7 @@
 #version 120
 
-attribute vec4 glVertex;         
+attribute vec4 glVertex;  
+attribute vec4 glColor;        
 attribute vec3 glNormal;     
 attribute vec2 glMultiTexCoord0; 
 
@@ -52,13 +53,13 @@ varying vec3 HalfVector;
 varying vec4 ColorEA;
 varying vec4 ColorD;
 
-vec3 normal;
-vec3 tangent;
-vec3 binormal;
+vec3 N;
+vec3 t;
+vec3 b;
 
 vec3 tspace( vec3 v )
 {
-	return vec3( dot( v, binormal ), dot( v, tangent ), dot( v, normal ) );
+	return vec3( dot( v, b ), dot( v, t ), dot( v, N ) );
 }
 
 void main( void )
@@ -66,18 +67,19 @@ void main( void )
 	gl_Position = glModelViewProjectionMatrix * glVertex;
 	glTexCoord0 = (textureTransform * vec4(glMultiTexCoord0,0.0,1.0)).st;	
 	
-	normal = normalize(glNormalMatrix * glNormal);
-	tangent = normalize(glNormalMatrix * tangent);
-	binormal = normalize(glNormalMatrix * binormal);
+	N = normalize(glNormalMatrix * glNormal);
+	t = normalize(glNormalMatrix * tangent);
+	b = normalize(glNormalMatrix * binormal);
 	
 	ViewVec = tspace( ( glModelViewMatrix * glVertex ).xyz );
 	LightDir = tspace( glLightSource[0].position.xyz ); // light 0 is directional
+	// this differs from nifskope which has a half vector in the gl_lightsource, is it correct?
 	HalfVector = ( glModelViewMatrix * glVertex ).xyz - glLightSource[0].position.xyz;
 	
 	if(ignoreVertexColors != 0)
-		ColorEA = glFrontMaterial.emission + glFrontMaterial.ambient * glLightModelambient;
+		ColorEA = glFrontMaterial.emission + (glFrontMaterial.ambient * glLightModelambient);
 	else
-		ColorEA = glColor + glFrontMaterial.ambient * glLightModelambient;
+		ColorEA = glColor + (glFrontMaterial.ambient * glLightModelambient);
 	
 	ColorD = glFrontMaterial.diffuse * glLightSource[0].diffuse;
 }

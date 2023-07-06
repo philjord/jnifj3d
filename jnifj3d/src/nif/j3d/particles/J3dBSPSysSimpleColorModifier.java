@@ -59,7 +59,7 @@ public class J3dBSPSysSimpleColorModifier extends J3dNiPSysModifier
 			cs[i * 4 + 3] += sysSimpleColorModifier.colors[2].a * c2;
 
 		}
-		j3dPSysData.resetAllGaColors();
+		j3dPSysData.recalcAllGaColors();
 
 	}
 

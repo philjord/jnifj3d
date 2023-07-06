@@ -52,6 +52,8 @@ varying vec4 ColorD;
 varying vec4 A;
 varying vec4 D;
 
+varying vec3 N;
+
 
 vec3 tonemap(vec3 x)
 {
@@ -95,6 +97,10 @@ void main( void )
 	vec4 normalMap = texture2D( NormalMap, offset );
 	
 	vec3 normal = normalize(normalMap.rgb * 2.0 - 1.0);
+	
+	// check for unbound normalmap and use vertex normals instead
+	if(normalMap == vec4(0,0,0,1))
+		normal = N;
 	
 	
 	vec3 L = normalize(LightDir);
