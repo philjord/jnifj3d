@@ -49,22 +49,15 @@ void main( void )
 	
 	//web says the keyword discard in a shader is bad
 	//I could just gl_FragColor=vec(0,0,0,0); return;
-	if(alphaTestEnabled != 0)
-	{				
-	 	if(alphaTestFunction==516)//>
-			if(baseMap.a<=alphaTestValue)discard;			
-		else if(alphaTestFunction==518)//>=
-			if(baseMap.a<alphaTestValue)discard;		
-		else if(alphaTestFunction==514)//==
-			if(baseMap.a!=alphaTestValue)discard;
-		else if(alphaTestFunction==517)//!=
-			if(baseMap.a==alphaTestValue)discard;
-		else if(alphaTestFunction==513)//<
-			if(baseMap.a>=alphaTestValue)discard;
-		else if(alphaTestFunction==515)//<=
-			if(baseMap.a>alphaTestValue)discard;		
-		else if(alphaTestFunction==512)//never	
-			discard;			
+	if(alphaTestEnabled != 0){		
+		if(alphaTestFunction==512)discard;//never (never keep it)
+		if(alphaTestFunction==513 && !(baseMap.a< alphaTestValue))discard;
+		if(alphaTestFunction==514 && !(baseMap.a==alphaTestValue))discard;
+		if(alphaTestFunction==515 && !(baseMap.a<=alphaTestValue))discard;				
+		if(alphaTestFunction==516 && !(baseMap.a> alphaTestValue))discard;
+		if(alphaTestFunction==517 && !(baseMap.a!=alphaTestValue))discard;
+		if(alphaTestFunction==518 && !(baseMap.a>=alphaTestValue))discard;			
+		//alphaTestFunction==519//always (always keep it)
 	}
 
 

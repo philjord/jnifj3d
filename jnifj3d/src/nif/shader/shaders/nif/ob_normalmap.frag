@@ -77,22 +77,15 @@ void main( void )
 	vec2 offset = glTexCoord0.st;
 
 	vec4 baseMap = texture2D( BaseMap, offset );
-	if(alphaTestEnabled != 0)
-	{				
-	 	if(alphaTestFunction==516)//>
-			if(baseMap.a<=alphaTestValue)discard;			
-		else if(alphaTestFunction==518)//>=
-			if(baseMap.a<alphaTestValue)discard;		
-		else if(alphaTestFunction==514)//==
-			if(baseMap.a!=alphaTestValue)discard;
-		else if(alphaTestFunction==517)//!=
-			if(baseMap.a==alphaTestValue)discard;
-		else if(alphaTestFunction==513)//<
-			if(baseMap.a>=alphaTestValue)discard;
-		else if(alphaTestFunction==515)//<=
-			if(baseMap.a>alphaTestValue)discard;		
-		else if(alphaTestFunction==512)//never	
-			discard;			
+	if(alphaTestEnabled != 0){		
+		if(alphaTestFunction==512)discard;//never (never keep it)
+		if(alphaTestFunction==513 && !(baseMap.a< alphaTestValue))discard;
+		if(alphaTestFunction==514 && !(baseMap.a==alphaTestValue))discard;
+		if(alphaTestFunction==515 && !(baseMap.a<=alphaTestValue))discard;				
+		if(alphaTestFunction==516 && !(baseMap.a> alphaTestValue))discard;
+		if(alphaTestFunction==517 && !(baseMap.a!=alphaTestValue))discard;
+		if(alphaTestFunction==518 && !(baseMap.a>=alphaTestValue))discard;			
+		//alphaTestFunction==519//always (always keep it)
 	}
 	vec4 normalMap = texture2D( NormalMap, offset );
 	
@@ -101,15 +94,14 @@ void main( void )
 	// check for unbound normalmap and use vertex normals instead
 	if(normalMap == vec4(0,0,0,1))
 		normal = N;
-	
-	
+		
 	vec3 L = normalize(LightDir);
 	vec3 E = normalize(ViewVec);
 	vec3 R = reflect(-L, normal);
 	
-	float NdotL = max( dot(normal, L), 0.0 );
-	float EdotN = max( dot(normal, E), 0.0 );
-	float wrap = max( dot(normal, -L), 0.0 );
+	float NdotL  = max( dot(normal, L), 0.0 );
+	float EdotN  = max( dot(normal, E), 0.0 );
+	float wrap   = max( dot(normal, -L), 0.0 );
 	float facing = max( dot(-L, E), 0.0 );
 	
 

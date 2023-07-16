@@ -67,22 +67,15 @@ void main( void )
 	vec2 offset = glTexCoord0.st;
 	
 	vec4 baseMap = texture2D( SourceTexture, offset );
-	if(alphaTestEnabled != 0)
-	{				
-	 	if(alphaTestFunction==516)//>
-			if(baseMap.a<=alphaTestValue)discard;			
-		else if(alphaTestFunction==518)//>=
-			if(baseMap.a<alphaTestValue)discard;		
-		else if(alphaTestFunction==514)//==
-			if(baseMap.a!=alphaTestValue)discard;
-		else if(alphaTestFunction==517)//!=
-			if(baseMap.a==alphaTestValue)discard;
-		else if(alphaTestFunction==513)//<
-			if(baseMap.a>=alphaTestValue)discard;
-		else if(alphaTestFunction==515)//<=
-			if(baseMap.a>alphaTestValue)discard;		
-		else if(alphaTestFunction==512)//never	
-			discard;			
+	if(alphaTestEnabled != 0){		
+		if(alphaTestFunction==512)discard;//never (never keep it)
+		if(alphaTestFunction==513 && !(baseMap.a< alphaTestValue))discard;
+		if(alphaTestFunction==514 && !(baseMap.a==alphaTestValue))discard;
+		if(alphaTestFunction==515 && !(baseMap.a<=alphaTestValue))discard;				
+		if(alphaTestFunction==516 && !(baseMap.a> alphaTestValue))discard;
+		if(alphaTestFunction==517 && !(baseMap.a!=alphaTestValue))discard;
+		if(alphaTestFunction==518 && !(baseMap.a>=alphaTestValue))discard;			
+		//alphaTestFunction==519//always (always keep it)
 	}
 	//swizzle the alpha and green  
 	vec4 normalMap = vec4( texture2D( NormalMap, offset ).ag * 2.0 - 1.0, 0.0, 0.0 );

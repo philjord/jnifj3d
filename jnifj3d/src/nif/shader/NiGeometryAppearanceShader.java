@@ -630,7 +630,7 @@ public class NiGeometryAppearanceShader {
 								&& (bslsp.Alpha < 1.0f
 									|| bslsp.ShaderFlags1.isBitSet(SkyrimShaderPropertyFlags1.SLSF1_Refraction));
 		translucent |= (bsesp != null) && props.get(NiAlphaProperty.class) == null && bsesp.EmissiveColor.a < 1.0f;
-
+		
 		BSMaterial m = bslsp != null ? getMaterial(bslsp) : bsesp != null ? getMaterial(bsesp) : null;
 		if (m == null) {
 			glProperty((NiAlphaProperty)props.get(NiAlphaProperty.class));
@@ -926,6 +926,7 @@ public class NiGeometryAppearanceShader {
 				mat.setAmbientColor(nmp.ambientColor.r, nmp.ambientColor.g, nmp.ambientColor.b);
 				mat.setDiffuseColor(nmp.diffuseColor.r, nmp.diffuseColor.g, nmp.diffuseColor.b);
 			}
+			// ambient and diffuse: mat default to 0.2 an 1 respectively
 
 			mat.setEmissiveColor(nmp.emissiveColor.r, nmp.emissiveColor.g, nmp.emissiveColor.b);
 
@@ -956,9 +957,7 @@ public class NiGeometryAppearanceShader {
 				mat.setLightingEnable(true);
 				mat.setColorTarget(Material.AMBIENT_AND_DIFFUSE);
 
-				//TODO: where are ambient and diffuse?
-				mat.setAmbientColor(new Color3f(0.4f, 0.4f, 0.4f));
-				mat.setDiffuseColor(new Color3f(0.8f, 0.8f, 0.8f));
+				// where are ambient and diffuse? mat default to 0.2 an 1 respectively
 
 				ShaderMaterial sm = (ShaderMaterial)m;
 				if (sm.bEmitEnabled != 0)
