@@ -57,37 +57,37 @@ public class J3dNiTextureTransformController extends J3dNiTimeController impleme
 			{
 				// note these MUST be shared so updating one updates for all TUS
 				TextureUnitState tus = app.getTextureUnitState(0);
+				if (tus != null) {
 
-				if (!tus.getCapability(TextureUnitState.ALLOW_STATE_READ))
-					tus.setCapability(TextureUnitState.ALLOW_STATE_READ);
+					if (!tus.getCapability(TextureUnitState.ALLOW_STATE_READ))
+						tus.setCapability(TextureUnitState.ALLOW_STATE_READ);
 
-				textureAttributes = tus.getTextureAttributes();
-				if (textureAttributes == null)
-				{
-					textureAttributes = new TextureAttributes();
-					for (int i = 0; i < app.getTextureUnitCount(); i++)
-					{
-						if (app.getTextureUnitState(i) != null)
-							app.getTextureUnitState(i).setTextureAttributes(textureAttributes);
+					textureAttributes = tus.getTextureAttributes();
+					if (textureAttributes == null) {
+						textureAttributes = new TextureAttributes();
+						for (int i = 0; i < app.getTextureUnitCount(); i++) {
+							if (app.getTextureUnitState(i) != null)
+								app.getTextureUnitState(i).setTextureAttributes(textureAttributes);
+						}
 					}
-				}
 
-				if (!textureAttributes.getCapability(TextureAttributes.ALLOW_TRANSFORM_WRITE))
-					textureAttributes.setCapability(TextureAttributes.ALLOW_TRANSFORM_WRITE);
+					if (!textureAttributes.getCapability(TextureAttributes.ALLOW_TRANSFORM_WRITE))
+						textureAttributes.setCapability(TextureAttributes.ALLOW_TRANSFORM_WRITE);
 
-				// for those special cases output the incomplete operation support
-				if (operation == TexTransform.TT_SCALE_U)
-				{
-					System.out.println("texture transform.setScale(u) spotted in " + niTimeController.nVer.fileName);
+					// for those special cases output the incomplete operation support
+					if (operation == TexTransform.TT_SCALE_U) {
+						System.out
+								.println("texture transform.setScale(u) spotted in " + niTimeController.nVer.fileName);
+					} else if (operation == TexTransform.TT_SCALE_V) {
+						System.out
+								.println("texture transform.setScale(v) spotted in  " + niTimeController.nVer.fileName);
+					} else if (operation == TexTransform.TT_ROTATE) {
+						System.out.println("rotate in spotted " + niTimeController.nVer.fileName);
+					}
+				} else {
+					//why is tus[0] null?
 				}
-				else if (operation == TexTransform.TT_SCALE_V)
-				{
-					System.out.println("texture transform.setScale(v) spotted in  " + niTimeController.nVer.fileName);
-				}
-				else if (operation == TexTransform.TT_ROTATE)
-				{
-					System.out.println("rotate in spotted " + niTimeController.nVer.fileName);
-				}
+				
 
 			}
 		}
