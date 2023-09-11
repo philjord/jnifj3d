@@ -23,8 +23,6 @@ varying vec4 A;
 varying vec4 C;
 varying vec4 D;
 
-
-
 void main( void )
 {
 	vec4 baseMapTex = texture2D( baseMap, glTexCoord0.st );
@@ -39,10 +37,13 @@ void main( void )
 	color.rgb = albedo * diffuse ;
 	color.a = 1.0;
 	
+
+	
  	if(fogData.fogEnabled == 1)
 	{
 		//compute distance used in fog equations
 		float dist = length(ViewVec);
+	
 		float fogFactor = 0.0;  		  
 		 
 		if(fogData.linearEnd > 0.0)//linear fog
@@ -59,6 +60,8 @@ void main( void )
 		}	
 		color.a = color.a + fogFactor; 	 
 	}
+		
+	gl_FragColor = color;
 	
-	gl_FragColor = color;	
+ 
 }
