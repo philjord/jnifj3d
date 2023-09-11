@@ -136,6 +136,12 @@ public class NifJ3dSkeletonRoot extends Group
 			//nonAccumRoot = root;
 			nonAccumRoot = accumRoot;
 		}
+		
+		if (accumRoot == null)
+		{
+			// this skeleton is probably stuffed now
+			System.err.println("NifJ3dSkeletonRoot.accumRoot == null " + niToJ3dData.root());
+		}
 	}
 
 	public static boolean isSkeleton(NiToJ3dData niToJ3dData)
@@ -166,7 +172,7 @@ public class NifJ3dSkeletonRoot extends Group
 
 	public static boolean isAccumNodeName(String name)
 	{
-		return name.equals("Bip01") || name.equals("Bip02") || name.indexOf("Root Bone") != -1;
+		return name.equals("Bip01") || name.equals("Bip02") || name.indexOf("Root Bone") != -1 || name.indexOf("[Root]") != -1;
 	}
 
 	public static boolean isNonAccumNodeName(String name)
