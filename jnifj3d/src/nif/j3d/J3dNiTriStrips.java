@@ -2,6 +2,7 @@ package nif.j3d;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
 import org.jogamp.java3d.BoundingSphere;
@@ -128,16 +129,14 @@ public class J3dNiTriStrips extends J3dNiTriBasedGeom
 				{
 					length += data.points[i].length;
 				}
-
-				ByteBuffer bb = ByteBuffer.allocateDirect(length * 2);
+				
+				ByteBuffer bb = ByteBuffer.allocateDirect(length * 4);
 				bb.order(ByteOrder.nativeOrder());
-				ShortBuffer points = bb.asShortBuffer();
+				IntBuffer points = bb.asIntBuffer();// can't use short as these are ushorts so int it is!
 				int idx = 0;
-				for (int i = 0; i < numStrips; i++)
-				{
-					for (int j = 0; j < stripLengths[i]; j++)
-					{
-						points.put(idx, (short) data.points[i][j]);
+				for (int i = 0; i < numStrips; i++){
+					for (int j = 0; j < stripLengths[i]; j++){				
+						points.put(idx, data.points[i][j]);
 						idx++;
 					}
 				}

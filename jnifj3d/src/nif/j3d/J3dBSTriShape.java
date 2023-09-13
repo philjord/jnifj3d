@@ -2,7 +2,7 @@ package nif.j3d;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.ShortBuffer;
+import java.nio.IntBuffer;
 
 import org.jogamp.java3d.Appearance;
 import org.jogamp.java3d.BoundingSphere;
@@ -269,11 +269,11 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 					ita = new JoglesIndexedTriangleArray(bsTriShape.numVertices, vertexFormat, 1, texMap, bsTriShape.numTriangles * 3);
 				}
 
-				ByteBuffer bb = ByteBuffer.allocateDirect(bsTriShape.trianglesOpt.length * 2);
+				ByteBuffer bb = ByteBuffer.allocateDirect(bsTriShape.trianglesOpt.length * 4);
 				bb.order(ByteOrder.nativeOrder());
-				ShortBuffer indBuf = bb.asShortBuffer();
+				IntBuffer indBuf = bb.asIntBuffer();
 				for (int s = 0; s < bsTriShape.trianglesOpt.length; s++)
-					indBuf.put(s, (short) bsTriShape.trianglesOpt[s]);
+					indBuf.put(s, bsTriShape.trianglesOpt[s]);
 				indBuf.position(0);
 
 				ita.setCoordIndicesRefBuffer(indBuf);
