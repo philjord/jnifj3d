@@ -5,6 +5,7 @@ attribute vec4 glColor;
 attribute vec2 glMultiTexCoord0; 
 
 //uniform mat4 glProjectionMatrix;
+uniform mat4 glModelMatrix;
 uniform mat4 glModelViewMatrix;
 uniform mat4 glModelViewProjectionMatrix;
 //uniform mat3 glNormalMatrix;
@@ -46,10 +47,13 @@ varying vec4 A;
 varying vec4 C;
 varying vec4 D;
 
+varying vec4 lodPos;
 
 void main( void )
 {			
 	gl_Position = glModelViewProjectionMatrix * glVertex;
+	
+	lodPos = glModelMatrix * glVertex;
 
 	A = glLightModelambient;
 	if( ignoreVertexColors != 0 )

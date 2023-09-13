@@ -23,6 +23,10 @@ varying vec4 A;
 varying vec4 C;
 varying vec4 D;
 
+varying vec4 lodPos;
+uniform vec2 minXYRemoval;
+uniform vec2 maxXYRemoval;
+
 void main( void )
 {
 	vec4 baseMapTex = texture2D( baseMap, glTexCoord0.st );
@@ -60,8 +64,10 @@ void main( void )
 		}	
 		color.a = color.a + fogFactor; 	 
 	}
-		
-	gl_FragColor = color;
-	
- 
+			
+	if(lodPos.x > minXYRemoval.x && lodPos.z < -minXYRemoval.y 
+	&& lodPos.x < maxXYRemoval.x && lodPos.z > -maxXYRemoval.y )
+		discard;
+ 		
+	gl_FragColor = color;	 
 }
