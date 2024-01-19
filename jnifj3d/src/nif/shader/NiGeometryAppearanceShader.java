@@ -175,6 +175,9 @@ public class NiGeometryAppearanceShader {
 		return null;
 	}
 
+	
+	//https://github.com/niftools/nifskope/blob/3a85ac55e65cc60abc3434cc4aaca2a5cc712eef/src/gl/renderer.cpp#L643
+	//https://github.com/niftools/nifskope/blob/develop/src/gl/renderer.cpp
 	private boolean setupProgram(ShaderPrograms.Program prog) {
 		if (!prog.conditions.eval(niGeometry, niToJ3dData, props))
 			return false;
