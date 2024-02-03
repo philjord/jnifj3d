@@ -58,7 +58,7 @@ void main( void )
 	{
 		color += ColorD * NdotL;
 		float NdotHV = max( dot( normal.rgb, normalize( HalfVector ) ), 0.0 );
-		color += normal.a * glFrontMaterial.specular * glLightSource[0].specular.rgb * pow( NdotHV, glFrontMaterial.shininess );
+		color.rgb += normal.a * glFrontMaterial.specular * glLightSource[0].specular.rgb * pow( NdotHV, glFrontMaterial.shininess );
 	}
 	
 	color = min( color, 1.0 );
