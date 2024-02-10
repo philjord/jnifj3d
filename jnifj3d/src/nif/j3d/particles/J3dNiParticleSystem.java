@@ -54,7 +54,7 @@ import utils.source.TextureSource;
 
 public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdater
 {		
-	private static boolean SHOW_DEBUG_LINES = true;
+	private static boolean SHOW_DEBUG_LINES = false;// flick it on with the beth settings
 
 	private ArrayList<J3dNiPSysModifier> modifiersInOrder = new ArrayList<J3dNiPSysModifier>();
 
