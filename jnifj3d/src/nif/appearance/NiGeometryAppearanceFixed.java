@@ -70,6 +70,7 @@ import utils.source.TextureSource;
 
 public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 {
+	public static boolean CACHE_WEAK = true;
 	private static WeakHashMap<Object, TextureAttributes> textureAttributesLookup = new WeakHashMap<Object, TextureAttributes>();
 
 	@Override
@@ -132,7 +133,8 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 							textureAttributes.setTextureMode(ntp.isApplyReplace() ? TextureAttributes.REPLACE
 									: ntp.isApplyDecal() ? TextureAttributes.DECAL : TextureAttributes.MODULATE);
 							setUpTimeController(ntp, niToJ3dData, textureSource, target);
-							textureAttributesLookup.put(ntp, textureAttributes);
+							if(CACHE_WEAK)
+								textureAttributesLookup.put(ntp, textureAttributes);
 						}
 
 						NiSourceTexture niSourceTexture = null;
@@ -345,6 +347,7 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 
 							setUpTimeController(bsesp, niToJ3dData, textureSource, target);
 
+							if(CACHE_WEAK)
 							textureAttributesLookup.put(bsesp, textureAttributes);
 						}
 
@@ -429,6 +432,7 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 						NiSingleInterpController controller = (NiSingleInterpController) niToJ3dData.get(bslsp.controller);
 						setUpTimeController(controller, niToJ3dData, textureSource, target);
 
+						if(CACHE_WEAK)
 						textureAttributesLookup.put(bslsp, textureAttributes);
 					}
 

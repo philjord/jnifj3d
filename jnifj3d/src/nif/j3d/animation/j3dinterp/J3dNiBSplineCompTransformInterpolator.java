@@ -33,7 +33,8 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 	private Quat4f defaultRot = null;
 
 	private Point3f defaultScale = null;
-
+	
+	public static boolean CACHE_WEAK = true;
 	private static Map<NiBSplineCompTransformInterpolator, TCBKeyFrame[]> keysMap = Collections
 			.synchronizedMap(new WeakHashMap<NiBSplineCompTransformInterpolator, TCBKeyFrame[]>());
 
@@ -77,8 +78,10 @@ public class J3dNiBSplineCompTransformInterpolator extends J3dNiInterpolator
 							keys[i] = key;
 						}
 
-						keysMap.put(nibs, keys);
+						if(CACHE_WEAK)
+							keysMap.put(nibs, keys);
 					}
+
 				}
 
 				RotPosScaleTCBSplinePathInterpolator tCBSplinePathInterpolator = new RotPosScaleTCBSplinePathInterpolator(

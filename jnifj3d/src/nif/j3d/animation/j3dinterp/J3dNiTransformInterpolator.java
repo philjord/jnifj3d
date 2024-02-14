@@ -23,6 +23,7 @@ import nif.j3d.animation.j3dinterp.interp.XYZRotPathInterpolator;
 import nif.niobject.NiKeyframeData;
 import nif.niobject.NiTransformData;
 import nif.niobject.interpolator.NiTransformInterpolator;
+import tools.WeakValueHashMap;
 import utils.convert.ConvertFromNif;
 
 /**
@@ -61,6 +62,25 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 	private ScalePathInterpolator scalePathInterpolator;
 
 	private float defaultScale = Float.MIN_VALUE;
+	
+	
+	//OMG, if the class type of the data is not a static class then the instance object needs to be retained!!
+	//fudge! double fracking!! so into WEkHashMaps must only go static or top level class types!!!
+	//cristo I need to double check every damn inner class to make sure they are AALLLL! static all of them!
+
+	
+	//FIXME: with the memory leak fixed this guy in now a slow mcslow face
+	public static boolean CACHE_WEAK = true;
+	private static Map<NiKeyframeData, XyzRotationData> xyzRotationDataMap = Collections
+			.synchronizedMap(new WeakValueHashMap<NiKeyframeData, XyzRotationData>());
+
+	private static Map<NiKeyframeData, QuatRotationData> quatRotationDataMap = Collections
+			.synchronizedMap(new WeakValueHashMap<NiKeyframeData, QuatRotationData>());
+
+	private static Map<NiKeyframeData, TranslationData> translationDataMap = Collections
+			.synchronizedMap(new WeakValueHashMap<NiKeyframeData, TranslationData>());
+
+	private static Map<NiKeyframeData, ScaleData> scaleDataMap = Collections.synchronizedMap(new WeakValueHashMap<NiKeyframeData, ScaleData>());
 
 	public J3dNiTransformInterpolator(NiTransformInterpolator niTransformInterp, NiToJ3dData niToJ3dData, TransformGroup targetTransform,
 			float startTimeS, float lengthS)
@@ -91,9 +111,6 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 				startTimeS, lengthS, positionPathInterpolator, scalePathInterpolator, xYZRotPathInterpolator, quatRotInterpolator,
 				defaultTrans, defaultRot, defaultScale);
 		setInterpolator(rotPosScaleInterpolator);
-		rotPosScaleInterpolator.setOwner(this);
-		this.setOwner(niTransformInterp);
-
 	}
 
 	public J3dNiTransformInterpolator(NiKeyframeData niTransformData, TransformGroup targetTransform, float startTimeS, float lengthS)
@@ -104,8 +121,6 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 				startTimeS, lengthS, positionPathInterpolator, scalePathInterpolator, xYZRotPathInterpolator, quatRotInterpolator,
 				defaultTrans, defaultRot, defaultScale);
 		setInterpolator(rotPosScaleInterpolator);
-		rotPosScaleInterpolator.setOwner(this);
-		this.setOwner(niTransformData);
 	}
 
 	protected void processNiKeyframeData(NiKeyframeData niTransformData)
@@ -159,8 +174,9 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 								zRots[i] = ((Float) key.value).floatValue();
 							}
 							data = new XyzRotationData(xKnots, xRots, yKnots, yRots, zKnots, zRots);
-							xyzRotationDataMap.put(niTransformData, data);
-						}
+							if(CACHE_WEAK)
+								xyzRotationDataMap.put(niTransformData, data);
+						}						 
 					}
 
 					xYZRotPathInterpolator = new XYZRotPathInterpolator(data.xKnots, data.xRots, data.yKnots, data.yRots, data.zKnots,
@@ -189,7 +205,8 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 								quats[i] = ConvertFromNif.toJ3d(key.value);
 							}
 							data = new QuatRotationData(knots, quats);
-							quatRotationDataMap.put(niTransformData, data);
+							if(CACHE_WEAK)
+								quatRotationDataMap.put(niTransformData, data);
 						}
 					}
 					quatRotInterpolator = new RotationPathInterpolator(data.knots, data.quats);
@@ -221,7 +238,9 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 						positions[i] = ConvertFromNif.toJ3dP3f((NifVector3) key.value);
 					}
 					data = new TranslationData(knots, positions);
-					translationDataMap.put(niTransformData, data);
+					
+					if(CACHE_WEAK)
+						translationDataMap.put(niTransformData, data);
 				}
 			}
 			positionPathInterpolator = new PositionPathInterpolator(data.knots, data.positions);
@@ -250,7 +269,9 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 					}
 				}
 				data = new ScaleData(knots, scales);
-				scaleDataMap.put(niTransformData, data);
+				
+				if(CACHE_WEAK)
+					scaleDataMap.put(niTransformData, data);
 			}
 			//check for ignore flagging above
 			if (data.scales != null)
@@ -258,16 +279,6 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 		}
 	}
 
-	private static Map<NiKeyframeData, XyzRotationData> xyzRotationDataMap = Collections
-			.synchronizedMap(new WeakHashMap<NiKeyframeData, XyzRotationData>());
-
-	private static Map<NiKeyframeData, QuatRotationData> quatRotationDataMap = Collections
-			.synchronizedMap(new WeakHashMap<NiKeyframeData, QuatRotationData>());
-
-	private static Map<NiKeyframeData, TranslationData> translationDataMap = Collections
-			.synchronizedMap(new WeakHashMap<NiKeyframeData, TranslationData>());
-
-	private static Map<NiKeyframeData, ScaleData> scaleDataMap = Collections.synchronizedMap(new WeakHashMap<NiKeyframeData, ScaleData>());
 
 	public static class XyzRotationData
 	{
@@ -294,7 +305,7 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 		}
 	}
 
-	public class QuatRotationData
+	public static class QuatRotationData
 	{
 		public float[] knots;
 
@@ -307,7 +318,7 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 		}
 	}
 
-	public class TranslationData
+	public static class TranslationData
 	{
 		public float[] knots;
 
@@ -320,7 +331,7 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 		}
 	}
 
-	public class ScaleData
+	public static class ScaleData
 	{
 		public float[] knots;
 

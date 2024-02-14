@@ -28,6 +28,7 @@ import nif.niobject.NiTriShape;
 import nif.niobject.RootCollisionNode;
 import nif.niobject.bhk.bhkCollisionObject;
 import nif.niobject.bs.BSTreeNode;
+import tools.WeakValueHashMap;
 import tools3d.utils.PhysAppearance;
 import utils.optimize.NifFileOptimizer;
 import utils.source.MeshSource;
@@ -43,6 +44,10 @@ public class NifToJ3d
 
 	//Note this is caching the file read operations, not the j3d built object which are not shared
 	//private static SoftValueHashMap<String, NifFile> loadedFiles = new SoftValueHashMap<String, NifFile>();
+	
+	
+//	private static Map<String, NifFile> loadedFiles = Collections.synchronizedMap(new WeakValueHashMap<String, NifFile>());
+	
 	private static Map<String, NifFile> loadedFiles = Collections.synchronizedMap(new WeakHashMap<String, NifFile>());
 
 	// we can't request the same file at the same time, this tell threads to wait for each other
@@ -56,7 +61,7 @@ public class NifToJ3d
 	//private static RequestStats requestStats = new RequestStats(loadedFiles);
 
 	/**
-	 * This is a caching sytem and should generally be the ONLY class to call getNifFile on a MeshSource or else trouble
+	 * This is a caching system and should generally be the ONLY class to call getNifFile on a MeshSource or else trouble
 	 * @param nifFilename
 	 * @param meshSource
 	 * @return
@@ -367,7 +372,7 @@ public class NifToJ3d
 		return null;
 	}
 
-	//TODO: the NIfFooter in teh Niffile actually points to roots and cameras and should be used
+	//TODO: the NifFooter in the Nif file actually points to roots and cameras and should be used
 	public static List<SimpleCamera> extractCameras(NiToJ3dData niToJ3dData)
 	{
 		ArrayList<SimpleCamera> cams = new ArrayList<SimpleCamera>();

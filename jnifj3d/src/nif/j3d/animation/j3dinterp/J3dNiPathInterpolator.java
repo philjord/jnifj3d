@@ -23,6 +23,7 @@ import utils.convert.ConvertFromNif;
 
 public class J3dNiPathInterpolator extends J3dNiInterpolator
 {
+	public static boolean CACHE_WEAK = true;
 	private static Map<NifKeyGroup, PathData> pathDataMap = Collections.synchronizedMap(new WeakHashMap<NifKeyGroup, PathData>());
 
 	public J3dNiPathInterpolator(NiPathInterpolator niPathInterp, NiToJ3dData niToJ3dData, TransformGroup targetTransform)
@@ -60,6 +61,7 @@ public class J3dNiPathInterpolator extends J3dNiInterpolator
 							Utils3D.safeGetQuat(tempTrans, quats[i]);
 						}
 						data = new PathData(knots, positions, quats);
+						if(CACHE_WEAK)
 						pathDataMap.put(posData, data);
 					}
 				}
@@ -76,7 +78,7 @@ public class J3dNiPathInterpolator extends J3dNiInterpolator
 		}
 	}
 
-	public class PathData
+	public static class PathData
 	{
 		public float[] knots;
 
@@ -91,5 +93,4 @@ public class J3dNiPathInterpolator extends J3dNiInterpolator
 			this.quats = quats;
 		}
 	}
-
 }

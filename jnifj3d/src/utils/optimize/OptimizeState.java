@@ -7,12 +7,6 @@ import nif.niobject.NiTriShape;
 
 public class OptimizeState
 {
-	public class MergeTriShape
-	{
-		public ArrayList<NiNode> path = new ArrayList<NiNode>();
-		public NiTriShape niTriShape = null;
-	}
-
 	public ArrayList<NiNode> currentPath = new ArrayList<NiNode>();
 	public ArrayList<MergeTriShape> shapesToMerge = new ArrayList<MergeTriShape>();
 
@@ -23,5 +17,10 @@ public class OptimizeState
 		mergeTriShape.path.addAll(currentPath);
 		shapesToMerge.add(mergeTriShape);
 	}
-
+	
+	public static class MergeTriShape
+	{
+		public ArrayList<NiNode> path = new ArrayList<NiNode>();
+		public NiTriShape niTriShape = null;
+	}
 }

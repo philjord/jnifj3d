@@ -15,8 +15,6 @@ public abstract class TransformInterpolator implements Interpolated
 {
 	protected boolean fixed = false;
 
-	private Object owner = null;
-
 	/**
 	 * The NifTransformGroups node affected by this transformInterpolator
 	 */
@@ -95,15 +93,5 @@ public abstract class TransformInterpolator implements Interpolated
 		if (byPrim != byMeth)
 			System.out.println("differs? " + t);
 		return byMeth;
-	}
-
-	public Object getOwner()
-	{
-		return owner;
-	}
-
-	public void setOwner(Object owner)
-	{
-		this.owner = owner;
 	}
 }

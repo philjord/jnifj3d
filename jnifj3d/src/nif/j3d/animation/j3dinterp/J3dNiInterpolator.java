@@ -13,9 +13,6 @@ import tools3d.utils.Utils3D;
 
 public abstract class J3dNiInterpolator extends Group
 {
-
-	private Object owner;
-
 	public static final int NIF_USHRT_MAX = 65535;
 
 	public static final float NIF_FLOAT_MIN = (float) -3.4028235E38;
@@ -81,15 +78,4 @@ public abstract class J3dNiInterpolator extends Group
 		interp.setSchedulingBounds(Utils3D.defaultBounds);
 		addChild(interp);
 	}
-
-	public Object getOwner()
-	{
-		return owner;
-	}
-
-	public void setOwner(Object owner)
-	{
-		this.owner = owner;
-	}
-
 }
