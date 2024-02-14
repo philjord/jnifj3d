@@ -46,9 +46,9 @@ public class NifToJ3d
 	//private static SoftValueHashMap<String, NifFile> loadedFiles = new SoftValueHashMap<String, NifFile>();
 	
 	
-//	private static Map<String, NifFile> loadedFiles = Collections.synchronizedMap(new WeakValueHashMap<String, NifFile>());
+	private static Map<String, NifFile> loadedFiles = Collections.synchronizedMap(new WeakValueHashMap<String, NifFile>());
 	
-	private static Map<String, NifFile> loadedFiles = Collections.synchronizedMap(new WeakHashMap<String, NifFile>());
+//	private static Map<String, NifFile> loadedFiles = Collections.synchronizedMap(new WeakHashMap<String, NifFile>());
 
 	// we can't request the same file at the same time, this tell threads to wait for each other
 	private static Set<String> loadingFiles = Collections.synchronizedSet(new HashSet<String>());
