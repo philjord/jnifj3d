@@ -41,6 +41,15 @@ public class NifCharacterTes3 extends NifCharacter
 				String nifFileName = attachedSkinsAndParts.parts.get(part);
 				if (nifFileName != null && nifFileName.length() > 0)
 				{
+					
+					// TODO: odd extra transform in the keyframe data must be merged
+					if (nifFileName.equals("c\\c_m_shirt_expens_3_ua.nif"))
+						nifFileName = "c\\c_m_shirt_expensive_2_ua.nif";
+					
+					if (nifFileName.equals("a\\a_m_chitin_gauntlet.nif"))
+						nifFileName = "a\\a_m_chitin_forearm.nif";
+
+					
 					NifJ3dVisRoot model = NifToJ3d.loadShapes(nifFileName, mediaSources.getMeshSource(), mediaSources.getTextureSource());
 
 					if (model != null)
