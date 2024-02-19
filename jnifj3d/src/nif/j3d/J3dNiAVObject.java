@@ -39,13 +39,17 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET implements SequenceAl
 		{
 			t1.setRotation(ConvertFromNif.toJ3d(niAVObject.rotation));
 		}
+		 
 		/*
 				//the determinant should be near 1 now! otherwise all transforms will be crap			 
 					if (Math.abs(1 - t1.determinant()) > 0.2)
 				{
 							System.out.println("Determinant problem in " + niAVObject.name);
 				}*/
-		t1.setTranslation(ConvertFromNif.toJ3d(niAVObject.translation));
+		if (!ignoreTopTransformTrans(niAVObject))
+		{
+			t1.setTranslation(ConvertFromNif.toJ3d(niAVObject.translation));
+		} 
 		t1.setScale(niAVObject.scale);
 
 		this.setTransform(t1);
@@ -53,11 +57,19 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET implements SequenceAl
 
 	//  Oblivion does not ignore root rotations (will return false here
 	// all other games assume the placement type operations happen on the root node
-	// excpet morrowind does not ignore Bip01 node transforms
+	// except morrowind does not ignore Bip01 node transforms
 	public static boolean ignoreTopTransformRot(NiAVObject niAVObject)
 	{
 		boolean ignoreTopTransform = (niAVObject instanceof BSFadeNode) || //fallout and upwards
 				(niAVObject.nVer.LOAD_VER < NifVer.VER_10_0_1_0 && // morrowind
+						niAVObject instanceof NiNode && niAVObject.parent == null && !niAVObject.name.equals("Bip01")); // check for root
+		return ignoreTopTransform;
+	}
+	// Morrowind also ignores the root translations (but does not ignore Bip01 node transforms)
+	// not sure what other games think?see if you see floaty mcfloatsters)
+	public static boolean ignoreTopTransformTrans(NiAVObject niAVObject)
+	{
+		boolean ignoreTopTransform = (niAVObject.nVer.LOAD_VER < NifVer.VER_10_0_1_0 && // morrowind
 						niAVObject instanceof NiNode && niAVObject.parent == null && !niAVObject.name.equals("Bip01")); // check for root
 		return ignoreTopTransform;
 	}
