@@ -66,7 +66,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET implements SequenceAl
 		return ignoreTopTransform;
 	}
 	// Morrowind also ignores the root translations (but does not ignore Bip01 node transforms)
-	// not sure what other games think?see if you see floaty mcfloatsters)
+	// not sure what other games think?see if you see floaty mcfloatsters
 	public static boolean ignoreTopTransformTrans(NiAVObject niAVObject)
 	{
 		boolean ignoreTopTransform = (niAVObject.nVer.LOAD_VER < NifVer.VER_10_0_1_0 && // morrowind
