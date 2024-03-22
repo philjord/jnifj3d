@@ -8,6 +8,7 @@ import org.jogamp.vecmath.Vector3f;
 import nif.NifVer;
 import nif.compound.NifMatrix33;
 import nif.compound.NifMatrix44;
+import nif.compound.NifQuaternion;
 import nif.compound.NifQuaternionXYZW;
 import nif.compound.NifVector3;
 import nif.compound.NifVector4;
@@ -35,6 +36,11 @@ public class ConvertFromHavok
 		return NifRotToJava3DRot.makeJ3dQ4f(rotation.x, rotation.y, rotation.z, rotation.w);
 	}
 
+	//TODO: is this right?
+	public static Quat4f toJ3d(NifQuaternion rotation)
+	{
+		return NifRotToJava3DRot.makeJ3dQ4f(rotation.x, rotation.y, rotation.z, rotation.w);
+	}
 
 	public static Matrix4f toJ3dM4(NifMatrix44 mIn, NifVer nifVer)
 	{

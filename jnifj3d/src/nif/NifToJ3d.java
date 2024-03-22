@@ -6,12 +6,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
 
 import org.jogamp.java3d.Group;
 
 import nif.character.KfJ3dRoot;
 import nif.j3d.J3dBSTreeNode;
+import nif.j3d.J3dBSbhkNPObject;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiCamera;
 import nif.j3d.J3dNiNode;
@@ -28,6 +28,7 @@ import nif.niobject.NiTriShape;
 import nif.niobject.RootCollisionNode;
 import nif.niobject.bhk.bhkCollisionObject;
 import nif.niobject.bs.BSTreeNode;
+import nif.niobject.bs.BSbhkNPObject;
 import tools.WeakValueHashMap;
 import tools3d.utils.PhysAppearance;
 import utils.optimize.NifFileOptimizer;
@@ -300,7 +301,7 @@ public class NifToJ3d
 					//I feel I should tell someone there's an issue?
 				}
 
-				// now attach each havok node to it appropriate NiNOde				
+				// now attach each havok node to it appropriate NiNode				
 				for (NiObject niObject : nifFile.blocks.getNiObjects())
 				{
 					if (niObject instanceof bhkCollisionObject)
@@ -318,7 +319,16 @@ public class NifToJ3d
 							System.out.println("Bugger RootCollisionNode not off root!!!");
 
 						j3dNiAVObjectRoot.addChild(jrcn);
+					} 
+					else if (niObject instanceof BSbhkNPObject)
+					{
+						// I think I should actually find the NiAVObject.CollisionObject that points to this BSbhkNPObject
+						//FIXME: in case there is more than 1 in a file,
+						//in fact bhkCollisionNPObject parent of the physics system has a body id that is the NiNode id
+						J3dBSbhkNPObject J3dBSbhkNPObject = new J3dBSbhkNPObject((BSbhkNPObject) niObject, niToJ3dData);
+						j3dNiAVObjectRoot.addChild(J3dBSbhkNPObject);
 					}
+
 				}
 
 				// now setupcontrollers for all
