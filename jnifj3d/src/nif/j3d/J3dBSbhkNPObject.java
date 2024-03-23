@@ -4,7 +4,10 @@ import java.util.Vector;
 
 import org.jogamp.java3d.GeometryArray;
 import org.jogamp.java3d.Group;
+import org.jogamp.java3d.IndexedLineArray;
+import org.jogamp.java3d.IndexedPointArray;
 import org.jogamp.java3d.J3DBuffer;
+import org.jogamp.java3d.PointAttributes;
 import org.jogamp.java3d.Shape3D;
 import org.jogamp.java3d.Transform3D;
 import org.jogamp.java3d.TransformGroup;
@@ -14,6 +17,7 @@ import org.jogamp.java3d.geom.CylinderGenerator;
 import org.jogamp.java3d.geom.GeometryData;
 import org.jogamp.java3d.geom.SphereGenerator;
 import org.jogamp.java3d.utils.geometry.GeometryInfo;
+import org.jogamp.java3d.utils.shader.SimpleShaderAppearance;
 import org.jogamp.vecmath.Color3f;
 import org.jogamp.vecmath.Point3d;
 import org.jogamp.vecmath.Point3f;
@@ -47,6 +51,7 @@ import nif.niobject.hkx.hknpShape;
 import nif.niobject.hkx.reader.HKXContents;
 import tools3d.utils.PhysAppearance;
 import tools3d.utils.Utils3D;
+import utils.ESConfig;
 import utils.convert.ConvertFromHavok;
 
 /**
@@ -605,63 +610,8 @@ public class J3dBSbhkNPObject extends Group
 			}
 		}*/
 		
-	/*	int startIndex = 0;
-		for (int pdr = 0; pdr < meshTree.primitiveDataRuns.length; pdr++)
-		{
-			int index = meshTree.primitiveDataRuns[pdr].index;
-			int count = meshTree.primitiveDataRuns[pdr].count;
-			
-			
-			// bum have to precount so we can allocate a index array
-			int pointCount = 0;
-			for (int p = startIndex; p < startIndex + count; p++)
-			{		
-				hkcdStaticMeshTreeBasePrimitive primitive = meshTree.primitives[p]; 
-				int[] indices = primitive.indices;
-				//quad?
-				if(indices[2] != indices[3]) {
-					pointCount += 6;
-				} else {//just a tri					
-					pointCount += 3;
-				}
-			}			
-			
-			int[] listPoints = new int[pointCount];
-			int i = 0;
-			for (int p = startIndex; p < startIndex + count; p++)
-			{		
-				hkcdStaticMeshTreeBasePrimitive primitive = meshTree.primitives[p]; 
-				int[] indices = primitive.indices;
-				//quad?
-				if(indices[2] != indices[3]) {
-					listPoints[i++] = indices[0];
-					listPoints[i++] = indices[1];
-					listPoints[i++] = indices[2];
-					listPoints[i++] = indices[2];
-					listPoints[i++] = indices[3];
-					listPoints[i++] = indices[0];
-				} else {//just a tri					
-					listPoints[i++] = indices[0];
-					listPoints[i++] = indices[1];
-					listPoints[i++] = indices[2];
-				}
-			}	
-					
-					
-			GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
-			gi.setCoordinates(vertices[pdr]);
-			gi.setCoordinateIndices(listPoints);
-			gi.setUseCoordIndexOnly(true);
-
-			Shape3D shape = new Shape3D();
-			shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
-			shape.setAppearance(PhysAppearance.makeAppearance(new Color3f(0.75f, 1f, 1f)));
-			group.addChild(shape);
-
-			
-			startIndex += count;//prep for next iter, needs to be by index above
-		}
-	*/
+	
+	
 
 		//BOSBarricadePoles01.nif
 		
@@ -690,8 +640,13 @@ public class J3dBSbhkNPObject extends Group
 		int currentSectionIdx = 0;
 		int sectionNumPackedVertices = meshTree.sections[currentSectionIdx].numPackedVertices;
 		hkAabb currentSectionhkAabb = meshTree.sections[currentSectionIdx].domain;		
-		float[] codecParms = meshTree.sections[currentSectionIdx].codecParms;// parallel Algebraic Recursive Multilevel Solvers   
+		float[] codecParms = meshTree.sections[currentSectionIdx].codecParms;// parallel Algebraic Recursive Multilevel Solvers?   
 		
+		
+
+		System.out.println("sec"+currentSectionIdx + " codecParms[3] " + codecParms[3] * 2048 );
+		System.out.println("sec"+currentSectionIdx + " codecParms[4] " + codecParms[4] * 2048 );
+		System.out.println("sec"+currentSectionIdx + " codecParms[5] " + codecParms[5] * 1024  );
 		
 		// ok ok looks like a pole that need 16 verts has 19! in the sections world
 		// but it definitely has 16 in packedVertices, so time to try to unpack that mystery
@@ -706,6 +661,11 @@ public class J3dBSbhkNPObject extends Group
 				// I notice a section codecParams appear to tbe the minimum for a single section, but somethign lese for the double
 				// somehting like the min offsetty part?
 				codecParms = meshTree.sections[currentSectionIdx].codecParms;
+				
+
+				System.out.println("sec"+currentSectionIdx + " codecParms[3] " + codecParms[3] * 2047 );
+				System.out.println("sec"+currentSectionIdx + " codecParms[4] " + codecParms[4] * 2047 );
+				System.out.println("sec"+currentSectionIdx + " codecParms[5] " + codecParms[5] * 1023 );
 			}			
 			
 			int pv = meshTree.packedVertices[pvi];
@@ -720,26 +680,50 @@ public class J3dBSbhkNPObject extends Group
 
 			
 			
-			//0x7FF or 0x3FF then bitshift			
-//			int x = pv & 0x7FF; // 11bit
-//			int y = (pv >> 11) & 0x7FF; // 11bit
-//			int z = (pv >> 22) & 0x3FF; // 10bit
-//			System.out.println("x " + x + " y " + y + " z " + z);
-			float fx = (pv & 0x7FF) / 2047.0f; // 11bit
-			float fy = ((pv >> 11) & 0x7FF) / 2047.0f; // 11bit
-			float fz = ((pv >> 22) & 0x3FF) / 1023.0f; // 10bit
-//			System.out.println("fx " + fx + " fy " + fy + " fz " + fz);
-			 		
+			// Normalized would look like this, but as the noramlization dividor is accounted for in the param scale we don't need it
+			//float fx = (pv & 0x7FF) / 2047.0f; // 11bit
+			//float fy = ((pv >> 11) & 0x7FF) / 2047.0f; // 11bit
+			//float fz = ((pv >> 22) & 0x3FF) / 1023.0f; // 10bit
+			// multiplised by the param scale, and offset added 
+			float fx = (((pv >> 0) & 0x7FF) * codecParms[3]) + codecParms[0];
+			float fy = (((pv >> 11) & 0x7FF) * codecParms[4]) + codecParms[1];
+			float fz = (((pv >> 22) & 0x3FF) * codecParms[5]) + codecParms[2];
+			
+			vertices[pvi] = ConvertFromHavok.toJ3dP3f( -fx,-fy,fz, nifVer);
+					
+					
+					
+			//BOSBarricadeBase01-bhkPhysicsSystem_3
+			//section 0 wants -1.6,-0.07,0.13 and translation of -1.6, -0.28, -0.114
+			//section 0 scale = 0.4572, 0.64, 1.013  offset of -1.6, -0.28, -0.114
+			//section 1 wants 0.0, -0.57, -0.114 and translation of 0.0, -0.57, -0.114
+			//section 1 scale = 1.6, 1.14, 1.1473 offset of 0.0, -0.57, -0.114
+			
+			
 		
+ 
+/*			float minx = codecParms[0];
+			float miny = -0.07f;//codecParms[1];			
+			float minz = 0.13f;//codecParms[2];
 			
 			
-			float CMD_VERT_SCALE_X = (currentSectionhkAabb.max.x - currentSectionhkAabb.min.x); 
-			float CMD_VERT_SCALE_Y = (currentSectionhkAabb.max.y - currentSectionhkAabb.min.y); 
-			float CMD_VERT_SCALE_Z = (currentSectionhkAabb.max.z - currentSectionhkAabb.min.z); 
+			
+			float CMD_VERT_SCALE_X = (currentSectionhkAabb.max.x - minx); 
+			float CMD_VERT_SCALE_Y = (currentSectionhkAabb.max.y - miny); 
+			float CMD_VERT_SCALE_Z = (currentSectionhkAabb.max.z - minz); 
+			
+			
+			miny = -0.28575000166893005f; 		
+			minz = -0.11430008709430695f;
+			
 			vertices[pvi] = ConvertFromHavok.toJ3dP3f(//
-					-((fx * CMD_VERT_SCALE_X) + currentSectionhkAabb.min.x), //
-					-((fy * CMD_VERT_SCALE_Y) + currentSectionhkAabb.min.y), // notice -ve
-					(fz * CMD_VERT_SCALE_Z) + currentSectionhkAabb.min.z, nifVer);
+					-((fx * CMD_VERT_SCALE_X) + minx), // notice -ve
+					-((fy * CMD_VERT_SCALE_Y) + miny), // notice -ve
+					(fz * CMD_VERT_SCALE_Z) + minz, nifVer);*/
+			
+			//debug
+			//if(currentSectionIdx!=0) vertices[pvi] = new Point3f();
+			
 			
 			
 			// this is the single domain/aabb code using the overall aabb
@@ -747,10 +731,10 @@ public class J3dBSbhkNPObject extends Group
 			float CMD_VERT_SCALE_Y = (meshTreehkAabb.max.y - meshTreehkAabb.min.y); 
 			float CMD_VERT_SCALE_Z = (meshTreehkAabb.max.z - meshTreehkAabb.min.z); 
 			vertices[pvi] = ConvertFromHavok.toJ3dP3f(//
-					(fx * CMD_VERT_SCALE_X) + codecParms[0],//meshTreehkAabb.min.x, //
-					-((fy * CMD_VERT_SCALE_Y) + codecParms[1]),//meshTreehkAabb.min.y), // notice -ve
-					(fz * CMD_VERT_SCALE_Z) + codecParms[2], nifVer);//meshTreehkAabb.min.z, nifVer);
-	*/	
+					-((fx * CMD_VERT_SCALE_X) + meshTreehkAabb.min.x), // notice -ve
+					-((fy * CMD_VERT_SCALE_Y) + meshTreehkAabb.min.y), // notice -ve
+					(fz * CMD_VERT_SCALE_Z) + meshTreehkAabb.min.z, nifVer);
+*/		
 			
 		}
 		//TODO: the shared vertices appear to be very similar only it has longs rather than ints
@@ -786,7 +770,7 @@ sec 2
 			System.out.println("meshTree.sections.lengthmeshTree.sections.lengthmeshTree.sections.length " + meshTree.sections.length);
 			
 		// bum have to precount so we can allocate a index array
-		int pointCount = 0;
+/*		int pointCount = 0;
 		for (int p = 0; p < meshTree.primitives.length; p++)
 		{		
 			hkcdStaticMeshTreeBasePrimitive primitive = meshTree.primitives[p]; 
@@ -800,12 +784,14 @@ sec 2
 		}			
 		
 		int[] listPoints = new int[pointCount];
+ 
 		int i = 0;
 		for (int p = 0; p < meshTree.primitives.length; p++)
 		{		
 			
 			// for debug to only index one section
-			//if(p>=meshTree.primitiveDataRuns[0].count)continue;
+			//if(p<meshTree.primitiveDataRuns[0].count					
+			//		+meshTree.primitiveDataRuns[1].count)continue;
 			
 			
 			//BOSBarricadePlate01.nif p34 is a degenerate non tri?
@@ -843,10 +829,119 @@ sec 2
 
 			
 			 
+*/
+			int startIndex = 0;
+			for (int pdr = 0; pdr < meshTree.primitiveDataRuns.length; pdr++)
+			{
+				int index = meshTree.primitiveDataRuns[pdr].index;
+				int count = meshTree.primitiveDataRuns[pdr].count;
+				
+				
+				// bum have to precount so we can allocate a index array
+				int pointCount = 0;
+				for (int p = startIndex; p < startIndex + count; p++)
+				{		
+					hkcdStaticMeshTreeBasePrimitive primitive = meshTree.primitives[p]; 
+					int[] indices = primitive.indices;
+					//quad?
+					if(indices[2] != indices[3]) {
+						pointCount += 6;
+					} else {//just a tri					
+						pointCount += 3;
+					}
+				}			
+				
+				int[] listPoints = new int[pointCount];
+				int i = 0;
+				for (int p = startIndex; p < startIndex + count; p++)
+				{		
+					if(p>startIndex+3)continue;
+					hkcdStaticMeshTreeBasePrimitive primitive = meshTree.primitives[p]; 
+					int[] indices = primitive.indices;
+					//quad?
+					if(indices[2] != indices[3]) {
+						listPoints[i++] = indices[0];
+						listPoints[i++] = indices[1];
+						listPoints[i++] = indices[2];
+						listPoints[i++] = indices[2];
+						listPoints[i++] = indices[3];
+						listPoints[i++] = indices[0];
+					} else {//just a tri					
+						listPoints[i++] = indices[0];
+						listPoints[i++] = indices[1];
+						listPoints[i++] = indices[2];
+					}
+				}	
+						
+						
+				GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
+				gi.setCoordinates(vertices);
+				gi.setCoordinateIndices(listPoints);
+				gi.setUseCoordIndexOnly(true);
 
-		
+				Shape3D shape = new Shape3D();
+				shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
+				shape.setAppearance(PhysAppearance.makeAppearance(new Color3f(0.75f,1f-((float)pdr/(float)meshTree.primitiveDataRuns.length), ((float)pdr/(float)meshTree.primitiveDataRuns.length))));
+				group.addChild(shape);
 
+				
+				startIndex += count;//prep for next iter, needs to be by index above
+			}
+
+			
+			addDebugPoints(vertices, group);
+			
+			
 		return group;
+	}
+	
+	
+	private static void addDebugPoints(Point3f[] vertices, Group parent) {
+		///////////////////////////////////////////////////////////////Lovely little point drawer thing!
+		int gaVertexCount = vertices.length * 6;// 4 points a crossed pair of lines
+		IndexedLineArray ga = new IndexedLineArray(gaVertexCount,
+		GeometryArray.BY_REFERENCE | GeometryArray.COORDINATES  
+		| GeometryArray.BY_REFERENCE_INDICES | GeometryArray.USE_COORD_INDEX_ONLY,
+		gaVertexCount);
+		
+		int[] gaCoordIndices = new int[gaVertexCount];
+		//fixed for all time, recall these are points
+		for (int i = 0; i < gaVertexCount; i++)
+		{
+		gaCoordIndices[i] = i;
+		}
+		
+		float[] gaCoords = new float[gaVertexCount * 3];
+		for (int i = 0; i < gaVertexCount/6; i++)
+		{
+		gaCoords[i*3*6+0] = vertices[i].x;
+		gaCoords[i*3*6+1] = vertices[i].y-0.01f;
+		gaCoords[i*3*6+2] = vertices[i].z;
+		gaCoords[i*3*6+3] = vertices[i].x;
+		gaCoords[i*3*6+4] = vertices[i].y+0.01f;;
+		gaCoords[i*3*6+5] = vertices[i].z;
+		gaCoords[i*3*6+6] = vertices[i].x-0.01f;
+		gaCoords[i*3*6+7] = vertices[i].y;
+		gaCoords[i*3*6+8] = vertices[i].z;
+		gaCoords[i*3*6+9] = vertices[i].x+0.01f;
+		gaCoords[i*3*6+10] = vertices[i].y;
+		gaCoords[i*3*6+11] = vertices[i].z;
+		gaCoords[i*3*6+12] = vertices[i].x;
+		gaCoords[i*3*6+13] = vertices[i].y;
+		gaCoords[i*3*6+14] = vertices[i].z-0.01f;
+		gaCoords[i*3*6+15] = vertices[i].x;
+		gaCoords[i*3*6+16] = vertices[i].y;
+		gaCoords[i*3*6+17] = vertices[i].z+0.01f;
+		}
+		
+		ga.setCoordRefFloat(gaCoords);
+		ga.setCoordIndicesRef(gaCoordIndices);
+		
+		
+		Shape3D shape = new Shape3D();
+		shape.setGeometry(ga);
+		shape.setAppearance(new SimpleShaderAppearance(new Color3f(1f, 0f, 0f)));
+		parent.addChild(shape);
 	}
 
 	/**
