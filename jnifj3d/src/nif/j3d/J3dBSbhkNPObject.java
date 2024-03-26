@@ -49,6 +49,7 @@ import nif.niobject.hkx.hknpCompressedMeshShapeTree;
 import nif.niobject.hkx.hknpPhysicsSystemData;
 import nif.niobject.hkx.hknpShape;
 import nif.niobject.hkx.reader.HKXContents;
+import nif.tools.MiniFloat;
 import tools3d.utils.PhysAppearance;
 import tools3d.utils.Utils3D;
 import utils.ESConfig;
@@ -558,345 +559,157 @@ public class J3dBSbhkNPObject extends Group
 		return shape;
 	}
 
-	//public static float CMD_VERT_SCALE = 1f / 1000f;
 	public static NifVer nifVer = new NifVer("FO4", NifVer.VER_20_2_0_7, 12, 130);
 
 	public static Group hknpCompressedMeshShapeData(hknpCompressedMeshShapeData data, HKXContents contents)
 	{
-		// we are in fact dealing only with the meshTree not the simdTree
+ 		// we are in fact dealing only with the meshTree not the simdTree
 		hknpCompressedMeshShapeTree meshTree = data.meshTree;
 
 		Group group = new Group();
 		
-		//possibly get the domain out as I imagine all the vertices are normalized   into that range
-		hkAabb meshTreehkAabb = meshTree.domain;
-		
-/*		Point3f[][] vertices = new Point3f[meshTree.sections.length][];
+		hkAabb meshTreehkAabb = meshTree.domain; // full AABB of all sections
+			
+		Point3f[] sharedVertices = null;
+		if(meshTree.sharedVertices != null) {
+			sharedVertices = new Point3f[meshTree.sharedVertices.length];
+			for (int pvi = 0; pvi < meshTree.sharedVertices.length; pvi++)
+			{			
+				long pv = meshTree.sharedVertices[pvi];			
+			
+				//z value are what I'm calling x, so is this is in zyx format, 10, 11, 11 bit			
+	 
+	
+				// 64 bits in a  long, possibly signed? probably mini floats
+			/*	float fx2 = MiniFloat.float22bits(pv, 0); 
+				float fy2 = MiniFloat.float21bits(pv, 22);  
+				float fz2 = MiniFloat.float21bits(pv, 43);  
+				System.out.println("minifloat  fxyz2 " + fx2 + ", " + fy2+ ", " +fz2);*/
+					
+				//21bit x, 21 bit y, 22 bit z this time!
+				float fx = (((pv >> 0) & 0x1FFFFF)/(float)0x1FFFFF * (meshTreehkAabb.max.x-meshTreehkAabb.min.x)) + meshTreehkAabb.min.x;
+				float fy = (((pv >> 21) & 0x1FFFFF)/(float)0x1FFFFF * (meshTreehkAabb.max.y-meshTreehkAabb.min.y)) + meshTreehkAabb.min.y;
+				float fz = (((pv >> 42) & 0x3FFFFF)/(float)0x3FFFFF * (meshTreehkAabb.max.z-meshTreehkAabb.min.z)) + meshTreehkAabb.min.z;
+				//System.out.println("long:" + String.format("%64s", Long.toBinaryString(pv)).replace(" ", "0"));	
+				//System.out.println("minifloat  fxyz " + fx + ", " + fy+ ", " +fz);
+			
+				sharedVertices[pvi] = ConvertFromHavok.toJ3dP3f( -fx,-fy,fz, nifVer);	
+			}		
+		}
 
+
+		// keep track of where we are in the primitives array
+		int startIndex = 0;
 		for (int s = 0; s < meshTree.sections.length; s++)
 		{
-			hkcdStaticMeshTreeBaseSection section = meshTree.sections[s];
+			int firstPackedVertex = meshTree.sections[s].firstPackedVertex;
+			int numPackedVertices = meshTree.sections[s].numPackedVertices;
+			int numSharedIndices = meshTree.sections[s].numSharedIndices;			
+			//hkAabb currentSectionhkAabb = meshTree.sections[currentSectionIdx].domain;	
+			float[] codecParms = meshTree.sections[s].codecParms;// parallel Algebraic Recursive Multilevel Solvers?   
 			
+			Point3f[] vertices = new Point3f[numPackedVertices + numSharedIndices];
 			
-			hkAabb sectionhkAabb = section.domain;
+			for(int pvi = 0; pvi < numPackedVertices; pvi++) {
+
+				int pv = meshTree.packedVertices[firstPackedVertex + pvi];			
 			
-			vertices[s] = new Point3f[section.nodes.length];
-			for (int i = 0; i < section.nodes.length; i++)
-			{
-				hkcdStaticTreeCodec3Axis4 hkcdStaticTreeCodec3Axis4 = section.nodes[i];
+				//z value are what I'm calling x, so is this is in zyx format, 10, 11, 11 bit			
 				
+				// Normalized would look like this, but as the noramlization dividor is accounted for in the param scale we don't need it
+				//float fx = (pv & 0x7FF) / 2047.0f; // 11bit
+				//float fy = ((pv >> 11) & 0x7FF) / 2047.0f; // 11bit
+				//float fz = ((pv >> 22) & 0x3FF) / 1023.0f; // 10bit
+				// multiplised by the param scale, and offset added 
+				float fx = (((pv >> 0) & 0x7FF) * codecParms[3]) + codecParms[0];
+				float fy = (((pv >> 11) & 0x7FF) * codecParms[4]) + codecParms[1];
+				float fz = (((pv >> 22) & 0x3FF) * codecParms[5]) + codecParms[2];
 				
-				
-				//interesting parts of the section
-				// len vertices in section 0 = 109 section 1 = 153
-				int firstPackedVertex = section.firstPackedVertex; //0 in my section[0] and 43 in my section[1]
-				int sharedVertices = section.sharedVertices.data; 	//43 and 3391
-				int primitives = section.primitives.data; 			//55 and 14157 (I'm expecting 77 here actually)
-				int dataRuns = section.dataRuns.data;				//1 and 257 
-				int numPackedVertices  = section.numPackedVertices; //43 and 63
-				int numSharedIndices = section.numSharedIndices;	//13 and 13
-				// section 1 has leafIndex=1 and 1 has leafIndex=2
-				
-							
-				
-				//FIXME: presumably I need to multiply the bytesworth into the range max.x-min.x?? and possibly drop the CMD_VERT_SCALE?
-				float CMD_VERT_SCALE_X = (sectionhkAabb.max.x - sectionhkAabb.min.x)/255; 
-				float CMD_VERT_SCALE_Y = (sectionhkAabb.max.y - sectionhkAabb.min.y)/255; 
-				float CMD_VERT_SCALE_Z = (sectionhkAabb.max.z - sectionhkAabb.min.z)/255; 
-				vertices[s][i] = ConvertFromHavok.toJ3dP3f(//
-						((hkcdStaticTreeCodec3Axis4.xyz[0]) * CMD_VERT_SCALE_X) + sectionhkAabb.min.x, //
-						((hkcdStaticTreeCodec3Axis4.xyz[1]) * CMD_VERT_SCALE_Y) + sectionhkAabb.min.y, //
-						((hkcdStaticTreeCodec3Axis4.xyz[2]) * CMD_VERT_SCALE_Z) + sectionhkAabb.min.z, nifVer);
+				vertices[pvi] = ConvertFromHavok.toJ3dP3f( -fx,-fy,fz, nifVer);		
 			}
-		}*/
-		
-	
-	
-
-		//BOSBarricadePoles01.nif
-		
-		//primitives (only 1 but the run count is 2 so that may allocate them out) has length 132 of int[4] (enough for each run below)
-		//why 4? are we always flat quads?, some of them are denigerate with repeated last index, so quads or tris, no worries
-		//min index is 0 and max looks like 75
-		//looks like I index them in 2? but how would that work?,  how do I index the odd verts?
-				
-				 
-				 
-		int[] sharedVerticesIndex = meshTree.sharedVerticesIndex;// then sharedVertexIndice of len 26 (which is 13+13?)
-		//0 1 2 3 4 5 6 7 8 9 10 11 12 2 1 0 4 3 12 7 6 5 10 9 8 11
-		
-		
-				
-		//pack vertices(?) of len 106 (just a bunch of encoded ints)
-		//sharedVertice len of 13 bunch of encoded ints
-		//primitive data runs = 2 with (note this adds to the total of 132)
-		//data run 0: index = 0, count = 55 <- this is half (-1) of the section 1 vert count of 109?
-		//data run 1: index = 0, count = 77 <- this is half (-1) of the section 2 vert count of 153?
-
-		
-		Point3f[] vertices = new Point3f[meshTree.packedVertices.length];
-		
-		// start with section 0 aabb
-		int currentSectionIdx = 0;
-		int sectionNumPackedVertices = meshTree.sections[currentSectionIdx].numPackedVertices;
-		hkAabb currentSectionhkAabb = meshTree.sections[currentSectionIdx].domain;		
-		float[] codecParms = meshTree.sections[currentSectionIdx].codecParms;// parallel Algebraic Recursive Multilevel Solvers?   
-		
-		
-
-		System.out.println("sec"+currentSectionIdx + " codecParms[3] " + codecParms[3] * 2048 );
-		System.out.println("sec"+currentSectionIdx + " codecParms[4] " + codecParms[4] * 2048 );
-		System.out.println("sec"+currentSectionIdx + " codecParms[5] " + codecParms[5] * 1024  );
-		
-		// ok ok looks like a pole that need 16 verts has 19! in the sections world
-		// but it definitely has 16 in packedVertices, so time to try to unpack that mystery
-		for (int pvi = 0; pvi < meshTree.packedVertices.length; pvi++)
-		{
-			// time for the next section?
-			if(pvi >= sectionNumPackedVertices) {
-				currentSectionIdx++;
-				sectionNumPackedVertices += meshTree.sections[currentSectionIdx].numPackedVertices;// notice += so we can do easy idx checks
-				currentSectionhkAabb = meshTree.sections[currentSectionIdx].domain;
-				
-				// I notice a section codecParams appear to tbe the minimum for a single section, but somethign lese for the double
-				// somehting like the min offsetty part?
-				codecParms = meshTree.sections[currentSectionIdx].codecParms;
-				
-
-				System.out.println("sec"+currentSectionIdx + " codecParms[3] " + codecParms[3] * 2047 );
-				System.out.println("sec"+currentSectionIdx + " codecParms[4] " + codecParms[4] * 2047 );
-				System.out.println("sec"+currentSectionIdx + " codecParms[5] " + codecParms[5] * 1023 );
+			
+			
+			if(meshTree.sharedVertices != null) {
+				for(int i =0 ; i< numSharedIndices;i++)
+					vertices[numPackedVertices+i] = sharedVertices[i];
+			}
+						
+			
+			addDebugPoints(vertices, new Color3f(0.0f,1f-((float)s/(float)meshTree.primitiveDataRuns.length), ((float)s/(float)meshTree.primitiveDataRuns.length)), group);
+			
+			//int index = meshTree.primitiveDataRuns[s].index;
+			int count = meshTree.primitiveDataRuns[s].count;
+			
+			// bum have to precount so we can allocate a index array
+			int pointCount = 0;
+			for (int p = startIndex; p < startIndex + count; p++)
+			{		
+				hkcdStaticMeshTreeBasePrimitive primitive = meshTree.primitives[p]; 
+				int[] indices = primitive.indices;
+				//quad?
+				if(indices[2] != indices[3]) {
+					pointCount += 6;
+				} else {//just a tri					
+					pointCount += 3;
+				}
 			}			
 			
-			int pv = meshTree.packedVertices[pvi];
-			
-			// definitely 10,11,11 no doubt!
-			// values seen
-			// x 0's , 1's
-			// y 0's , 1's
-			// z 0's , 1's, 00001101110=110dec, 11110010001=1937dec
-			
-			// this suggests the z value are what I'm calling x?? so is this zyx?
+			int[] listPoints = new int[pointCount];
+			int i = 0;
+			for (int p = startIndex; p < startIndex + count; p++)
+			{		
+				
+				hkcdStaticMeshTreeBasePrimitive primitive = meshTree.primitives[p]; 
+				int[] indices = primitive.indices;
+				
+				//TODO: notice the sharedIndices need to be run through 
+				//int[] sharedVerticesIndex = meshTree.sharedVerticesIndex;
+				//0 1 2 3 4 5 6 7 8 9 10 11 12 2 1 0 4 3 12 7 6 5 10 9 8 11
+				
+												 				
+				//quad?
+				if(indices[2] != indices[3]) {
+					listPoints[i++] = indices[0];
+					listPoints[i++] = indices[1];
+					listPoints[i++] = indices[2];
+					listPoints[i++] = indices[2];
+					listPoints[i++] = indices[3];
+					listPoints[i++] = indices[0];
+				} else {//just a tri					
+					listPoints[i++] = indices[0];
+					listPoints[i++] = indices[1];
+					listPoints[i++] = indices[2];
+				}
+			}	
+					
+					
+			GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
+			gi.setCoordinates(vertices);
+			gi.setCoordinateIndices(listPoints);
+			gi.setUseCoordIndexOnly(true);
+
+			try {
+			Shape3D shape = new Shape3D();
+			shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
+			shape.setAppearance(PhysAppearance.makeAppearance(new Color3f(0.75f,1f-((float)s/(float)meshTree.primitiveDataRuns.length), ((float)s/(float)meshTree.primitiveDataRuns.length))));
+			group.addChild(shape);
+			}catch (ArrayIndexOutOfBoundsException e) {
+				e.printStackTrace();
+			}
 
 			
-			
-			// Normalized would look like this, but as the noramlization dividor is accounted for in the param scale we don't need it
-			//float fx = (pv & 0x7FF) / 2047.0f; // 11bit
-			//float fy = ((pv >> 11) & 0x7FF) / 2047.0f; // 11bit
-			//float fz = ((pv >> 22) & 0x3FF) / 1023.0f; // 10bit
-			// multiplised by the param scale, and offset added 
-			float fx = (((pv >> 0) & 0x7FF) * codecParms[3]) + codecParms[0];
-			float fy = (((pv >> 11) & 0x7FF) * codecParms[4]) + codecParms[1];
-			float fz = (((pv >> 22) & 0x3FF) * codecParms[5]) + codecParms[2];
-			
-			vertices[pvi] = ConvertFromHavok.toJ3dP3f( -fx,-fy,fz, nifVer);
-					
-					
-					
-			//BOSBarricadeBase01-bhkPhysicsSystem_3
-			//section 0 wants -1.6,-0.07,0.13 and translation of -1.6, -0.28, -0.114
-			//section 0 scale = 0.4572, 0.64, 1.013  offset of -1.6, -0.28, -0.114
-			//section 1 wants 0.0, -0.57, -0.114 and translation of 0.0, -0.57, -0.114
-			//section 1 scale = 1.6, 1.14, 1.1473 offset of 0.0, -0.57, -0.114
-			
-			
-		
- 
-/*			float minx = codecParms[0];
-			float miny = -0.07f;//codecParms[1];			
-			float minz = 0.13f;//codecParms[2];
-			
-			
-			
-			float CMD_VERT_SCALE_X = (currentSectionhkAabb.max.x - minx); 
-			float CMD_VERT_SCALE_Y = (currentSectionhkAabb.max.y - miny); 
-			float CMD_VERT_SCALE_Z = (currentSectionhkAabb.max.z - minz); 
-			
-			
-			miny = -0.28575000166893005f; 		
-			minz = -0.11430008709430695f;
-			
-			vertices[pvi] = ConvertFromHavok.toJ3dP3f(//
-					-((fx * CMD_VERT_SCALE_X) + minx), // notice -ve
-					-((fy * CMD_VERT_SCALE_Y) + miny), // notice -ve
-					(fz * CMD_VERT_SCALE_Z) + minz, nifVer);*/
-			
-			//debug
-			//if(currentSectionIdx!=0) vertices[pvi] = new Point3f();
-			
-			
-			
-			// this is the single domain/aabb code using the overall aabb
-/*			float CMD_VERT_SCALE_X = (meshTreehkAabb.max.x - meshTreehkAabb.min.x); 
-			float CMD_VERT_SCALE_Y = (meshTreehkAabb.max.y - meshTreehkAabb.min.y); 
-			float CMD_VERT_SCALE_Z = (meshTreehkAabb.max.z - meshTreehkAabb.min.z); 
-			vertices[pvi] = ConvertFromHavok.toJ3dP3f(//
-					-((fx * CMD_VERT_SCALE_X) + meshTreehkAabb.min.x), // notice -ve
-					-((fy * CMD_VERT_SCALE_Y) + meshTreehkAabb.min.y), // notice -ve
-					(fz * CMD_VERT_SCALE_Z) + meshTreehkAabb.min.z, nifVer);
-*/		
-			
+			startIndex += count;//prep for next iter, needs to be by index above
 		}
-		//TODO: the shared vertices appear to be very similar only it has longs rather than ints
-
-		
-		//I see my section domain are borken up into a sliver and then most of it
-		// not base plate as 2 dims would differ
-		/*
-		aabb
-        <hkparam name="domain">
-            <hkobject class="hkAabb" name="domain" signature="0x4a948b16">
-                <hkparam name="min">(-1.6002000570297241 -0.5715000033378601 -0.11430008709430695 1.0)</hkparam>
-                <hkparam name="max">(1.6002000570297241 0.5715000629425049 1.1430000066757202 1.0)</hkparam>
-            </hkobject>
-        </hkparam>
-	
-sec 1
-        <hkparam name="domain">
-            <hkobject class="hkAabb" name="domain" signature="0x4a948b16">
-                <hkparam name="min">(-1.6002000570297241 -0.5715000033378601 -0.11430008709430695 1.0)</hkparam>
-                <hkparam name="max">(-1.1429998874664307 0.5715000629425049 1.1430000066757202 1.0)</hkparam>
-            </hkobject>
-        </hkparam>
-
-sec 2
-        <hkobject class="hkAabb" name="domain" signature="0x4a948b16">
-            <hkparam name="min">(-1.4287506341934204 -0.5715000033378601 -0.11430008709430695 1.0)</hkparam>
-            <hkparam name="max">(1.6002000570297241 0.5715000629425049 1.1430000066757202 1.0)</hkparam>
-        </hkobject>
-*/
-	
- 
-			System.out.println("meshTree.sections.lengthmeshTree.sections.lengthmeshTree.sections.length " + meshTree.sections.length);
-			
-		// bum have to precount so we can allocate a index array
-/*		int pointCount = 0;
-		for (int p = 0; p < meshTree.primitives.length; p++)
-		{		
-			hkcdStaticMeshTreeBasePrimitive primitive = meshTree.primitives[p]; 
-			int[] indices = primitive.indices;
-			//quad?
-			if(indices[2] != indices[3]) {
-				pointCount += 6;
-			} else {//just a tri					
-				pointCount += 3;
-			}
-		}			
-		
-		int[] listPoints = new int[pointCount];
- 
-		int i = 0;
-		for (int p = 0; p < meshTree.primitives.length; p++)
-		{		
-			
-			// for debug to only index one section
-			//if(p<meshTree.primitiveDataRuns[0].count					
-			//		+meshTree.primitiveDataRuns[1].count)continue;
-			
-			
-			//BOSBarricadePlate01.nif p34 is a degenerate non tri?
-			//if(p==34 || p==87) {			System.out.println("87");		continue; //87 = 49,50,51,51			
-			//}
-			
-			
-			hkcdStaticMeshTreeBasePrimitive primitive = meshTree.primitives[p]; 
-			int[] indices = primitive.indices;
-			//quad?
-			if(indices[2] != indices[3]) {
-				listPoints[i++] = indices[0];
-				listPoints[i++] = indices[1];
-				listPoints[i++] = indices[2];
-				listPoints[i++] = indices[2];
-				listPoints[i++] = indices[3];
-				listPoints[i++] = indices[0];
-			} else {//just a tri					
-				listPoints[i++] = indices[0];
-				listPoints[i++] = indices[1];
-				listPoints[i++] = indices[2];
-			}
-		}	
-				
-				
-		GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
-		gi.setCoordinates(vertices);
-		gi.setCoordinateIndices(listPoints);
-		gi.setUseCoordIndexOnly(true);
-
-		Shape3D shape = new Shape3D();
-		shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
-		shape.setAppearance(PhysAppearance.makeAppearance(new Color3f(0.70f, 1f, 1f)));
-		group.addChild(shape);
 
 			
-			 
-*/
-			int startIndex = 0;
-			for (int pdr = 0; pdr < meshTree.primitiveDataRuns.length; pdr++)
-			{
-				int index = meshTree.primitiveDataRuns[pdr].index;
-				int count = meshTree.primitiveDataRuns[pdr].count;
-				
-				
-				// bum have to precount so we can allocate a index array
-				int pointCount = 0;
-				for (int p = startIndex; p < startIndex + count; p++)
-				{		
-					hkcdStaticMeshTreeBasePrimitive primitive = meshTree.primitives[p]; 
-					int[] indices = primitive.indices;
-					//quad?
-					if(indices[2] != indices[3]) {
-						pointCount += 6;
-					} else {//just a tri					
-						pointCount += 3;
-					}
-				}			
-				
-				int[] listPoints = new int[pointCount];
-				int i = 0;
-				for (int p = startIndex; p < startIndex + count; p++)
-				{		
-					if(p>startIndex+3)continue;
-					hkcdStaticMeshTreeBasePrimitive primitive = meshTree.primitives[p]; 
-					int[] indices = primitive.indices;
-					//quad?
-					if(indices[2] != indices[3]) {
-						listPoints[i++] = indices[0];
-						listPoints[i++] = indices[1];
-						listPoints[i++] = indices[2];
-						listPoints[i++] = indices[2];
-						listPoints[i++] = indices[3];
-						listPoints[i++] = indices[0];
-					} else {//just a tri					
-						listPoints[i++] = indices[0];
-						listPoints[i++] = indices[1];
-						listPoints[i++] = indices[2];
-					}
-				}	
-						
-						
-				GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
-				gi.setCoordinates(vertices);
-				gi.setCoordinateIndices(listPoints);
-				gi.setUseCoordIndexOnly(true);
-
-				Shape3D shape = new Shape3D();
-				shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
-				shape.setAppearance(PhysAppearance.makeAppearance(new Color3f(0.75f,1f-((float)pdr/(float)meshTree.primitiveDataRuns.length), ((float)pdr/(float)meshTree.primitiveDataRuns.length))));
-				group.addChild(shape);
-
-				
-				startIndex += count;//prep for next iter, needs to be by index above
-			}
-
 			
-			addDebugPoints(vertices, group);
 			
 			
 		return group;
 	}
 	
 	
-	private static void addDebugPoints(Point3f[] vertices, Group parent) {
+	private static void addDebugPoints(Point3f[] vertices, Color3f color, Group parent) {
 		///////////////////////////////////////////////////////////////Lovely little point drawer thing!
 		int gaVertexCount = vertices.length * 6;// 4 points a crossed pair of lines
 		IndexedLineArray ga = new IndexedLineArray(gaVertexCount,
@@ -914,24 +727,26 @@ sec 2
 		float[] gaCoords = new float[gaVertexCount * 3];
 		for (int i = 0; i < gaVertexCount/6; i++)
 		{
-		gaCoords[i*3*6+0] = vertices[i].x;
-		gaCoords[i*3*6+1] = vertices[i].y-0.01f;
-		gaCoords[i*3*6+2] = vertices[i].z;
-		gaCoords[i*3*6+3] = vertices[i].x;
-		gaCoords[i*3*6+4] = vertices[i].y+0.01f;;
-		gaCoords[i*3*6+5] = vertices[i].z;
-		gaCoords[i*3*6+6] = vertices[i].x-0.01f;
-		gaCoords[i*3*6+7] = vertices[i].y;
-		gaCoords[i*3*6+8] = vertices[i].z;
-		gaCoords[i*3*6+9] = vertices[i].x+0.01f;
-		gaCoords[i*3*6+10] = vertices[i].y;
-		gaCoords[i*3*6+11] = vertices[i].z;
-		gaCoords[i*3*6+12] = vertices[i].x;
-		gaCoords[i*3*6+13] = vertices[i].y;
-		gaCoords[i*3*6+14] = vertices[i].z-0.01f;
-		gaCoords[i*3*6+15] = vertices[i].x;
-		gaCoords[i*3*6+16] = vertices[i].y;
-		gaCoords[i*3*6+17] = vertices[i].z+0.01f;
+			if(vertices[i]!=null) {
+				gaCoords[i*3*6+0] = vertices[i].x;
+				gaCoords[i*3*6+1] = vertices[i].y-0.01f;
+				gaCoords[i*3*6+2] = vertices[i].z;
+				gaCoords[i*3*6+3] = vertices[i].x;
+				gaCoords[i*3*6+4] = vertices[i].y+0.01f;;
+				gaCoords[i*3*6+5] = vertices[i].z;
+				gaCoords[i*3*6+6] = vertices[i].x-0.01f;
+				gaCoords[i*3*6+7] = vertices[i].y;
+				gaCoords[i*3*6+8] = vertices[i].z;
+				gaCoords[i*3*6+9] = vertices[i].x+0.01f;
+				gaCoords[i*3*6+10] = vertices[i].y;
+				gaCoords[i*3*6+11] = vertices[i].z;
+				gaCoords[i*3*6+12] = vertices[i].x;
+				gaCoords[i*3*6+13] = vertices[i].y;
+				gaCoords[i*3*6+14] = vertices[i].z-0.01f;
+				gaCoords[i*3*6+15] = vertices[i].x;
+				gaCoords[i*3*6+16] = vertices[i].y;
+				gaCoords[i*3*6+17] = vertices[i].z+0.01f;
+			}
 		}
 		
 		ga.setCoordRefFloat(gaCoords);
@@ -940,7 +755,7 @@ sec 2
 		
 		Shape3D shape = new Shape3D();
 		shape.setGeometry(ga);
-		shape.setAppearance(new SimpleShaderAppearance(new Color3f(1f, 0f, 0f)));
+		shape.setAppearance(new SimpleShaderAppearance(color));
 		parent.addChild(shape);
 	}
 
