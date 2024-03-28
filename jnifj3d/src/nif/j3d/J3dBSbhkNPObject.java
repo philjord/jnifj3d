@@ -566,26 +566,19 @@ public class J3dBSbhkNPObject extends Group
  		// we are in fact dealing only with the meshTree not the simdTree
 		hknpCompressedMeshShapeTree meshTree = data.meshTree;
 
-		Group group = new Group();
+		Group group = new Group();		
 		
+		// first decompress shared Vertices against the full AABB
 		hkAabb meshTreehkAabb = meshTree.domain; // full AABB of all sections
 			
-		Point3f[] sharedVertices = null;
+		Point3f[] sharedVertices = new Point3f[0];// avoid null pointer checks
 		if(meshTree.sharedVertices != null) {
 			sharedVertices = new Point3f[meshTree.sharedVertices.length];
 			for (int pvi = 0; pvi < meshTree.sharedVertices.length; pvi++)
 			{			
 				long pv = meshTree.sharedVertices[pvi];			
 			
-				//z value are what I'm calling x, so is this is in zyx format, 10, 11, 11 bit			
-	 
-	
-				// 64 bits in a  long, possibly signed? probably mini floats
-			/*	float fx2 = MiniFloat.float22bits(pv, 0); 
-				float fy2 = MiniFloat.float21bits(pv, 22);  
-				float fz2 = MiniFloat.float21bits(pv, 43);  
-				System.out.println("minifloat  fxyz2 " + fx2 + ", " + fy2+ ", " +fz2);*/
-					
+				//z value are what I'm calling x, so is this is in zyx format, 10, 11, 11 bit			 
 				//21bit x, 21 bit y, 22 bit z this time!
 				float fx = (((pv >> 0) & 0x1FFFFF)/(float)0x1FFFFF * (meshTreehkAabb.max.x-meshTreehkAabb.min.x)) + meshTreehkAabb.min.x;
 				float fy = (((pv >> 21) & 0x1FFFFF)/(float)0x1FFFFF * (meshTreehkAabb.max.y-meshTreehkAabb.min.y)) + meshTreehkAabb.min.y;
@@ -597,18 +590,29 @@ public class J3dBSbhkNPObject extends Group
 			}		
 		}
 
-
-		// keep track of where we are in the primitives array
-		int startIndex = 0;
-		for (int s = 0; s < meshTree.sections.length; s++)
-		{
+		/*for (int p = 0; p < meshTree.primitives.length; p++)
+		{						
+			hkcdStaticMeshTreeBasePrimitive primitive = meshTree.primitives[p]; 
+			int[] indices = primitive.indices;
+			System.out.println(p+" " + indices[0]+ ", "+ indices[1]+ ", "+ indices[2]+ ", "+ indices[3]);
+		}*/
+		
+		for (int s = 0; s < meshTree.sections.length; s++){			
+		
+			// these are the current value isn the lowest byte and the previous in the next short(?) up	
+			int primitivesCount = meshTree.sections[s].primitives.data & 0xff;
+			int primitivesOffset = (meshTree.sections[s].primitives.data) >> 8 & 0xffff;
+			int sharedCount = meshTree.sections[s].sharedVertices.data & 0xff;
+			int sharedOffset = (meshTree.sections[s].sharedVertices.data) >> 8 & 0xffff;
+						
+			
 			int firstPackedVertex = meshTree.sections[s].firstPackedVertex;
 			int numPackedVertices = meshTree.sections[s].numPackedVertices;
 			int numSharedIndices = meshTree.sections[s].numSharedIndices;			
 			//hkAabb currentSectionhkAabb = meshTree.sections[currentSectionIdx].domain;	
 			float[] codecParms = meshTree.sections[s].codecParms;// parallel Algebraic Recursive Multilevel Solvers?   
 			
-			Point3f[] vertices = new Point3f[numPackedVertices + numSharedIndices];
+			Point3f[] vertices = new Point3f[numPackedVertices + sharedVertices.length];//numSharedIndices];
 			
 			for(int pvi = 0; pvi < numPackedVertices; pvi++) {
 
@@ -627,23 +631,17 @@ public class J3dBSbhkNPObject extends Group
 				
 				vertices[pvi] = ConvertFromHavok.toJ3dP3f( -fx,-fy,fz, nifVer);		
 			}
-			
-			
-			if(meshTree.sharedVertices != null) {
-				for(int i =0 ; i< numSharedIndices;i++)
-					vertices[numPackedVertices+i] = sharedVertices[i];
-			}
 						
+			// all shared are copied to the end (if any), bit poor in efficiency, shorten later
+			for(int i =0 ; i< sharedVertices.length;i++) {
+				vertices[numPackedVertices+i] = sharedVertices[i];					 
+			}		
 			
 			addDebugPoints(vertices, new Color3f(0.0f,1f-((float)s/(float)meshTree.primitiveDataRuns.length), ((float)s/(float)meshTree.primitiveDataRuns.length)), group);
 			
-			//int index = meshTree.primitiveDataRuns[s].index;
-			int count = meshTree.primitiveDataRuns[s].count;
-			
 			// bum have to precount so we can allocate a index array
 			int pointCount = 0;
-			for (int p = startIndex; p < startIndex + count; p++)
-			{		
+			for (int p = primitivesOffset; p < primitivesOffset + primitivesCount; p++) {		
 				hkcdStaticMeshTreeBasePrimitive primitive = meshTree.primitives[p]; 
 				int[] indices = primitive.indices;
 				//quad?
@@ -652,33 +650,35 @@ public class J3dBSbhkNPObject extends Group
 				} else {//just a tri					
 					pointCount += 3;
 				}
-			}			
+			}						
 			
 			int[] listPoints = new int[pointCount];
-			int i = 0;
-			for (int p = startIndex; p < startIndex + count; p++)
-			{		
-				
+			int idx = 0;
+			for (int i = 0; i < primitivesCount; i++) {				
+				int p = primitivesOffset + i;
 				hkcdStaticMeshTreeBasePrimitive primitive = meshTree.primitives[p]; 
-				int[] indices = primitive.indices;
 				
-				//TODO: notice the sharedIndices need to be run through 
-				//int[] sharedVerticesIndex = meshTree.sharedVerticesIndex;
-				//0 1 2 3 4 5 6 7 8 9 10 11 12 2 1 0 4 3 12 7 6 5 10 9 8 11
-				
-												 				
+				int[] indices = primitive.indices;	
+
+				// if any of the indices go beyond numPackedVertices then the distance beyond
+				// is used as an index into the sharedVerticesIndex, starting at the <sharedOffset> for this section
+				// each section has numSharedIndices of the sharedVerticesIndex as it's own
+				// the index found is then used as an index into the shared vertex area of the vertices, which for now is at the end starting at 
+				// numPackedVertices, but when a single packed and shared vertex array is used will be at the end of all packed vertices
+								 				
+				int[] sharedVerticesIndex = meshTree.sharedVerticesIndex;										 				
 				//quad?
 				if(indices[2] != indices[3]) {
-					listPoints[i++] = indices[0];
-					listPoints[i++] = indices[1];
-					listPoints[i++] = indices[2];
-					listPoints[i++] = indices[2];
-					listPoints[i++] = indices[3];
-					listPoints[i++] = indices[0];
+					listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]-numPackedVertices)+sharedOffset]+numPackedVertices;
+					listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : sharedVerticesIndex[(indices[1]-numPackedVertices)+sharedOffset]+numPackedVertices;
+					listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]-numPackedVertices)+sharedOffset]+numPackedVertices;
+					listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]-numPackedVertices)+sharedOffset]+numPackedVertices;
+					listPoints[idx++] = indices[3] < numPackedVertices ? indices[3] : sharedVerticesIndex[(indices[3]-numPackedVertices)+sharedOffset]+numPackedVertices;
+					listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]-numPackedVertices)+sharedOffset]+numPackedVertices;
 				} else {//just a tri					
-					listPoints[i++] = indices[0];
-					listPoints[i++] = indices[1];
-					listPoints[i++] = indices[2];
+					listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]-numPackedVertices)+sharedOffset]+numPackedVertices;
+					listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : sharedVerticesIndex[(indices[1]-numPackedVertices)+sharedOffset]+numPackedVertices;
+					listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]-numPackedVertices)+sharedOffset]+numPackedVertices;
 				}
 			}	
 					
@@ -688,22 +688,11 @@ public class J3dBSbhkNPObject extends Group
 			gi.setCoordinateIndices(listPoints);
 			gi.setUseCoordIndexOnly(true);
 
-			try {
 			Shape3D shape = new Shape3D();
 			shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
 			shape.setAppearance(PhysAppearance.makeAppearance(new Color3f(0.75f,1f-((float)s/(float)meshTree.primitiveDataRuns.length), ((float)s/(float)meshTree.primitiveDataRuns.length))));
 			group.addChild(shape);
-			}catch (ArrayIndexOutOfBoundsException e) {
-				e.printStackTrace();
-			}
-
-			
-			startIndex += count;//prep for next iter, needs to be by index above
-		}
-
-			
-			
-			
+		}			
 			
 		return group;
 	}
