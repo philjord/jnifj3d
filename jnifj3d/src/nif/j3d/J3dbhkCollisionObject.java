@@ -52,6 +52,7 @@ import nif.niobject.bhk.bhkShape;
 import nif.niobject.bhk.bhkSphereShape;
 import nif.niobject.bhk.bhkTransformShape;
 import nif.niobject.bhk.hkPackedNiTriStripsData;
+import nif.niobject.bs.BSbhkNPObject;
 import tools3d.utils.PhysAppearance;
 import tools3d.utils.Utils3D;
 import utils.convert.ConvertFromHavok;
@@ -72,65 +73,59 @@ public class J3dbhkCollisionObject extends Group
 	private static final int defaultFormat = GeometryArray.COORDINATES | GeometryArray.BY_REFERENCE | GeometryArray.USE_NIO_BUFFER;
 
 	//TODO: many more JBullet style conversions
-	public J3dbhkCollisionObject(bhkCollisionObject object, NiToJ3dData niToJ3dData)
-	{
-		if (object.body.ref != -1)
-		{
-			if (niToJ3dData.get(object.body) instanceof bhkRigidBody)
-			{
-				bhkRigidBody bhkRigidBody = (bhkRigidBody) niToJ3dData.get(object.body);
+	public J3dbhkCollisionObject(bhkCollisionObject object, NiToJ3dData niToJ3dData) {
+		if (object.body.ref != -1) {
+			
+			NiObject body = niToJ3dData.get(object.body);
+			NiObject parent = niToJ3dData.get(object.target);
+			J3dNiAVObject j3dParent = niToJ3dData.get((NiAVObject) parent);					
+			
+			if (body instanceof bhkRigidBody) {
+				bhkRigidBody bhkRigidBody = (bhkRigidBody) body;
 				bhkShape bhkShape = (bhkShape) niToJ3dData.get(bhkRigidBody.shape);
-
-				Group lowerGroup;
-
-				if (bhkRigidBody instanceof bhkRigidBodyT)
-				{
+				Group lowerGroup = null;
+				
+				if (bhkRigidBody instanceof bhkRigidBodyT) {
 					Transform3D t = new Transform3D();
-
 					t.setRotation(ConvertFromHavok.toJ3d(bhkRigidBody.rotation));
-
 					t.setTranslation(ConvertFromHavok.toJ3d(bhkRigidBody.translation, niToJ3dData.nifVer));
-
 					lowerGroup = new TransformGroup(t);
-				}
-				else
-				{
+				} else {
 					lowerGroup = new Group();
 				}
 
-				processBhkShape(bhkShape, lowerGroup, niToJ3dData);
-
-				NiObject parent = niToJ3dData.get(object.target);
-
-				J3dNiAVObject j3dParent = niToJ3dData.get((NiAVObject) parent);
-
+				// this will add the tree to the lowerGroup
+				processBhkShape(bhkShape, lowerGroup, niToJ3dData);		
+				
 				// in one file I've found one instance with no parent
-				if (j3dParent != null)
-				{
+				if (j3dParent != null) {
 					//lowerGroup.setPickable(true);
 					lowerGroup.setName("J3dbhkCollisionObject child of " + j3dParent.getName());
 
 					addChild(lowerGroup);
 					j3dParent.addChild(this);
-				}
-				else
-				{
+				} else {
 					System.out.println("No parent for J3dbhkCollisionObject, oh well");
 				}
 			}
-			else
+			else if (body instanceof BSbhkNPObject)
 			{
-				if ((object.nVer.LOAD_VER >= NifVer.VER_20_2_0_7 && object.nVer.LOAD_USER_VER == 12 && object.nVer.LOAD_USER_VER2 == 130))
-				{
-					//TODO: for FO4 physics
-					//System.out.println("FO4 skipping child type NiParticleSystem - for now");
+				// FO4 has ramps which also point to the same phys data, but with a different orientation
+				// something for the AI I guess, ignore them phys data loaded properly from the main node
+				// e.g. C_Ramp01 C_Ramp02 C_Ramp01
+				String parentName = j3dParent.niAVObject.name;
+				if(parentName == null || parentName.length() < 2 || !parentName.substring(0, 2).equals("C_")) {
+					BSbhkNPObject bSbhkNPObject = (BSbhkNPObject) body;				
+					J3dBSbhkNPObject j3dBSbhkNPObject =  new J3dBSbhkNPObject(bSbhkNPObject, niToJ3dData);
+					j3dParent.addChild(j3dBSbhkNPObject);// notice this class not involved
 				}
-				else
-				{
-					System.out
-							.println("J3dbhkCollisionObject - bhkCollisionObject.body is not bhkRigidBody " + niToJ3dData.get(object.body));
-				}
-			}
+			} 
+			else {
+				System.out
+				.println("J3dbhkCollisionObject - bhkCollisionObject.body is not bhkRigidBody or BSbhkNPObject " + niToJ3dData.get(object.body));
+			}						
+			
+			
 		}
 	}
 
