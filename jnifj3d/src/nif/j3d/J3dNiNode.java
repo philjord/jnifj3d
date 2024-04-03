@@ -101,43 +101,42 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 					if (child instanceof NiTriBasedGeom)
 					{
 						NiTriBasedGeom niTriBasedGeom = (NiTriBasedGeom) child;
-						J3dNiTriBasedGeom ntbg = null;
-
-						J3dNiTriBasedGeom.mergeOblivionTanBiExtraData(niTriBasedGeom, niToJ3dData);
-
-						if (niTriBasedGeom instanceof NiTriShape)
+						if (!(NifToJ3d.HIDE_EDITORS && isEditorMarker(niTriBasedGeom.name)))
 						{
-							//For now we skip meat caps and morrowind shadows
-							if (!(NifToJ3d.HIDE_EDITORS && isEditorMarker(niTriBasedGeom.name))
-									&& niTriBasedGeom.name.toLowerCase().indexOf("meat") == -1
-									&& niTriBasedGeom.name.toLowerCase().indexOf("cap") == -1
-									&& niTriBasedGeom.name.toLowerCase().indexOf("tri shadow") == -1)
+							J3dNiTriBasedGeom ntbg = null;
+	
+							J3dNiTriBasedGeom.mergeOblivionTanBiExtraData(niTriBasedGeom, niToJ3dData);
+	
+							if (niTriBasedGeom instanceof NiTriShape)
 							{
-								NiTriShape niTriShape = (NiTriShape) niTriBasedGeom;
-								ntbg = new J3dNiTriShape(niTriShape, niToJ3dData, textureSource);
+								//For now we skip meat caps and morrowind shadows
+								if (niTriBasedGeom.name.toLowerCase().indexOf("meat") == -1
+										&& niTriBasedGeom.name.toLowerCase().indexOf("cap") == -1
+										&& niTriBasedGeom.name.toLowerCase().indexOf("tri shadow") == -1)
+								{
+									NiTriShape niTriShape = (NiTriShape) niTriBasedGeom;
+									ntbg = new J3dNiTriShape(niTriShape, niToJ3dData, textureSource);
+								}
 							}
-						}
-						else if (niTriBasedGeom instanceof BSLODTriShape)
-						{
-							BSLODTriShape bSLODTriShape = (BSLODTriShape) niTriBasedGeom;
-							ntbg = new J3dNiTriShape(bSLODTriShape, niToJ3dData, textureSource);
-						}
-						else if (niTriBasedGeom instanceof NiTriStrips)
-						{
-							if (!(NifToJ3d.HIDE_EDITORS && isEditorMarker(niTriBasedGeom.name)))
+							else if (niTriBasedGeom instanceof BSLODTriShape)
+							{								
+								BSLODTriShape bSLODTriShape = (BSLODTriShape) niTriBasedGeom;
+								ntbg = new J3dNiTriShape(bSLODTriShape, niToJ3dData, textureSource);
+							}
+							else if (niTriBasedGeom instanceof NiTriStrips)
 							{
 								NiTriStrips niTriStrips = (NiTriStrips) niTriBasedGeom;
 								ntbg = new J3dNiTriStrips(niTriStrips, niToJ3dData, textureSource);
 							}
+							else if (niTriBasedGeom instanceof BSTriShape)
+							{
+								BSTriShape bsTriShape = (BSTriShape) niTriBasedGeom;
+								ntbg = new J3dBSTriShape(bsTriShape, niToJ3dData, textureSource);
+							}
+							j3dNiNodes.add(ntbg);
+	
+							addChild(ntbg);
 						}
-						else if (niTriBasedGeom instanceof BSTriShape)
-						{
-							BSTriShape bsTriShape = (BSTriShape) niTriBasedGeom;
-							ntbg = new J3dBSTriShape(bsTriShape, niToJ3dData, textureSource);
-						}
-						j3dNiNodes.add(ntbg);
-
-						addChild(ntbg);
 					}
 					else if (child instanceof NiParticleSystem)
 					{
