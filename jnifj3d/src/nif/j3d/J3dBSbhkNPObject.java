@@ -234,12 +234,12 @@ public class J3dBSbhkNPObject extends Group
 			vertices[i] = new Point3f(ConvertFromHavok.toJ3dP3f(data.vertices[i], nifVer));
 		}
 		
-		group.addChild(createDebugPointShape(vertices, new Color3f(0.0f, 0.5f, 0.3f)));
+		//group.addChild(createDebugPointShape(vertices, new Color3f(0.0f, 0.5f, 0.3f)));
 		Point3f[] vertices2 = new Point3f[data.planes.length];
 		for (int i = 0; i < data.planes.length; i++) {
 			vertices2[i] = new Point3f(ConvertFromHavok.toJ3dP3f(data.planes[i], nifVer));
 		}		
-		group.addChild(createDebugPointShape(vertices2, new Color3f(1.0f,0.5f,0.3f)));
+		//group.addChild(createDebugPointShape(vertices2, new Color3f(1.0f,0.5f,0.3f)));
 		
 		
 		// ok vertices and planes, I'm see for a box which wants 8 vertexs I see oddly, very oddly, 
@@ -380,7 +380,7 @@ public class J3dBSbhkNPObject extends Group
 				vertices[numPackedVertices+i] = sharedVertices[i];					 
 			}		
 			
-			group.addChild(createDebugPointShape(vertices, new Color3f(0.0f,1f-((float)s/(float)meshTree.primitiveDataRuns.length), ((float)s/(float)meshTree.primitiveDataRuns.length))));
+			//group.addChild(createDebugPointShape(vertices, new Color3f(0.0f,1f-((float)s/(float)meshTree.primitiveDataRuns.length), ((float)s/(float)meshTree.primitiveDataRuns.length))));
 			
 			// bum have to precount so we can allocate a index array
 			int pointCount = 0;
@@ -409,19 +409,23 @@ public class J3dBSbhkNPObject extends Group
 				// the index found is then used as an index into the shared vertex area of the vertices, which for now is at the end starting at 
 				// numPackedVertices, but when a single packed and shared vertex array is used will be at the end of all packed vertices
 								 				
-				int[] sharedVerticesIndex = meshTree.sharedVerticesIndex;										 				
-				//quad?
-				if(indices[2] != indices[3]) {
-					listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]-numPackedVertices)+sharedOffset]+numPackedVertices;
-					listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : sharedVerticesIndex[(indices[1]-numPackedVertices)+sharedOffset]+numPackedVertices;
-					listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]-numPackedVertices)+sharedOffset]+numPackedVertices;
-					listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]-numPackedVertices)+sharedOffset]+numPackedVertices;
-					listPoints[idx++] = indices[3] < numPackedVertices ? indices[3] : sharedVerticesIndex[(indices[3]-numPackedVertices)+sharedOffset]+numPackedVertices;
-					listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]-numPackedVertices)+sharedOffset]+numPackedVertices;
-				} else {//just a tri					
-					listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]-numPackedVertices)+sharedOffset]+numPackedVertices;
-					listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : sharedVerticesIndex[(indices[1]-numPackedVertices)+sharedOffset]+numPackedVertices;
-					listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]-numPackedVertices)+sharedOffset]+numPackedVertices;
+				try {
+					int[] sharedVerticesIndex = meshTree.sharedVerticesIndex;										 				
+					//quad?
+					if(indices[2] != indices[3]) {
+						listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]-numPackedVertices)+sharedOffset]+numPackedVertices;
+						listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : sharedVerticesIndex[(indices[1]-numPackedVertices)+sharedOffset]+numPackedVertices;
+						listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]-numPackedVertices)+sharedOffset]+numPackedVertices;
+						listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]-numPackedVertices)+sharedOffset]+numPackedVertices;
+						listPoints[idx++] = indices[3] < numPackedVertices ? indices[3] : sharedVerticesIndex[(indices[3]-numPackedVertices)+sharedOffset]+numPackedVertices;
+						listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]-numPackedVertices)+sharedOffset]+numPackedVertices;
+					} else {//just a tri					
+						listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]-numPackedVertices)+sharedOffset]+numPackedVertices;
+						listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : sharedVerticesIndex[(indices[1]-numPackedVertices)+sharedOffset]+numPackedVertices;
+						listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]-numPackedVertices)+sharedOffset]+numPackedVertices;
+					}
+				} catch(ArrayIndexOutOfBoundsException e) {
+					System.out.println("J3dBSbhkNPObject ArrayIndexOutOfBoundsException " + e.getMessage());
 				}
 			}	
 					

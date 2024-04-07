@@ -1180,7 +1180,7 @@ public class NiGeometryAppearanceShader {
 		// FO4 has material files pointed at by name
 		if (bsesp.name.toLowerCase().endsWith(".bgem")) {
 			try {
-				return BgsmSource.getMaterial(bsesp.name);
+				return BgsmSource.bgsmSource.getMaterial(bsesp.name);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -1192,7 +1192,7 @@ public class NiGeometryAppearanceShader {
 		// FO4 has material files pointed at by name
 		if (bslsp.Name.toLowerCase().endsWith(".bgsm")) {
 			try {
-				return BgsmSource.getMaterial(bslsp.Name);
+				return BgsmSource.bgsmSource.getMaterial(bslsp.Name);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

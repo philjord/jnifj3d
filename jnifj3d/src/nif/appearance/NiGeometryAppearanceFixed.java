@@ -444,7 +444,7 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 						// but the bgsm definitely has good textures
 						try
 						{
-							BSMaterial material = BgsmSource.getMaterial(bslsp.Name);
+							BSMaterial material = BgsmSource.bgsmSource.getMaterial(bslsp.Name);
 							if (material != null)
 							{
 								Texture tex = J3dNiGeometry.loadTexture(material.textureList.get(0), textureSource);

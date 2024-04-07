@@ -6,51 +6,45 @@ import java.util.HashMap;
 import nif.niobject.bgsm.BgsmFile;
 import nif.niobject.bgsm.BSMaterial;
 import utils.source.MeshSource;
+import utils.source.file.FileMeshSource;
 
 /**
- * Yes it is bullshit sorry... I have to hand these guys deep, deep into the geometry code
+ * 
  * 
  * @author phil
  *
  */
 public class BgsmSource
 {
-	private static MeshSource MESH_SOURCE = null;
+	public static BgsmSource bgsmSource = null;
 
-	private static HashMap<String, BSMaterial> materialFiles = new HashMap<String, BSMaterial>();
+	protected static HashMap<String, BSMaterial> materialFiles = new HashMap<String, BSMaterial>();
+	private static FileMeshSource fileMeshSource = new FileMeshSource();
 	
-	public static void setBgsmSource(MeshSource meshSource)
+	//Yes it is bullshit sorry... I have to hand these guys deep, deep into the geometry code
+	public static void setBgsmSource(BgsmSource staticbgsmSource)
 	{
-		MESH_SOURCE = meshSource;
+		bgsmSource = staticbgsmSource;
 	}
 
-	public static BSMaterial getMaterial(String fileName) throws IOException
+	public BSMaterial getMaterial(String fileName) throws IOException
 	{
-		if (MESH_SOURCE != null)
+		// e.g. materials\Landscape\Rocks\BlastedForestRocksMoss.BGSM
+		// e.g. here is a bad name C:\Projects\Fallout4\Build\PC\Data\materials\Vehicles\Frame01.BGSM
+
+		if (fileName.toLowerCase().indexOf("materials") > 0)
 		{
-			// e.g. materials\Landscape\Rocks\BlastedForestRocksMoss.BGSM
-			// e.g. here is a bad name C:\Projects\Fallout4\Build\PC\Data\materials\Vehicles\Frame01.BGSM
-
-			if (fileName.toLowerCase().indexOf("materials") > 0)
-			{
-				fileName = fileName.toLowerCase().substring(fileName.toLowerCase().indexOf("materials"));
-			}
-
-			BSMaterial material = materialFiles.get(fileName);
-
-			if (material == null)
-			{
-				material = BgsmFile.readMaterialFile(fileName, MESH_SOURCE.getByteBuffer(fileName));
-				materialFiles.put(fileName, material);
-			}
-
-			return material;
+			fileName = fileName.toLowerCase().substring(fileName.toLowerCase().indexOf("materials"));
 		}
-		else
+
+		BSMaterial material = materialFiles.get(fileName);
+
+		if (material == null)
 		{
-			new Throwable("Mesh Source must be set in BgsmSource using setBgsmSource(MeshSource meshSource) before requesting bgsm files")
-					.printStackTrace();
+			material = BgsmFile.readMaterialFile(fileName, fileMeshSource.getByteBuffer(fileName));
+			materialFiles.put(fileName, material);
 		}
-		return null;
+
+		return material;
 	}
 }

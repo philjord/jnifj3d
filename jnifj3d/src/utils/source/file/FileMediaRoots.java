@@ -27,14 +27,14 @@ public class FileMediaRoots
 	static
 	{
 		// NOTE must be lower case and use / not \\ bejusus
-		defaultMediaRoots.add("f:/game_media/morrowind gotye/morrowind/data files");
-		defaultMediaRoots.add("f:/game_media/oblivion/");
-		defaultMediaRoots.add("f:/game_media/fallout3/");
-		defaultMediaRoots.add("f:/game_media/falloutnv/");
-		defaultMediaRoots.add("f:/game_media/skyrim/");
-		defaultMediaRoots.add("f:/game_media/fallout4/");
-		defaultMediaRoots.add("f:/game_media/x3tc/");
-		defaultMediaRoots.add("f:/game_media/black prophecy/");
+		defaultMediaRoots.add("D:/game_media/morrowind gotye/morrowind/data files");
+		defaultMediaRoots.add("D:/game_media/oblivion/");
+		defaultMediaRoots.add("D:/game_media/fallout3/");
+		defaultMediaRoots.add("D:/game_media/falloutnv/");
+		defaultMediaRoots.add("D:/game_media/skyrim/");
+		defaultMediaRoots.add("D:/game_media/fallout4/");
+		defaultMediaRoots.add("D:/game_media/x3tc/");
+		defaultMediaRoots.add("D:/game_media/black prophecy/");
 	}
 
 	public static void setMediaRoots(String[] mediaRoots)
@@ -98,7 +98,7 @@ public class FileMediaRoots
 				}
 				else
 				{
-					// add texture
+					// try texture
 					f = new File(fixedRoot + File.separator + ESConfig.TES_TEXTURE_PATH + mediaFileName);
 
 					if (f.exists())
@@ -110,7 +110,7 @@ public class FileMediaRoots
 					}
 					else
 					{
-						// add sound
+						// try sound
 						f = new File(fixedRoot + File.separator + ESConfig.TES_SOUND_PATH + mediaFileName);
 
 						if (f.exists())
@@ -121,13 +121,25 @@ public class FileMediaRoots
 						}
 						else
 						{
-							f = new File(fixedRoot + File.separator + mediaFileName);
+							// try materials
+							f = new File(fixedRoot + File.separator + ESConfig.TES_MATERIALS_PATH + mediaFileName);
 
 							if (f.exists())
 							{
 								ret[0] = fixedRoot;
-								ret[1] = File.separator + mediaFileName;
+								ret[1] = File.separator + ESConfig.TES_MATERIALS_PATH + mediaFileName;
 								return ret;
+							}
+							else
+							{
+								f = new File(fixedRoot + File.separator + mediaFileName);
+	
+								if (f.exists())
+								{
+									ret[0] = fixedRoot;
+									ret[1] = File.separator + mediaFileName;
+									return ret;
+								}
 							}
 							
 						}
@@ -205,15 +217,27 @@ public class FileMediaRoots
 							}
 							else
 							{
-								f = new File(path + File.separator + mediaFileName);
+								// add sound
+								f = new File(path + File.separator + ESConfig.TES_MATERIALS_PATH + mediaFileName);
 
 								if (f.exists())
 								{
 									ret[0] = path;
-									ret[1] = File.separator + mediaFileName;
+									ret[1] = File.separator + ESConfig.TES_MATERIALS_PATH + mediaFileName;
 									return ret;
 								}
-								//note no return roll around to check next path	
+								else
+								{
+									f = new File(path + File.separator + mediaFileName);
+	
+									if (f.exists())
+									{
+										ret[0] = path;
+										ret[1] = File.separator + mediaFileName;
+										return ret;
+									}
+									//note no return roll around to check next path	
+								}
 							}
 
 						}
