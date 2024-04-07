@@ -118,14 +118,13 @@ float scale( float f, float min, float max )
 	return f * ( max - min ) + min;
 }
 
+//NOTE!!!!!!!!!! I am in the middle of debuggin this thing!!
 void main( void )
 {
 	vec2 offset = glTexCoord0.st;
 
 	vec4 baseMap = texture2D( BaseMap, offset );	
-	gl_FragColor = baseMap;
-	return;
-	
+
 	if(alphaTestEnabled != 0){		
 		if(alphaTestFunction==512)discard;//never (never keep it)
 		if(alphaTestFunction==513 && !(baseMap.a< alphaTestValue))discard;
@@ -137,6 +136,12 @@ void main( void )
 		//alphaTestFunction==519//always (always keep it)
 	}
 	
+//DEBUG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	//gl_FragColor = baseMap;
+	//return;
+	
+
+
 	//swizzle the alpha and green  
 	vec4 normalMap = vec4( texture2D( NormalMap, offset ).ag * 2.0 - 1.0, 0.0, 0.0 );
 	//re-create the z  
@@ -144,7 +149,7 @@ void main( void )
 
 	// spec only use 2 value r and g below (r is gloss, g is spec)
 	//https://www.reddit.com/r/FalloutMods/comments/3uaq1l/fo4_lets_talk_about_texture_creation_editing/
-	vec2 specMap = texture2D( SpecularMap, offset ).ag ; 
+	vec2 specMap = texture2D( SpecularMap, offset ).ag; 
 	 
 	 
 	vec3 normal = normalize(normalMap.rgb * 2.0 - 1.0);
@@ -170,11 +175,20 @@ void main( void )
 
 	vec4 color;
 	vec3 albedo = baseMap.rgb * C.rgb;
+	
+	// I imagine NodtL is bum
+	NdotL = 1.0;
+	
 	vec3 diffuse = A.rgb + (D.rgb * NdotL);
+	
+	
+	
+	
 	if ( bool(greyscaleColor) ) {
 		vec4 luG = colorLookup( baseMap.g, C.g * paletteScale );
 		albedo = luG.rgb;
 	}
+
 	
 	// Emissive
 	vec3 emissive = vec3(0.0);
@@ -187,17 +201,18 @@ void main( void )
 	float s = 1.0;
 	float roughness = 0.1;
 	vec3 spec = vec3(0.0);
-	if ( bool(hasSpecularMap) ) {
+/*	if ( bool(hasSpecularMap) ) {
 		g = specMap.r;
 		s = specMap.g;
 		roughness = scale( 1.0 - ( g * specGlossiness ), 0.1, 0.9 );
 		spec = specColor * s * LightingFuncGGX_REF( NdotL, NdotV, NdotH, LdotH, roughness, 0.04 ) * specStrength;
 		spec *= D.rgb * 0.9;
 		spec = clamp( spec, 0.0, 1.0 );
-	}
+	}*/
 	
 	// Environment
 	// TODO: why does textureCube not work on Android?
+/*	
 	vec4 cube = vec4(1,1,1,1);//textureCube( CubeMap, reflectedWS );// gles doesn't have this in the frag shader textureCubeLod( CubeMap, reflectedWS, 8.0 - g * 8.0 );
 	vec4 env = texture2D( EnvironmentMap, offset );
 	if ( bool(hasCubeMap) ) {
@@ -206,20 +221,23 @@ void main( void )
     
 		albedo += cube.rgb;
 	}
-
+*/
+/*
 	vec3 backlight = vec3(0.0);
-	//if ( hasBacklight ) {
-	//	backlight = texture2D( BacklightMap, offset ).rgb;
-	//	backlight *= NdotNegL;
-	//	
-	//	emissive += backlight * D.rgb;
-	//}
- 
+	if ( bool(hasBacklight) ) {
+		backlight = texture2D( BacklightMap, offset ).rgb;
+		backlight *= NdotNegL;
+		
+		emissive += backlight * D.rgb;
+	}
+	*/
+ /*
 	vec4 mask = vec4(0.0);
 	if ( bool(hasRimlight) || bool(hasSoftlight) ) {
 		mask = vec4( s );
 	}
-
+*/
+/*
 	vec3 rim = vec3(0.0);
 	if ( bool(hasRimlight) ) {
 		rim = mask.rgb * pow(vec3((1.0 - NdotV)), vec3(rimPower));
@@ -227,20 +245,25 @@ void main( void )
 		
 		emissive += rim * D.rgb;
 	}
-	
+*/
+/*	
 	vec3 soft = vec3(0.0);
-	//if ( hasSoftlight ) {
-	//	float wrap = (dot(normal, L) + lightingEffect1) / (1.0 + lightingEffect1);
-    //
-	//	soft = max( wrap, 0.0 ) * mask.rgb * smoothstep( 1.0, 0.0, NdotL );
-	//	soft *= sqrt( clamp( lightingEffect1, 0.0, 1.0 ) );
-	//	
-	//	emissive += soft * D.rgb;
-	//}
- 
-	color.rgb = albedo * (diffuse + emissive);
+	if ( bool(hasSoftlight) ) {
+		float wrap = (dot(normal, L) + lightingEffect1) / (1.0 + lightingEffect1);
+    
+		soft = max( wrap, 0.0 ) * mask.rgb * smoothstep( 1.0, 0.0, NdotL );
+		soft *= sqrt( clamp( lightingEffect1, 0.0, 1.0 ) );
+		
+		emissive += soft * D.rgb;
+	}
+*/ 
+
+
+
+	color.rgb = albedo * (diffuse + emissive);	
 	color.rgb += spec;
 	color.rgb = tonemap( color.rgb ) / tonemap( vec3(1.0) );
+
 	color.a = C.a * baseMap.a;
 
 	gl_FragColor = color;

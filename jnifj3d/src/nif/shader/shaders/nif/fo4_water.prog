@@ -1,0 +1,21 @@
+# environment
+
+checkgroup begin or
+	# Fallout 4 and later
+	checkgroup begin and
+		check HEADER/Version >= 0x14020007
+		check HEADER/User Version >= 12
+        check HEADER/User Version 2 >= 130
+	checkgroup end
+checkgroup end
+
+checkgroup begin  
+    check BSWaterShaderProperty    
+    checkgroup begin or
+        check BSTriShape
+        check BSMeshLODTriShape
+    checkground end
+checkgroup end
+
+
+shaders fo4_water.vert fo4_water.frag

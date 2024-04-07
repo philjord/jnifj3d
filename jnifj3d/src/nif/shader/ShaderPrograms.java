@@ -284,7 +284,7 @@ public class ShaderPrograms {
 			}
 
 			//Quick test to ensure texcoords are fixed, recall sk_msn has the last 2 commented out
-			if (!texcoords.get(new Integer(0)).equals("base") || //
+			if ((texcoords.size() > 0 && !texcoords.get(new Integer(0)).equals("base")) || //
 				(texcoords.size() > 1 && !texcoords.get(new Integer(1)).equals("tangents")) || //
 				(texcoords.size() > 2 && !texcoords.get(new Integer(2)).equals("bitangents"))) {
 				System.err.println("texcords not loaded as expected in file " + source);

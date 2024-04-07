@@ -66,6 +66,8 @@ import nif.niobject.bs.BSShaderNoLightingProperty;
 import nif.niobject.bs.BSShaderPPLightingProperty;
 import nif.niobject.bs.BSShaderProperty;
 import nif.niobject.bs.BSShaderTextureSet;
+import nif.niobject.bs.BSSkyShaderProperty;
+import nif.niobject.bs.BSWaterShaderProperty;
 import nif.niobject.bs.SkyShaderProperty;
 import nif.niobject.bs.TallGrassShaderProperty;
 import nif.niobject.bs.TileShaderProperty;
@@ -199,6 +201,8 @@ public class NiGeometryAppearanceShader {
 		NiTexturingProperty texprop = (NiTexturingProperty)props.get(NiTexturingProperty.class);
 		BSShaderLightingProperty bsprop = (BSShaderLightingProperty)props.get(BSShaderLightingProperty.class);
 		BSLightingShaderProperty bslsp = props.getBSLightingShaderProperty();
+		BSSkyShaderProperty skyShaderProps = (BSSkyShaderProperty)props.get(BSSkyShaderProperty.class);
+		BSWaterShaderProperty waterShaderProps = (BSWaterShaderProperty)props.get(BSWaterShaderProperty.class);
 
 		int clamp = TexClampMode.WRAP_S_WRAP_T;
 
@@ -674,6 +678,14 @@ public class NiGeometryAppearanceShader {
 			// If mesh is alpha tested, override threshold (but not istestenabled notice)
 			ra.setAlphaTestFunction(RenderingAttributes.GREATER);
 			ra.setAlphaTestValue(0.1f);
+		}
+		
+		//FO4 onwards
+		if(waterShaderProps != null) {
+			ta.setTransparencyMode(TransparencyAttributes.BLENDED);
+			ta.setSrcBlendFunction(TransparencyAttributes.BLEND_SRC_ALPHA);
+			ta.setDstBlendFunction(TransparencyAttributes.BLEND_ONE_MINUS_SRC_ALPHA);
+			ta.setTransparency(0.5f);
 		}
 
 		//PJs decalling business
