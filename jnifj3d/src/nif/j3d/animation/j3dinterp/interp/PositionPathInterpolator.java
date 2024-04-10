@@ -1,7 +1,6 @@
 package nif.j3d.animation.j3dinterp.interp;
 
 import org.jogamp.java3d.Transform3D;
-import org.jogamp.vecmath.Point3f;
 import org.jogamp.vecmath.Vector3f;
 
 public class PositionPathInterpolator extends KnotInterpolator
@@ -9,14 +8,15 @@ public class PositionPathInterpolator extends KnotInterpolator
 	private Vector3f pos = new Vector3f();
 
 	// Array of positions at each knot
-	private Point3f positions[];
+	//private Point3f positions[];
 	// faster primitive version xyz floats
-
-	public PositionPathInterpolator(float[] knots, Point3f[] positions)
+	private float positions[];
+	
+	public PositionPathInterpolator(float[] knots, float[] positions)
 	{
 		super(knots);
 
-		if (knots.length != positions.length)
+		if (knots.length*3 != positions.length)
 			throw new IllegalArgumentException("knots.length != positions.length");
 
 		this.positions = positions;
@@ -24,18 +24,18 @@ public class PositionPathInterpolator extends KnotInterpolator
 		fixed = isFixed();
 		if (fixed)
 		{
-			pos.x = positions[0].x;
-			pos.y = positions[0].y;
-			pos.z = positions[0].z;
+			pos.x = positions[0*3+0];
+			pos.y = positions[0*3+1];
+			pos.z = positions[0*3+2];
 		}
 	}
 
 	private boolean isFixed()
 	{
 		//check for a fixed value
-		for (int i = 0; i + 1 < positions.length; i++)
+		for (int i = 0; i + 1 < positions.length/3; i++)
 		{
-			if (!positions[i].equals(positions[i + 1]))
+			if (positions[i*3+0] != positions[(i + 1)*3+0] || positions[i*3+1] != positions[(i + 1)*3+1] || positions[i*3+2] != positions[(i + 1)*3+2])
 				return false;
 		}
 
@@ -51,17 +51,17 @@ public class PositionPathInterpolator extends KnotInterpolator
 
 			if (currentKnotIndex == 0 && currentInterpolationValue == 0f)
 			{
-				pos.x = positions[0].x;
-				pos.y = positions[0].y;
-				pos.z = positions[0].z;
+				pos.x = positions[0*3+0];
+				pos.y = positions[0*3+1];
+				pos.z = positions[0*3+2];
 			}
 			else
 			{
-				pos.x = positions[currentKnotIndex].x + (positions[currentKnotIndex + 1].x - positions[currentKnotIndex].x)
+				pos.x = positions[currentKnotIndex*3+0] + (positions[(currentKnotIndex + 1)*3+0] - positions[currentKnotIndex*3+0])
 						* currentInterpolationValue;
-				pos.y = positions[currentKnotIndex].y + (positions[currentKnotIndex + 1].y - positions[currentKnotIndex].y)
+				pos.y = positions[currentKnotIndex*3+1] + (positions[(currentKnotIndex + 1)*3+1] - positions[currentKnotIndex*3+1])
 						* currentInterpolationValue;
-				pos.z = positions[currentKnotIndex].z + (positions[currentKnotIndex + 1].z - positions[currentKnotIndex].z)
+				pos.z = positions[currentKnotIndex*3+2] + (positions[(currentKnotIndex + 1)*3+2] - positions[currentKnotIndex*3+2])
 						* currentInterpolationValue;
 			}
 		}

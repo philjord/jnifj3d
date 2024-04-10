@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.jogamp.java3d.TransformGroup;
-import org.jogamp.vecmath.Point3f;
 import org.jogamp.vecmath.Quat4f;
 import org.jogamp.vecmath.Vector3f;
 
@@ -22,6 +21,7 @@ import nif.niobject.NiKeyframeData;
 import nif.niobject.NiTransformData;
 import nif.niobject.interpolator.NiTransformInterpolator;
 import tools.WeakValueHashMap;
+import utils.ESConfig;
 import utils.convert.ConvertFromNif;
 
 /**
@@ -203,9 +203,12 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 				data = translationDataMap.get(niTransformData);
 				if (data == null) {
 					float[] knots = translations.time;
-					Point3f[] positions = new Point3f[translations.time.length];
+					float[] positions = new float[translations.value.length];
 					for (int i = 0; i < translations.time.length; i++) {
-						positions[i] = ConvertFromNif.toJ3dP3f(translations.value[i*3+0],translations.value[i*3+1],translations.value[i*3+2]);
+						//positions[i] = ConvertFromNif.toJ3dP3f(x,y,z);
+						positions[i*3+0] = translations.value[i*3+0] * ESConfig.ES_TO_METERS_SCALE;
+						positions[i*3+1] = translations.value[i*3+2] * ESConfig.ES_TO_METERS_SCALE;
+						positions[i*3+2] = -translations.value[i*3+1] * ESConfig.ES_TO_METERS_SCALE;
 					}
 					data = new TranslationData(knots, positions);
 					
@@ -286,9 +289,9 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 	{
 		public float[] knots;
 
-		public Point3f[] positions;
+		public float[] positions;//x,y,z
 
-		public TranslationData(float[] knots, Point3f[] positions)
+		public TranslationData(float[] knots, float[] positions)
 		{
 			this.knots = knots;
 			this.positions = positions;
