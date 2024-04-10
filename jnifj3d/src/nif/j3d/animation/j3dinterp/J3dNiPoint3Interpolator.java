@@ -3,7 +3,6 @@ package nif.j3d.animation.j3dinterp;
 import org.jogamp.vecmath.Point3f;
 
 import nif.compound.NifKeyGroup.NifKeyGroupNifVector3;
-import nif.compound.NifVector3;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.animation.j3dinterp.interp.Point3Interpolator;
 import nif.j3d.animation.j3dinterp.interp.data.KnotsPoint3fs;
@@ -61,21 +60,20 @@ public class J3dNiPoint3Interpolator extends J3dNiInterpolator
 			NifKeyGroupNifVector3 posData = ((NiPosData) niToJ3dData.get(niPoint3Interp.data)).data;
 
 			// check for no data
-			if (posData.value.length > 2 || (posData.value.length == 2 && posData.value[0] != posData.value[1]))
+			if (posData.time.length > 2 || (posData.time.length == 2 && (
+					posData.value[0*3+0] != posData.value[1*3+0] && posData.value[0*3+1] != posData.value[1*3+1] && posData.value[0*3+2] != posData.value[1*3+2])))
 			{
 				if (posData.interpolation.type == 2)
 				{
-					float[] knots = new float[posData.value.length];
-					Point3f[] values = new Point3f[posData.value.length];
+					float[] knots = new float[posData.time.length];
+					Point3f[] values = new Point3f[posData.time.length];
 
-					for (int i = 0; i < posData.value.length; i++)
+					for (int i = 0; i < posData.time.length; i++)
 					{
 						// make into 0 to 1 form
 						knots[i] = (posData.time[i] - startTimeS) / lengthS;
-						NifVector3 nv3 = posData.value[i];
-
 						//not Converted because it may be controlling color! see Meshes\Architecture\Megaton\MegatonGateHouse01.NIF 
-						values[i] = new Point3f(nv3.x, nv3.y, nv3.z);
+						values[i] = new Point3f(posData.value[i*3+0], posData.value[i*3+1], posData.value[i*3+2]);
 
 					}
 					knotsPoints = new KnotsPoint3fs();
@@ -91,8 +89,7 @@ public class J3dNiPoint3Interpolator extends J3dNiInterpolator
 			else
 			{
 				// if it's a single value (or 2 the same) then make a constant out of it
-				NifVector3 nv3 = posData.value[0];
-				constantPoint3f = new Point3f(nv3.x, nv3.y, nv3.z);
+				constantPoint3f = new Point3f(posData.value[0*3+0], posData.value[0*3+1], posData.value[0*3+2]);
 			}
 		}
 		else

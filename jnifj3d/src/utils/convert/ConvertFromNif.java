@@ -80,6 +80,11 @@ public class ConvertFromNif
 	{
 		return createScaledPoint((double) v.x, (double) v.y, (double) v.z);
 	}
+	
+	public static Point3d toJ3dP3d(double x, double y, double z)
+	{
+		return createScaledPoint(x, y, z);
+	}
 
 	private static Point3d createScaledPoint(double x, double y, double z)
 	{

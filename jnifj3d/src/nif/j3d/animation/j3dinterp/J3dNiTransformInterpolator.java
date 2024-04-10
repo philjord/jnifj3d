@@ -164,24 +164,18 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 					xYZRotPathInterpolator = new XYZRotPathInterpolator(data.xKnots, data.xRots, data.yKnots, data.yRots, data.zKnots,
 							data.zRots);
 				}
-			}
-			else if (niTransformData.rotationType.type == KeyType.QUADRATIC_KEY || niTransformData.rotationType.type == KeyType.TBC_KEY
-					|| niTransformData.rotationType.type == KeyType.LINEAR_KEY)
-			{
+			} else if (niTransformData.rotationType.type == KeyType.QUADRATIC_KEY || niTransformData.rotationType.type == KeyType.TBC_KEY
+					|| niTransformData.rotationType.type == KeyType.LINEAR_KEY) {
 				NifQuatKey[] quatKeys = niTransformData.quaternionKeys;
-				if (quatKeys != null && quatKeys.length > 0)
-				{
+				if (quatKeys != null && quatKeys.length > 0) {
 					// don't let 2 threads load up the data into weak map
 					QuatRotationData data = null;
-					synchronized (niTransformData)
-					{
+					synchronized (niTransformData) {
 						data = quatRotationDataMap.get(niTransformData);
-						if (data == null)
-						{
+						if (data == null) {
 							float[] knots = new float[quatKeys.length];
 							Quat4f[] quats = new Quat4f[quatKeys.length];
-							for (int i = 0; i < quatKeys.length; i++)
-							{
+							for (int i = 0; i < quatKeys.length; i++) {
 								NifQuatKey key = quatKeys[i];
 								knots[i] = key.time;
 								quats[i] = ConvertFromNif.toJ3d(key.value);
@@ -202,21 +196,16 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 		}
 
 		NifKeyGroupNifVector3 translations = niTransformData.translations;
-		if (translations.value != null && translations.value.length > 0)
-		{
+		if (translations.value != null && translations.value.length > 0) {
 			// don't let 2 threads load up the data into weak map
 			TranslationData data = null;
-			synchronized (niTransformData)
-			{
+			synchronized (niTransformData) {
 				data = translationDataMap.get(niTransformData);
-				if (data == null)
-				{
-					float[] knots = new float[translations.value.length];
-					Point3f[] positions = new Point3f[translations.value.length];
-					for (int i = 0; i < translations.value.length; i++)
-					{
-						knots[i] = translations.time[i];
-						positions[i] = ConvertFromNif.toJ3dP3f(translations.value[i]);
+				if (data == null) {
+					float[] knots = translations.time;
+					Point3f[] positions = new Point3f[translations.time.length];
+					for (int i = 0; i < translations.time.length; i++) {
+						positions[i] = ConvertFromNif.toJ3dP3f(translations.value[i*3+0],translations.value[i*3+1],translations.value[i*3+2]);
 					}
 					data = new TranslationData(knots, positions);
 					

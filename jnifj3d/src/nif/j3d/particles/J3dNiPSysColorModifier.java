@@ -25,10 +25,10 @@ public class J3dNiPSysColorModifier extends J3dNiPSysModifier
 
 		for (int i = 0; i < j3dPSysData.activeParticleCount; i++)
 		{
-			cs[i * 4 + 0] = (niColorData.data.value[0]).r;
-			cs[i * 4 + 1] = (niColorData.data.value[0]).g;
-			cs[i * 4 + 2] = (niColorData.data.value[0]).b;
-			cs[i * 4 + 3] = (niColorData.data.value[0]).a;
+			cs[i * 4 + 0] = niColorData.data.value[0*4+0];
+			cs[i * 4 + 1] = niColorData.data.value[0*4+1];
+			cs[i * 4 + 2] = niColorData.data.value[0*4+2];
+			cs[i * 4 + 3] = niColorData.data.value[0*4+3];
 		}
 		j3dPSysData.recalcAllGaColors();
 	}

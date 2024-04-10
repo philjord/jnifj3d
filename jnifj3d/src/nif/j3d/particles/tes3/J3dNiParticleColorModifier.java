@@ -2,7 +2,6 @@ package nif.j3d.particles.tes3;
 
 import org.jogamp.vecmath.Color4f;
 
-import nif.compound.NifColor4;
 import nif.j3d.NiToJ3dData;
 import nif.niobject.NiColorData;
 import nif.niobject.particle.NiParticleColorModifier;
@@ -37,27 +36,22 @@ public class J3dNiParticleColorModifier extends J3dNiParticleModifier
 
 	private Color4f interpolateColor(float ageSec)
 	{
-		NifColor4 ic = niColorData.data.value[niColorData.data.value.length - 1];
-		Color4f ret = new Color4f(ic.r, ic.g, ic.b, ic.a);
-		for (int i = 0; i < niColorData.data.value.length; i++)
-		{
-			if ((i == 0 && ageSec <= niColorData.data.time[i]) || (i > 0 && ageSec >= niColorData.data.time[i - 1] && ageSec <= niColorData.data.time[i]))
-			{
-				if (i == 0)
-				{
-					NifColor4 nc = niColorData.data.value[0];
-					ret.set(nc.r, nc.g, nc.b, nc.a);
-				}
-				else
-				{
+		int lastIdx = niColorData.data.time.length - 1;
+		Color4f ret = new Color4f(niColorData.data.value[(lastIdx)*4+0],
+				niColorData.data.value[(lastIdx)*4+1],
+				niColorData.data.value[(lastIdx)*4+2],
+				niColorData.data.value[(lastIdx)*4+3]);
+		for (int i = 0; i < niColorData.data.time.length; i++) {
+			if ((i == 0 && ageSec <= niColorData.data.time[i]) || (i > 0 && ageSec >= niColorData.data.time[i - 1] && ageSec <= niColorData.data.time[i])) {
+				if (i == 0) {
+					ret.set(niColorData.data.value[0*4+0], niColorData.data.value[0*4+1], niColorData.data.value[0*4+2], niColorData.data.value[0*4+3]);
+				} else {
 					float currentInterpolationValue = (ageSec - niColorData.data.time[i - 1]) / (niColorData.data.time[i] - niColorData.data.time[i - 1]);
 
-					NifColor4 nc0 = niColorData.data.value[i - 1];
-					NifColor4 nc1 = niColorData.data.value[i];
-					ret.set((nc0.r * currentInterpolationValue) + (nc1.r * (1 - currentInterpolationValue)), //
-							(nc0.g * currentInterpolationValue) + (nc1.g * (1 - currentInterpolationValue)), //
-							(nc0.b * currentInterpolationValue) + (nc1.b * (1 - currentInterpolationValue)), //
-							(nc0.a * currentInterpolationValue) + (nc1.a * (1 - currentInterpolationValue)));
+					ret.set((niColorData.data.value[(i - 1)*4+0] * currentInterpolationValue) + (niColorData.data.value[i*4+0] * (1 - currentInterpolationValue)), //
+							(niColorData.data.value[(i - 1)*4+1] * currentInterpolationValue) + (niColorData.data.value[i*4+1] * (1 - currentInterpolationValue)), //
+							(niColorData.data.value[(i - 1)*4+2] * currentInterpolationValue) + (niColorData.data.value[i*4+2] * (1 - currentInterpolationValue)), //
+							(niColorData.data.value[(i - 1)*4+3] * currentInterpolationValue) + (niColorData.data.value[i*4+3] * (1 - currentInterpolationValue)));
 				}
 				break;
 			}
@@ -69,12 +63,10 @@ public class J3dNiParticleColorModifier extends J3dNiParticleModifier
 	@Override
 	public void particleCreated(int pId)
 	{
-		NifColor4 nc = niColorData.data.value[0];
 		float[] cs = j3dNiParticlesData.particleColors;
-		cs[pId * 4 + 0] = nc.r;
-		cs[pId * 4 + 1] = nc.g;
-		cs[pId * 4 + 2] = nc.b;
-		cs[pId * 4 + 3] = nc.a;
-
+		cs[pId * 4 + 0] = niColorData.data.value[0*4+0];
+		cs[pId * 4 + 1] = niColorData.data.value[0*4+1];
+		cs[pId * 4 + 2] = niColorData.data.value[0*4+2];
+		cs[pId * 4 + 3] = niColorData.data.value[0*4+3];
 	}
 }
