@@ -2,17 +2,15 @@ package nif.j3d.animation.j3dinterp;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.WeakHashMap;
 
 import org.jogamp.java3d.TransformGroup;
 import org.jogamp.vecmath.Point3f;
 import org.jogamp.vecmath.Quat4f;
 import org.jogamp.vecmath.Vector3f;
 
-import nif.compound.NifKey;
-import nif.compound.NifKeyGroup;
+import nif.compound.NifKeyGroup.NifKeyGroupFloat;
+import nif.compound.NifKeyGroup.NifKeyGroupNifVector3;
 import nif.compound.NifQuatKey;
-import nif.compound.NifVector3;
 import nif.enums.KeyType;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.animation.j3dinterp.interp.PositionPathInterpolator;
@@ -134,8 +132,8 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 				// so we do NO modification here, the interpolator will do the change over work
 
 				//	niTransformData.xYZRotations.length is 3 for x rot y rot z rot
-				NifKeyGroup xRotation = niTransformData.xYZRotations[0];
-				if (xRotation.keys != null && xRotation.keys.length > 0)
+				NifKeyGroupFloat xRotation = niTransformData.xYZRotations[0];
+				if (xRotation.value != null && xRotation.value.length > 0)
 				{
 					// don't let 2 threads load up the data into weak map
 					XyzRotationData data = null;
@@ -145,35 +143,19 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 						if (data == null)
 						{
 							// all three will be not null and l >= 0
-							float[] xKnots = new float[xRotation.keys.length];
-							float[] xRots = new float[xRotation.keys.length];
-							for (int i = 0; i < xRotation.keys.length; i++)
-							{
-								NifKey key = xRotation.keys[i];
-								xKnots[i] = key.time;
-								xRots[i] = ((Float) key.value).floatValue();
-							}
+							float[] xKnots = xRotation.time;
+							float[] xRots = xRotation.value;
 
-							NifKeyGroup yRotation = niTransformData.xYZRotations[1];
-							float[] yKnots = new float[yRotation.keys.length];
-							float[] yRots = new float[yRotation.keys.length];
-							for (int i = 0; i < yRotation.keys.length; i++)
-							{
-								NifKey key = yRotation.keys[i];
-								yKnots[i] = key.time;
-								yRots[i] = ((Float) key.value).floatValue();
-							}
+							NifKeyGroupFloat yRotation = niTransformData.xYZRotations[1];
+							float[] yKnots = yRotation.time;
+							float[] yRots = yRotation.value;
 
-							NifKeyGroup zRotation = niTransformData.xYZRotations[2];
-							float[] zKnots = new float[zRotation.keys.length];
-							float[] zRots = new float[zRotation.keys.length];
-							for (int i = 0; i < zRotation.keys.length; i++)
-							{
-								NifKey key = zRotation.keys[i];
-								zKnots[i] = key.time;
-								zRots[i] = ((Float) key.value).floatValue();
-							}
+							NifKeyGroupFloat zRotation = niTransformData.xYZRotations[2];
+							float[] zKnots = zRotation.time;
+							float[] zRots = zRotation.value;
+
 							data = new XyzRotationData(xKnots, xRots, yKnots, yRots, zKnots, zRots);
+							
 							if(CACHE_WEAK)
 								xyzRotationDataMap.put(niTransformData, data);
 						}						 
@@ -219,8 +201,8 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 			}
 		}
 
-		NifKeyGroup translations = niTransformData.translations;
-		if (translations.keys != null && translations.keys.length > 0)
+		NifKeyGroupNifVector3 translations = niTransformData.translations;
+		if (translations.value != null && translations.value.length > 0)
 		{
 			// don't let 2 threads load up the data into weak map
 			TranslationData data = null;
@@ -229,13 +211,12 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 				data = translationDataMap.get(niTransformData);
 				if (data == null)
 				{
-					float[] knots = new float[translations.keys.length];
-					Point3f[] positions = new Point3f[translations.keys.length];
-					for (int i = 0; i < translations.keys.length; i++)
+					float[] knots = new float[translations.value.length];
+					Point3f[] positions = new Point3f[translations.value.length];
+					for (int i = 0; i < translations.value.length; i++)
 					{
-						NifKey key = translations.keys[i];
-						knots[i] = key.time;
-						positions[i] = ConvertFromNif.toJ3dP3f((NifVector3) key.value);
+						knots[i] = translations.time[i];
+						positions[i] = ConvertFromNif.toJ3dP3f(translations.value[i]);
 					}
 					data = new TranslationData(knots, positions);
 					
@@ -247,23 +228,17 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 
 		}
 
-		NifKeyGroup scaleKeys = niTransformData.scales;
-		if (scaleKeys.keys != null && scaleKeys.keys.length > 0)
+		NifKeyGroupFloat scaleKeys = niTransformData.scales;
+		if (scaleKeys.value != null && scaleKeys.value.length > 0)
 		{
 			ScaleData data = scaleDataMap.get(niTransformData);
 			if (data == null)
 			{
-				float[] knots = new float[scaleKeys.keys.length];
-				float[] scales = new float[scaleKeys.keys.length];
-				for (int i = 0; i < scaleKeys.keys.length; i++)
-				{
-					NifKey key = scaleKeys.keys[i];
-					knots[i] = key.time;
-					scales[i] = ((Float) key.value).floatValue();
-
+				float[] knots = scaleKeys.time;
+				float[] scales = scaleKeys.value;
+				for (int i = 0; i < scales.length; i++){
 					//skyrim hkx bad converter to kf
-					if (Float.isNaN(scales[i]))
-					{
+					if (Float.isNaN(scales[i])){
 						scales = null;//set ignore flag
 						break;
 					}

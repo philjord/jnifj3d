@@ -33,12 +33,12 @@ public class KfJ3dRoot extends BranchGroup
 		addChild(j3dNiSequenceStreamHelper);
 	}
 
-	public void setAnimatedSkeleton(J3dNiDefaultAVObjectPalette allBonesInSkeleton, ArrayList<NifJ3dVisRoot> allOtherModels)
+	public void setAnimatedSkeleton(J3dNiDefaultAVObjectPalette allBonesInSkeleton, ArrayList<NifJ3dVisRoot> allOtherModels, NiToJ3dData niToJ3dData)
 	{
 		if (j3dNiControllerSequence != null)
-			j3dNiControllerSequence.setAnimatedNodes(allBonesInSkeleton, allOtherModels);
+			j3dNiControllerSequence.setAnimatedNodes(allBonesInSkeleton, allOtherModels, niToJ3dData);
 		else
-			j3dNiSequenceStreamHelper.setAnimatedNodes(allBonesInSkeleton, allOtherModels);
+			j3dNiSequenceStreamHelper.setAnimatedNodes(allBonesInSkeleton, allOtherModels, niToJ3dData);
 	}
 
 	public J3dNiControllerSequence getJ3dNiControllerSequence()

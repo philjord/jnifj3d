@@ -1,7 +1,6 @@
 package nif.j3d.animation.j3dinterp;
 
-import nif.compound.NifKey;
-import nif.compound.NifKeyGroup;
+import nif.compound.NifKeyGroup.NifKeyGroupByte;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.animation.j3dinterp.interp.BoolInterpolator;
 import nif.j3d.animation.j3dinterp.interp.data.KnotsBools;
@@ -19,7 +18,7 @@ public class J3dNiBoolInterpolator extends J3dNiInterpolator
 	{
 		if (niBoolInterpolator.data.ref != -1)
 		{
-			NifKeyGroup boolData = ((NiBoolData) niToJ3dData.get(niBoolInterpolator.data)).data;
+			NifKeyGroupByte boolData = ((NiBoolData) niToJ3dData.get(niBoolInterpolator.data)).data;
 			knotsBools = makeKnotsBools(boolData, startTimeS, lengthS);
 		}
 		else
@@ -46,21 +45,20 @@ public class J3dNiBoolInterpolator extends J3dNiInterpolator
 		}
 	}
 
-	public static KnotsBools makeKnotsBools(NifKeyGroup boolData, float startTimeS, float lengthS)
+	public static KnotsBools makeKnotsBools(NifKeyGroupByte boolData, float startTimeS, float lengthS)
 	{
-		if (boolData.keys.length > 2 || (boolData.keys.length == 2 && !boolData.keys[0].value.equals(boolData.keys[1].value)))
+		if (boolData.value.length > 2 || (boolData.value.length == 2 && boolData.value[0] != boolData.value[1]))
 		{
 			//floatData.interpolation.type tends to be 1 or 2
 
-			float[] knots = new float[boolData.keys.length];
-			boolean[] values = new boolean[boolData.keys.length];
+			float[] knots = new float[boolData.value.length];
+			boolean[] values = new boolean[boolData.value.length];
 
-			for (int i = 0; i < boolData.keys.length; i++)
+			for (int i = 0; i < boolData.time.length; i++)
 			{
-				NifKey key = boolData.keys[i];
 				// make into 0 to 1 form
-				knots[i] = (key.time - startTimeS) / lengthS;
-				values[i] = ((Byte) key.value) != 0;
+				knots[i] = (boolData.time[i] - startTimeS) / lengthS;
+				values[i] = (boolData.value[i]) != 0;
 			}
 			KnotsBools kb = new KnotsBools();
 			kb.knots = knots;

@@ -49,7 +49,9 @@ public class J3dNiControllerSequence extends Group implements SequenceAlphaListe
 
 	private NiControllerSequence niControllerSequence;
 
-	private NiToJ3dData niToJ3dData;
+	//TODO: I think nothing should EVER hold onto this guy, it is construction time only!
+	// serach "private NiToJ3dData" shows the problem
+	//private NiToJ3dData niToJ3dData;
 
 	protected int cycleType = NiControllerSequence.CYCLE_CLAMP;
 
@@ -68,7 +70,7 @@ public class J3dNiControllerSequence extends Group implements SequenceAlphaListe
 	public J3dNiControllerSequence(NiControllerSequence niControllerSequence, NiToJ3dData niToJ3dData)
 	{
 		this.niControllerSequence = niControllerSequence;
-		this.niToJ3dData = niToJ3dData;
+		//this.niToJ3dData = niToJ3dData;
 
 		fireName = niControllerSequence.name;
 
@@ -122,9 +124,9 @@ public class J3dNiControllerSequence extends Group implements SequenceAlphaListe
 		sequenceEventsbehave.setEnable(true);
 	}
 
-	public void setAnimatedNodes(J3dNiDefaultAVObjectPalette allBonesInSkeleton)
+	public void setAnimatedNodes(J3dNiDefaultAVObjectPalette allBonesInSkeleton, NiToJ3dData niToJ3dData)
 	{
-		setAnimatedNodes(allBonesInSkeleton, null);
+		setAnimatedNodes(allBonesInSkeleton, null, niToJ3dData);
 
 	}
 
@@ -137,7 +139,7 @@ public class J3dNiControllerSequence extends Group implements SequenceAlphaListe
 		return singleGeomMorpher;
 	}
 
-	public void setAnimatedNodes(J3dNiDefaultAVObjectPalette allBonesInSkeleton, ArrayList<NifJ3dVisRoot> allOtherModels)
+	public void setAnimatedNodes(J3dNiDefaultAVObjectPalette allBonesInSkeleton, ArrayList<NifJ3dVisRoot> allOtherModels, NiToJ3dData niToJ3dData)
 	{
 		controlledBlocks = new J3dControllerLink[niControllerSequence.numControlledBlocks];
 

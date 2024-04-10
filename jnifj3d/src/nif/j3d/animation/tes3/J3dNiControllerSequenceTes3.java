@@ -7,6 +7,7 @@ import org.jogamp.java3d.Group;
 
 import nif.NifJ3dVisRoot;
 import nif.j3d.J3dNiDefaultAVObjectPalette;
+import nif.j3d.NiToJ3dData;
 import nif.j3d.animation.J3dNiControllerSequence;
 import nif.j3d.animation.tes3.J3dNiSequenceStreamHelper.TimeKeyValue;
 import nif.niobject.NiControllerSequence;
@@ -72,7 +73,7 @@ public class J3dNiControllerSequenceTes3 extends J3dNiControllerSequence
 	 * @see nif.j3d.animation.J3dNiControllerSequence#setAnimatedNodes(nif.j3d.J3dNiDefaultAVObjectPalette)
 	 */
 	@Override
-	public void setAnimatedNodes(J3dNiDefaultAVObjectPalette allBonesInSkeleton)
+	public void setAnimatedNodes(J3dNiDefaultAVObjectPalette allBonesInSkeleton, NiToJ3dData niToJ3dData)
 	{
 		throw new UnsupportedOperationException();
 	}
@@ -82,7 +83,7 @@ public class J3dNiControllerSequenceTes3 extends J3dNiControllerSequence
 	 * @see nif.j3d.animation.J3dNiControllerSequence#setAnimatedNodes(nif.j3d.J3dNiDefaultAVObjectPalette)
 	 */
 	@Override
-	public void setAnimatedNodes(J3dNiDefaultAVObjectPalette allBonesInSkeleton, ArrayList<NifJ3dVisRoot> allOtherModels)
+	public void setAnimatedNodes(J3dNiDefaultAVObjectPalette allBonesInSkeleton, ArrayList<NifJ3dVisRoot> allOtherModels, NiToJ3dData niToJ3dData)
 	{
 		throw new UnsupportedOperationException();
 	}

@@ -10,7 +10,7 @@ import org.jogamp.vecmath.Point3d;
 
 import nif.NifJ3dVisRoot;
 import nif.character.TextKeyExtraDataKey;
-import nif.compound.NifKey;
+import nif.compound.NifKey.NifKeyString;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiDefaultAVObjectPalette;
 import nif.j3d.NiToJ3dData;
@@ -23,7 +23,7 @@ public class J3dNiSequenceStreamHelper extends J3dNiAVObject
 {
 	private NiSequenceStreamHelper niSequenceStreamHelper;
 
-	private NiToJ3dData niToJ3dData;
+	//private NiToJ3dData niToJ3dData;
 
 	private J3dNiKeyframeController[] j3dNiKeyframeControllers;
 
@@ -33,7 +33,7 @@ public class J3dNiSequenceStreamHelper extends J3dNiAVObject
 	{
 		super(niSequenceStreamHelper, niToJ3dData);
 		this.niSequenceStreamHelper = niSequenceStreamHelper;
-		this.niToJ3dData = niToJ3dData;
+		//this.niToJ3dData = niToJ3dData;
 
 	}
 
@@ -42,7 +42,7 @@ public class J3dNiSequenceStreamHelper extends J3dNiAVObject
 	 * @param allBonesInSkeleton
 	 * @param allOtherModels
 	 */
-	public void setAnimatedNodes(J3dNiDefaultAVObjectPalette allBonesInSkeleton, ArrayList<NifJ3dVisRoot> allOtherModels)
+	public void setAnimatedNodes(J3dNiDefaultAVObjectPalette allBonesInSkeleton, ArrayList<NifJ3dVisRoot> allOtherModels, NiToJ3dData niToJ3dData)
 	{
 		// build a list of controllers
 		List<J3dNiKeyframeController> j3dNiKeyframeControllerList = new ArrayList<J3dNiKeyframeController>();
@@ -163,12 +163,12 @@ public class J3dNiSequenceStreamHelper extends J3dNiAVObject
 		for (int i = 0; i < ntked.textKeys.length; i++)
 		{
 
-			NifKey key = ntked.textKeys[i];
+			NifKeyString key = ntked.textKeys[i];
 
 			//if (((String) key.value).toLowerCase().contains("weapon"))
 			//	System.out.println("key.value " + key.value);
 
-			ret[i] = new TimeKeyValue(key.time, parseKeyValues((String) key.value));
+			ret[i] = new TimeKeyValue(key.time, parseKeyValues(key.value));
 		}
 		return ret;
 	}

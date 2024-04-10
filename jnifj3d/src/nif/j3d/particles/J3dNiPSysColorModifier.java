@@ -1,6 +1,5 @@
 package nif.j3d.particles;
 
-import nif.compound.NifColor4;
 import nif.j3d.NiToJ3dData;
 import nif.niobject.NiColorData;
 import nif.niobject.particle.NiPSysColorModifier;
@@ -26,10 +25,10 @@ public class J3dNiPSysColorModifier extends J3dNiPSysModifier
 
 		for (int i = 0; i < j3dPSysData.activeParticleCount; i++)
 		{
-			cs[i * 4 + 0] = ((NifColor4) niColorData.data.keys[0].value).r;
-			cs[i * 4 + 1] = ((NifColor4) niColorData.data.keys[0].value).g;
-			cs[i * 4 + 2] = ((NifColor4) niColorData.data.keys[0].value).b;
-			cs[i * 4 + 3] = ((NifColor4) niColorData.data.keys[0].value).a;
+			cs[i * 4 + 0] = (niColorData.data.value[0]).r;
+			cs[i * 4 + 1] = (niColorData.data.value[0]).g;
+			cs[i * 4 + 2] = (niColorData.data.value[0]).b;
+			cs[i * 4 + 3] = (niColorData.data.value[0]).a;
 		}
 		j3dPSysData.recalcAllGaColors();
 	}

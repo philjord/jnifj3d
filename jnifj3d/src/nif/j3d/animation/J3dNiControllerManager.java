@@ -30,7 +30,7 @@ public class J3dNiControllerManager extends J3dNiTimeController
 		{
 			NiControllerSequence niControllerSequence = (NiControllerSequence) niToJ3dData.get(controllerManager.controllerSequences[i]);
 			J3dNiControllerSequence j3dNiControllerSequence = new J3dNiControllerSequence(niControllerSequence, niToJ3dData);
-			j3dNiControllerSequence.setAnimatedNodes(allAnimatedNodes);
+			j3dNiControllerSequence.setAnimatedNodes(allAnimatedNodes, niToJ3dData);
 			sequences[i] = j3dNiControllerSequence;
 			addChild(j3dNiControllerSequence);
 		}

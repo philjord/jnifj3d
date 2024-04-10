@@ -16,12 +16,16 @@ import nif.niobject.NiAVObject;
 import nif.niobject.NiObject;
 import nif.niobject.controller.NiTimeController;
 import nif.niobject.interpolator.NiInterpolator;
-
+/**
+ * THIS IS A MEMORY HOG, do not EVER hold a reference to it!! never! build youself and get out.
+ */
 public class NiToJ3dData
 {
 	public NifVer nifVer;
 
+	//TODO: this guy is hangin onto the raw data!! what?
 	private NiObjectList niObjects;
+	//TODO: compare memeory and speed of Spares at this size and HashMap
 
 	private SparseArray<J3dNiAVObject> dataJ3dNiAVObject = new SparseArray<J3dNiAVObject>();
 

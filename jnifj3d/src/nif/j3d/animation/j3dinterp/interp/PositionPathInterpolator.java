@@ -10,6 +10,7 @@ public class PositionPathInterpolator extends KnotInterpolator
 
 	// Array of positions at each knot
 	private Point3f positions[];
+	// faster primitive version xyz floats
 
 	public PositionPathInterpolator(float[] knots, Point3f[] positions)
 	{

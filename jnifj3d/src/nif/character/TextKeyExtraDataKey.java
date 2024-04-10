@@ -1,6 +1,6 @@
 package nif.character;
 
-import nif.compound.NifKey;
+import nif.compound.NifKey.NifKeyString;
 
 public class TextKeyExtraDataKey
 {
@@ -17,9 +17,9 @@ public class TextKeyExtraDataKey
 		this.time = time;
 	}
 
-	public TextKeyExtraDataKey(NifKey nifKey)
+	public TextKeyExtraDataKey(NifKeyString nifKey)
 	{
-		String value = (String) nifKey.value;
+		String value = nifKey.value;
 		String[] vals = value.split(":", 2);
 		textKey = vals[0];
 		textParams = vals.length > 1 ? vals[1].trim().split(" ", 0) : new String[]

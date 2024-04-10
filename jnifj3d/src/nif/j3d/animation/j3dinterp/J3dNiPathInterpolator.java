@@ -11,9 +11,7 @@ import org.jogamp.vecmath.Point3f;
 import org.jogamp.vecmath.Quat4f;
 import org.jogamp.vecmath.Vector3d;
 
-import nif.compound.NifKey;
-import nif.compound.NifKeyGroup;
-import nif.compound.NifVector3;
+import nif.compound.NifKeyGroup.NifKeyGroupNifVector3;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.animation.j3dinterp.interp.RotPosPathInterpolator;
 import nif.niobject.NiPosData;
@@ -24,14 +22,14 @@ import utils.convert.ConvertFromNif;
 public class J3dNiPathInterpolator extends J3dNiInterpolator
 {
 	public static boolean CACHE_WEAK = true;
-	private static Map<NifKeyGroup, PathData> pathDataMap = Collections.synchronizedMap(new WeakHashMap<NifKeyGroup, PathData>());
+	private static Map<NifKeyGroupNifVector3, PathData> pathDataMap = Collections.synchronizedMap(new WeakHashMap<NifKeyGroupNifVector3, PathData>());
 
 	public J3dNiPathInterpolator(NiPathInterpolator niPathInterp, NiToJ3dData niToJ3dData, TransformGroup targetTransform)
 	{
-		NifKeyGroup posData = ((NiPosData) niToJ3dData.get(niPathInterp.posData)).data;
+		NifKeyGroupNifVector3 posData = ((NiPosData) niToJ3dData.get(niPathInterp.posData)).data;
 
 		// check for no path
-		if (posData.keys.length > 2 || (posData.keys.length == 2 && !posData.keys[0].value.equals(posData.keys[1].value)))
+		if (posData.value.length > 2 || (posData.value.length == 2 && posData.value[0] != posData.value[1]))
 		{
 			if (posData.interpolation.type == 2)
 			{
@@ -42,19 +40,18 @@ public class J3dNiPathInterpolator extends J3dNiInterpolator
 					data = pathDataMap.get(posData);
 					if (data == null)
 					{
-						float[] knots = new float[posData.keys.length];
-						Point3f[] positions = new Point3f[posData.keys.length];
-						Quat4f[] quats = new Quat4f[posData.keys.length];
+						float[] knots = new float[posData.value.length];
+						Point3f[] positions = new Point3f[posData.value.length];
+						Quat4f[] quats = new Quat4f[posData.value.length];
 						Transform3D tempTrans = new Transform3D();
-						for (int i = 0; i < posData.keys.length; i++)
+						for (int i = 0; i < posData.value.length; i++)
 						{
-							NifKey key = posData.keys[i];
 							// times are in 0.0 to 1.0 normalized form
-							knots[i] = key.time;
-							positions[i] = ConvertFromNif.toJ3dP3f((NifVector3) key.value);
+							knots[i] = posData.time[i];
+							positions[i] = ConvertFromNif.toJ3dP3f(posData.value[i]);
 
 							//TODO: this looks like a rubbish system, why not proper forward to a quat
-							tempTrans.lookAt(new Point3d(0, 0, 0), ConvertFromNif.toJ3dP3d((NifVector3) key.forward),
+							tempTrans.lookAt(new Point3d(0, 0, 0), ConvertFromNif.toJ3dP3d(posData.forward[i]),
 									new Vector3d(0, 0, 1));
 
 							quats[i] = new Quat4f();

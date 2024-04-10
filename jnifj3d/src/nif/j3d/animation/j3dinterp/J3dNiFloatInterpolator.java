@@ -1,7 +1,7 @@
 package nif.j3d.animation.j3dinterp;
 
-import nif.compound.NifKey;
-import nif.compound.NifKeyGroup;
+import nif.compound.NifKey.NifKeyFloat;
+import nif.compound.NifKeyGroup.NifKeyGroupFloat;
 import nif.compound.NifMorph;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.animation.j3dinterp.interp.FloatInterpolator;
@@ -27,9 +27,9 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 	{
 		if (niFloatInterpolator.data.ref != -1)
 		{
-			NifKeyGroup floatData = ((NiFloatData) niToJ3dData.get(niFloatInterpolator.data)).data;
+			NifKeyGroupFloat floatData = ((NiFloatData) niToJ3dData.get(niFloatInterpolator.data)).data;
 
-			makeKnotsFloats(floatData.keys, startTimeS, lengthS);
+			makeKnotsFloats(floatData, startTimeS, lengthS);
 		}
 		else
 		{
@@ -43,22 +43,11 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 
 	}
 
-	//FOR TES3
-	public J3dNiFloatInterpolator(NifMorph nifMorph, float startTimeS, float lengthS, FloatInterpolator.Listener callBack)
+	
+
+	public J3dNiFloatInterpolator(NifKeyGroupFloat keyGroup, float startTimeS, float lengthS, FloatInterpolator.Listener callBack)
 	{
-		makeKnotsFloats(nifMorph.Keys, startTimeS, lengthS);
-
-		if (callBack != null)
-			createInterpolator(callBack);
-		else
-			new Throwable("null callback in nifMorph " + nifMorph.nVer.fileName).printStackTrace();
-
-	}
-
-	//FOR TES3 (true??)
-	public J3dNiFloatInterpolator(NifKeyGroup keyGroup, float startTimeS, float lengthS, FloatInterpolator.Listener callBack)
-	{
-		makeKnotsFloats(keyGroup.keys, startTimeS, lengthS);
+		makeKnotsFloats(keyGroup, startTimeS, lengthS);
 
 		if (callBack != null)
 			createInterpolator(callBack);
@@ -66,7 +55,18 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 			new Throwable("null callback in NifKeyGroup ").printStackTrace();
 
 	}
+	
+	//FOR TES3
+		public J3dNiFloatInterpolator(NifMorph nifMorph, float startTimeS, float lengthS, FloatInterpolator.Listener callBack)
+		{
+			makeKnotsFloats(nifMorph.Keys, startTimeS, lengthS);
 
+			if (callBack != null)
+				createInterpolator(callBack);
+			else
+				new Throwable("null callback in nifMorph " + nifMorph.nVer.fileName).printStackTrace();
+
+		}
 	//FOR TES3  
 	public J3dNiFloatInterpolator(float startTimeS, float stopTimeS, FloatInterpolator.Listener callBack)
 	{		
@@ -99,24 +99,23 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 		}
 	}
 
-	private void makeKnotsFloats(NifKey[] keys, float startTimeS, float lengthS)
+	private void makeKnotsFloats(NifKeyGroupFloat keys, float startTimeS, float lengthS)
 	{
-		if (keys != null && keys.length > 0)
+		if (keys != null && keys.value.length > 0)
 		{
-			if (keys.length > 2 || (keys.length == 2 && !keys[0].value.equals(keys[1].value)))
+			if (keys.value.length > 2 || (keys.value.length == 2 && keys.value[0] != keys.value[1]))
 			{
 				// floatData.interpolation.type tends to be 1 LINEAR_KEY or 2 QUADRATIC_KEY
 				// below is ONLY LINEAR_KEY
 
-				float[] knots = new float[keys.length];
-				float[] values = new float[keys.length];
+				float[] knots = new float[keys.value.length];
+				float[] values = new float[keys.value.length];
 
-				for (int i = 0; i < keys.length; i++)
+				for (int i = 0; i < keys.value.length; i++)
 				{
-					NifKey key = keys[i];
 					// make into 0 to 1 form
-					knots[i] = (key.time - startTimeS) / lengthS;
-					values[i] = (Float) key.value;
+					knots[i] = (keys.time[i] - startTimeS) / lengthS;
+					values[i] = keys.value[i];
 				}
 				knotsFloats = new KnotsFloats();
 				knotsFloats.knots = knots;
@@ -126,8 +125,48 @@ public class J3dNiFloatInterpolator extends J3dNiInterpolator
 			else
 			{
 				// if it's a single value (or 2 the same) then make a constant out of it
-				NifKey key = keys[0];
-				constantFloat = (Float) key.value;
+				constantFloat = keys.value[0];
+			}
+		}
+		else
+		{
+			// it's buggered
+			constantFloat = 0;
+		}
+
+	}
+	
+	
+	//FOR TES3 MorphData only!
+	private void makeKnotsFloats(NifKeyFloat[] keys, float startTimeS, float lengthS)
+	{
+		if (keys != null && keys.length > 0)
+		{
+			if (keys.length > 2 || (keys.length == 2 && keys[0].value != keys[1].value))
+			{
+				// floatData.interpolation.type tends to be 1 LINEAR_KEY or 2 QUADRATIC_KEY
+				// below is ONLY LINEAR_KEY
+
+				float[] knots = new float[keys.length];
+				float[] values = new float[keys.length];
+
+				for (int i = 0; i < keys.length; i++)
+				{
+					NifKeyFloat key = keys[i];
+					// make into 0 to 1 form
+					knots[i] = (key.time - startTimeS) / lengthS;
+					values[i] = key.value;
+				}
+				knotsFloats = new KnotsFloats();
+				knotsFloats.knots = knots;
+				knotsFloats.floats = values;
+
+			}
+			else
+			{
+				// if it's a single value (or 2 the same) then make a constant out of it
+				NifKeyFloat key = keys[0];
+				constantFloat = key.value;
 			}
 		}
 		else

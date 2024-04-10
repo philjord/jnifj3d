@@ -343,7 +343,7 @@ public class NifToJ3d
 
 	}
 
-	private static KfJ3dRoot extractKf(NifFile nifFile)
+	public static KfJ3dRoot extractKf(NifFile nifFile)
 	{
 		if (nifFile != null)
 		{

@@ -16,7 +16,7 @@ public class NifJ3dSkeletonRoot extends Group
 {
 	public static boolean showBoneMarkers = false;
 
-	private NiToJ3dData niToJ3dData;
+	//private NiToJ3dData niToJ3dData;
 
 	private J3dNiAVObject root;
 
@@ -48,7 +48,7 @@ public class NifJ3dSkeletonRoot extends Group
 	public NifJ3dSkeletonRoot(J3dNiAVObject root, NiToJ3dData niToJ3dData)
 	{
 		this.root = root;
-		this.niToJ3dData = niToJ3dData;
+		//this.niToJ3dData = niToJ3dData;
 		if (root.getParent() == null)
 		{
 			addChild(root);
@@ -218,10 +218,10 @@ public class NifJ3dSkeletonRoot extends Group
 		return root;
 	}
 
-	public NiToJ3dData getniToJ3dData()
+	/*public NiToJ3dData getniToJ3dData()
 	{
 		return niToJ3dData;
-	}
+	}*/
 
 	/**
 	 * Called to update the transform, not used by blended skeleton system

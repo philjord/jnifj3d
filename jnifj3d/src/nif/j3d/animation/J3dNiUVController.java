@@ -3,7 +3,7 @@ package nif.j3d.animation;
 import org.jogamp.java3d.Alpha;
 import org.jogamp.java3d.Node;
 
-import nif.compound.NifKeyGroup;
+import nif.compound.NifKeyGroup.NifKeyGroupFloat;
 import nif.enums.TexTransform;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.NiToJ3dData;
@@ -37,8 +37,8 @@ public class J3dNiUVController extends J3dNiTimeController
 
 			for (int i = 0; i < 4; i++)
 			{
-				NifKeyGroup keyGroup = niUVData.uVGroups[i];
-				if (keyGroup.keys != null)
+				NifKeyGroupFloat keyGroup = niUVData.uVGroups[i];
+				if (keyGroup.time != null)
 				{
 					J3dNiTimeController j3dNiTimeController2 = new J3dNiTextureTransformController(controller, (J3dNiAVObject) nodeTarget,
 							ops[i]);

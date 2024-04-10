@@ -19,11 +19,13 @@ import org.jogamp.vecmath.Point2f;
 import org.jogamp.vecmath.Point3d;
 import org.jogamp.vecmath.Point3f;
 
+import nif.NifFile;
 import nif.NifJ3dVisRoot;
 import nif.NifToJ3d;
 import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiNode;
 import nif.j3d.J3dNiSkinInstance;
+import nif.j3d.NiToJ3dData;
 import nif.j3d.animation.J3dNiControllerSequence;
 import nif.j3d.animation.J3dNiControllerSequence.SequenceListener;
 import nif.j3d.animation.SequenceAlpha;
@@ -231,38 +233,49 @@ public class NifCharacter extends BranchGroup implements Fadable
 			currentAnimation = nextAnimation;
 			nextAnimation = "";
 
-			KfJ3dRoot kfJ3dRoot = NifToJ3d.loadKf(currentAnimation, mediaSources.getMeshSource());
-			if (kfJ3dRoot != null)
+			// We need the nifFile.blocks and the KfJ3dRoot
+			//KfJ3dRoot kfJ3dRoot = NifToJ3d.loadKf(currentAnimation, mediaSources.getMeshSource());
+			
+			KfJ3dRoot kfJ3dRoot = null;
+			NifFile nifFile = NifToJ3d.loadNiObjects(currentAnimation, mediaSources.getMeshSource());
+			if (nifFile != null)
 			{
-				// just default to a 0.3 second blend?
-				Alpha defaultAlpha = new SequenceAlpha(0, 0.3f, false);
-				defaultAlpha.setStartTime(System.currentTimeMillis());
-
-				NifJ3dSkeletonRoot inputSkeleton = blendedSkeletons.startNewInputAnimation(defaultAlpha);
-				kfJ3dRoot.setAnimatedSkeleton(inputSkeleton.getAllBonesInSkeleton(), allOtherModels);
-
-				// now add the root to the scene so the controller sequence is live
-				BranchGroup newKfBg = new BranchGroup();
-				newKfBg.setCapability(BranchGroup.ALLOW_DETACH);
-				newKfBg.setCapability(Group.ALLOW_CHILDREN_WRITE);
-
-				newKfBg.addChild(kfJ3dRoot);
-				// add it on
-				addChild(newKfBg);
-				currentControllerSequence = kfJ3dRoot.getJ3dNiControllerSequence();
-
-				currentControllerSequence.addSequenceListener(new SequenceSoundListener());
-				currentControllerSequence.fireSequence(!returnToIdleWhenDone, 0);
-
-				// remove the old one
-				if (currentKfBg != null)
+				kfJ3dRoot = NifToJ3d.extractKf(nifFile);
+			
+				if (kfJ3dRoot != null)
 				{
-					currentKfBg.detach();
+					// just default to a 0.3 second blend?
+					Alpha defaultAlpha = new SequenceAlpha(0, 0.3f, false);
+					defaultAlpha.setStartTime(System.currentTimeMillis());
+										
+					
+					NiToJ3dData niToJ3dData = new NiToJ3dData(nifFile.blocks);
+					NifJ3dSkeletonRoot inputSkeleton = blendedSkeletons.startNewInputAnimation(defaultAlpha);
+					kfJ3dRoot.setAnimatedSkeleton(inputSkeleton.getAllBonesInSkeleton(), allOtherModels, niToJ3dData);
+	
+					// now add the root to the scene so the controller sequence is live
+					BranchGroup newKfBg = new BranchGroup();
+					newKfBg.setCapability(BranchGroup.ALLOW_DETACH);
+					newKfBg.setCapability(Group.ALLOW_CHILDREN_WRITE);
+	
+					newKfBg.addChild(kfJ3dRoot);
+					// add it on
+					addChild(newKfBg);
+					currentControllerSequence = kfJ3dRoot.getJ3dNiControllerSequence();
+	
+					currentControllerSequence.addSequenceListener(new SequenceSoundListener());
+					currentControllerSequence.fireSequence(!returnToIdleWhenDone, 0);
+	
+					// remove the old one
+					if (currentKfBg != null)
+					{
+						currentKfBg.detach();
+					}
+	
+					// assign currents
+					currentKfBg = newKfBg;
+					currentkfJ3dRoot = kfJ3dRoot;
 				}
-
-				// assign currents
-				currentKfBg = newKfBg;
-				currentkfJ3dRoot = kfJ3dRoot;
 			}
 			else
 			{
