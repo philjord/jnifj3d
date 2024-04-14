@@ -14,4 +14,6 @@ public interface TextureSource
 	public List<String> getFilesInFolder(String folderName);
 
 	public TextureUnitState getTextureUnitState(String texName);
+	
+	public TextureUnitState getTextureUnitState(String texName, boolean dropMip0);
 }

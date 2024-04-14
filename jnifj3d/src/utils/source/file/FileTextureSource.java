@@ -147,6 +147,11 @@ public class FileTextureSource implements TextureSource
 	@Override
 	public TextureUnitState getTextureUnitState(String texName)
 	{
+		return getTextureUnitState(texName, false);
+	}
+	@Override
+	public TextureUnitState getTextureUnitState(String texName, boolean dropMip0) {
+		 
 		texName = texName.toLowerCase();
 
 		if (texName.length() > 0)
@@ -232,4 +237,6 @@ public class FileTextureSource implements TextureSource
 
 		return ret;
 	}
+
+	
 }

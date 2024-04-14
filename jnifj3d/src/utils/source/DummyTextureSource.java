@@ -44,6 +44,11 @@ public class DummyTextureSource implements TextureSource
 	@Override
 	public TextureUnitState getTextureUnitState(String texName)
 	{
+		return getTextureUnitState(texName, false);
+	}
+
+	@Override
+	public TextureUnitState getTextureUnitState(String texName, boolean dropMip0) {
 		return new TextureUnitState();
 	}
 
