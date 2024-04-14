@@ -152,7 +152,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 					//NifJ3dVisRoot model2 = NifToJ3d.loadShapes(ESConfig.TES_MESH_PATH + "actors\\character\\characterassets\\malebody.nif", 
 					//		mediaSources.getMeshSource(),	mediaSources.getTextureSource());
 					//root.addChild(model2.getVisualRoot());
-					root.addChild(new Cube(0.1,0.1,0.1,1,1,1));
+					//root.addChild(new Cube(0.1,0.1,0.1,1,1,1));
 					
 					
 					if (skins.size() > 0)
