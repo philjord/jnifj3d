@@ -403,27 +403,47 @@ public class J3dBSbhkNPObject extends Group
 				
 				int[] indices = primitive.indices;	
 
-				// if any of the indices go beyond numPackedVertices then the distance beyond
-				// is used as an index into the sharedVerticesIndex, starting at the <sharedOffset> for this section
-				// each section has numSharedIndices of the sharedVerticesIndex as it's own
-				// the index found is then used as an index into the shared vertex area of the vertices, which for now is at the end starting at 
-				// numPackedVertices, but when a single packed and shared vertex array is used will be at the end of all packed vertices
 								 				
 				try {
-					int[] sharedVerticesIndex = meshTree.sharedVerticesIndex;										 				
-					//quad?
-					if(indices[2] != indices[3]) {
-						listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]-numPackedVertices)+sharedOffset]+numPackedVertices;
-						listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : sharedVerticesIndex[(indices[1]-numPackedVertices)+sharedOffset]+numPackedVertices;
-						listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]-numPackedVertices)+sharedOffset]+numPackedVertices;
-						listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]-numPackedVertices)+sharedOffset]+numPackedVertices;
-						listPoints[idx++] = indices[3] < numPackedVertices ? indices[3] : sharedVerticesIndex[(indices[3]-numPackedVertices)+sharedOffset]+numPackedVertices;
-						listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]-numPackedVertices)+sharedOffset]+numPackedVertices;
-					} else {//just a tri					
-						listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]-numPackedVertices)+sharedOffset]+numPackedVertices;
-						listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : sharedVerticesIndex[(indices[1]-numPackedVertices)+sharedOffset]+numPackedVertices;
-						listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]-numPackedVertices)+sharedOffset]+numPackedVertices;
-					}
+					
+					int[] sharedVerticesIndex = meshTree.sharedVerticesIndex;	
+					if(sharedVerticesIndex != null) {
+						// if any of the indices go beyond numPackedVertices then the distance beyond
+						// is used as an index into the sharedVerticesIndex, starting at the <sharedOffset> for this section
+						// each section has numSharedIndices of the sharedVerticesIndex as it's own
+						// the index found is then used as an index into the shared vertex area of the vertices, which for now is at the end starting at 
+						// numPackedVertices, but when a single packed and shared vertex array is used will be at the end of all packed vertices
+															 				
+						//quad?
+						if(indices[2] != indices[3]) {
+							listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]-numPackedVertices)+sharedOffset]+numPackedVertices;
+							listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : sharedVerticesIndex[(indices[1]-numPackedVertices)+sharedOffset]+numPackedVertices;
+							listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]-numPackedVertices)+sharedOffset]+numPackedVertices;
+							listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]-numPackedVertices)+sharedOffset]+numPackedVertices;
+							listPoints[idx++] = indices[3] < numPackedVertices ? indices[3] : sharedVerticesIndex[(indices[3]-numPackedVertices)+sharedOffset]+numPackedVertices;
+							listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]-numPackedVertices)+sharedOffset]+numPackedVertices;
+						} else {//just a tri					
+							listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]-numPackedVertices)+sharedOffset]+numPackedVertices;
+							listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : sharedVerticesIndex[(indices[1]-numPackedVertices)+sharedOffset]+numPackedVertices;
+							listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]-numPackedVertices)+sharedOffset]+numPackedVertices;
+						}
+					} else {
+						//quad?
+						//FIXME: what does an over sized index but no shared vertexs mean?
+						if(indices[2] != indices[3]) {
+							listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : 0;
+							listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : 0;
+							listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : 0;
+							listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : 0;
+							listPoints[idx++] = indices[3] < numPackedVertices ? indices[3] : 0;
+							listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : 0;
+						} else {//just a tri					
+							listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : 0;
+							listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : 0;
+							listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : 0;
+						}
+					}				
+					
 				} catch(ArrayIndexOutOfBoundsException e) {
 					System.out.println("J3dBSbhkNPObject ArrayIndexOutOfBoundsException " + e.getMessage());
 				}

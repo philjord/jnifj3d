@@ -19,6 +19,7 @@ import org.jogamp.java3d.TransformGroup;
 import org.jogamp.java3d.TriangleArray;
 import org.jogamp.java3d.utils.shader.Cube;
 import org.jogamp.vecmath.Matrix3f;
+import org.jogamp.vecmath.Point3d;
 import org.jogamp.vecmath.Point3f;
 import org.jogamp.vecmath.Quat4f;
 import org.jogamp.vecmath.Vector3f;
@@ -50,14 +51,23 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 	public J3dBSTriShape(BSTriShape bsTriShape, NiToJ3dData niToJ3dData, TextureSource textureSource)
 	{
 		super(bsTriShape, niToJ3dData, textureSource);
+		
 		niToJ3dData.put(bsTriShape, this);
 
-		currentGeometryArray = createGeometry(false);
-		getShape().setGeometry(currentGeometryArray);
-		if (USE_FIXED_BOUNDS)
+		//am I a skin shape in which case I need to be uncompacted ready for animation
+		if (bsTriShape.skin.ref != -1)
 		{
-			getShape().setBoundsAutoCompute(false);// expensive to do regularly so animated node just get one
-			getShape().setBounds(new BoundingSphere(ConvertFromNif.toJ3dP3d(bsTriShape.center), ConvertFromNif.toJ3d(bsTriShape.radius)));
+			makeMorphable();
+		}
+		else
+		{
+			currentGeometryArray = createGeometry(false);
+			getShape().setGeometry(currentGeometryArray);
+			if (USE_FIXED_BOUNDS)
+			{
+				getShape().setBoundsAutoCompute(false);// expensive to do regularly so animated node just get one
+				getShape().setBounds(new BoundingSphere(ConvertFromNif.toJ3dP3d(bsTriShape.center), ConvertFromNif.toJ3d(bsTriShape.radius)));
+			}
 		}
 
 		if (bsTriShape.dataSize == 0 && DISPLAY_FAR_QUADS)
@@ -158,6 +168,41 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 
 		}
 	}
+	
+	/**
+	 * Note expensive re-create should be optimized one day
+	 */
+	@Override
+	public void makeMorphable()
+	{
+		// TODO: is there any gain? certainly a loss from being wrong, 
+		//gain in updateData no recompute required
+
+		if (USE_FIXED_BOUNDS)
+		{
+			//FIXME:
+			//no data in a BSTriShape so just 10 for now
+			float radius = 10;//isMorphable ? data.radius * 10 : data.radius;
+			 
+			getShape().setBoundsAutoCompute(false);// expensive to do regularly so animated node just get one
+			getShape().setBounds(new BoundingSphere(new Point3d(0, 0, 0), radius));
+		}
+		if (!isMorphable)
+		{
+
+			baseGeometryArray = createGeometry(true);
+			currentGeometryArray = createGeometry(true);
+			getShape().setGeometry(currentGeometryArray);
+			isMorphable = true;
+		}
+
+		/*		//little test 
+				Bounds fromShape = getShape().getBounds();
+				BoundingSphere fromFile = new BoundingSphere(ConvertFromNif.toJ3dP3d(data.center),
+						ConvertFromNif.toJ3d(isMorphable ? data.radius * 2 : data.radius));
+		
+				System.out.println("fromShape " + fromShape + " fromFile " + fromFile);*/
+	}
 
 	@Override
 	protected IndexedGeometryArray createGeometry(boolean morphable)
@@ -207,6 +252,7 @@ public class J3dBSTriShape extends J3dNiTriBasedGeom
 	//also used by Fo4LODLandscape
 	public static IndexedGeometryArray createGeometry(BSTriShape bsTriShape, boolean morphable)
 	{
+		
 		if (!morphable)
 		{
 			IndexedGeometryArray iga = sharedIGAs.get(bsTriShape);

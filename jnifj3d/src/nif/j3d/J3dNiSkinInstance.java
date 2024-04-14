@@ -11,25 +11,30 @@ import nif.character.NifJ3dSkeletonRoot;
 import nif.niobject.NiAVObject;
 import nif.niobject.NiGeometry;
 import nif.niobject.NiNode;
+import nif.niobject.NiObject;
 import nif.niobject.NiSkinData;
 import nif.niobject.NiSkinInstance;
 import nif.niobject.NiTriShape;
+import nif.niobject.bs.BSSkin;
+import nif.niobject.bs.BSSubIndexTriShape;
 import tools3d.utils.scenegraph.Fadable;
 
 public class J3dNiSkinInstance extends Group implements Fadable
 {
 	public static boolean showSkinBoneMarkers = false;
 
-	private J3dNiTriShape j3dNiTriShape;
+	protected J3dNiTriBasedGeom j3dNiTriBasedGeom;
 
-	private J3dNifSkinData j3dNifSkinData;
+	protected J3dSkin j3dSkin;
 
-	private J3dNiAVObject skinSkeletonRoot;
-
+	protected J3dNiAVObject skinSkeletonRoot;
+	
+	protected J3dNiSkinInstance(){	             	}
+	
 	public J3dNiSkinInstance(NiSkinInstance niSkinInstance, J3dNiTriShape j3dNiTriShape, NiToJ3dData niToJ3dData,
 			NifJ3dSkeletonRoot nifJ3dSkeletonRoot)
 	{
-		this.j3dNiTriShape = j3dNiTriShape;
+		this.j3dNiTriBasedGeom = j3dNiTriShape;
 		J3dNiDefaultAVObjectPalette allSkeletonBones = nifJ3dSkeletonRoot.getAllBonesInSkeleton();
 
 		if (j3dNiTriShape.getParent() != null)
@@ -66,39 +71,39 @@ public class J3dNiSkinInstance extends Group implements Fadable
 		if (niSkinInstance.data.ref != -1 && true)
 		{
 			NiSkinData niSkinData = (NiSkinData) niToJ3dData.get(niSkinInstance.data);
-			j3dNifSkinData = new J3dNifSkinData(niSkinData, j3dNiTriShape, skinBonesInOrder, skeletonBones);
+			j3dSkin = new J3dNifSkinData(niSkinData, j3dNiTriShape, skinBonesInOrder, skeletonBones);
 		}
 
 	}
 
-	public J3dNiTriShape getJ3dNiTriShape()
+	public J3dNiTriBasedGeom getJ3dNiTriShape()
 	{
-		return j3dNiTriShape;
+		return j3dNiTriBasedGeom;
 	}
 
 	public void processSkinInstance()
 	{
-		if (j3dNifSkinData != null)
+		if (j3dSkin != null)
 		{
-			j3dNifSkinData.updateSkin();
+			j3dSkin.updateSkin();
 		}
 	}
 
 	@Override
 	public void fade(float percent)
 	{
-		if (j3dNifSkinData != null)
+		if (j3dSkin != null)
 		{
-			j3dNifSkinData.fade(percent);
+			j3dSkin.fade(percent);
 		}
 	}
 
 	@Override
 	public void setOutline(Color3f c)
 	{
-		if (j3dNifSkinData != null)
+		if (j3dSkin != null)
 		{
-			j3dNifSkinData.setOutline(c);
+			j3dSkin.setOutline(c);
 		}
 	}
 
@@ -113,17 +118,34 @@ public class J3dNiSkinInstance extends Group implements Fadable
 				NiGeometry niGeometry = (NiGeometry) j3dNiGeometry.getNiAVObject();
 				if (niGeometry.skin.ref != -1)
 				{
-					NiSkinInstance niSkinInstance = (NiSkinInstance) niToJ3dData.get(niGeometry.skin);
-
-					if (niGeometry instanceof NiTriShape)
-					{
-						NiTriShape niTriShape = (NiTriShape) niGeometry;
-						J3dNiTriShape j3dNiTriShape = (J3dNiTriShape) niToJ3dData.get(niTriShape);
-						j3dNiSkinInstances.add(new J3dNiSkinInstance(niSkinInstance, j3dNiTriShape, niToJ3dData, nifJ3dSkeletonRoot));
-					}
-					else
-					{
-						System.out.println("What the hell non trishape has skin instance!!");
+					NiObject skinRef = niToJ3dData.get(niGeometry.skin);
+					if(skinRef instanceof NiSkinInstance) {						 
+						
+						NiSkinInstance niSkinInstance = (NiSkinInstance) skinRef;
+	
+						if (niGeometry instanceof NiTriShape)
+						{
+							NiTriShape niTriShape = (NiTriShape) niGeometry;
+							J3dNiTriShape j3dNiTriShape = (J3dNiTriShape) niToJ3dData.get(niTriShape);
+							j3dNiSkinInstances.add(new J3dNiSkinInstance(niSkinInstance, j3dNiTriShape, niToJ3dData, nifJ3dSkeletonRoot));
+						}
+						else
+						{
+							System.out.println("What the hell non trishape has skin instance!!");
+						}
+					} else if (skinRef instanceof BSSkin.Instance) {
+						BSSkin.Instance bsSkinInstance = (BSSkin.Instance) skinRef;
+						
+						if (niGeometry instanceof BSSubIndexTriShape)
+						{
+							BSSubIndexTriShape niTriShape = (BSSubIndexTriShape) niGeometry;
+							J3dBSTriShape j3dNiTriShape = (J3dBSTriShape) niToJ3dData.get(niTriShape);
+							j3dNiSkinInstances.add(new J3dBsSkinInstance(bsSkinInstance, j3dNiTriShape, niToJ3dData, nifJ3dSkeletonRoot));
+						}
+						else
+						{
+							System.out.println("What the hell non BSSubIndexTriShape has BSSkin.Instance!! " +niGeometry);
+						}
 					}
 				}
 			}

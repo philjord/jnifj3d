@@ -4,37 +4,20 @@ import java.nio.FloatBuffer;
 import java.util.HashMap;
 
 import org.jogamp.java3d.Geometry;
-import org.jogamp.java3d.GeometryArray;
-import org.jogamp.java3d.GeometryUpdater;
-import org.jogamp.java3d.Group;
 import org.jogamp.java3d.Transform3D;
-import org.jogamp.vecmath.Color3f;
 
 import nif.character.NifCharacter;
 import nif.compound.NifSkinData;
 import nif.compound.NifSkinTransform;
 import nif.compound.NifSkinWeight;
 import nif.niobject.NiSkinData;
-import tools3d.utils.scenegraph.Fadable;
 import utils.convert.ConvertFromNif;
 
-public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
+public class J3dNifSkinData extends J3dSkin
 {
 	private NiSkinData niSkinData;
 
-	private J3dNiNode[] skeletonBonesInSkinBoneIdOrder;//prelookups
-
-	private GeometryArray baseIndexedGeometryArray;
-
-	private GeometryArray currentIndexedGeometryArray;
-
-	private Transform3D skinDataTrans = new Transform3D();
-
-	private Transform3D[] skinBonesSkinOffsetInOrder;
-
-	private J3dNiTriShape j3dNiTriShape;
-
-	public J3dNifSkinData(NiSkinData niSkinData, J3dNiTriShape j3dNiTriShape, J3dNiNode[] skinBonesInOrder,
+	public J3dNifSkinData(NiSkinData niSkinData, J3dNiTriBasedGeom j3dNiTriShape, J3dNiNode[] skinBonesInOrder,
 			HashMap<String, J3dNiNode> skeletonBones)
 	{
 		//http://sourceforge.net/p/niftools/niflib/ci/0b2d0541c5a17af892ab2f416acbbfd2fdc369b2/tree/src/obj/NiSkinData.cpp
@@ -46,7 +29,7 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 		// TODO: deathclaw skin totally rooted up
 
 		this.niSkinData = niSkinData;
-		this.j3dNiTriShape = j3dNiTriShape;
+		this.j3dNiTriBasedGeom = j3dNiTriShape;
 
 		skinDataTrans.setRotation(ConvertFromNif.toJ3d(niSkinData.nifSkinTransform.rotation));
 		skinDataTrans.setTranslation(ConvertFromNif.toJ3d(niSkinData.nifSkinTransform.translation));
@@ -78,22 +61,7 @@ public class J3dNifSkinData extends Group implements GeometryUpdater, Fadable
 
 	}
 
-	@Override
-	public void fade(float percent)
-	{
-		j3dNiTriShape.fade(percent);
-	}
-
-	@Override
-	public void setOutline(Color3f c)
-	{
-		j3dNiTriShape.setOutline(c);
-	}
-
-	public void updateSkin()
-	{
-		currentIndexedGeometryArray.updateData(this);
-	}
+	
 
 	// for reuse inside loop
 	private Transform3D skeletonBoneVWTrans = new Transform3D();

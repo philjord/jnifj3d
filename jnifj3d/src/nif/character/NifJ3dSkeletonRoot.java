@@ -1,7 +1,6 @@
 package nif.character;
 
 import org.jogamp.java3d.Group;
-import org.jogamp.java3d.Transform3D;
 
 import nif.NifJ3dVisRoot;
 import nif.NifToJ3d;
@@ -61,7 +60,7 @@ public class NifJ3dSkeletonRoot extends Group
 				J3dNiNode j3dNiNode = (J3dNiNode) j3dNiAVObject;
 				NiNode niNode = (NiNode) j3dNiNode.getNiAVObject();
 
-				if (niNode.name.equals("Bip01 Head") || niNode.name.equals("Bip02 Head") || niNode.name.indexOf("[HEAD]") != -1)
+				if (niNode.name.equals("Bip01 Head") || niNode.name.equals("Bip02 Head") || niNode.name.equals("HEAD"))
 				{
 					headJ3dNiNode = j3dNiNode;
 				}
@@ -172,14 +171,14 @@ public class NifJ3dSkeletonRoot extends Group
 
 	public static boolean isAccumNodeName(String name)
 	{
-		return name.equals("Bip01") || name.equals("Bip02") || name.indexOf("Root Bone") != -1 || name.indexOf("[Root]") != -1;
+		return name.equals("Bip01") || name.equals("Bip02") || name.indexOf("Root Bone") != -1 || name.indexOf("[Root]") != -1 || name.equals("Root");
 	}
 
 	public static boolean isNonAccumNodeName(String name)
 	{
 		// note extra space character [COM ]
 		return name.indexOf("NonAccum") != -1 || name.indexOf("[COM ]") != -1 || name.indexOf("Main Bone") != -1
-				|| name.indexOf("Body Bone") != -1;
+				|| name.indexOf("Body Bone") != -1 || name.equals("COM");
 	}
 
 	public J3dNiNode getHeadJ3dNiNode()

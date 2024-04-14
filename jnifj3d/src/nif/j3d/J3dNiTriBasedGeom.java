@@ -53,14 +53,14 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 
 	private int outlineStencilMask = -1;
 
-	private GeometryArray baseGeometryArray;
+	protected GeometryArray baseGeometryArray;
 
 	protected GeometryArray currentGeometryArray;
 
 	//NOT FOR FO4!!!
 	protected NiTriBasedGeomData data;
 
-	private boolean isMorphable = false;
+	protected boolean isMorphable = false;
 
 	private Shape3D outliner = null;
 
