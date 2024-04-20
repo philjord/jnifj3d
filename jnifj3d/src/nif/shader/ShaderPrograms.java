@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 
 import org.jogamp.java3d.Shader;
 
+import nif.enums.BSLightingShaderType;
 import nif.j3d.NiToJ3dData;
 import nif.niobject.NiAlphaProperty;
 import nif.niobject.NiGeometry;
@@ -408,7 +409,7 @@ public class ShaderPrograms {
 			} else if (left.equalsIgnoreCase("HEADER/User Version")) {
 				return compare(niGeometry.nVer.LOAD_USER_VER, Integer.parseInt(right)) ^ invert;
 			} else if (left.equalsIgnoreCase("HEADER/User Version 2")) {
-				return compare(niGeometry.nVer.LOAD_USER_VER2, Integer.parseInt(right)) ^ invert;
+				return compare(niGeometry.nVer.BS_Version, Integer.parseInt(right)) ^ invert;
 			} else if (left.equalsIgnoreCase("NiAVObject/Vertex Flag 1")) {
 				//Possible mistype only BSTriShape has this attribute (I've called it vertexType) FO4 file
 				if (niGeometry instanceof BSTriShape) {
@@ -468,7 +469,7 @@ public class ShaderPrograms {
 				if (bslsp == null)
 					return invert;
 				else
-					return compare(bslsp.SkyrimShaderType.type, Integer.parseInt(right)) ^ invert;
+					return compare(bslsp.ShaderType.getType(), Integer.parseInt(right)) ^ invert;
 			} else if (left.equalsIgnoreCase("NiTexturingProperty/Apply Mode")) {
 				NiTexturingProperty p = (NiTexturingProperty)props.get(NiTexturingProperty.class);
 				if (p != null) {

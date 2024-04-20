@@ -48,7 +48,7 @@ import nif.niobject.NiTexturingProperty;
 import nif.niobject.NiVertexColorProperty;
 import nif.niobject.NiWireframeProperty;
 import nif.niobject.NiZBufferProperty;
-import nif.niobject.bgsm.BSMaterial;
+import nif.niobject.bgsm.ShaderMaterial;
 import nif.niobject.bs.BSEffectShaderProperty;
 import nif.niobject.bs.BSLightingShaderProperty;
 import nif.niobject.bs.BSRefractionFirePeriodController;
@@ -190,8 +190,8 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 						}
 
 						// refraction lighting is troublesome without shaders, disable for now, or if no texture 
-						if (bsspplp.shaderFlags.isBitSet(BSShaderFlags.SF_REFRACTION)
-								|| bsspplp.shaderFlags.isBitSet(BSShaderFlags.SF_FIRE_REFRACTION) || bbsts.numTextures == 0)
+						if (bsspplp.ShaderFlags.isBitSet(BSShaderFlags.SF_REFRACTION)
+								|| bsspplp.ShaderFlags.isBitSet(BSShaderFlags.SF_FIRE_REFRACTION) || bbsts.numTextures == 0)
 						{
 							ra.setVisible(false);
 						}
@@ -203,14 +203,14 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 
 						textureAttributes.setTextureMode(TextureAttributes.REPLACE);
 
-						if (bssnlp.shaderType.type == BSShaderType.SHADER_NOLIGHTING)
+						if (bssnlp.ShaderType == BSShaderType.SHADER_NOLIGHTING)
 						{
 							mat.setLightingEnable(false);
 						}
 
 						// refraction lighting is troublesome without shaders, disable for now, or if no texture 
-						if (bssnlp.shaderFlags.isBitSet(BSShaderFlags.SF_REFRACTION)
-								|| bssnlp.shaderFlags.isBitSet(BSShaderFlags.SF_FIRE_REFRACTION) || bssnlp.fileName.length() == 0)
+						if (bssnlp.ShaderFlags.isBitSet(BSShaderFlags.SF_REFRACTION)
+								|| bssnlp.ShaderFlags.isBitSet(BSShaderFlags.SF_FIRE_REFRACTION) || bssnlp.fileName.length() == 0)
 						{
 							ra.setVisible(false);
 						}
@@ -239,7 +239,7 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 
 						if (!(niToJ3dData.nifVer.LOAD_VER == NifVer.VER_20_2_0_7
 								&& (niToJ3dData.nifVer.LOAD_USER_VER == 11 || niToJ3dData.nifVer.LOAD_USER_VER == 12)
-								&& niToJ3dData.nifVer.LOAD_USER_VER2 > 21))
+								&& niToJ3dData.nifVer.BS_Version > 21))
 						{
 							mat.setAmbientColor(nmp.ambientColor.r, nmp.ambientColor.g, nmp.ambientColor.b);
 							mat.setDiffuseColor(nmp.diffuseColor.r, nmp.diffuseColor.g, nmp.diffuseColor.b);
@@ -358,7 +358,7 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 							tus0.setTexture(tex);
 						}
 
-						mat.setEmissiveColor(bsesp.EmissiveColor.r, bsesp.EmissiveColor.g, bsesp.EmissiveColor.b);
+						mat.setEmissiveColor(bsesp.BaseColor.r, bsesp.BaseColor.g, bsesp.BaseColor.b);
 
 					}
 					else if (property instanceof BSSkyShaderProperty)
@@ -438,16 +438,16 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 
 					// now set the texture
 					// FO4 has material files pointed at by name
-					if (bslsp.Name.toLowerCase().endsWith(".bgsm") || bslsp.Name.toLowerCase().endsWith(".bgem"))
+					if (bslsp.name.toLowerCase().endsWith(".bgsm") || bslsp.name.toLowerCase().endsWith(".bgem"))
 					{
 						// if the bgsm file exists the textureset may have bad .tga files in it (or good .dds ones)
 						// but the bgsm definitely has good textures
 						try
 						{
-							BSMaterial material = BgsmSource.bgsmSource.getMaterial(bslsp.Name);
+							ShaderMaterial material = (ShaderMaterial)BgsmSource.bgsmSource.getMaterial(bslsp.name);
 							if (material != null)
 							{
-								Texture tex = J3dNiGeometry.loadTexture(material.textureList.get(0), textureSource);
+								Texture tex = J3dNiGeometry.loadTexture(material.DiffuseTexture, textureSource);
 								tus0.setTexture(tex);
 							}
 						}
@@ -483,7 +483,7 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 					// apparently the The vertex colors are used as well, just not the alpha component when
 					// SF_Vertex_Animation is present
 					// http://niftools.sourceforge.net/forum/viewtopic.php?f=10&t=3276
-					if (bslsp.ShaderFlags2.isBitSet(SkyrimShaderPropertyFlags2.SLSF2_Tree_Anim))
+					if (SkyrimShaderPropertyFlags2.isBitSet(bslsp.ShaderFlags2, SkyrimShaderPropertyFlags2.SLSF2_Tree_Anim))
 					{
 						textureAttributes.setTextureMode(TextureAttributes.COMBINE);
 						textureAttributes.setCombineAlphaMode(TextureAttributes.COMBINE_REPLACE);

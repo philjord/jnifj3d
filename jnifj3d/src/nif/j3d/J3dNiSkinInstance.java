@@ -17,6 +17,7 @@ import nif.niobject.NiSkinInstance;
 import nif.niobject.NiTriShape;
 import nif.niobject.bs.BSSkin;
 import nif.niobject.bs.BSSubIndexTriShape;
+import nif.niobject.bs.BSTriShape;
 import tools3d.utils.scenegraph.Fadable;
 
 public class J3dNiSkinInstance extends Group implements Fadable
@@ -136,15 +137,16 @@ public class J3dNiSkinInstance extends Group implements Fadable
 					} else if (skinRef instanceof BSSkin.Instance) {
 						BSSkin.Instance bsSkinInstance = (BSSkin.Instance) skinRef;
 						
-						if (niGeometry instanceof BSSubIndexTriShape)
-						{
+						if (niGeometry instanceof BSSubIndexTriShape) {
 							BSSubIndexTriShape niTriShape = (BSSubIndexTriShape) niGeometry;
 							J3dBSTriShape j3dNiTriShape = (J3dBSTriShape) niToJ3dData.get(niTriShape);
 							j3dNiSkinInstances.add(new J3dBsSkinInstance(bsSkinInstance, j3dNiTriShape, niToJ3dData, nifJ3dSkeletonRoot));
-						}
-						else
-						{
-							System.out.println("What the hell non BSSubIndexTriShape has BSSkin.Instance!! " +niGeometry);
+						} else if (niGeometry instanceof BSTriShape) {
+							BSTriShape niTriShape = (BSTriShape) niGeometry;
+							J3dBSTriShape j3dNiTriShape = (J3dBSTriShape) niToJ3dData.get(niTriShape);
+							j3dNiSkinInstances.add(new J3dBsSkinInstance(bsSkinInstance, j3dNiTriShape, niToJ3dData, nifJ3dSkeletonRoot));
+						} else {						
+							System.out.println("What the hell non BSSubIndexTriShape and non BSTriShape has BSSkin.Instance!! " +niGeometry);
 						}
 					}
 				}

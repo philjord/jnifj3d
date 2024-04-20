@@ -438,7 +438,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 					mat.setColorTarget(Material.AMBIENT_AND_DIFFUSE);
 
 					if (!(nmp.nVer.LOAD_VER == NifVer.VER_20_2_0_7 && (nmp.nVer.LOAD_USER_VER == 11 || nmp.nVer.LOAD_USER_VER == 12)
-							&& nmp.nVer.LOAD_USER_VER2 > 21))
+							&& nmp.nVer.BS_Version > 21))
 					{
 						mat.setAmbientColor(nmp.ambientColor.r, nmp.ambientColor.g, nmp.ambientColor.b);
 						mat.setDiffuseColor(nmp.diffuseColor.r, nmp.diffuseColor.g, nmp.diffuseColor.b);
