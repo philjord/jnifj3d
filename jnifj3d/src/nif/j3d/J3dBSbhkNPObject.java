@@ -1,17 +1,26 @@
 package nif.j3d;
 
+import java.util.Iterator;
+
 import org.jogamp.java3d.GeometryArray;
 import org.jogamp.java3d.Group;
 import org.jogamp.java3d.IndexedLineArray;
+import org.jogamp.java3d.J3DBuffer;
 import org.jogamp.java3d.Node;
 import org.jogamp.java3d.Shape3D;
 import org.jogamp.java3d.Transform3D;
 import org.jogamp.java3d.TransformGroup;
+import org.jogamp.java3d.TriangleStripArray;
+import org.jogamp.java3d.geom.CylinderGenerator;
+import org.jogamp.java3d.geom.GeometryData;
+import org.jogamp.java3d.geom.SphereGenerator;
 import org.jogamp.java3d.utils.geometry.GeometryInfo;
 import org.jogamp.java3d.utils.shader.SimpleShaderAppearance;
 import org.jogamp.vecmath.Color3f;
+import org.jogamp.vecmath.Point3d;
 import org.jogamp.vecmath.Point3f;
 import org.jogamp.vecmath.Tuple3f;
+import org.jogamp.vecmath.Vector3d;
 import org.jogamp.vecmath.Vector3f;
 
 import com.bulletphysics.collision.shapes.ConvexHullShape;
@@ -22,8 +31,10 @@ import com.bulletphysics.util.ObjectArrayList;
 import nif.NifVer;
 import nif.niobject.bs.BSbhkNPObject;
 import nif.niobject.hkx.hkAabb;
+import nif.niobject.hkx.hkBaseObject;
 import nif.niobject.hkx.hkcdStaticMeshTreeBasePrimitive;
 import nif.niobject.hkx.hknpBodyCinfo;
+import nif.niobject.hkx.hknpCapsuleShape;
 import nif.niobject.hkx.hknpCompressedMeshShape;
 import nif.niobject.hkx.hknpCompressedMeshShapeData;
 import nif.niobject.hkx.hknpCompressedMeshShapeTree;
@@ -32,8 +43,11 @@ import nif.niobject.hkx.hknpDynamicCompoundShape;
 import nif.niobject.hkx.hknpPhysicsSystemData;
 import nif.niobject.hkx.hknpScaledConvexShape;
 import nif.niobject.hkx.hknpShape;
+import nif.niobject.hkx.hknpSphereShape;
+import nif.niobject.hkx.hknpStaticCompoundShape;
 import nif.niobject.hkx.reader.HKXContents;
 import tools3d.utils.PhysAppearance;
+import tools3d.utils.Utils3D;
 import utils.convert.ConvertFromHavok;
 
 /**
@@ -58,51 +72,62 @@ public class J3dBSbhkNPObject extends Group
 	public J3dBSbhkNPObject(BSbhkNPObject object, NiToJ3dData niToJ3dData)
 	{
 		HKXContents contents = object.hkxContents;
-		// the first one had better be a system
-		hknpPhysicsSystemData hknpPhysicsSystemData = (hknpPhysicsSystemData)contents.getContentCollection().iterator().next();
-			
-		//physics bodies are here
-		hknpBodyCinfo[] bodyCinfos = hknpPhysicsSystemData.bodyCinfos;
-		for(int  i= 0 ; i < bodyCinfos.length; i++) {
-			hknpBodyCinfo bodyCinfo = bodyCinfos[i];
-			
-			long shapeId = bodyCinfo.shape;
-			if(shapeId > 0) {
-				hknpShape hknpShape = (hknpShape)contents.get(shapeId);
-				 
+		
+		Iterator<hkBaseObject> iter = contents.getContentCollection().iterator();
+		if(iter.hasNext()) {
+			// the first one had better be a system
+			hknpPhysicsSystemData hknpPhysicsSystemData = (hknpPhysicsSystemData)iter.next();
 				
-				Group lowerGroup = null;
-				//TODO: why is it that this rotation is only used by the odd C_RampXX convexpolytopes, but not everything else?
-				// see for example 		AirportTerminalEnd04.nif mesh is wrong with it.ut polytope is right?
-				//AirportJetwayMid01.nif y offset a bit
-				if(hknpShape instanceof hknpConvexPolytopeShape) {
-					Transform3D t = new Transform3D();						
-					t.setRotation(ConvertFromHavok.toJ3d(bodyCinfo.orientation)); 	
-					t.setTranslation(ConvertFromHavok.toJ3d(bodyCinfo.position, niToJ3dData.nifVer));
-					lowerGroup = new TransformGroup(t);
-				} else {				
-					lowerGroup = new Group(); 
+			//physics bodies are here
+			hknpBodyCinfo[] bodyCinfos = hknpPhysicsSystemData.bodyCinfos;
+			for(int  i= 0 ; i < bodyCinfos.length; i++) {
+				hknpBodyCinfo bodyCinfo = bodyCinfos[i];
+				
+				long shapeId = bodyCinfo.shape;
+				if(shapeId > 0) {
+					hknpShape hknpShape = (hknpShape)contents.get(shapeId);
+					 
+					
+					Group lowerGroup = null;
+					//TODO: why is it that this rotation is only used by the odd C_RampXX convexpolytopes, but not everything else?
+					// see for example 		AirportTerminalEnd04.nif mesh is wrong with it.ut polytope is right?
+					//AirportJetwayMid01.nif y offset a bit
+					if(hknpShape instanceof hknpConvexPolytopeShape) {
+						Transform3D t = new Transform3D();						
+						t.setRotation(ConvertFromHavok.toJ3d(bodyCinfo.orientation)); 	
+						t.setTranslation(ConvertFromHavok.toJ3d(bodyCinfo.position, niToJ3dData.nifVer));
+						lowerGroup = new TransformGroup(t);
+					} else {				
+						lowerGroup = new Group(); 
+					}
+		
+					processHknpShape(hknpShape, lowerGroup, contents);
+		
+					addChild(lowerGroup);
 				}
-	
-				processHknpShape(hknpShape, lowerGroup, contents);
-	
-				addChild(lowerGroup);
 			}
+		} else {
+			System.out.println("HKXContents contents is empty? odd");
 		}
+		
 	}
 
 	private static void processHknpShape(hknpShape hknpShape, Group group, HKXContents contents)
 	{
-		/*if (bhkShape instanceof bhkCapsuleShape) {
-			group.addChild(bhkCapsuleShape((bhkCapsuleShape) bhkShape, niToJ3dData.nifVer));
-		} else if (bhkShape instanceof bhkSphereShape) {
-			group.addChild(bhkSphereShape((bhkSphereShape) bhkShape, niToJ3dData.nifVer));
-		}
-		*/
-		if (hknpShape instanceof hknpDynamicCompoundShape) {
+		if (hknpShape instanceof hknpSphereShape) {
+			group.addChild(hknpSphereShape((hknpSphereShape) hknpShape, contents));
+		} else if (hknpShape instanceof hknpCapsuleShape) {
+			group.addChild(hknpCapsuleShape((hknpCapsuleShape) hknpShape, contents));
+		} else	if (hknpShape instanceof hknpDynamicCompoundShape) {
+			System.out.println("hknpDynamicCompoundShape!");
+			//TODO:
+			//bhkTransformShape((bhkTransformShape) bhkShape, group, niToJ3dData);
+		} else	if (hknpShape instanceof hknpStaticCompoundShape) {
+			System.out.println("hknpStaticCompoundShape!");
 			//TODO:
 			//bhkTransformShape((bhkTransformShape) bhkShape, group, niToJ3dData);
 		} else if (hknpShape instanceof hknpScaledConvexShape) {
+			System.out.println("hknpScaledConvexShape!");
 			//TODO:
 			//hknpScaledConvexShape((hknpScaledConvexShape) bhkShape, group, niToJ3dData);
 		} else if (hknpShape instanceof hknpConvexPolytopeShape) {
@@ -116,16 +141,20 @@ public class J3dBSbhkNPObject extends Group
 				group.addChild(hknpCompressedMeshShapeData(hknpCompressedMeshShapeData, contents));
 			} else {
 				//Meshes\Interiors\Utility\Doors\UtilMetalDbDoor01.nif
-				System.out.println("no shape data for  hknpCompressedMeshShape ");
+				System.out.println("no shape data for hknpCompressedMeshShape ");
 			}
 		} else {
 			System.out.println("J3dbhkCollisionObject - unknown bhkShape " + hknpShape);
 		}
 	}
 
-	/*private static Shape3D bhkSphereShape(bhkSphereShape data, NifVer nifVer)
+	private static Shape3D hknpSphereShape(hknpSphereShape data, HKXContents contents)
 	{
-		float radius = ConvertFromHavok.toJ3d(data.radius, nifVer);
+		//System.out.println("just out of interest vertices for sphere " +data.convexRadius+ " " + data.vertices[0]+ " " + data.vertices[1]+ " " + data.vertices[2]);
+		//just out of interest vertices for sphere 0.29049572 [NPVector4] x:2.3510652E-38 y:0.29049572 z:2.664476E24 w:0.0 [NPVector4] x:0.0 y:0.0 z:0.0 w:0.0 [NPVector4] x:1.469374E-39 y:0.0 z:0.0 w:0.0
+		// so vertices[0].y is the radius, and the others are weird numbers
+		
+		float radius = ConvertFromHavok.toJ3d(data.convexRadius, nifVer);
 		SphereGenerator sg = new SphereGenerator(radius);
 		GeometryData gd = new GeometryData();
 		gd.geometryType = GeometryData.TRIANGLE_STRIPS;
@@ -139,20 +168,21 @@ public class J3dBSbhkNPObject extends Group
 
 		shape.setAppearance(PhysAppearance.makeAppearance());
 		return shape;
-	}*/
+	}
 
 
 
-	/*private static Group bhkCapsuleShape(bhkCapsuleShape data, NifVer nifVer)
+	private static Group hknpCapsuleShape(hknpCapsuleShape data, HKXContents contents)
 	{
 		//TODO: try JBullet CapsuleShapeX
 		Group g = new Group();
 
-		float radius = ConvertFromHavok.toJ3d(data.radius, nifVer);
-		Vector3f v1 = ConvertFromHavok.toJ3d(data.firstPoint, nifVer);
-		float radius1 = ConvertFromHavok.toJ3d(data.radius1, nifVer);
-		Vector3f v2 = ConvertFromHavok.toJ3d(data.secondPoint, nifVer);
-		float radius2 = ConvertFromHavok.toJ3d(data.radius2, nifVer);
+		System.out.println("capsule using w as radiius? " + data.convexRadius + " a " +data.a +" b " +data.b );
+		float radius = ConvertFromHavok.toJ3d(data.convexRadius, nifVer);
+		Vector3f v1 = ConvertFromHavok.toJ3d(data.a, nifVer);
+		float radius1 = ConvertFromHavok.toJ3d(data.a.w, nifVer);
+		Vector3f v2 = ConvertFromHavok.toJ3d(data.b, nifVer);
+		float radius2 = ConvertFromHavok.toJ3d(data.b.w, nifVer);
 
 		SphereGenerator sg = new SphereGenerator(radius1);
 		GeometryData gd = new GeometryData();
@@ -222,9 +252,7 @@ public class J3dBSbhkNPObject extends Group
 
 		return g;
 
-	}*/
-
-	
+	}	
 
 	public static Node hknpConvexPolytopeShape(hknpConvexPolytopeShape data, HKXContents contents) {				
 		Group group = new Group();	
@@ -465,7 +493,7 @@ public class J3dBSbhkNPObject extends Group
 	}
 	
 	
-	private static Shape3D createDebugPointShape(Tuple3f[] vertices, Color3f color) {
+	public static Shape3D createDebugPointShape(Tuple3f[] vertices, Color3f color) {
 		///////////////////////////////////////////////////////////////Lovely little point drawer thing!
 		int gaVertexCount = vertices.length * 6;// 4 points a crossed pair of lines
 		IndexedLineArray ga = new IndexedLineArray(gaVertexCount,
