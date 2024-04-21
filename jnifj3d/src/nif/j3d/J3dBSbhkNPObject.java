@@ -17,6 +17,7 @@ import org.jogamp.java3d.geom.SphereGenerator;
 import org.jogamp.java3d.utils.geometry.GeometryInfo;
 import org.jogamp.java3d.utils.shader.SimpleShaderAppearance;
 import org.jogamp.vecmath.Color3f;
+import org.jogamp.vecmath.Matrix4f;
 import org.jogamp.vecmath.Point3d;
 import org.jogamp.vecmath.Point3f;
 import org.jogamp.vecmath.Tuple3f;
@@ -35,6 +36,7 @@ import nif.niobject.hkx.hkBaseObject;
 import nif.niobject.hkx.hkcdStaticMeshTreeBasePrimitive;
 import nif.niobject.hkx.hknpBodyCinfo;
 import nif.niobject.hkx.hknpCapsuleShape;
+import nif.niobject.hkx.hknpCompoundShape;
 import nif.niobject.hkx.hknpCompressedMeshShape;
 import nif.niobject.hkx.hknpCompressedMeshShapeData;
 import nif.niobject.hkx.hknpCompressedMeshShapeTree;
@@ -43,6 +45,7 @@ import nif.niobject.hkx.hknpDynamicCompoundShape;
 import nif.niobject.hkx.hknpPhysicsSystemData;
 import nif.niobject.hkx.hknpScaledConvexShape;
 import nif.niobject.hkx.hknpShape;
+import nif.niobject.hkx.hknpShapeInstance;
 import nif.niobject.hkx.hknpSphereShape;
 import nif.niobject.hkx.hknpStaticCompoundShape;
 import nif.niobject.hkx.reader.HKXContents;
@@ -119,17 +122,11 @@ public class J3dBSbhkNPObject extends Group
 		} else if (hknpShape instanceof hknpCapsuleShape) {
 			group.addChild(hknpCapsuleShape((hknpCapsuleShape) hknpShape, contents));
 		} else	if (hknpShape instanceof hknpDynamicCompoundShape) {
-			System.out.println("hknpDynamicCompoundShape!");
-			//TODO:
-			//bhkTransformShape((bhkTransformShape) bhkShape, group, niToJ3dData);
+			hknpCompoundShape((hknpDynamicCompoundShape) hknpShape, group, contents);
 		} else	if (hknpShape instanceof hknpStaticCompoundShape) {
-			System.out.println("hknpStaticCompoundShape!");
-			//TODO:
-			//bhkTransformShape((bhkTransformShape) bhkShape, group, niToJ3dData);
+			hknpCompoundShape((hknpDynamicCompoundShape) hknpShape, group, contents);
 		} else if (hknpShape instanceof hknpScaledConvexShape) {
-			System.out.println("hknpScaledConvexShape!");
-			//TODO:
-			//hknpScaledConvexShape((hknpScaledConvexShape) bhkShape, group, niToJ3dData);
+			hknpScaledConvexShape((hknpScaledConvexShape) hknpShape, group, contents);
 		} else if (hknpShape instanceof hknpConvexPolytopeShape) {
 			group.addChild(hknpConvexPolytopeShape((hknpConvexPolytopeShape)hknpShape, contents));
 		} else if (hknpShape instanceof hknpCompressedMeshShape) {
@@ -147,7 +144,55 @@ public class J3dBSbhkNPObject extends Group
 			System.out.println("J3dbhkCollisionObject - unknown bhkShape " + hknpShape);
 		}
 	}
+	
+	private static void hknpScaledConvexShape(hknpScaledConvexShape data, Group g, HKXContents contents)
+	{
 
+		long shapeId = data.coreShape;
+		if(shapeId > 0) {
+			hknpShape hknpShape = (hknpShape)contents.get(shapeId);
+			TransformGroup transformGroup = new TransformGroup();
+			Transform3D t3d = new Transform3D();
+
+			t3d.set(ConvertFromHavok.toJ3d(data.position, nifVer));
+			
+			//Note no ConvertFromHavok as these are just straight multipliers 
+			t3d.setScale(new Vector3d(data.scale.x, data.scale.z, data.scale.y));
+
+			transformGroup.setTransform(t3d);
+			
+			processHknpShape(hknpShape, transformGroup, contents);
+			g.addChild(transformGroup);
+			
+		}			
+		
+	}
+	
+	private static void hknpCompoundShape(hknpCompoundShape data, Group g, HKXContents contents)
+	{
+		for(int i = 0 ; i < data.instances.elements.length;i++) {
+			hknpShapeInstance s = data.instances.elements[i];
+			long shapeId = s.shape;
+			if(shapeId > 0) {
+				TransformGroup transformGroup = new TransformGroup();
+				Transform3D t3d = new Transform3D();
+
+				Matrix4f m = ConvertFromHavok.toJ3dM4(s.transform, nifVer);
+				t3d.set(m);
+				
+				//Note no ConvertFromHavok as these are just straight multipliers 
+				t3d.setScale(new Vector3d(s.scale.x, s.scale.z, s.scale.y));
+
+				transformGroup.setTransform(t3d);
+				
+				hknpShape hknpShape = (hknpShape)contents.get(shapeId);
+				processHknpShape(hknpShape, transformGroup, contents);
+				g.addChild(transformGroup);
+				
+			}			
+		}
+	}
+	
 	private static Shape3D hknpSphereShape(hknpSphereShape data, HKXContents contents)
 	{
 		//System.out.println("just out of interest vertices for sphere " +data.convexRadius+ " " + data.vertices[0]+ " " + data.vertices[1]+ " " + data.vertices[2]);
@@ -177,12 +222,11 @@ public class J3dBSbhkNPObject extends Group
 		//TODO: try JBullet CapsuleShapeX
 		Group g = new Group();
 
-		System.out.println("capsule using w as radiius? " + data.convexRadius + " a " +data.a +" b " +data.b );
 		float radius = ConvertFromHavok.toJ3d(data.convexRadius, nifVer);
 		Vector3f v1 = ConvertFromHavok.toJ3d(data.a, nifVer);
-		float radius1 = ConvertFromHavok.toJ3d(data.a.w, nifVer);
+		float radius1 = ConvertFromHavok.toJ3d(data.convexRadius, nifVer);
 		Vector3f v2 = ConvertFromHavok.toJ3d(data.b, nifVer);
-		float radius2 = ConvertFromHavok.toJ3d(data.b.w, nifVer);
+		float radius2 = ConvertFromHavok.toJ3d(data.convexRadius, nifVer);
 
 		SphereGenerator sg = new SphereGenerator(radius1);
 		GeometryData gd = new GeometryData();
@@ -257,7 +301,7 @@ public class J3dBSbhkNPObject extends Group
 	public static Node hknpConvexPolytopeShape(hknpConvexPolytopeShape data, HKXContents contents) {				
 		Group group = new Group();	
 				
-		Point3f[] vertices = new Point3f[data.vertices.length];
+		/*Point3f[] vertices = new Point3f[data.vertices.length];
 		for (int i = 0; i < data.vertices.length; i++) {
 			vertices[i] = new Point3f(ConvertFromHavok.toJ3dP3f(data.vertices[i], nifVer));
 		}
@@ -266,15 +310,14 @@ public class J3dBSbhkNPObject extends Group
 		Point3f[] vertices2 = new Point3f[data.planes.length];
 		for (int i = 0; i < data.planes.length; i++) {
 			vertices2[i] = new Point3f(ConvertFromHavok.toJ3dP3f(data.planes[i], nifVer));
-		}		
+		}	*/	
 		//group.addChild(createDebugPointShape(vertices2, new Color3f(1.0f,0.5f,0.3f)));
 		
 		
 		// ok vertices and planes, I'm see for a box which wants 8 vertexs I see oddly, very oddly, 
-		//vertices 3 oddly close to 0,0,0 4 good verts, planes, 4 that look like verts almost and 3 that are
-		// like a plane, normal and distance (e.g. 0,0,1,-0.16)
-		
-		
+		//vertices 3 oddly close to 0,0,0 then 4 good verts, planes, 4 that look like verts almost and 3 that are
+		// like a plane, normal and distance (e.g. 0,0,1,-0.16)		
+		// like 3 odds to start and 3 odds to finish
 		// so this 3 thingy below works
 		
 		
