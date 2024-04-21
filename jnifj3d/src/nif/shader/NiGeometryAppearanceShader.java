@@ -669,6 +669,7 @@ public class NiGeometryAppearanceShader {
 		depthTest |= (bsesp != null) && SkyrimShaderPropertyFlags1.isBitSet(bsesp.ShaderFlags1, SkyrimShaderPropertyFlags1.SLSF1_ZBuffer_Test);
 
 		if (!depthTest) {
+			//FIXME: I wonder if this is right?
 			ra.setDepthBufferEnable(false);
 		}
 
@@ -676,18 +677,10 @@ public class NiGeometryAppearanceShader {
 		depthWrite |= (bslsp != null) && SkyrimShaderPropertyFlags2.isBitSet(bslsp.ShaderFlags2, SkyrimShaderPropertyFlags2.SLSF2_ZBuffer_Write);
 		depthWrite |= (bsesp != null) && SkyrimShaderPropertyFlags2.isBitSet(bsesp.ShaderFlags2, SkyrimShaderPropertyFlags2.SLSF2_ZBuffer_Write);
 		if (!depthWrite || translucent) {
+			//FIXME: I wonder if this is right?
 			ra.setDepthBufferWriteEnable(false);
 		}
 
-		
-		//FIXME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// translucent is wrong for FO3+!!!
-		// find the most basic model in FO3 that's wrong and steps through this guy, might fix them all
-		//opps lost it :(
-		//override alpha prop and material
-		//FO4
-		//D:\game_media\Fallout4\Meshes\Interiors\Vault\LGRooms\VltGearDoorVault95Exterior.nif 
-		// in explorere shows the transparency is on, but the alpha is obviously 1, as in nifdisplay it is happy with itself
 		if (translucent) {
 			ta.setTransparencyMode(TransparencyAttributes.BLENDED);
 			ta.setSrcBlendFunction(TransparencyAttributes.BLEND_SRC_ALPHA);
@@ -929,20 +922,22 @@ public class NiGeometryAppearanceShader {
 
 	private void glProperty(NiZBufferProperty nzp) {
 		if (nzp != null) {
-			//See FO4 for testing
-			ra.setDepthBufferEnable((nzp.flags.flags & 0x01) != 0);
+			//FIXME: FO4 shows this is a bad thing, not sure what's a good thing here
+			/*ra.setDepthBufferEnable((nzp.flags.flags & 0x01) != 0);
 			ra.setDepthBufferWriteEnable((nzp.flags.flags & 0x02) != 0);
 			if (nzp.function != null)
 				ra.setDepthTestFunction(NifOpenGLToJava3D.convertStencilFunction(nzp.function.mode));
+				*/
 		}
 	}
 
 	private void glMaterialZBuffer(BSMaterial m) {
 		if (m != null) {
-			//See FO4 for testing
-			ra.setDepthBufferEnable(true);// really? not sure
+			//FIXME: FO4 shows this is a bad thing, not sure what's a good thing here
+			/*ra.setDepthBufferEnable(true);// really? not sure
 			ra.setDepthBufferWriteEnable(m.bZBufferWrite != 0);
 			ra.setDepthTestFunction(NifOpenGLToJava3D.convertStencilFunction(m.bZBufferTest));
+			*/
 
 		}
 	}
