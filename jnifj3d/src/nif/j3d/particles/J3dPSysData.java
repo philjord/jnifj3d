@@ -279,13 +279,7 @@ public class J3dPSysData
 
 	private void initTexCoords(int indx) {
 		//file:///C:/Emergent/Gamebryo-LightSpeed-Binary/Documentation/HTML/Reference/NiParticle/NiPSAlignedQuadGenerator.htm
-		if (niPSysData.HasUVQuadrants) {
-			atlasAnimatedTexture = new AtlasAnimatedTexture(niPSysData.NumUVQuadrants, niPSysData.UVQuadrants);
-
-			// a J3dBSPSysSubTexModifier will control this, but without it we just go random selection
-			particleImageIds [indx] = (int)(Math.random() * atlasAnimatedTexture.getSubImageCount());
-			atlasAnimatedTexture.getUVCoords(gaTexCoords, gaVsubTextureSizeF, indx, particleImageIds [indx]);
-		} else if (niPSysData.HasSubtextureOffsetUVs) {
+		if (niPSysData.NumSubtextureOffsetUVs > 0) {
 			atlasAnimatedTexture = new AtlasAnimatedTexture(niPSysData.AspectRatio, niPSysData.SubtextureOffsetUVs);
 
 			// a J3dBSPSysSubTexModifier will control this, but without it we just go random selection
@@ -307,7 +301,7 @@ public class J3dPSysData
 
 	public void updateAllTexCoords()
 	{
-		if (niPSysData.HasUVQuadrants || niPSysData.HasSubtextureOffsetUVs)
+		if (niPSysData.NumSubtextureOffsetUVs > 0)
 		{
 			for (int indx = 0; indx < activeParticleCount; indx++)
 			{
