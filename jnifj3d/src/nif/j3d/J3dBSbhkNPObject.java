@@ -23,6 +23,7 @@ import org.jogamp.vecmath.Point3f;
 import org.jogamp.vecmath.Tuple3f;
 import org.jogamp.vecmath.Vector3d;
 import org.jogamp.vecmath.Vector3f;
+import org.jogamp.vecmath.Vector4f;
 
 import com.bulletphysics.collision.shapes.ConvexHullShape;
 import com.bulletphysics.collision.shapes.ShapeHull;
@@ -83,59 +84,63 @@ public class J3dBSbhkNPObject extends Group
 				
 			//physics bodies are here
 			hknpBodyCinfo[] bodyCinfos = hknpPhysicsSystemData.bodyCinfos;
-			for(int  i= 0 ; i < bodyCinfos.length; i++) {
-				hknpBodyCinfo bodyCinfo = bodyCinfos[i];
+			for(int b = 0 ; b < bodyCinfos.length; b++) {
+				hknpBodyCinfo bodyCinfo = bodyCinfos[b];
 				
 				long shapeId = bodyCinfo.shape;
 				if(shapeId > 0) {
 					hknpShape hknpShape = (hknpShape)contents.get(shapeId);
-					 
-					
-					Group lowerGroup = null;
-					//TODO: why is it that this rotation is only used by the odd C_RampXX convexpolytopes, but not everything else?
-					// see for example 		AirportTerminalEnd04.nif mesh is wrong with it.ut polytope is right?
-					//AirportJetwayMid01.nif y offset a bit
 					if(hknpShape instanceof hknpConvexPolytopeShape) {
 						Transform3D t = new Transform3D();						
 						t.setRotation(ConvertFromHavok.toJ3d(bodyCinfo.orientation)); 	
-						t.setTranslation(ConvertFromHavok.toJ3d(bodyCinfo.position, niToJ3dData.nifVer));
-						lowerGroup = new TransformGroup(t);
+		
+						Vector3f pos = ConvertFromHavok.toJ3d(bodyCinfo.position, niToJ3dData.nifVer);
+						// ok so the position wants to be the center of the polytopeshape, but my polytopeshape seem to be offset from 0,0,0
+						// so I tell them to cetner at 0,0,0, but NOTE! not if the pos is 0,0,0
+						
+						addChild(createDebugPointShape(new Vector3f[]{pos}, new Color3f(1f,1f,1f)));
+
+						t.setTranslation(pos);
+						 
+						TransformGroup lowerGroup = new TransformGroup(t);					
+						lowerGroup.addChild(hknpConvexPolytopeShape((hknpConvexPolytopeShape)hknpShape, contents, pos.lengthSquared() != 0));
+						addChild(lowerGroup);
+						 
 					} else {				
-						lowerGroup = new Group(); 
+						addChild(processHknpShape(hknpShape, contents));						
 					}
-		
-					processHknpShape(hknpShape, lowerGroup, contents);
-		
-					addChild(lowerGroup);
 				}
 			}
 		} else {
-			System.out.println("HKXContents contents is empty? odd");
+			//FIXME: FO76 has heaps too many of these, dig in
+			//System.out.println("HKXContents contents is empty? odd");
 		}
 		
 	}
-
-	private static void processHknpShape(hknpShape hknpShape, Group group, HKXContents contents)
+	private static Node processHknpShape(hknpShape hknpShape, HKXContents contents) {
+		return processHknpShape(hknpShape, contents, false);
+	}
+	private static Node processHknpShape(hknpShape hknpShape, HKXContents contents, boolean centerAtOrgin)
 	{
 		if (hknpShape instanceof hknpSphereShape) {
-			group.addChild(hknpSphereShape((hknpSphereShape) hknpShape, contents));
+			return hknpSphereShape((hknpSphereShape) hknpShape, contents);
 		} else if (hknpShape instanceof hknpCapsuleShape) {
-			group.addChild(hknpCapsuleShape((hknpCapsuleShape) hknpShape, contents));
+			return hknpCapsuleShape((hknpCapsuleShape) hknpShape, contents);
 		} else	if (hknpShape instanceof hknpDynamicCompoundShape) {
-			hknpCompoundShape((hknpDynamicCompoundShape) hknpShape, group, contents);
+			return hknpCompoundShape((hknpDynamicCompoundShape) hknpShape, contents);
 		} else	if (hknpShape instanceof hknpStaticCompoundShape) {
-			hknpCompoundShape((hknpDynamicCompoundShape) hknpShape, group, contents);
+			return hknpCompoundShape((hknpDynamicCompoundShape) hknpShape, contents);
 		} else if (hknpShape instanceof hknpScaledConvexShape) {
-			hknpScaledConvexShape((hknpScaledConvexShape) hknpShape, group, contents);
+			return hknpScaledConvexShape((hknpScaledConvexShape) hknpShape, contents);
 		} else if (hknpShape instanceof hknpConvexPolytopeShape) {
-			group.addChild(hknpConvexPolytopeShape((hknpConvexPolytopeShape)hknpShape, contents));
+			return hknpConvexPolytopeShape((hknpConvexPolytopeShape)hknpShape, contents, centerAtOrgin);
 		} else if (hknpShape instanceof hknpCompressedMeshShape) {
 			hknpCompressedMeshShape hknpCompressedMeshShape = (hknpCompressedMeshShape)hknpShape;
 
 			if (hknpCompressedMeshShape.data > 0) {
 				hknpCompressedMeshShapeData hknpCompressedMeshShapeData = (hknpCompressedMeshShapeData)contents
 						.get(hknpCompressedMeshShape.data);
-				group.addChild(hknpCompressedMeshShapeData(hknpCompressedMeshShapeData, contents));
+				return hknpCompressedMeshShapeData(hknpCompressedMeshShapeData, contents);
 			} else {
 				//Meshes\Interiors\Utility\Doors\UtilMetalDbDoor01.nif
 				System.out.println("no shape data for hknpCompressedMeshShape ");
@@ -143,9 +148,10 @@ public class J3dBSbhkNPObject extends Group
 		} else {
 			System.out.println("J3dbhkCollisionObject - unknown bhkShape " + hknpShape);
 		}
+		return null;
 	}
 	
-	private static void hknpScaledConvexShape(hknpScaledConvexShape data, Group g, HKXContents contents)
+	private static Node hknpScaledConvexShape(hknpScaledConvexShape data,  HKXContents contents)
 	{
 
 		long shapeId = data.coreShape;
@@ -153,23 +159,25 @@ public class J3dBSbhkNPObject extends Group
 			hknpShape hknpShape = (hknpShape)contents.get(shapeId);
 			TransformGroup transformGroup = new TransformGroup();
 			Transform3D t3d = new Transform3D();
-
-			t3d.set(ConvertFromHavok.toJ3d(data.position, nifVer));
+			Vector3f pos = ConvertFromHavok.toJ3d(data.position, nifVer);
+			t3d.set(pos);
 			
 			//Note no ConvertFromHavok as these are just straight multipliers 
 			t3d.setScale(new Vector3d(data.scale.x, data.scale.z, data.scale.y));
 
 			transformGroup.setTransform(t3d);
 			
-			processHknpShape(hknpShape, transformGroup, contents);
-			g.addChild(transformGroup);
+			transformGroup.addChild(processHknpShape(hknpShape, contents, pos.lengthSquared() != 0));
+			return transformGroup;
 			
-		}			
+		}	
+		return null;
 		
 	}
 	
-	private static void hknpCompoundShape(hknpCompoundShape data, Group g, HKXContents contents)
+	private static Node hknpCompoundShape(hknpCompoundShape data, HKXContents contents)
 	{
+		Group g = new Group();
 		for(int i = 0 ; i < data.instances.elements.length;i++) {
 			hknpShapeInstance s = data.instances.elements[i];
 			long shapeId = s.shape;
@@ -186,11 +194,11 @@ public class J3dBSbhkNPObject extends Group
 				transformGroup.setTransform(t3d);
 				
 				hknpShape hknpShape = (hknpShape)contents.get(shapeId);
-				processHknpShape(hknpShape, transformGroup, contents);
-				g.addChild(transformGroup);
-				
+				transformGroup.addChild(processHknpShape(hknpShape, contents));
+				g.addChild(transformGroup);				
 			}			
 		}
+		return g;
 	}
 	
 	private static Shape3D hknpSphereShape(hknpSphereShape data, HKXContents contents)
@@ -298,21 +306,23 @@ public class J3dBSbhkNPObject extends Group
 
 	}	
 
-	public static Node hknpConvexPolytopeShape(hknpConvexPolytopeShape data, HKXContents contents) {				
+	public static Node hknpConvexPolytopeShape(hknpConvexPolytopeShape data, HKXContents contents) {
+		return hknpConvexPolytopeShape(data, contents, false);		
+	}
+	public static Node hknpConvexPolytopeShape(hknpConvexPolytopeShape data, HKXContents contents, boolean centerAtOrgin) {		
 		Group group = new Group();	
 				
 		/*Point3f[] vertices = new Point3f[data.vertices.length];
 		for (int i = 0; i < data.vertices.length; i++) {
 			vertices[i] = new Point3f(ConvertFromHavok.toJ3dP3f(data.vertices[i], nifVer));
-		}
-		
-		//group.addChild(createDebugPointShape(vertices, new Color3f(0.0f, 0.5f, 0.3f)));
+		}		
+		group.addChild(createDebugPointShape(vertices, new Color3f(0.0f, 0.5f, 0.3f)));
 		Point3f[] vertices2 = new Point3f[data.planes.length];
 		for (int i = 0; i < data.planes.length; i++) {
 			vertices2[i] = new Point3f(ConvertFromHavok.toJ3dP3f(data.planes[i], nifVer));
-		}	*/	
-		//group.addChild(createDebugPointShape(vertices2, new Color3f(1.0f,0.5f,0.3f)));
-		
+		}	
+		group.addChild(createDebugPointShape(vertices2, new Color3f(1.0f,0.5f,0.3f)));
+		*/
 		
 		// ok vertices and planes, I'm see for a box which wants 8 vertexs I see oddly, very oddly, 
 		//vertices 3 oddly close to 0,0,0 then 4 good verts, planes, 4 that look like verts almost and 3 that are
@@ -321,28 +331,72 @@ public class J3dBSbhkNPObject extends Group
 		// so this 3 thingy below works
 		
 		
+		// super suspect these first 3 are a bunch of flags, notice very diff poly topes (boxes) same numbers 
+		//ftoi xyzw 0: 0, 0, 0, 0
+		//ftoi xyzw 1: 001000000000000000001000, 0, 0, 0
+		//ftoi xyzw 2: 100100000000000000001000, 1000011000000000000000110, 1001010000000000000011000, 0
+		//and 
+		//ftoi xyzw 0 0, 0, 0, 0
+		//ftoi xyzw 1 001000000000000000001000, 0, 0, 0
+		//ftoi xyzw 2 100100000000000000001000, 1000011000000000000000110, 1001010000000000000011000, 0
+		
+		/*for (int i = 0; i < 3; i++) {
+			//System.out.println("ftoi "+i+" " + Float.floatToIntBits(data.vertices[i].x) );
+			System.out.println("ftoi xyzw "+i+": " + Integer.toBinaryString( Float.floatToIntBits(data.vertices[i].x))
+			+ ", "+ Integer.toBinaryString( Float.floatToIntBits(data.vertices[i].y))
+			+ ", "+ Integer.toBinaryString( Float.floatToIntBits(data.vertices[i].z))
+			+ ", "+ Integer.toBinaryString( Float.floatToIntBits(data.vertices[i].w)));
+		}*/
+
+		/*float hs = ConvertFromHavok.getHavokScale(nifVer);
+		for (int i = 0; i < data.vertices.length; i++) {			
+			 Vector4f v= new Vector4f(data.vertices[i].x * hs ,   data.vertices[i].z * hs ,  -data.vertices[i].y * hs, data.vertices[i].w );
+			System.out.println("vi " + i + "" + v);
+		}for (int i = 0; i < data.planes.length; i++) {
+			Vector4f p= new Vector4f(data.planes[i].x * hs ,   data.planes[i].z * hs ,  -data.planes[i].y * hs, data.planes[i].w );
+			System.out.println("pi " + i + "" + p);
+		} */
+	
+		
 		ObjectArrayList<Vector3f> points = new ObjectArrayList<Vector3f>();
 		
-		if( data.vertices.length > 3 && data.planes.length > 3) { 
-			for (int i = 0; i < 3; i++) {
-				//System.out.println("i " + i + "" + ConvertFromHavok.toJ3dP3f(data.vertices[i], nifVer));
-			}
+		// used if the centering is required below
+		Vector3f min = new Vector3f(Float.MAX_VALUE,Float.MAX_VALUE,Float.MAX_VALUE);
+		Vector3f max = new Vector3f(Float.MIN_VALUE,Float.MIN_VALUE,Float.MIN_VALUE);
+		if( data.vertices.length > 3 && data.planes.length > 3) { 			
 			for (int i = 3; i < data.vertices.length; i++) {
-				points.add(new Vector3f(ConvertFromHavok.toJ3dP3f(data.vertices[i], nifVer)));
+				Vector3f v = new Vector3f(ConvertFromHavok.toJ3dP3f(data.vertices[i], nifVer));
+				if(centerAtOrgin) {
+					min.x = v.x < min.x ? v.x : min.x;
+					max.x = v.x > max.x ? v.x : max.x;
+					min.y = v.y < min.y ? v.y : min.y;
+					max.y = v.y > max.y ? v.y : max.y;
+					min.z = v.z < min.z ? v.z : min.z;
+					max.z = v.z > max.z ? v.z : max.z;
+				}
+				points.add(v);
 			}
 			for (int i = 0; i < data.planes.length - 3; i++) {
-				points.add(new Vector3f(ConvertFromHavok.toJ3dP3f(data.planes[i], nifVer)));
+				Vector3f p = new Vector3f(ConvertFromHavok.toJ3dP3f(data.planes[i], nifVer));
+				if(centerAtOrgin) {
+					min.x = p.x < min.x ? p.x : min.x;
+					max.x = p.x > max.x ? p.x : max.x;
+					min.y = p.y < min.y ? p.y : min.y;
+					max.y = p.y > max.y ? p.y : max.y;
+					min.z = p.z < min.z ? p.z : min.z;
+					max.z = p.z > max.z ? p.z : max.z;
+				}
+				points.add(p);
 			}
 		} else {
 			System.out.println("Interesting hknpConvexPolytopeShape " + data.vertices.length + " " + data.planes.length);
 		}
-		
-		//FIXME: is perhaps the 5 item from the planes a sort of translation?
-		//Point3f trans = ConvertFromHavok.toJ3dP3f(data.planes[5], data.planes[5].w, nifVer);
-		//-0.6 for steps, but -0.27 for the boxes
-		Point3f trans = new Point3f(0,-0.3f,0);
-		for(int  i = 0; i < points.size(); i++) {
-			points.get(i).add(trans);
+
+		if(centerAtOrgin) {
+			Vector3f mod = new Vector3f(((max.x+min.x)/2f), ((max.y+min.y)/2f), ((max.z+min.z)/2f));		
+			for(int  i = 0; i < points.size(); i++) {
+				points.get(i).sub(mod);
+			}
 		}
 	
 		
