@@ -76,46 +76,46 @@ public class J3dBSbhkNPObject extends Group
 	public J3dBSbhkNPObject(BSbhkNPObject object, NiToJ3dData niToJ3dData)
 	{
 		HKXContents contents = object.hkxContents;
+		if(contents != null) {
 		
-		Iterator<hkBaseObject> iter = contents.getContentCollection().iterator();
-		if(iter.hasNext()) {
-			// the first one had better be a system
-			hknpPhysicsSystemData hknpPhysicsSystemData = (hknpPhysicsSystemData)iter.next();
-				
-			//physics bodies are here
-			hknpBodyCinfo[] bodyCinfos = hknpPhysicsSystemData.bodyCinfos;
-			for(int b = 0 ; b < bodyCinfos.length; b++) {
-				hknpBodyCinfo bodyCinfo = bodyCinfos[b];
-				
-				long shapeId = bodyCinfo.shape;
-				if(shapeId > 0) {
-					hknpShape hknpShape = (hknpShape)contents.get(shapeId);
-					if(hknpShape instanceof hknpConvexPolytopeShape) {
-						Transform3D t = new Transform3D();						
-						t.setRotation(ConvertFromHavok.toJ3d(bodyCinfo.orientation)); 	
-		
-						Vector3f pos = ConvertFromHavok.toJ3d(bodyCinfo.position, niToJ3dData.nifVer);
-						// ok so the position wants to be the center of the polytopeshape, but my polytopeshape seem to be offset from 0,0,0
-						// so I tell them to cetner at 0,0,0, but NOTE! not if the pos is 0,0,0
-						
-						addChild(createDebugPointShape(new Vector3f[]{pos}, new Color3f(1f,1f,1f)));
-
-						t.setTranslation(pos);
-						 
-						TransformGroup lowerGroup = new TransformGroup(t);					
-						lowerGroup.addChild(hknpConvexPolytopeShape((hknpConvexPolytopeShape)hknpShape, contents, pos.lengthSquared() != 0));
-						addChild(lowerGroup);
-						 
-					} else {				
-						addChild(processHknpShape(hknpShape, contents));						
+			Iterator<hkBaseObject> iter = contents.getContentCollection().iterator();
+			if(iter.hasNext()) {
+				// the first one had better be a system
+				hknpPhysicsSystemData hknpPhysicsSystemData = (hknpPhysicsSystemData)iter.next();
+					
+				//physics bodies are here
+				hknpBodyCinfo[] bodyCinfos = hknpPhysicsSystemData.bodyCinfos;
+				for(int b = 0 ; b < bodyCinfos.length; b++) {
+					hknpBodyCinfo bodyCinfo = bodyCinfos[b];
+					
+					long shapeId = bodyCinfo.shape;
+					if(shapeId > 0) {
+						hknpShape hknpShape = (hknpShape)contents.get(shapeId);
+						if(hknpShape instanceof hknpConvexPolytopeShape) {
+							Transform3D t = new Transform3D();						
+							t.setRotation(ConvertFromHavok.toJ3d(bodyCinfo.orientation)); 	
+			
+							Vector3f pos = ConvertFromHavok.toJ3d(bodyCinfo.position, niToJ3dData.nifVer);
+							// ok so the position wants to be the center of the polytopeshape, but my polytopeshape seem to be offset from 0,0,0
+							// so I tell them to cetner at 0,0,0, but NOTE! not if the pos is 0,0,0
+							
+							addChild(createDebugPointShape(new Vector3f[]{pos}, new Color3f(1f,1f,1f)));
+	
+							t.setTranslation(pos);
+							 
+							TransformGroup lowerGroup = new TransformGroup(t);					
+							lowerGroup.addChild(hknpConvexPolytopeShape((hknpConvexPolytopeShape)hknpShape, contents, pos.lengthSquared() != 0));
+							addChild(lowerGroup);
+							 
+						} else {				
+							addChild(processHknpShape(hknpShape, contents));						
+						}
 					}
 				}
+			} else {
+				System.out.println("HKXContents contents is empty? odd");
 			}
-		} else {
-			//FIXME: FO76 has heaps too many of these, dig in
-			//System.out.println("HKXContents contents is empty? odd");
-		}
-		
+		}		
 	}
 	private static Node processHknpShape(hknpShape hknpShape, HKXContents contents) {
 		return processHknpShape(hknpShape, contents, false);
