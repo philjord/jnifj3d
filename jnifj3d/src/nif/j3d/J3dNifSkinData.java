@@ -9,7 +9,6 @@ import org.jogamp.java3d.Transform3D;
 import nif.character.NifCharacter;
 import nif.compound.NifSkinData;
 import nif.compound.NifSkinTransform;
-import nif.compound.NifSkinWeight;
 import nif.niobject.NiSkinData;
 import utils.convert.ConvertFromNif;
 
@@ -138,10 +137,10 @@ public class J3dNifSkinData extends J3dSkin
 
 			if (NifCharacter.BULK_BUFFER_UPDATES)
 			{
-				for (NifSkinWeight vw : nsd.vertexWeights)
+				for (int i = 0 ; i < nsd.vertexWeightsindex.length; i++ )
 				{
-					int vIdx = vw.index;
-					float weight = vw.weight;
+					short vIdx = nsd.vertexWeightsindex[i];
+					float weight = nsd.vertexWeightsweight[i];
 					// If this bone has any effect add it in 
 					if (weight > 0)
 					{
@@ -172,10 +171,10 @@ public class J3dNifSkinData extends J3dSkin
 			}
 			else
 			{
-				for (NifSkinWeight vw : nsd.vertexWeights)
+				for (int i = 0 ; i < nsd.vertexWeightsindex.length; i++ )
 				{
-					int vIdx = vw.index;
-					float weight = vw.weight;
+					short vIdx = nsd.vertexWeightsindex[i];
+					float weight = nsd.vertexWeightsweight[i];
 					// If this bone has any effect add it in 
 					if (weight > 0)
 					{
