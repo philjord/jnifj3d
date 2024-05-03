@@ -35,11 +35,7 @@ public class DummyTextureSource implements TextureSource
 		return tex;
 	}
 
-	@Override
-	public List<String> getFilesInFolder(String folderName)
-	{
-		return new ArrayList<String>();
-	}
+	 
 
 	@Override
 	public TextureUnitState getTextureUnitState(String texName)

@@ -1,11 +1,9 @@
 package nif.character;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.jogamp.java3d.Alpha;
 import org.jogamp.java3d.BoundingSphere;
@@ -17,13 +15,11 @@ import org.jogamp.java3d.PointSound;
 import org.jogamp.java3d.Sound;
 import org.jogamp.java3d.SoundException;
 import org.jogamp.java3d.Transform3D;
-import org.jogamp.java3d.utils.shader.Cube;
 import org.jogamp.vecmath.Color3f;
 import org.jogamp.vecmath.Point2f;
 import org.jogamp.vecmath.Point3d;
 import org.jogamp.vecmath.Point3f;
 
-import nif.ByteConvert;
 import nif.NifFile;
 import nif.NifJ3dVisRoot;
 import nif.NifToJ3d;
@@ -36,14 +32,10 @@ import nif.j3d.animation.J3dNiControllerSequence.SequenceListener;
 import nif.j3d.animation.SequenceAlpha;
 import nif.niobject.NiExtraData;
 import nif.niobject.NiStringExtraData;
-import nif.niobject.hkx.reader.HKXContents;
-import nif.niobject.hkx.reader.HKXReader;
-import nif.niobject.hkx.reader.InvalidPositionException;
 import tools3d.audio.SimpleSounds;
 import tools3d.utils.Utils3D;
 import tools3d.utils.scenegraph.Fadable;
 import tools3d.utils.scenegraph.VaryingLODBehaviour;
-import utils.ESConfig;
 import utils.source.MediaSources;
 
 /**
@@ -91,7 +83,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 
 	protected Group root = new Group();
 
-	private KfJ3dRoot currentkfJ3dRoot;
+	//private KfJ3dRoot currentkfJ3dRoot;
 
 	protected BlendedSkeletons blendedSkeletons;
 
@@ -126,12 +118,11 @@ public class NifCharacter extends BranchGroup implements Fadable
 		}
 	}
 
-	public NifCharacter(String skeletonNifFilename, List<String> skinNifModelFilenames, MediaSources mediaSources,
-			List<String> idleAnimations)
+	public NifCharacter(String skeletonNifFilename, List<String> skinNifModelFilenames, MediaSources mediaSources)
 	{
 		this(skeletonNifFilename, mediaSources);
 
-		this.idleAnimations = idleAnimations;
+	
 
 		for (String skinNifModelFilename : skinNifModelFilenames)
 		{
@@ -222,9 +213,16 @@ public class NifCharacter extends BranchGroup implements Fadable
 			}
 		}
 
+		
+	}
+	
+	//FIXME: with no folders of idles I'll need to do these by hand
+	public void setIdleAnimations(List<String> idleAnimations ) { 
+		this.idleAnimations = idleAnimations;
 		// set us up with the idle anim
 		updateAnimation();
 	}
+	
 
 	/**
 	 * This keep the head pointing toward the rotation and the body upright
@@ -293,7 +291,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 		
 						// assign currents
 						currentKfBg = newKfBg;
-						currentkfJ3dRoot = kfJ3dRoot;
+						//currentkfJ3dRoot = kfJ3dRoot;
 					}
 				}
 				else
@@ -334,7 +332,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 						System.currentTimeMillis() - prevAnimTime > 10000)) {
 			// The above measures time in idle and changes from once it's been 10 seconds in case of looping idle
 			// otherwise drop back to idle if the current has finished
-			int r = (int) (Math.random() * idleAnimations.size() - 1);
+			int r = randomGenerator.nextInt(idleAnimations.size());
 
 			nextAnimation = idleAnimations.get(r);
 			if (nextAnimation.length() > 0)
@@ -345,7 +343,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 		}
 
 	}
-
+    private Random randomGenerator = new Random();
 	protected long prevAnimTime = 0;
 
 	/**

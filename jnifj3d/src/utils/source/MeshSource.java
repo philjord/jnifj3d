@@ -2,7 +2,6 @@ package utils.source;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.List;
 
 import nif.NifFile;
 
@@ -21,13 +20,7 @@ public interface MeshSource
 	public InputStream getInputStreamForFile(String fileName);
 	public ByteBuffer getByteBuffer(String fileName);
 	
-	/**
-	 * Do NOT include the final \
-	 * 
-	 * @param folderName
-	 * @return
-	 */
-	public List<String> getFilesInFolder(String folderName);
+	 
 
 
 }
