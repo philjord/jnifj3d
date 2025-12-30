@@ -46,6 +46,7 @@ attribute vec3 tangent;
 attribute vec3 binormal;
 
 varying vec3 LightDir;
+varying vec3 HalfVector;
 varying vec3 ViewVec;
 
 varying vec4 ColorEA;
@@ -79,6 +80,8 @@ void main( void )
 	
 	ViewVec = tbnMatrix * -v.xyz;
 	LightDir = tbnMatrix * glLightSource[0].position.xyz;
+	// this differs from nifskope which has a half vector in the gl_lightsource, is it correct?
+	HalfVector = ( glModelViewMatrix * glVertex ).xyz - glLightSource[0].position.xyz;
 
 	
 	A = glLightModelambient;
