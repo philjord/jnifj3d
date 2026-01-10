@@ -326,6 +326,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 			}
 		}		
 		else if (returnToIdleWhenDone && // 
+				idleAnimations != null && //
 				idleAnimations.size() > 0 && //
 				(currentControllerSequence == null || //
 						(currentControllerSequence.isNotRunning()) || //
