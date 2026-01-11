@@ -16,7 +16,6 @@ import org.jogamp.java3d.Transform3D;
 import org.jogamp.java3d.TransparencyAttributes;
 import org.jogamp.vecmath.Vector3d;
 
-import nif.BgsmSource;
 import nif.NifVer;
 import nif.basic.NifRef;
 import nif.compound.NifTexDesc;
@@ -66,17 +65,16 @@ import nif.niobject.controller.NiSingleInterpController;
 import nif.niobject.controller.NiTimeController;
 import nif.niobject.interpolator.NiInterpolator;
 import utils.convert.NifOpenGLToJava3D;
+import utils.source.BgsmSource;
 import utils.source.TextureSource;
 
-public class NiGeometryAppearanceFixed implements NiGeometryAppearance
-{
-	public static boolean CACHE_WEAK = true;
-	private static WeakHashMap<Object, TextureAttributes> textureAttributesLookup = new WeakHashMap<Object, TextureAttributes>();
+public class NiGeometryAppearanceFixed implements NiGeometryAppearance {
+	public static boolean									CACHE_WEAK				= true;
+	private static WeakHashMap<Object, TextureAttributes>	textureAttributesLookup	= new WeakHashMap<Object, TextureAttributes>();
 
 	@Override
-	public Appearance configureAppearance(NiGeometry niGeometry, NiToJ3dData niToJ3dData, TextureSource textureSource, Shape3D shape,
-			J3dNiAVObject target)
-	{
+	public Appearance configureAppearance(	NiGeometry niGeometry, NiToJ3dData niToJ3dData, TextureSource textureSource,
+											Shape3D shape, J3dNiAVObject target) {
 		NifRef[] properties = niGeometry.properties;
 
 		Appearance app = new Appearance();
@@ -111,64 +109,47 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 		shape.setAppearance(app);
 
 		// apply various apperance properties
-		for (int i = 0; i < properties.length; i++)
-		{
+		for (int i = 0; i < properties.length; i++) {
 			NiObject prop = niToJ3dData.get(properties[i]);
-			if (prop != null)
-			{
-				if (prop instanceof NiProperty)
-				{
-					NiProperty property = (NiProperty) prop;
-					if (property instanceof NiTexturingProperty)
-					{
-						NiTexturingProperty ntp = (NiTexturingProperty) property;
+			if (prop != null) {
+				if (prop instanceof NiProperty) {
+					NiProperty property = (NiProperty)prop;
+					if (property instanceof NiTexturingProperty) {
+						NiTexturingProperty ntp = (NiTexturingProperty)property;
 
 						// have we already constructed it?
-						if (textureAttributesLookup.get(ntp) != null)
-						{
+						if (textureAttributesLookup.get(ntp) != null) {
 							tus0.setTextureAttributes(textureAttributesLookup.get(ntp));
-						}
-						else
-						{
-							textureAttributes.setTextureMode(ntp.isApplyReplace() ? TextureAttributes.REPLACE
-									: ntp.isApplyDecal() ? TextureAttributes.DECAL : TextureAttributes.MODULATE);
+						} else {
+							textureAttributes.setTextureMode(ntp.isApplyReplace() ? TextureAttributes.REPLACE : ntp
+									.isApplyDecal() ? TextureAttributes.DECAL : TextureAttributes.MODULATE);
 							setUpTimeController(ntp, niToJ3dData, textureSource, target);
-							if(CACHE_WEAK)
+							if (CACHE_WEAK)
 								textureAttributesLookup.put(ntp, textureAttributes);
 						}
 
 						NiSourceTexture niSourceTexture = null;
 
 						// now set the texture
-						if (ntp.hasBaseTexture && ntp.baseTexture.source.ref != -1)
-						{
-							niSourceTexture = (NiSourceTexture) niToJ3dData.get(ntp.baseTexture.source);
-						}
-						else
-						{
-							if (ntp.shaderTextures != null)
-							{
+						if (ntp.hasBaseTexture && ntp.baseTexture.source.ref != -1) {
+							niSourceTexture = (NiSourceTexture)niToJ3dData.get(ntp.baseTexture.source);
+						} else {
+							if (ntp.shaderTextures != null) {
 								// use it if there's only 1
-								if (ntp.shaderTextures.length == 1)
-								{
+								if (ntp.shaderTextures.length == 1) {
 									NifTexDesc textureData = ntp.shaderTextures[0].textureData;
-									if (textureData.source.ref != -1)
-									{
-										niSourceTexture = (NiSourceTexture) niToJ3dData.get(textureData.source);
+									if (textureData.source.ref != -1) {
+										niSourceTexture = (NiSourceTexture)niToJ3dData.get(textureData.source);
 									}
-								}
-								else if (ntp.nVer.isBP())
-								{// odd black prophecy stuff
+								} else if (ntp.nVer.isBP()) {// odd black prophecy stuff
 									niSourceTexture = lookUpBP(ntp, niToJ3dData);
 								}
 
 							}
 						}
 
-						if (niSourceTexture != null)
-						{
-							if (niSourceTexture.useExternal == 0)
-							{
+						if (niSourceTexture != null) {
+							if (niSourceTexture.useExternal == 0) {
 								new Throwable("niSourceTexture.useExternal == 0!!").printStackTrace();
 							}
 
@@ -176,42 +157,36 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 							tus0.setTexture(tex);
 						}
 
-					}
-					else if (property instanceof BSShaderPPLightingProperty)
-					{
-						BSShaderPPLightingProperty bsspplp = (BSShaderPPLightingProperty) property;
+					} else if (property instanceof BSShaderPPLightingProperty) {
+						BSShaderPPLightingProperty bsspplp = (BSShaderPPLightingProperty)property;
 
-						BSShaderTextureSet bbsts = (BSShaderTextureSet) niToJ3dData.get(bsspplp.textureSet);
+						BSShaderTextureSet bbsts = (BSShaderTextureSet)niToJ3dData.get(bsspplp.textureSet);
 
-						if (bbsts.numTextures > 0 && textureSource != null)
-						{
+						if (bbsts.numTextures > 0 && textureSource != null) {
 							Texture tex = J3dNiGeometry.loadTexture(bbsts.textures[0], textureSource);
 							tus0.setTexture(tex);
 						}
 
 						// refraction lighting is troublesome without shaders, disable for now, or if no texture 
 						if (bsspplp.ShaderFlags.isBitSet(BSShaderFlags.SF_REFRACTION)
-								|| bsspplp.ShaderFlags.isBitSet(BSShaderFlags.SF_FIRE_REFRACTION) || bbsts.numTextures == 0)
-						{
+							|| bsspplp.ShaderFlags.isBitSet(BSShaderFlags.SF_FIRE_REFRACTION)
+							|| bbsts.numTextures == 0) {
 							ra.setVisible(false);
 						}
 						setUpTimeController(bsspplp, niToJ3dData, textureSource, target);
-					}
-					else if (property instanceof BSShaderNoLightingProperty)
-					{
-						BSShaderNoLightingProperty bssnlp = (BSShaderNoLightingProperty) property;
+					} else if (property instanceof BSShaderNoLightingProperty) {
+						BSShaderNoLightingProperty bssnlp = (BSShaderNoLightingProperty)property;
 
 						textureAttributes.setTextureMode(TextureAttributes.REPLACE);
 
-						if (bssnlp.ShaderType == BSShaderType.SHADER_NOLIGHTING)
-						{
+						if (bssnlp.ShaderType == BSShaderType.SHADER_NOLIGHTING) {
 							mat.setLightingEnable(false);
 						}
 
 						// refraction lighting is troublesome without shaders, disable for now, or if no texture 
 						if (bssnlp.ShaderFlags.isBitSet(BSShaderFlags.SF_REFRACTION)
-								|| bssnlp.ShaderFlags.isBitSet(BSShaderFlags.SF_FIRE_REFRACTION) || bssnlp.fileName.length() == 0)
-						{
+							|| bssnlp.ShaderFlags.isBitSet(BSShaderFlags.SF_FIRE_REFRACTION)
+							|| bssnlp.fileName.length() == 0) {
 							ra.setVisible(false);
 						}
 
@@ -219,28 +194,21 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 						Texture tex = J3dNiGeometry.loadTexture(bssnlp.fileName, textureSource);
 						tus0.setTexture(tex);
 
-					}
-					else if (property instanceof TallGrassShaderProperty)
-					{
-						TallGrassShaderProperty tgsp = (TallGrassShaderProperty) property;
+					} else if (property instanceof TallGrassShaderProperty) {
+						TallGrassShaderProperty tgsp = (TallGrassShaderProperty)property;
 						Texture tex = J3dNiGeometry.loadTexture(tgsp.fileName, textureSource);
 						tus0.setTexture(tex);
 
-					}
-					else if (property instanceof TileShaderProperty)
-					{
-						TileShaderProperty tsp = (TileShaderProperty) property;
+					} else if (property instanceof TileShaderProperty) {
+						TileShaderProperty tsp = (TileShaderProperty)property;
 						Texture tex = J3dNiGeometry.loadTexture(tsp.fileName, textureSource);
 						tus0.setTexture(tex);
-					}
-					else if (property instanceof NiMaterialProperty)
-					{
-						NiMaterialProperty nmp = (NiMaterialProperty) property;
+					} else if (property instanceof NiMaterialProperty) {
+						NiMaterialProperty nmp = (NiMaterialProperty)property;
 
 						if (!(niToJ3dData.nifVer.LOAD_VER == NifVer.VER_20_2_0_7
 								&& (niToJ3dData.nifVer.LOAD_USER_VER == 11 || niToJ3dData.nifVer.LOAD_USER_VER == 12)
-								&& niToJ3dData.nifVer.BS_Version > 21))
-						{
+								&& niToJ3dData.nifVer.BS_Version > 21)) {
 							mat.setAmbientColor(nmp.ambientColor.r, nmp.ambientColor.g, nmp.ambientColor.b);
 							mat.setDiffuseColor(nmp.diffuseColor.r, nmp.diffuseColor.g, nmp.diffuseColor.b);
 						}
@@ -249,45 +217,33 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 
 						mat.setShininess(nmp.glossiness);
 
-						if (nmp.alpha != 1.0f)
-						{
+						if (nmp.alpha != 1.0f) {
 							ta.setTransparency(1 - nmp.alpha);
 							ta.setTransparencyMode(TransparencyAttributes.BLENDED);
 						}
 
-					}
-					else if (property instanceof NiVertexColorProperty)
-					{
-						NiVertexColorProperty nvcp = (NiVertexColorProperty) niToJ3dData.get(properties[i]);
-						if (nvcp.vertexMode != null)
-						{
-							if (nvcp.vertexMode.mode == VertMode.VERT_MODE_SRC_IGNORE)
-							{
+					} else if (property instanceof NiVertexColorProperty) {
+						NiVertexColorProperty nvcp = (NiVertexColorProperty)niToJ3dData.get(properties[i]);
+						if (nvcp.vertexMode != null) {
+							if (nvcp.vertexMode.mode == VertMode.VERT_MODE_SRC_IGNORE) {
 								ra.setIgnoreVertexColors(true);
-							}
-							else
-							{
+							} else {
 								mat.setColorTarget(NifOpenGLToJava3D.convertVertexMode(nvcp.vertexMode.mode));
 							}
 						}
-					}
-					else if (property instanceof NiAlphaProperty)
-					{
-						NiAlphaProperty nap = (NiAlphaProperty) property;
+					} else if (property instanceof NiAlphaProperty) {
+						NiAlphaProperty nap = (NiAlphaProperty)property;
 
-						if (nap.alphaBlendingEnable())
-						{
+						if (nap.alphaBlendingEnable()) {
 							ta.setTransparencyMode(TransparencyAttributes.BLENDED);
 							ta.setSrcBlendFunction(NifOpenGLToJava3D.convertBlendMode(nap.sourceBlendMode(), true));
-							ta.setDstBlendFunction(NifOpenGLToJava3D.convertBlendMode(nap.destinationBlendMode(), false));
-						}
-						else
-						{
+							ta.setDstBlendFunction(
+									NifOpenGLToJava3D.convertBlendMode(nap.destinationBlendMode(), false));
+						} else {
 							ta.setTransparencyMode(TransparencyAttributes.SCREEN_DOOR);
 						}
 
-						if (nap.alphaTestEnabled())
-						{
+						if (nap.alphaTestEnabled()) {
 							// I think the PolygonAttributes.CULL_NONE should be applied to anything
 							// with an alphaTestEnabled(), flat_lod trees from skyrim prove it
 							// obviously transparent stuff can be seen from the back quite often
@@ -302,43 +258,33 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 							ra.setAlphaTestValue(threshold);
 						}
 
-					}
-					else if (property instanceof NiStencilProperty)
-					{
-						NiStencilProperty nsp = (NiStencilProperty) property;
+					} else if (property instanceof NiStencilProperty) {
+						NiStencilProperty nsp = (NiStencilProperty)property;
 
 						// - this dictates the two sided polygon (e.g. butterfly)
-						if (nsp.getDrawMode() == FaceDrawMode.DRAW_BOTH)
-						{
+						if (nsp.getDrawMode() == FaceDrawMode.DRAW_BOTH) {
 							pa.setCullFace(PolygonAttributes.CULL_NONE);
 							pa.setBackFaceNormalFlip(true);
 						}
 
-						if (nsp.isStencilEnable())
-						{
+						if (nsp.isStencilEnable()) {
 							ra.setStencilEnable(true);
 							ra.setStencilWriteMask(nsp.stencilMask);
-							ra.setStencilFunction(NifOpenGLToJava3D.convertStencilFunction(nsp.stencilFunction()), nsp.stencilRef,
-									nsp.stencilMask);
+							ra.setStencilFunction(NifOpenGLToJava3D.convertStencilFunction(nsp.stencilFunction()),
+									nsp.stencilRef, nsp.stencilMask);
 							ra.setStencilOp(NifOpenGLToJava3D.convertStencilAction(nsp.failAction()), //
 									NifOpenGLToJava3D.convertStencilAction(nsp.zFailAction()), //
 									NifOpenGLToJava3D.convertStencilAction(nsp.passAction()));
 						}
-					}
-					else if (property instanceof BSEffectShaderProperty)
-					{
-						BSEffectShaderProperty bsesp = (BSEffectShaderProperty) property;
+					} else if (property instanceof BSEffectShaderProperty) {
+						BSEffectShaderProperty bsesp = (BSEffectShaderProperty)property;
 
 						// have we already constructed the texture attributes and time controller it?
-						if (textureAttributesLookup.get(bsesp) != null)
-						{
+						if (textureAttributesLookup.get(bsesp) != null) {
 							tus0.setTextureAttributes(textureAttributesLookup.get(bsesp));
-						}
-						else
-						{
-							if (bsesp.UVOffSet.u != 0 || bsesp.UVOffSet.v != 0 || bsesp.UVScale.u != 1 || bsesp.UVScale.v != 1
-									|| bsesp.controller.ref != -1)
-							{
+						} else {
+							if (bsesp.UVOffSet.u != 0	|| bsesp.UVOffSet.v != 0 || bsesp.UVScale.u != 1
+								|| bsesp.UVScale.v != 1 || bsesp.controller.ref != -1) {
 								Transform3D transform = new Transform3D();
 								transform.setTranslation(new Vector3d(-bsesp.UVOffSet.u, -bsesp.UVOffSet.v, 0));
 								transform.setScale(new Vector3d(bsesp.UVScale.u, bsesp.UVScale.v, 0));
@@ -347,119 +293,75 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 
 							setUpTimeController(bsesp, niToJ3dData, textureSource, target);
 
-							if(CACHE_WEAK)
-							textureAttributesLookup.put(bsesp, textureAttributes);
+							if (CACHE_WEAK)
+								textureAttributesLookup.put(bsesp, textureAttributes);
 						}
 
 						// now set the texture
-						if (bsesp.SourceTexture.length() > 0 && textureSource != null)
-						{
+						if (bsesp.SourceTexture.length() > 0 && textureSource != null) {
 							Texture tex = J3dNiGeometry.loadTexture(bsesp.SourceTexture, textureSource);
 							tus0.setTexture(tex);
 						}
 
 						mat.setEmissiveColor(bsesp.BaseColor.r, bsesp.BaseColor.g, bsesp.BaseColor.b);
 
-					}
-					else if (property instanceof BSSkyShaderProperty)
-					{
-						BSSkyShaderProperty bsssp = (BSSkyShaderProperty) property;
+					} else if (property instanceof BSSkyShaderProperty) {
+						BSSkyShaderProperty bsssp = (BSSkyShaderProperty)property;
 
 						Texture tex = J3dNiGeometry.loadTexture(bsssp.SourceTexture, textureSource);
 						tus0.setTexture(tex);
-					}
-					else if (property instanceof NiZBufferProperty)
-					{
-					}
-					else if (property instanceof BSWaterShaderProperty)
-					{
-					}
-					else if (property instanceof WaterShaderProperty)
-					{
-					}
-					else if (property instanceof SkyShaderProperty)
-					{
-					}
-					else if (property instanceof NiSpecularProperty)
-					{
-					}
-					else if (property instanceof NiWireframeProperty)
-					{ // uncommon
-					}
-					else if (property instanceof NiDitherProperty)
-					{ // uncommon
-					}
-					else if (property instanceof NiShadeProperty)
-					{// uncommon
-					}
-					else if (property instanceof NiFogProperty)
-					{ // uncommon
-					}
-					else if (property instanceof NiTextureModeProperty)
-					{ // uncommmon, related to PS2?
-					}
-					else if (property instanceof NiMultiTextureProperty)
-					{ // only in 3.1?
-					}
-					else if (property instanceof NiTextureProperty)
-					{ // only in ver3.0 to 3.1?
-					}
-					else
-					{
+					} else if (property instanceof NiZBufferProperty) {
+					} else if (property instanceof BSWaterShaderProperty) {
+					} else if (property instanceof WaterShaderProperty) {
+					} else if (property instanceof SkyShaderProperty) {
+					} else if (property instanceof NiSpecularProperty) {
+					} else if (property instanceof NiWireframeProperty) { // uncommon
+					} else if (property instanceof NiDitherProperty) { // uncommon
+					} else if (property instanceof NiShadeProperty) {// uncommon
+					} else if (property instanceof NiFogProperty) { // uncommon
+					} else if (property instanceof NiTextureModeProperty) { // uncommmon, related to PS2?
+					} else if (property instanceof NiMultiTextureProperty) { // only in 3.1?
+					} else if (property instanceof NiTextureProperty) { // only in ver3.0 to 3.1?
+					} else {
 						System.out.println("J3dNiGeometry - unhandled property " + property);
 					}
-				}
-				else if (prop instanceof BSLightingShaderProperty)
-				{
-					BSLightingShaderProperty bslsp = (BSLightingShaderProperty) prop;
+				} else if (prop instanceof BSLightingShaderProperty) {
+					BSLightingShaderProperty bslsp = (BSLightingShaderProperty)prop;
 
 					// have we already constructed it?
-					if (textureAttributesLookup.get(bslsp) != null)
-					{
+					if (textureAttributesLookup.get(bslsp) != null) {
 						tus0.setTextureAttributes(textureAttributesLookup.get(bslsp));
-					}
-					else
-					{
-						if (bslsp.UVOffSet.u != 0 || bslsp.UVOffSet.v != 0 || bslsp.UVScale.u != 1 || bslsp.UVScale.v != 1
-								|| bslsp.controller.ref != -1)
-						{
+					} else {
+						if (bslsp.UVOffSet.u != 0	|| bslsp.UVOffSet.v != 0 || bslsp.UVScale.u != 1
+							|| bslsp.UVScale.v != 1 || bslsp.controller.ref != -1) {
 							Transform3D transform = new Transform3D();
 							transform.setTranslation(new Vector3d(-bslsp.UVOffSet.u, -bslsp.UVOffSet.v, 0));
 							transform.setScale(new Vector3d(bslsp.UVScale.u, bslsp.UVScale.v, 0));
 							textureAttributes.setTextureTransform(transform);
 						}
 
-						NiSingleInterpController controller = (NiSingleInterpController) niToJ3dData.get(bslsp.controller);
+						NiSingleInterpController controller = (NiSingleInterpController)niToJ3dData
+								.get(bslsp.controller);
 						setUpTimeController(controller, niToJ3dData, textureSource, target);
 
-						if(CACHE_WEAK)
-						textureAttributesLookup.put(bslsp, textureAttributes);
+						if (CACHE_WEAK)
+							textureAttributesLookup.put(bslsp, textureAttributes);
 					}
 
 					// now set the texture
 					// FO4 has material files pointed at by name
-					if (bslsp.name.toLowerCase().endsWith(".bgsm") || bslsp.name.toLowerCase().endsWith(".bgem"))
-					{
+					if (bslsp.name.toLowerCase().endsWith(".bgsm") || bslsp.name.toLowerCase().endsWith(".bgem")) {
 						// if the bgsm file exists the textureset may have bad .tga files in it (or good .dds ones)
 						// but the bgsm definitely has good textures
-						try
-						{
-							ShaderMaterial material = (ShaderMaterial)BgsmSource.bgsmSource.getMaterial(bslsp.name);
-							if (material != null)
-							{
-								Texture tex = J3dNiGeometry.loadTexture(material.DiffuseTexture, textureSource);
-								tus0.setTexture(tex);
-							}
-						}
-						catch (IOException e)
-						{
-							e.printStackTrace();
+
+						ShaderMaterial material = BgsmSource.bgsmSource.getShaderMaterial(bslsp.name);
+						if (material != null) {
+							Texture tex = J3dNiGeometry.loadTexture(material.DiffuseTexture, textureSource);
+							tus0.setTexture(tex);
 						}
 
-					}
-					else if (bslsp.TextureSet.ref != -1)
-					{
-						BSShaderTextureSet texSet = (BSShaderTextureSet) niToJ3dData.get(bslsp.TextureSet);
+					} else if (bslsp.TextureSet.ref != -1) {
+						BSShaderTextureSet texSet = (BSShaderTextureSet)niToJ3dData.get(bslsp.TextureSet);
 
 						Texture tex = J3dNiGeometry.loadTexture(texSet.textures[0], textureSource);
 						tus0.setTexture(tex);
@@ -474,8 +376,7 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 
 					mat.setEmissiveColor(bslsp.EmissiveColor.r, bslsp.EmissiveColor.g, bslsp.EmissiveColor.b);
 
-					if (bslsp.Alpha != 1.0f)
-					{
+					if (bslsp.Alpha != 1.0f) {
 						ta.setTransparency(1f - bslsp.Alpha);
 						ta.setTransparencyMode(TransparencyAttributes.BLENDED);
 					}
@@ -483,14 +384,12 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 					// apparently the The vertex colors are used as well, just not the alpha component when
 					// SF_Vertex_Animation is present
 					// http://niftools.sourceforge.net/forum/viewtopic.php?f=10&t=3276
-					if (SkyrimShaderPropertyFlags2.isBitSet(bslsp.ShaderFlags2, SkyrimShaderPropertyFlags2.SLSF2_Tree_Anim))
-					{
+					if (SkyrimShaderPropertyFlags2.isBitSet(bslsp.ShaderFlags2,
+							SkyrimShaderPropertyFlags2.SLSF2_Tree_Anim)) {
 						textureAttributes.setTextureMode(TextureAttributes.COMBINE);
 						textureAttributes.setCombineAlphaMode(TextureAttributes.COMBINE_REPLACE);
 					}
-				}
-				else
-				{
+				} else {
 					System.out.println("Unhandled property in geometry " + prop);
 				}
 			}
@@ -512,70 +411,59 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 	 * @param app
 	 * @param blocks
 	 */
-	protected static void setUpTimeController(NiProperty property, NiToJ3dData niToJ3dData, TextureSource textureSource, J3dNiAVObject target)
-	{
-		NiTimeController controller = (NiTimeController) niToJ3dData.get(property.controller);
+	protected static void setUpTimeController(	NiProperty property, NiToJ3dData niToJ3dData, TextureSource textureSource,
+												J3dNiAVObject target) {
+		NiTimeController controller = (NiTimeController)niToJ3dData.get(property.controller);
 		setUpTimeController(controller, niToJ3dData, textureSource, target);
 	}
 
-	protected static void setUpTimeController(BSLightingShaderProperty bslsp, NiToJ3dData niToJ3dData, TextureSource textureSource,
-			J3dNiAVObject target)
-	{
-		NiTimeController controller = (NiTimeController) niToJ3dData.get(bslsp.controller);
+	protected static void setUpTimeController(	BSLightingShaderProperty bslsp, NiToJ3dData niToJ3dData,
+												TextureSource textureSource, J3dNiAVObject target) {
+		NiTimeController controller = (NiTimeController)niToJ3dData.get(bslsp.controller);
 		setUpTimeController(controller, niToJ3dData, textureSource, target);
 	}
 
-	public static void setUpTimeController(NiTimeController controller, NiToJ3dData niToJ3dData, TextureSource textureSource,
-			J3dNiAVObject target)
-	{
-		if (controller != null)
-		{
-			if (controller instanceof NiSingleInterpController)
-			{
-				NiSingleInterpController niSingleInterpController = (NiSingleInterpController) controller;
+	public static void setUpTimeController(	NiTimeController controller, NiToJ3dData niToJ3dData,
+											TextureSource textureSource, J3dNiAVObject target) {
+		if (controller != null) {
+			if (controller instanceof NiSingleInterpController) {
+				NiSingleInterpController niSingleInterpController = (NiSingleInterpController)controller;
 				float startTimeS = controller.startTime;
 				float stopTimeS = controller.stopTime;
 
-				J3dNiTimeController j3dNiTimeController = J3dNiTimeController.createJ3dNiTimeController(controller, niToJ3dData, target,
-						textureSource);
+				J3dNiTimeController j3dNiTimeController = J3dNiTimeController.createJ3dNiTimeController(controller,
+						niToJ3dData, target, textureSource);
 
 				J3dNiInterpolator j3dNiInterpolator = null;
-				if (j3dNiTimeController != null)
-				{
-					NiInterpolator niInterpolator = (NiInterpolator) niToJ3dData.get(niSingleInterpController.interpolator);
-					j3dNiInterpolator = J3dNiTimeController.createInterpForController(j3dNiTimeController, niInterpolator, niToJ3dData,
-							startTimeS, stopTimeS);
+				if (j3dNiTimeController != null) {
+					NiInterpolator niInterpolator = (NiInterpolator)niToJ3dData
+							.get(niSingleInterpController.interpolator);
+					j3dNiInterpolator = J3dNiTimeController.createInterpForController(j3dNiTimeController,
+							niInterpolator, niToJ3dData, startTimeS, stopTimeS);
 				}
 
 				//interpolators are cached and shared where posssible
-				if (j3dNiInterpolator != null && j3dNiInterpolator.getParent() == null)
-				{
+				if (j3dNiInterpolator != null && j3dNiInterpolator.getParent() == null) {
 					target.addChild(j3dNiInterpolator);
 
 					Alpha baseAlpha = J3dNiTimeController.createLoopingAlpha(startTimeS, stopTimeS);
 					j3dNiInterpolator.fire(baseAlpha);
 				}
 
-			}
-			else if (controller instanceof BSRefractionFirePeriodController)
-			{
+			} else if (controller instanceof BSRefractionFirePeriodController) {
 
 			}
 
-			else
-			{
-				System.out.println("non NiSingleInterpController for j3dgeometry " + controller + " in " + controller.nVer.fileName);
+			else {
+				System.out.println("non NiSingleInterpController for j3dgeometry "	+ controller + " in "
+									+ controller.nVer.fileName);
 			}
 
-			NiTimeController nextController = (NiTimeController) niToJ3dData.get(controller.nextController);
-			if (nextController != null)
-			{
-				if (nextController instanceof NiMultiTargetTransformController)
-				{
+			NiTimeController nextController = (NiTimeController)niToJ3dData.get(controller.nextController);
+			if (nextController != null) {
+				if (nextController instanceof NiMultiTargetTransformController) {
 					// this is an object palette ignore
-				}
-				else
-				{
+				} else {
 					// TODO: this is used by the particle modifer controller system, see J3dParticleSystem
 					// I've also seen texturetransform controllers U then V use this
 					setUpTimeController(nextController, niToJ3dData, textureSource, target);
@@ -586,35 +474,26 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance
 	}
 
 	/**
-	 * Black Prophecy has odd textures and crazy file formats	 * 	
-	 * Black Prophecy textures order?
-	 * engines sometimes only have 1 or 2
-	 * occulsion (occ_blank.dds) - optional?
-	 * color (diff_blank.dds)
-	 * bump
-	 * specular
-	 * glow (glow_blank.dds)
+	 * Black Prophecy has odd textures and crazy file formats * Black Prophecy textures order? engines sometimes only
+	 * have 1 or 2 occulsion (occ_blank.dds) - optional? color (diff_blank.dds) bump specular glow (glow_blank.dds)
 	 * cubemap, for reflections? - optional
 	 * @param ntp
 	 * @param niToJ3dData
 	 * @return
 	 */
-	private static NiSourceTexture lookUpBP(NiTexturingProperty ntp, NiToJ3dData niToJ3dData)
-	{
+	private static NiSourceTexture lookUpBP(NiTexturingProperty ntp, NiToJ3dData niToJ3dData) {
 
 		// use 0 unless occlusion, in which case use 1
 		NifTexDesc textureData = ntp.shaderTextures[0].textureData;
-		if (textureData.source.ref != -1)
-		{
-			NiSourceTexture niSourceTexture = (NiSourceTexture) niToJ3dData.get(textureData.source);
+		if (textureData.source.ref != -1) {
+			NiSourceTexture niSourceTexture = (NiSourceTexture)niToJ3dData.get(textureData.source);
 
-			if (niSourceTexture.fileName.string.contains("_lod") || niSourceTexture.fileName.string.equals("occ_blank.dds")
-					|| niSourceTexture.fileName.string.contains("_occ"))
-			{
+			if (niSourceTexture.fileName.string.contains("_lod")
+				|| niSourceTexture.fileName.string.equals("occ_blank.dds")
+				|| niSourceTexture.fileName.string.contains("_occ")) {
 				textureData = ntp.shaderTextures[1].textureData;
-				if (textureData.source.ref != -1)
-				{
-					return (NiSourceTexture) niToJ3dData.get(textureData.source);
+				if (textureData.source.ref != -1) {
+					return (NiSourceTexture)niToJ3dData.get(textureData.source);
 				}
 			}
 			return niSourceTexture;

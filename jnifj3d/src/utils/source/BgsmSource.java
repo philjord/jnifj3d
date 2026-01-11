@@ -1,0 +1,57 @@
+package utils.source;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
+import nif.niobject.bgsm.BSMaterial;
+import nif.niobject.bgsm.EffectMaterial;
+import nif.niobject.bgsm.ShaderMaterial;
+import tools.WeakValueHashMap;
+
+/**
+ * 
+ *
+ */
+public abstract class BgsmSource {
+
+	// cachign is done here unlike other sources
+	protected static WeakValueHashMap<String, BSMaterial>	materialFiles	= new WeakValueHashMap<String, BSMaterial>();
+
+	// a fat global for anyone to get at
+	public static BgsmSource								bgsmSource		= null;
+
+	//Yes it is bullshit sorry... I have to hand these guys deep, deep into the geometry code
+	public static void setBgsmSource(BgsmSource staticbgsmSource) {
+		bgsmSource = staticbgsmSource;
+	}
+
+	public abstract EffectMaterial getEffectMaterial(String fileName);
+
+	public abstract ShaderMaterial getShaderMaterial(String fileName);
+
+	public static BSMaterial readMaterialFile(String fileName, ByteBuffer in) throws IOException {
+		if (in != null) {
+			in.order(ByteOrder.LITTLE_ENDIAN);
+			byte[] buf = new byte[4];
+			in.get(buf);
+			String headerString = new String(buf);
+			if (headerString.equals("BGEM")) {
+				BSMaterial m = new EffectMaterial(fileName);
+				m.readFile(in);
+				return m;
+			} else if (headerString.equals("BGSM")) {
+				BSMaterial m = new ShaderMaterial(fileName);
+				m.readFile(in);
+				return m;
+			} else {
+				throw new IOException("BAD Material file header: " + headerString);
+			}
+
+		} else {
+			System.err.println("File Not Found in Mesh Source: " + fileName);
+			return null;
+		}
+	}
+
+}
