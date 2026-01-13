@@ -6,20 +6,20 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel.MapMode;
 
 import nif.niobject.bgsm.BSMaterial;
-import nif.niobject.bgsm.EffectMaterial;
-import nif.niobject.bgsm.ShaderMaterial;
-import utils.source.BgsmSource;
+import nif.niobject.bgsm.BSMaterialDataBGEM;
+import nif.niobject.bgsm.BSMaterialDataBGSM;
+import utils.source.MaterialsSource;
 
-public class FileBgsmSource extends BgsmSource {
+public class FileMaterialsSource extends MaterialsSource {
 
 	// we use the file mesh file searching and opening
 	private static FileMeshSource fileMeshSource = new FileMeshSource();
 
-	public FileBgsmSource() {
+	public FileMaterialsSource() {
 	}
 
 	@Override
-	public EffectMaterial getEffectMaterial(String fileName) {
+	public BSMaterialDataBGEM getEffectMaterial(String fileName) {
 		// e.g. materials\Landscape\Rocks\BlastedForestRocksMoss.BGSM
 		// e.g. here is a bad name C:\Projects\Fallout4\Build\PC\Data\materials\Vehicles\Frame01.BGSM
 
@@ -38,17 +38,17 @@ public class FileBgsmSource extends BgsmSource {
 			materialFiles.put(fileName, material);
 		}
 
-		if (!(material instanceof EffectMaterial)) {
+		if (!(material instanceof BSMaterialDataBGEM)) {
 			// it is possible for a desired EffectMaterial to have the header string BGSM and 
 			// thus cause chaos about now example FO4: Materials\SetDressing\WaterCooler\WaterCooler_Dirty.BGEM
 			return null;
 		}
 
-		return (EffectMaterial)material;
+		return (BSMaterialDataBGEM)material;
 	}
 
 	@Override
-	public ShaderMaterial getShaderMaterial(String fileName) {
+	public BSMaterialDataBGSM getShaderMaterial(String fileName) {
 		// e.g. materials\Landscape\Rocks\BlastedForestRocksMoss.BGSM
 		// e.g. here is a bad name C:\Projects\Fallout4\Build\PC\Data\materials\Vehicles\Frame01.BGSM
 
@@ -67,7 +67,7 @@ public class FileBgsmSource extends BgsmSource {
 			materialFiles.put(fileName, material);
 		}
 
-		return (ShaderMaterial)material;
+		return (BSMaterialDataBGSM)material;
 	}
 
 	public static BSMaterial readMaterialFile(File file) throws IOException {

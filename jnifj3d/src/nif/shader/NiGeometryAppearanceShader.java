@@ -57,8 +57,8 @@ import nif.niobject.NiTexturingProperty;
 import nif.niobject.NiWireframeProperty;
 import nif.niobject.NiZBufferProperty;
 import nif.niobject.bgsm.BSMaterial;
-import nif.niobject.bgsm.EffectMaterial;
-import nif.niobject.bgsm.ShaderMaterial;
+import nif.niobject.bgsm.BSMaterialDataBGEM;
+import nif.niobject.bgsm.BSMaterialDataBGSM;
 import nif.niobject.bs.BSEffectShaderProperty;
 import nif.niobject.bs.BSLightingShaderProperty;
 import nif.niobject.bs.BSShaderLightingProperty;
@@ -75,7 +75,7 @@ import nif.niobject.bs.WaterShaderProperty;
 import nif.niobject.controller.NiTextureTransformController;
 import nif.niobject.controller.NiTimeController;
 import utils.convert.NifOpenGLToJava3D;
-import utils.source.BgsmSource;
+import utils.source.MaterialsSource;
 import utils.source.TextureSource;
 
 /**
@@ -266,7 +266,7 @@ public class NiGeometryAppearanceShader {
 				} else if (bsprop != null) {
 					registerBind(textureUnitName, fileName(bsprop, 2), clamp);
 				} else if (bslsp != null) {
-					ShaderMaterial sm = (ShaderMaterial)getMaterial(bslsp);
+					BSMaterialDataBGSM sm = (BSMaterialDataBGSM)getMaterial(bslsp);
 					if (sm == null)
 						registerBind(textureUnitName, fileName(bslsp, 2), clamp);
 					else
@@ -278,7 +278,7 @@ public class NiGeometryAppearanceShader {
 
 		// BSLightingShaderProperty
 		if (bslsp != null) {
-			ShaderMaterial sm = (ShaderMaterial)getMaterial(bslsp);
+			BSMaterialDataBGSM sm = (BSMaterialDataBGSM)getMaterial(bslsp);
 
 			uni1f("lightingEffect1", bslsp.LightingEffect1);
 			uni1f("lightingEffect2", bslsp.LightingEffect2);
@@ -523,20 +523,20 @@ public class NiGeometryAppearanceShader {
 		// note this will be sole texturer if present
 		BSEffectShaderProperty bsesp = (BSEffectShaderProperty)props.get(BSEffectShaderProperty.class);
 		if (bsesp != null) {
-			EffectMaterial em = getMaterial(bsesp);
+			BSMaterialDataBGEM em = getMaterial(bsesp);
 
 			clamp = bsesp.TextureClampMode;
 			clamp.mode = clamp.mode ^ TexClampMode.MIRRORED_S_MIRRORED_T.mode;
 
 			String SourceTexture = em == null ? bsesp.SourceTexture : em.BaseTexture;
 			boolean hasSourceTexture = SourceTexture != null && SourceTexture.trim().length() > 0;
-			String GreyscaleMap = em == null ? bsesp.GreyscaleTexture : em.GrayscaleTexture;
+			String GreyscaleMap = em == null ? bsesp.GreyscaleTexture : em.GrayscaleToPaletteTexture;
 			boolean hasGreyscaleMap = GreyscaleMap != null && GreyscaleMap.trim().length() > 0;
-			String EnvMap = em == null ? bsesp.EnvMapTexture : em.EnvmapTexture;
+			String EnvMap = em == null ? bsesp.EnvMapTexture : em.CubeMapTexture;
 			boolean hasEnvMap = EnvMap != null && EnvMap.trim().length() > 0;
 			String NormalMap = em == null ? bsesp.NormalTexture : em.NormalTexture;
 			boolean hasNormalMap = NormalMap != null && NormalMap.trim().length() > 0;
-			String EnvMask = em == null ? bsesp.EnvMaskTexture : em.EnvmapMaskTexture;
+			String EnvMask = em == null ? bsesp.EnvMaskTexture : em.EnvironmentMaskTexture;
 			boolean hasEnvMask = EnvMask != null && EnvMask.trim().length() > 0;
 
 			registerBind("SourceTexture", SourceTexture, clamp);
@@ -996,14 +996,14 @@ public class NiGeometryAppearanceShader {
 
 	private void glMaterial(BSMaterial m) {
 		if (m != null) {
-			if (m instanceof ShaderMaterial) {
+			if (m instanceof BSMaterialDataBGSM) {
 				Material mat = new Material();
 				mat.setLightingEnable(true);
 				mat.setColorTarget(Material.AMBIENT_AND_DIFFUSE);
 
 				// where are ambient and diffuse? mat default to 0.2 an 1 respectively
 
-				ShaderMaterial sm = (ShaderMaterial)m;
+				BSMaterialDataBGSM sm = (BSMaterialDataBGSM)m;
 				if (sm.bEmitEnabled != 0)
 					mat.setEmissiveColor(sm.cEmittanceColor.r, sm.cEmittanceColor.g, sm.cEmittanceColor.b);
 
@@ -1208,11 +1208,11 @@ public class NiGeometryAppearanceShader {
 		return fn != null && fn.trim().length() > 0;
 	}
 
-	private static EffectMaterial getMaterial(BSEffectShaderProperty bsesp) {
+	private static BSMaterialDataBGEM getMaterial(BSEffectShaderProperty bsesp) {
 		// FO4 has material files pointed at by name
 		if (bsesp.name.toLowerCase().endsWith(".bgem")) {
 			try {
-				return BgsmSource.bgsmSource.getEffectMaterial(bsesp.name);
+				return MaterialsSource.bgsmSource.getEffectMaterial(bsesp.name);
 			} catch (ClassCastException e) {
 				//ClassCastException: class nif.niobject.bgsm.ShaderMaterial cannot be cast to class nif.niobject.bgsm.EffectMaterial 
 				// extracting shapes from Furniture\ProtectronPod\ProtectronPod01.nif
@@ -1223,10 +1223,10 @@ public class NiGeometryAppearanceShader {
 		return null;
 	}
 
-	private static ShaderMaterial getMaterial(BSLightingShaderProperty bslsp) {
+	private static BSMaterialDataBGSM getMaterial(BSLightingShaderProperty bslsp) {
 		// FO4 has material files pointed at by name
 		if (bslsp.name.toLowerCase().endsWith(".bgsm")) {
-			return BgsmSource.bgsmSource.getShaderMaterial(bslsp.name);
+			return MaterialsSource.bgsmSource.getShaderMaterial(bslsp.name);
 
 		}
 		return null;
@@ -1235,7 +1235,7 @@ public class NiGeometryAppearanceShader {
 	private String fileName(BSLightingShaderProperty bslsp, int textureSlot) {
 		if (bslsp != null) {
 			// FO4 has material files pointed at by name
-			ShaderMaterial material = getMaterial(bslsp);
+			BSMaterialDataBGSM material = getMaterial(bslsp);
 			if (material != null) {
 				switch (textureSlot) {
 					case 0:

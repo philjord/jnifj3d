@@ -47,7 +47,7 @@ import nif.niobject.NiTexturingProperty;
 import nif.niobject.NiVertexColorProperty;
 import nif.niobject.NiWireframeProperty;
 import nif.niobject.NiZBufferProperty;
-import nif.niobject.bgsm.ShaderMaterial;
+import nif.niobject.bgsm.BSMaterialDataBGSM;
 import nif.niobject.bs.BSEffectShaderProperty;
 import nif.niobject.bs.BSLightingShaderProperty;
 import nif.niobject.bs.BSRefractionFirePeriodController;
@@ -65,7 +65,7 @@ import nif.niobject.controller.NiSingleInterpController;
 import nif.niobject.controller.NiTimeController;
 import nif.niobject.interpolator.NiInterpolator;
 import utils.convert.NifOpenGLToJava3D;
-import utils.source.BgsmSource;
+import utils.source.MaterialsSource;
 import utils.source.TextureSource;
 
 public class NiGeometryAppearanceFixed implements NiGeometryAppearance {
@@ -354,7 +354,7 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance {
 						// if the bgsm file exists the textureset may have bad .tga files in it (or good .dds ones)
 						// but the bgsm definitely has good textures
 
-						ShaderMaterial material = BgsmSource.bgsmSource.getShaderMaterial(bslsp.name);
+						BSMaterialDataBGSM material = MaterialsSource.bgsmSource.getShaderMaterial(bslsp.name);
 						if (material != null) {
 							Texture tex = J3dNiGeometry.loadTexture(material.DiffuseTexture, textureSource);
 							tus0.setTexture(tex);
