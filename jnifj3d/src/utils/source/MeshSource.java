@@ -5,22 +5,28 @@ import java.nio.ByteBuffer;
 
 import nif.NifFile;
 
-public interface MeshSource
-{
-	public boolean nifFileExists(String nifName);
+public abstract class MeshSource {
 
-	public NifFile getNifFile(String nifName);
+	// a fat global for anyone to get at
+	public static MeshSource meshSource = null;
 
-	/** to support other crazy file formats
-	 you MUST close this yourself!
+	//Yes it is bullshit sorry... I have to hand these guys deep, deep into the ninode code
+	public static void setMeshSource(MeshSource staticmeshSource) {
+		meshSource = staticmeshSource;
+	}
+
+	public abstract boolean nifFileExists(String nifName);
+
+	public abstract NifFile getNifFile(String nifName);
+
+	/**
+	 * to support other crazy file formats you MUST close this yourself!
 	 * 
 	 * @param fileName
 	 * @return
 	 */
-	public InputStream getInputStreamForFile(String fileName);
-	public ByteBuffer getByteBuffer(String fileName);
-	
-	 
+	public abstract InputStream getInputStreamForFile(String fileName);
 
+	public abstract ByteBuffer getByteBuffer(String fileName);
 
 }

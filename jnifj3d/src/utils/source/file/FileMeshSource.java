@@ -15,7 +15,7 @@ import nif.NifFile;
 import nif.NifFileReader;
 import utils.source.MeshSource;
 
-public class FileMeshSource implements MeshSource
+public class FileMeshSource extends MeshSource
 {
 	public FileMeshSource()
 	{
