@@ -129,7 +129,7 @@ public class NifToJ3d
 			}
 			catch (RuntimeException e)
 			{
-				System.out.println("RuntimeException " + e.toString() + " extracting shapes from " + modelFileName);
+				System.out.println("RuntimeException " + e.toString() + " loadNif shapes from " + modelFileName);
 				if (!SUPPRESS_EXCEPTIONS)
 					throw e;
 			}
@@ -150,7 +150,7 @@ public class NifToJ3d
 			}
 			catch (RuntimeException e)
 			{
-				System.out.println("RuntimeException " + e.toString() + " extracting shapes from " + filename);
+				System.out.println("RuntimeException " + e.toString() + " loadShapes shapes from " + filename);				
 				if (!SUPPRESS_EXCEPTIONS)
 					throw e;
 			}

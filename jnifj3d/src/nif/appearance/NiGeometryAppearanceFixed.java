@@ -1,6 +1,5 @@
 package nif.appearance;
 
-import java.io.IOException;
 import java.util.WeakHashMap;
 
 import org.jogamp.java3d.Alpha;
@@ -29,10 +28,10 @@ import nif.j3d.J3dNiGeometry;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.animation.J3dNiTimeController;
 import nif.j3d.animation.j3dinterp.J3dNiInterpolator;
+import nif.niobject.NiAVObject;
 import nif.niobject.NiAlphaProperty;
 import nif.niobject.NiDitherProperty;
 import nif.niobject.NiFogProperty;
-import nif.niobject.NiGeometry;
 import nif.niobject.NiMaterialProperty;
 import nif.niobject.NiMultiTextureProperty;
 import nif.niobject.NiObject;
@@ -73,9 +72,9 @@ public class NiGeometryAppearanceFixed implements NiGeometryAppearance {
 	private static WeakHashMap<Object, TextureAttributes>	textureAttributesLookup	= new WeakHashMap<Object, TextureAttributes>();
 
 	@Override
-	public Appearance configureAppearance(	NiGeometry niGeometry, NiToJ3dData niToJ3dData, TextureSource textureSource,
+	public Appearance configureAppearance(	NiAVObject niAVObject, NiToJ3dData niToJ3dData, TextureSource textureSource,
 											Shape3D shape, J3dNiAVObject target) {
-		NifRef[] properties = niGeometry.properties;
+		NifRef[] properties = niAVObject.properties;
 
 		Appearance app = new Appearance();
 		Material mat = new Material();

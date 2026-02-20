@@ -12,7 +12,6 @@ import java.util.LinkedHashMap;
 
 import org.jogamp.java3d.Shader;
 
-import nif.enums.BSLightingShaderType;
 import nif.j3d.NiToJ3dData;
 import nif.niobject.NiAlphaProperty;
 import nif.niobject.NiGeometry;
@@ -22,7 +21,9 @@ import nif.niobject.NiTriBasedGeom;
 import nif.niobject.NiTriBasedGeomData;
 import nif.niobject.NiVertexColorProperty;
 import nif.niobject.bs.BSEffectShaderProperty;
+import nif.niobject.bs.BSGeometry;
 import nif.niobject.bs.BSLightingShaderProperty;
+import nif.niobject.bs.BSMeshData;
 import nif.niobject.bs.BSMeshLODTriShape;
 import nif.niobject.bs.BSShaderPPLightingProperty;
 import nif.niobject.bs.BSSubIndexTriShape;
@@ -257,7 +258,7 @@ public class ShaderPrograms {
 						line = line.substring("texcoords".length()).trim();
 						String[] list = line.split(" ");
 
-						Integer unit = new Integer(list [0]);
+						Integer unit = Integer.parseInt(list [0]);
 						String id = list [1].toLowerCase();
 
 						if (id.length() == 0)
@@ -285,9 +286,9 @@ public class ShaderPrograms {
 			}
 
 			//Quick test to ensure texcoords are fixed, recall sk_msn has the last 2 commented out
-			if ((texcoords.size() > 0 && !texcoords.get(new Integer(0)).equals("base")) || //
-				(texcoords.size() > 1 && !texcoords.get(new Integer(1)).equals("tangents")) || //
-				(texcoords.size() > 2 && !texcoords.get(new Integer(2)).equals("bitangents"))) {
+			if ((texcoords.size() > 0 && !texcoords.get(Integer.valueOf(0)).equals("base")) || //
+				(texcoords.size() > 1 && !texcoords.get(Integer.valueOf(1)).equals("tangents")) || //
+				(texcoords.size() > 2 && !texcoords.get(Integer.valueOf(2)).equals("bitangents"))) {
 				System.err.println("texcords not loaded as expected in file " + source);
 			}
 
@@ -309,9 +310,12 @@ public class ShaderPrograms {
 	}
 
 	static interface Condition {
+		
 		boolean eval(NiGeometry niGeometry, NiToJ3dData niToJ3dData, PropertyList props);
-	}
 
+		boolean eval(BSGeometry bsGeometry, NiToJ3dData niToJ3dData, PropertyList props);
+	}
+	
 	static class ConditionGroup implements Condition {
 		private ArrayList<Condition>	conditions	= new ArrayList<Condition>();
 		private boolean					_or			= false;
@@ -324,6 +328,8 @@ public class ShaderPrograms {
 
 		}
 
+		
+		
 		@Override
 		public boolean eval(NiGeometry niGeometry, NiToJ3dData niToJ3dData, PropertyList props) {
 			if (conditions.isEmpty())
@@ -338,6 +344,26 @@ public class ShaderPrograms {
 			} else {
 				for (Condition cond : conditions) {
 					if (!cond.eval(niGeometry, niToJ3dData, props))
+						return false;
+				}
+				return true;
+			}
+		}
+		
+		@Override
+		public boolean eval(BSGeometry bsGeometry, NiToJ3dData niToJ3dData, PropertyList props) {
+			if (conditions.isEmpty())
+				return true;
+
+			if (isOrGroup()) {
+				for (Condition cond : conditions) {
+					if (cond.eval(bsGeometry, niToJ3dData, props))
+						return true;
+				}
+				return false;
+			} else {
+				for (Condition cond : conditions) {
+					if (!cond.eval(bsGeometry, niToJ3dData, props))
 						return false;
 				}
 				return true;
@@ -503,6 +529,82 @@ public class ShaderPrograms {
 
 			return false;
 		}
+		
+		@Override
+		public boolean eval(BSGeometry bsGeometry, NiToJ3dData niToJ3dData, PropertyList props) {
+			if (left.equalsIgnoreCase("HEADER/Version")) {
+				// note decode as the input is like "0x14020007"
+				return compare(bsGeometry.nVer.LOAD_VER, Integer.decode(right).intValue()) ^ invert;
+			} else if (left.equalsIgnoreCase("HEADER/User Version")) {
+				return compare(bsGeometry.nVer.LOAD_USER_VER, Integer.parseInt(right)) ^ invert;
+			} else if (left.equalsIgnoreCase("HEADER/User Version 2")) {
+				return compare(bsGeometry.nVer.BS_Version, Integer.parseInt(right)) ^ invert;
+			} else if (left.equalsIgnoreCase("NiAVObject/Vertex Flag 1")) {
+				//TODO:??
+				return invert;				
+			} else if (left.equalsIgnoreCase("NiTriBasedGeom/Has Shader")) {
+				return compare((bsGeometry.ShaderProperty.ref != -1) ? 1 : 0, Integer.parseInt(right)) ^ invert;
+			} else if (left.equalsIgnoreCase("NiTriBasedGeomData/Has Vertices")) {
+				BSMeshData data = bsGeometry.Meshes[0].Mesh.MeshData;
+				return compare((data.NumVerts > 0) ? 1 : 0, Integer.parseInt(right)) ^ invert;				
+			} else if (left.equalsIgnoreCase("NiTriBasedGeomData/Has Normals")) {
+				BSMeshData data = bsGeometry.Meshes[0].Mesh.MeshData;
+				return compare((data.NumNormals > 0) ? 1 : 0, Integer.parseInt(right)) ^ invert;				 
+			} else if (left.equalsIgnoreCase("NiTriBasedGeomData/Has Vertex Colors")) {
+				BSMeshData data = bsGeometry.Meshes[0].Mesh.MeshData;
+				return compare((data.NumVertexColors > 0) ? 1 : 0, Integer.parseInt(right)) ^ invert;	
+			} else if (left.equalsIgnoreCase("BSTriShape")) {
+				return !invert;
+			} else if (left.equalsIgnoreCase("BSSubIndexTriShape")) {
+				return !invert;
+			} else if (left.equalsIgnoreCase("BSMeshLODTriShape")) {
+				return !invert;
+			} else if (left.equalsIgnoreCase("NiAlphaProperty")) {
+				return (props.get(NiAlphaProperty.class) != null) ^ invert;
+			} else if (left.equalsIgnoreCase("BSEffectShaderProperty")) {
+				return (props.get(BSEffectShaderProperty.class) != null) ^ invert;
+			} else if (left.equalsIgnoreCase("BSLightingShaderProperty")) {
+				return (props.getBSLightingShaderProperty() != null) ^ invert;
+			} else if (left.equalsIgnoreCase("BSLightingShaderProperty/Skyrim Shader Type")) {
+				BSLightingShaderProperty bslsp = props.getBSLightingShaderProperty();
+				if (bslsp == null)
+					return invert;
+				else
+					return compare(bslsp.ShaderType.getType(), Integer.parseInt(right)) ^ invert;
+			} else if (left.equalsIgnoreCase("NiTexturingProperty/Apply Mode")) {
+				NiTexturingProperty p = (NiTexturingProperty)props.get(NiTexturingProperty.class);
+				if (p != null) {
+					return compare(p.applyMode.applyMode, Integer.parseInt(right)) ^ invert;
+				} else {
+					return invert;
+				}
+
+			} else if (left.equalsIgnoreCase("NiVertexColorProperty")) {
+				return (props.get(NiVertexColorProperty.class) != null) ^ invert;
+			} else if (left.equalsIgnoreCase("NiVertexColorProperty/Vertex Mode")) {
+				NiVertexColorProperty p = (NiVertexColorProperty)props.get(NiVertexColorProperty.class);
+				if (p == null)
+					return invert;
+				else
+					return compare(p.vertexMode.mode, Integer.parseInt(right)) ^ invert;
+			} else if (left.equalsIgnoreCase("NiVertexColorProperty/Lighting Mode")) {
+				NiVertexColorProperty p = (NiVertexColorProperty)props.get(NiVertexColorProperty.class);
+				if (p == null)
+					return invert;
+				else
+					return compare(p.lightingMode.mode, Integer.parseInt(right)) ^ invert;
+			} else if (left.equalsIgnoreCase("BSShaderPPLightingProperty")) {
+				return (props.get(BSShaderPPLightingProperty.class) != null) ^ invert;
+			} else if (left.equalsIgnoreCase("BSEffectShaderProperty")) {
+				return (props.get(BSEffectShaderProperty.class) != null) ^ invert;
+			}
+			new Throwable("Unknown prog condition " + left + "/" + right + " " + (invert ? "not " : ""));
+			if (comp == Type.NONE)
+				return !invert;
+
+			return false;
+		}
+
 
 		boolean compare(int a, int b) {
 			switch (comp) {

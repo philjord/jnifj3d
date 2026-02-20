@@ -78,4 +78,10 @@ public class FileMaterialsSource extends MaterialsSource {
 		nifIn.close();
 		return m;
 	}
+
+	@Override
+	public BSMaterial readMaterialFileCDB(int hash) {
+		 
+		throw new UnsupportedOperationException("yeah nah");
+	}
 }

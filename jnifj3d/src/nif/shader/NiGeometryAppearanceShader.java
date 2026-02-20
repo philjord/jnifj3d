@@ -1,8 +1,6 @@
 package nif.shader;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.WeakHashMap;
 
@@ -33,6 +31,7 @@ import org.jogamp.vecmath.Vector4f;
 
 import nif.NifVer;
 import nif.appearance.NiGeometryAppearanceFixed;
+import nif.basic.NifRef;
 import nif.compound.NifColor3;
 import nif.compound.NifMatrix33;
 import nif.compound.NifMatrix44;
@@ -47,8 +46,11 @@ import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiGeometry;
 import nif.j3d.J3dNiTriBasedGeom;
 import nif.j3d.NiToJ3dData;
+import nif.niobject.NiAVObject;
 import nif.niobject.NiAlphaProperty;
+import nif.niobject.NiExtraData;
 import nif.niobject.NiGeometry;
+import nif.niobject.NiIntegerExtraData;
 import nif.niobject.NiMaterialProperty;
 import nif.niobject.NiSourceTexture;
 import nif.niobject.NiSpecularProperty;
@@ -60,6 +62,7 @@ import nif.niobject.bgsm.BSMaterial;
 import nif.niobject.bgsm.BSMaterialDataBGEM;
 import nif.niobject.bgsm.BSMaterialDataBGSM;
 import nif.niobject.bs.BSEffectShaderProperty;
+import nif.niobject.bs.BSGeometry;
 import nif.niobject.bs.BSLightingShaderProperty;
 import nif.niobject.bs.BSShaderLightingProperty;
 import nif.niobject.bs.BSShaderNoLightingProperty;
@@ -92,7 +95,7 @@ public class NiGeometryAppearanceShader {
 
 	public static Material						defaultMaterial				= null;
 
-	private NiGeometry							niGeometry;
+	private NiAVObject							niAVObject;
 	private NiToJ3dData							niToJ3dData;
 	private TextureSource						textureSource;
 	private Shape3D								shape;
@@ -132,16 +135,27 @@ public class NiGeometryAppearanceShader {
 			this.CUBE_MAP = cubeMap;
 		}
 	}
-
-	public NiGeometryAppearanceShader(	NiGeometry niGeometry, NiToJ3dData niToJ3dData, TextureSource textureSource,
+/**
+ * Only NiGeometry or BSGeometry allowed
+ * @param niAVObject
+ * @param niToJ3dData
+ * @param textureSource
+ * @param shape
+ * @param target
+ */
+	public NiGeometryAppearanceShader(	NiAVObject niAVObject, NiToJ3dData niToJ3dData, TextureSource textureSource,
 										Shape3D shape, J3dNiAVObject target) {
-		this.niGeometry = niGeometry;
+		
+		if(!(niAVObject instanceof NiGeometry || niAVObject instanceof BSGeometry)) {
+			throw new RuntimeException("Only NiGeometry or BSGeometry allowed " + niAVObject);
+		}
+		this.niAVObject = niAVObject;
 		this.niToJ3dData = niToJ3dData;
 		this.textureSource = textureSource;
 		this.shape = shape;
 		this.target = target;
 
-		props = new PropertyList(niGeometry.properties, niToJ3dData);
+		props = new PropertyList(niAVObject.properties, niToJ3dData);
 
 		//ensure tangents loaded to geometries
 		J3dNiTriBasedGeom.TANGENTS_BITANGENTS = true;
@@ -179,7 +193,7 @@ public class NiGeometryAppearanceShader {
 				return program.getName();
 		}
 
-		System.err.println("ARRRRRRRRRRRRRRRRRRRRRRGGGH FFP attempt " + niGeometry.nVer.fileName);
+		System.err.println("ARRRRRRRRRRRRRRRRRRRRRRGGGH FFP attempt " + niAVObject.nVer.fileName);
 		//null mean use fixed
 		return null;
 	}
@@ -187,8 +201,28 @@ public class NiGeometryAppearanceShader {
 	//https://github.com/niftools/nifskope/blob/3a85ac55e65cc60abc3434cc4aaca2a5cc712eef/src/gl/renderer.cpp#L643
 	//https://github.com/niftools/nifskope/blob/develop/src/gl/renderer.cpp
 	private boolean setupProgram(ShaderPrograms.Program prog) {
-		if (!prog.conditions.eval(niGeometry, niToJ3dData, props))
-			return false;
+				
+		if (niAVObject instanceof NiGeometry) {
+			if (!prog.conditions.eval((NiGeometry)niAVObject, niToJ3dData, props))
+				return false;
+		} else if (niAVObject instanceof BSGeometry) {
+			
+			//TODO: I probably want to hard code starfield to f04_default prog
+			// I have 0 properties
+			// so almost nothing below gets loaded up at all, hence no problems and no render
+		
+			
+			if(!prog.getName().equals("fo4_default.prog"))
+				return false;
+			
+			//if (!prog.conditions.eval((BSGeometry)niAVObject, niToJ3dData, props))
+			//	return false;
+			
+			
+		} else {
+			throw new RuntimeException("Only NiGeometry or BSGeometry allowed " + niAVObject);
+		}
+		
 
 		if (OUTPUT_BINDINGS)
 			System.out.println("using prog " + prog.getName());
@@ -266,7 +300,7 @@ public class NiGeometryAppearanceShader {
 				} else if (bsprop != null) {
 					registerBind(textureUnitName, fileName(bsprop, 2), clamp);
 				} else if (bslsp != null) {
-					BSMaterialDataBGSM sm = (BSMaterialDataBGSM)getMaterial(bslsp);
+					BSMaterialDataBGSM sm = getMaterial(bslsp);
 					if (sm == null)
 						registerBind(textureUnitName, fileName(bslsp, 2), clamp);
 					else
@@ -278,7 +312,7 @@ public class NiGeometryAppearanceShader {
 
 		// BSLightingShaderProperty
 		if (bslsp != null) {
-			BSMaterialDataBGSM sm = (BSMaterialDataBGSM)getMaterial(bslsp);
+			BSMaterialDataBGSM sm = getMaterial(bslsp);
 
 			uni1f("lightingEffect1", bslsp.LightingEffect1);
 			uni1f("lightingEffect2", bslsp.LightingEffect2);
@@ -339,7 +373,7 @@ public class NiGeometryAppearanceShader {
 				hasRimlight = sm.bRimLighting != 0;
 			uni1i("hasRimlight", hasRimlight);
 
-			if (niGeometry.nVer.BS_Version < 130 && (hasSoftlight || hasRimlight)) {
+			if (niAVObject.nVer.BS_Version < 130 && (hasSoftlight || hasRimlight)) {
 				registerBind("LightMask", fileName(bslsp, 2), clamp);
 			}
 
@@ -350,7 +384,7 @@ public class NiGeometryAppearanceShader {
 				hasBacklight = sm.bBackLighting != 0;
 			uni1i("hasBacklight", hasBacklight);
 
-			if (niGeometry.nVer.BS_Version < 130 && hasBacklight) {
+			if (niAVObject.nVer.BS_Version < 130 && hasBacklight) {
 				registerBind("BacklightMap", fileName(bslsp, 7), clamp);
 			}
 
@@ -411,14 +445,14 @@ public class NiGeometryAppearanceShader {
 				hasSpecularMap = sm.bSpecularEnabled != 0 && hasFileName(bslsp, 2);
 			uni1i("hasSpecularMap", hasSpecularMap);
 
-			if (hasSpecularMap && (niGeometry.nVer.BS_Version == 130 || !hasBacklight)) {
+			if (hasSpecularMap && (niAVObject.nVer.BS_Version == 130 || !hasBacklight)) {
 				if (sm == null)
 					registerBind("SpecularMap", fileName(bslsp, 7), clamp);
 				else
 					registerBind("SpecularMap", fileName(bslsp, 2), clamp);
 			}
 
-			if (niGeometry.nVer.BS_Version == 130) {
+			if (niAVObject.nVer.BS_Version == 130) {
 				boolean isDoubleSided = SkyrimShaderPropertyFlags2.isBitSet(bslsp.ShaderFlags2,
 						SkyrimShaderPropertyFlags2.SLSF2_Double_Sided);
 				if (sm != null)
@@ -509,7 +543,7 @@ public class NiGeometryAppearanceShader {
 			hasHeightMap |= SkyrimShaderPropertyFlags1.isBitSet(bslsp.ShaderFlags1,
 					SkyrimShaderPropertyFlags1.SLSF1_Parallax) && hasFileName(bslsp, 3);
 
-			if (niGeometry.nVer.BS_Version < 130 && hasHeightMap) {
+			if (niAVObject.nVer.BS_Version < 130 && hasHeightMap) {
 				registerBind("HeightMap", fileName(bslsp, 3), clamp);
 			}
 
@@ -590,7 +624,7 @@ public class NiGeometryAppearanceShader {
 
 			boolean hasWeaponBlood = SkyrimShaderPropertyFlags2.isBitSet(bsesp.ShaderFlags2,
 					SkyrimShaderPropertyFlags2.SLSF2_Weapon_Blood);
-			if (niGeometry.nVer.BS_Version == 130)
+			if (niAVObject.nVer.BS_Version == 130)
 				hasWeaponBlood = false;
 			uni1i("hasWeaponBlood", hasWeaponBlood);
 
@@ -616,7 +650,7 @@ public class NiGeometryAppearanceShader {
 			// BSEffectShader textures
 			registerBind("GreyscaleMap", GreyscaleMap, TexClampMode.MIRRORED_S_MIRRORED_T);
 
-			if (niGeometry.nVer.BS_Version == 130) {
+			if (niAVObject.nVer.BS_Version == 130) {
 				if (em == null)
 					uni1f("lightingInfluence", 0f);
 				else
@@ -672,6 +706,32 @@ public class NiGeometryAppearanceShader {
 			glMaterialStencil(m);
 			glMaterialWireframe(m);
 		}
+		
+		//BSGeometry has the hash key of the material from the ba2->cdb file to use in the NiExtradata with the name MaterialID
+		// as the integerData
+		if(this.niAVObject instanceof BSGeometry) {
+			BSGeometry bsGeometry = (BSGeometry)niAVObject;
+			for(NifRef nr :bsGeometry.extraDataList) {
+				NiExtraData ned = (NiExtraData)this.niToJ3dData.get(nr);
+				if(ned.name.equals("MaterialID")) {
+					int matHash = ((NiIntegerExtraData)ned).integerData;
+
+//					System.out.println("I found a material ID for CDB lookup!! " + matHash);
+
+					BSMaterial bsm = MaterialsSource.bgsmSource.readMaterialFileCDB(matHash);
+					if (bsm instanceof BSMaterialDataBGSM) {
+						System.out.println("BSMaterialDataBGSM");
+					} else if (bsm instanceof BSMaterialDataBGEM) {
+						System.out.println("BSMaterialDataBGSM");
+					} else {
+//						System.out.println("bum mat entry " + bsm);
+					}
+						
+				}
+			}
+		}
+		
+		
 
 		boolean depthTest = true;
 		depthTest |= (bslsp != null) && SkyrimShaderPropertyFlags1.isBitSet(bslsp.ShaderFlags1,
@@ -1159,7 +1219,7 @@ public class NiGeometryAppearanceShader {
 			}
 		} else {
 			System.out.println("bindCube BSLightingShaderProperty " + binding.fileName + " No Texture found for nif "
-								+ niGeometry.nVer.fileName);
+								+ niAVObject.nVer.fileName);
 		}
 
 		uni1i(binding.samplerName, texunit++);

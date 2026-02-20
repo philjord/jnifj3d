@@ -28,6 +28,7 @@ import nif.niobject.NiTriShape;
 import nif.niobject.NiTriStrips;
 import nif.niobject.RootCollisionNode;
 import nif.niobject.bs.BSFadeNode;
+import nif.niobject.bs.BSGeometry;
 import nif.niobject.bs.BSLODTriShape;
 import nif.niobject.bs.BSLeafAnimNode;
 import nif.niobject.bs.BSMasterParticleSystem;
@@ -179,6 +180,13 @@ public class J3dNiNode extends J3dNiAVObject implements Fadable
 					else if (child instanceof NiTextureEffect)
 					{
 						//TODO: NiTextureEffect
+					}
+					else if (child instanceof BSGeometry)
+					{
+						//TODO: BSGeometry
+						J3dBSGeometry bsg = new J3dBSGeometry((BSGeometry) child, niToJ3dData, textureSource);					 
+						j3dNiNodes.add(bsg);
+						addChild(bsg);
 					}
 					else
 					{
