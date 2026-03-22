@@ -80,7 +80,7 @@ public class FileMaterialsSource extends MaterialsSource {
 	}
 
 	@Override
-	public BSMaterial readMaterialFileCDB(int hash) {
+	public BSMaterial readMaterialFileCDB(String fielname) {
 		 
 		throw new UnsupportedOperationException("yeah nah");
 	}

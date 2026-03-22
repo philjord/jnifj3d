@@ -30,7 +30,7 @@ public abstract class MaterialsSource {
 
 	public abstract BSMaterialDataBGSM getShaderMaterial(String fileName);
 
-	public abstract BSMaterial readMaterialFileCDB(int hash);
+	public abstract BSMaterial readMaterialFileCDB(String fileName);
 
 	public static BSMaterial readMaterialFile(String fileName, ByteBuffer in) throws IOException {
 		if (in != null) {

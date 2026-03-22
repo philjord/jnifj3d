@@ -52,6 +52,7 @@ import nif.niobject.NiExtraData;
 import nif.niobject.NiGeometry;
 import nif.niobject.NiIntegerExtraData;
 import nif.niobject.NiMaterialProperty;
+import nif.niobject.NiObject;
 import nif.niobject.NiSourceTexture;
 import nif.niobject.NiSpecularProperty;
 import nif.niobject.NiStencilProperty;
@@ -88,6 +89,9 @@ import utils.source.TextureSource;
  * TODO: The SKYRIM TREE ANIM code in the bind, is useless but should be put into a new shader type
  * 
  * https://gist.github.com/patriciogonzalezvivo/3a81453a24a542aabc63 looks like some real good lighting equations
+ * 
+ * possibly this sort of file from fo76utils might also have some shader binding code
+ * https://github.com/fo76utils/nifskope/blob/develop/src/gl/glproperty.cpp#L1006
  */
 
 public class NiGeometryAppearanceShader {
@@ -207,9 +211,12 @@ public class NiGeometryAppearanceShader {
 				return false;
 		} else if (niAVObject instanceof BSGeometry) {
 			
-			//TODO: I probably want to hard code starfield to f04_default prog
+			//TODO: I want to cut this into 2 setupPrograms one for CE1 and now starfield CE2 like the code 
+			//I probably want to hard code starfield to f04_default prog
 			// I have 0 properties
 			// so almost nothing below gets loaded up at all, hence no problems and no render
+			
+			//https://github.com/fo76utils/nifskope/blob/develop/src/gl/renderer.cpp#L200
 		
 			
 			if(!prog.getName().equals("fo4_default.prog"))
@@ -709,27 +716,28 @@ public class NiGeometryAppearanceShader {
 		
 		//BSGeometry has the hash key of the material from the ba2->cdb file to use in the NiExtradata with the name MaterialID
 		// as the integerData
-		if(this.niAVObject instanceof BSGeometry) {
+		if (this.niAVObject instanceof BSGeometry) {
 			BSGeometry bsGeometry = (BSGeometry)niAVObject;
-			for(NifRef nr :bsGeometry.extraDataList) {
-				NiExtraData ned = (NiExtraData)this.niToJ3dData.get(nr);
-				if(ned.name.equals("MaterialID")) {
-					int matHash = ((NiIntegerExtraData)ned).integerData;
 
-//					System.out.println("I found a material ID for CDB lookup!! " + matHash);
+			// not in the properties list now, just in the BSGeometry directly
+			
+			//https://github.com/fo76utils/nifskope/blob/develop/src/gl/renderer.cpp#L200
+			
+			bslsp = (BSLightingShaderProperty)niToJ3dData.get(bsGeometry.ShaderProperty);
+			if (bslsp != null) {
 
-					BSMaterial bsm = MaterialsSource.bgsmSource.readMaterialFileCDB(matHash);
-					if (bsm instanceof BSMaterialDataBGSM) {
-						System.out.println("BSMaterialDataBGSM");
-					} else if (bsm instanceof BSMaterialDataBGEM) {
-						System.out.println("BSMaterialDataBGSM");
-					} else {
-//						System.out.println("bum mat entry " + bsm);
-					}
-						
+				BSMaterial bsm = MaterialsSource.bgsmSource.readMaterialFileCDB(bslsp.name);
+				if (bsm instanceof BSMaterialDataBGSM) {
+					System.out.println("BSMaterialDataBGSM");
+				} else if (bsm instanceof BSMaterialDataBGEM) {
+					System.out.println("BSMaterialDataBGSM");
+				} else {
+					System.out.println("bum mat entry " + bsm);
 				}
+
 			}
 		}
+	
 		
 		
 
