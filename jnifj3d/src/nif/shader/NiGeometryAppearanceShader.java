@@ -31,7 +31,6 @@ import org.jogamp.vecmath.Vector4f;
 
 import nif.NifVer;
 import nif.appearance.NiGeometryAppearanceFixed;
-import nif.basic.NifRef;
 import nif.compound.NifColor3;
 import nif.compound.NifMatrix33;
 import nif.compound.NifMatrix44;
@@ -48,11 +47,8 @@ import nif.j3d.J3dNiTriBasedGeom;
 import nif.j3d.NiToJ3dData;
 import nif.niobject.NiAVObject;
 import nif.niobject.NiAlphaProperty;
-import nif.niobject.NiExtraData;
 import nif.niobject.NiGeometry;
-import nif.niobject.NiIntegerExtraData;
 import nif.niobject.NiMaterialProperty;
-import nif.niobject.NiObject;
 import nif.niobject.NiSourceTexture;
 import nif.niobject.NiSpecularProperty;
 import nif.niobject.NiStencilProperty;
@@ -62,6 +58,9 @@ import nif.niobject.NiZBufferProperty;
 import nif.niobject.bgsm.BSMaterial;
 import nif.niobject.bgsm.BSMaterialDataBGEM;
 import nif.niobject.bgsm.BSMaterialDataBGSM;
+import nif.niobject.bgsm.bsmatcdb.BSMaterialsCDB.CE2Material;
+import nif.niobject.bgsm.bsmatcdb.BSMaterialsCDB.FloatVector4;
+import nif.niobject.bgsm.bsmatcdb.BSMaterialsCDB.CE2BSMaterial;
 import nif.niobject.bs.BSEffectShaderProperty;
 import nif.niobject.bs.BSGeometry;
 import nif.niobject.bs.BSLightingShaderProperty;
@@ -78,6 +77,8 @@ import nif.niobject.bs.TileShaderProperty;
 import nif.niobject.bs.WaterShaderProperty;
 import nif.niobject.controller.NiTextureTransformController;
 import nif.niobject.controller.NiTimeController;
+import nif.shader.ShaderPrograms.Program;
+
 import utils.convert.NifOpenGLToJava3D;
 import utils.source.MaterialsSource;
 import utils.source.TextureSource;
@@ -193,11 +194,25 @@ public class NiGeometryAppearanceShader {
 
 		for (ShaderPrograms.Program program : ShaderPrograms.programs.values()) {
 			//System.out.println("program checked " + program);
-			if (program.isStatusOk() && setupProgram(program))
-				return program.getName();
+			if (program.isStatusOk()) {
+				if (niAVObject instanceof NiGeometry) {
+					if (program.eval((NiGeometry)niAVObject, niToJ3dData, props) && setupProgram(program))
+						return program.getName();
+				} else if (niAVObject instanceof BSGeometry) {
+					// new BSMaterialsDB system uses a new list of shader setup 
+					if (program.eval((BSGeometry)niAVObject, niToJ3dData, props) && setupProgramCE2(program))
+						return program.getName();
+				} else {
+					throw new RuntimeException("Only NiGeometry or BSGeometry allowed " + niAVObject);
+				}
+			}
 		}
 
-		System.err.println("ARRRRRRRRRRRRRRRRRRRRRRGGGH FFP attempt " + niAVObject.nVer.fileName);
+		if (niAVObject instanceof NiGeometry) {
+			System.err.println("ARRRRRRRRRRRRRRRRRRRRRRGGGH FFP attempt " + niAVObject.nVer.fileName);
+		}else if (niAVObject instanceof BSGeometry) {
+			// no comment, things like Meshes\Markers\EditorMarkers\MarkerDummyA.nif have no material
+		}
 		//null mean use fixed
 		return null;
 	}
@@ -205,31 +220,6 @@ public class NiGeometryAppearanceShader {
 	//https://github.com/niftools/nifskope/blob/3a85ac55e65cc60abc3434cc4aaca2a5cc712eef/src/gl/renderer.cpp#L643
 	//https://github.com/niftools/nifskope/blob/develop/src/gl/renderer.cpp
 	private boolean setupProgram(ShaderPrograms.Program prog) {
-				
-		if (niAVObject instanceof NiGeometry) {
-			if (!prog.conditions.eval((NiGeometry)niAVObject, niToJ3dData, props))
-				return false;
-		} else if (niAVObject instanceof BSGeometry) {
-			
-			//TODO: I want to cut this into 2 setupPrograms one for CE1 and now starfield CE2 like the code 
-			//I probably want to hard code starfield to f04_default prog
-			// I have 0 properties
-			// so almost nothing below gets loaded up at all, hence no problems and no render
-			
-			//https://github.com/fo76utils/nifskope/blob/develop/src/gl/renderer.cpp#L200
-		
-			
-			if(!prog.getName().equals("fo4_default.prog"))
-				return false;
-			
-			//if (!prog.conditions.eval((BSGeometry)niAVObject, niToJ3dData, props))
-			//	return false;
-			
-			
-		} else {
-			throw new RuntimeException("Only NiGeometry or BSGeometry allowed " + niAVObject);
-		}
-		
 
 		if (OUTPUT_BINDINGS)
 			System.out.println("using prog " + prog.getName());
@@ -714,29 +704,7 @@ public class NiGeometryAppearanceShader {
 			glMaterialWireframe(m);
 		}
 		
-		//BSGeometry has the hash key of the material from the ba2->cdb file to use in the NiExtradata with the name MaterialID
-		// as the integerData
-		if (this.niAVObject instanceof BSGeometry) {
-			BSGeometry bsGeometry = (BSGeometry)niAVObject;
-
-			// not in the properties list now, just in the BSGeometry directly
-			
-			//https://github.com/fo76utils/nifskope/blob/develop/src/gl/renderer.cpp#L200
-			
-			bslsp = (BSLightingShaderProperty)niToJ3dData.get(bsGeometry.ShaderProperty);
-			if (bslsp != null) {
-
-				BSMaterial bsm = MaterialsSource.bgsmSource.readMaterialFileCDB(bslsp.name);
-				if (bsm instanceof BSMaterialDataBGSM) {
-					System.out.println("BSMaterialDataBGSM");
-				} else if (bsm instanceof BSMaterialDataBGEM) {
-					System.out.println("BSMaterialDataBGSM");
-				} else {
-					System.out.println("bum mat entry " + bsm);
-				}
-
-			}
-		}
+		
 	
 		
 		
@@ -911,6 +879,10 @@ public class NiGeometryAppearanceShader {
 		}
 		return true;
 	}
+
+	
+
+	
 
 	private static WeakHashMap<GLSLShaderProgram2, WeakHashMap<ShaderAttributeSet, ShaderAttributeSet>> shaderAttributeSetsByProgram = new WeakHashMap<GLSLShaderProgram2, WeakHashMap<ShaderAttributeSet, ShaderAttributeSet>>();
 
@@ -1143,11 +1115,14 @@ public class NiGeometryAppearanceShader {
 		}
 	}
 
+	 
+	
 	// Sets a float
 	private void uni1f(String var, float x) {
 		if (shaderProgram.programHasVar(var, x))
 			allShaderAttributeValues.add(new ShaderAttributeValue2(var, new Float(x)));
 	}
+		
 
 	// Sets a vec2 (two floats)
 	private void uni2f(String var, float x, float y) {
@@ -1166,9 +1141,32 @@ public class NiGeometryAppearanceShader {
 		if (shaderProgram.programHasVar(var, x, 4))
 			allShaderAttributeValues.add(new ShaderAttributeValue2(var, new Vector4f(x, y, z, w)));
 	};
+	private void uni4f(String var, FloatVector4 vec) {
+		if (shaderProgram.programHasVar(var, vec.x, 4))
+			allShaderAttributeValues.add(new ShaderAttributeValue2(var, new Vector4f(vec.x, vec.y, vec.z, vec.w)));
+	};
+	private void uni4c(String var, int c, boolean isSRGB )
+	{
+		FloatVector4	vec= new FloatVector4(c);
+		vec.mult(1.0f / 255.0f);
+		//if ( isSRGB )
+		//	x = DDSTexture16::srgbExpand( x );
+		if (shaderProgram.programHasVar(var, vec.x, 4))
+			allShaderAttributeValues.add(new ShaderAttributeValue2(var, new Vector4f(vec.x, vec.y, vec.z, vec.w)));
+	}
+	private void uni4srgb(String var, FloatVector4 vec )
+	{
+		//x = DDSTexture16::srgbExpand( x );
+		if (shaderProgram.programHasVar(var, vec.x, 4))
+			allShaderAttributeValues.add(new ShaderAttributeValue2(var, new Vector4f(vec.x, vec.y, vec.z, vec.w)));
+	}
 
 	// Sets a boolean
 	private void uni1i(String var, boolean val) {
+		if (shaderProgram.programHasVar(var, 1))
+			allShaderAttributeValues.add(new ShaderAttributeValue2(var, new Integer(val ? 1 : 0)));
+	};
+	private void uni1b(String var, boolean val) {
 		if (shaderProgram.programHasVar(var, 1))
 			allShaderAttributeValues.add(new ShaderAttributeValue2(var, new Integer(val ? 1 : 0)));
 	};
@@ -1198,6 +1196,51 @@ public class NiGeometryAppearanceShader {
 		if (shaderProgram.programHasVar(var, 1.0f, 4))
 			allShaderAttributeValues.add(new ShaderAttributeValue2(var, val));
 	};
+	
+	
+	// set an array of values, my system does not allow passing
+	// to the pipeline for an easy gl cal to set them, sadly
+	private void uni1fv(String var, float[] vals, int maxParams) {
+		//TODO: defiantly allow arrays to be passed
+		for (int i = 0; i < maxParams; i++) {
+			if (shaderProgram.programHasVar(var+"["+i+"]", vals[i], 1))
+				allShaderAttributeValues.add(new ShaderAttributeValue2(var, vals[i]));
+		}
+	}
+
+	// set an array of values, my system does not allow passing
+	// to the pipeline for an easy gl cal to set them, sadly
+	private void uni1iv(String var, int[] vals, int maxParams) {
+		//TODO: defiantly allow arrays to be passed
+		for (int i = 0; i < maxParams; i++) {
+			if (shaderProgram.programHasVar(var + "[" + i + "]", vals[i], 1))
+				allShaderAttributeValues.add(new ShaderAttributeValue2(var, vals[i]));
+		}
+	}
+
+	// set an array of values, my system does not allow passing
+	// to the pipeline for an easy gl cal to set them, sadly
+	private void uni1bv(String var, boolean[] vals, int maxParams) {
+		//TODO: defiantly allow arrays to be passed
+		for (int i = 0; i < maxParams; i++) {
+			if (shaderProgram.programHasVar(var + "[" + i + "]", vals[i], 1))
+				allShaderAttributeValues.add(new ShaderAttributeValue2(var, vals[i]));
+		}
+	}
+	
+	// set an array of values, my system does not allow passing
+	// to the pipeline for an easy gl cal to set them, sadly
+	private void uni4fv(String var, FloatVector4[] vals, int maxParams) {
+		//TODO: defiantly allow arrays to be passed
+		for (int i = 0; i < maxParams; i++) {
+			if (shaderProgram.programHasVar(var + "[" + i + "]", vals[i].x, 4))
+				allShaderAttributeValues
+						.add(new ShaderAttributeValue2(var, new Vector4f(vals[i].x, vals[i].y, vals[i].z, vals[i].w)));
+		}
+	}
+	
+	 
+	
 
 	private void registerBindCube(String samplerName, String fileName) {
 		if (shaderProgram.programHasVar(samplerName) && fileName != null && fileName.length() > 0) {
@@ -1377,6 +1420,804 @@ public class NiGeometryAppearanceShader {
 			}
 		}
 		return null;
+	}
+	
+	
+	// to dumy off the scene code below easily
+	public static class Scene {
+		
+ 
+// these are in updateSettings
+			//int	tmp = settings.value( "Settings/Render/General/Mesh Cache Size", 128 ).toInt();
+			//cfg.meshCacheSize = std::uint8_t( std::clamp< int >( ( tmp + 4 ) >> 3, 1, 128 ) );
+			//tmp = settings.value( "Settings/Render/General/Cube Map Bgnd", 1 ).toInt();
+			//globalUniforms.cubeBgndMipLevel = std::clamp< int >( tmp, -1, 6 );
+			//tmp = settings.value( "Settings/Render/General/Sf Parallax Steps", 200 ).toInt();
+			//globalUniforms.sfParallaxMaxSteps = std::clamp< int >( tmp, 16, 512 );
+			//globalUniforms.sfParallaxScale = settings.value( "Settings/Render/General/Sf Parallax Scale", 0.0f).toFloat();
+			//globalUniforms.sfParallaxOffset = settings.value( "Settings/Render/General/Sf Parallax Offset", 0.5f).toFloat();
+		public static String cubeMapPathFO76 =   "textures/shared/cubemaps/mipblur_defaultoutside1.dds" ;
+		public static String cubeMapPathSTF = "textures/cubemaps/cell_cityplazacube.dds" ;
+			//setCacheSize( std::uint32_t( cfg.meshCacheSize ) << 23 );
+			//TexCache::loadSettings( settings );
+		
+		
+		public static String white = "#FFFFFFFF";
+		public static String black = "#FF000000";
+		public static String lighting = "#FF00F040";
+		public static String reflectivity = "#FF0A0A0A";
+		public static String gray = "#FF808080s";
+		public static String magenta = "#FFFF00FF";
+		public static String default_n = "#FFFF8080";
+		public static String default_ns = "#FFFF8080n";
+		public static String cube_sk = "textures/cubemaps/bleakfallscube_e.dds";
+		public static String cube_fo4 = "textures/shared/cubemaps/mipblur_defaultoutside1.dds";
+		public static String grayCube = "#FF555555c";
+		public static String pbr_lut_sf = "sfpbr.dds";
+		 
+		
+
+		public static final String DoCubeMapping = "DoCubeMapping";
+		public static final String DoLighting = "DoLighting";
+		public static final String DoSpecular = "DoSpecular";
+		public static final String DoGlow = "DoGlow";
+		public static final String DoBlending = "DoBlending";
+		public static final String DoVertexColors = "DoVertexColors";
+		
+		public static final String VisNormalsOnly = "VisNormalsOnly";
+		public static final int DoTexturing = 1;
+		public static final int DoErrorColor = 2;
+
+
+		public int options;
+		public boolean hasOption(String op) {
+			return true;
+		}
+		public boolean hasVisMode(String mode) {
+			return false;
+		}
+		
+	}
+	public static class Mesh {
+
+		public boolean depthWrite;
+		public boolean depthTest;
+		public boolean translucent;//TODO: important for transparency
+		
+	}
+	
+	private boolean setupProgramCE2(Program prog) {
+
+		//https://github.com/fo76utils/nifskope/blob/develop/src/gl/renderer.cpp#L200
+		
+		if(!prog.getName().equals("stf_default.prog")) {
+			if(prog.getName().equals("z_ffp_default.prog"))
+				return false; // FIXME: no need to tell  anyone, check the conditions at some point
+
+			System.err.println("setupProgramCE2 expecting prog stf_default.prog not " + prog.getName());
+			return false;
+		}
+		
+		if (!(this.niAVObject instanceof BSGeometry)) {
+			System.err.println("!(this.niAVObject instanceof BSGeometry) " +this.niAVObject);
+			return false;
+		}
+			
+		
+		if (OUTPUT_BINDINGS)
+			System.out.println("using prog " + prog.getName());
+
+		this.shaderProgram = prog.shaderProgram;
+
+		// note time controllers below need appearance set on the shape now
+		shape.setAppearance(app);
+		
+		BSGeometry bsGeometry = (BSGeometry)niAVObject;
+
+		// not in the properties list now, just in the BSGeometry directly		
+		//https://github.com/fo76utils/nifskope/blob/develop/src/gl/renderer.cpp#L200
+		BSShaderProperty lsp = (BSShaderProperty)niToJ3dData.get(bsGeometry.ShaderProperty);
+		//BSEffectShaderProperty/BSLightingShaderProperty; 
+		
+		Scene scene = new Scene();
+		Mesh mesh = new Mesh();
+		 
+		if ( lsp == null) {
+			System.err.println("BSLightingShaderProperty is null, sad");
+			return false;
+		}
+				
+		if(lsp.name == null || lsp.name.length()==0) {
+			//happens on things like Meshes\Markers\EditorMarkers\MarkerDummyA.nif
+			return false;
+		}
+		
+		CE2BSMaterial ce2bsm = (CE2BSMaterial)MaterialsSource.bgsmSource.readMaterialFileCDB(lsp.name);
+		if ( ce2bsm == null ) {
+			System.err.println("ce2bsm is null, also sad " + lsp.name);
+			return false;
+		}
+		CE2Material mat = ce2bsm.ce2material;		
+		 
+		if ( mat == null ) {
+			System.err.println("mat is null, also sad");
+			return false;
+		}
+		boolean useErrorColor = false;
+		mesh.depthWrite = true;
+		mesh.depthTest = true;
+		boolean isEffect = ( (mat.flags & CE2Material.Flag_IsEffect) != 0 && mat.shaderRoute != 0 );
+		if ( isEffect ) {
+			mesh.depthWrite =  (mat.effectSettings.flags & CE2Material.EffectFlag_ZWrite)!= 0;
+			mesh.depthTest =  (mat.effectSettings.flags & CE2Material.EffectFlag_ZTest)!= 0;
+		}
+
+		// texturing
+
+		int texunit = 0;
+
+		// Always bind cube to texture units 0 (specular) and 1 (diffuse),
+		// regardless of shader settings
+		boolean hasCubeMap = scene.hasOption(Scene.DoCubeMapping) && scene.hasOption(Scene.DoLighting);
+		//TODO: see CubeMap above
+		//GLint uniCubeMap = uniLocation( "CubeMap" );
+		//if ( uniCubeMap < 0 )
+		//	return false;
+		//fn.glActiveTexture( GL_TEXTURE0 + texunit );
+		//hasCubeMap = hasCubeMap && bindCube( Scene.cubeMapPathSTF );
+				//if ( !hasCubeMap )
+		//	scene.bindCube( grayCube, 1 );
+		//fn.glUniform1i( uniCubeMap, texunit++ );
+
+		//note always bind so always sampler 0
+		registerBindCube("CubeMap", Scene.cubeMapPathSTF);
+		texunit++;
+		
+		
+		//TODO: see CubeMap above
+		//uniCubeMap = uniLocation( "CubeMap2" );
+		//if ( uniCubeMap < 0 )
+		//	return false;
+		//fn.glActiveTexture( GL_TEXTURE0 + texunit );
+		//hasCubeMap = hasCubeMap && scene.bindCube( cfg.cubeMapPathSTF, 2 );
+		//if ( !hasCubeMap ) 
+		//	scene.bindCube( grayCube, 1 );
+		//fn.glUniform1i( uniCubeMap, texunit++ );
+			
+		//note always bind so always sampler 1
+		registerBindCube("CubeMap", Scene.cubeMapPathSTF);
+		texunit++;
+		
+		uni1i( "hasCubeMap2", hasCubeMap );
+
+		// texture unit 2 is reserved for the environment BRDF LUT texture
+		//fn.glActiveTexture( GL_TEXTURE0 + texunit );
+		//if ( !lsp.bind( Scene.pbr_lut_sf, true, TexClampMode.CLAMP_S_CLAMP_T ) )
+		//	return false;
+		texunit++;
+
+		String	emptyTexturePath = "";
+
+		uni1i( "hasSpecular", (scene.hasOption(Scene.DoSpecular))?1:0 );
+		uni1i( "lm.shaderModel", mat.shaderModel );
+
+		// emissive settings
+		if ( (mat.flags & CE2Material.Flag_LayeredEmissivity)!=0 && scene.hasOption(Scene.DoGlow) ) {
+			CE2Material.LayeredEmissiveSettings sp = mat.layeredEmissiveSettings;
+			uni1b( "lm.layeredEmissivity.isEnabled", sp.isEnabled );
+			uni1i( "lm.layeredEmissivity.firstLayerIndex", sp.layer1Index );
+			uni4c( "lm.layeredEmissivity.firstLayerTint", sp.layer1Tint, true );
+			uni1i( "lm.layeredEmissivity.firstLayerMaskIndex", sp.layer1MaskIndex );
+			uni1i( "lm.layeredEmissivity.secondLayerIndex", ( sp.layer2Active ?  (sp.layer2Index) : -1 ) );
+			uni4c( "lm.layeredEmissivity.secondLayerTint", sp.layer2Tint, true );
+			uni1i( "lm.layeredEmissivity.secondLayerMaskIndex", sp.layer2MaskIndex );
+			uni1i( "lm.layeredEmissivity.firstBlenderIndex", sp.blender1Index );
+			uni1i( "lm.layeredEmissivity.firstBlenderMode", sp.blender1Mode );
+			uni1i( "lm.layeredEmissivity.thirdLayerIndex", ( sp.layer3Active ?  (sp.layer3Index) : -1 ) );
+			uni4c( "lm.layeredEmissivity.thirdLayerTint", sp.layer3Tint, true );
+			uni1i( "lm.layeredEmissivity.thirdLayerMaskIndex", sp.layer3MaskIndex );
+			uni1i( "lm.layeredEmissivity.secondBlenderIndex", sp.blender2Index );
+			uni1i( "lm.layeredEmissivity.secondBlenderMode", sp.blender2Mode );
+			uni1f( "lm.layeredEmissivity.emissiveClipThreshold", sp.clipThreshold );
+			uni1b( "lm.layeredEmissivity.adaptiveEmittance", sp.adaptiveEmittance );
+			uni1f( "lm.layeredEmissivity.luminousEmittance", sp.luminousEmittance );
+			uni1f( "lm.layeredEmissivity.exposureOffset", sp.exposureOffset );
+			uni1b( "lm.layeredEmissivity.enableAdaptiveLimits", sp.enableAdaptiveLimits );
+			uni1f( "lm.layeredEmissivity.maxOffsetEmittance", sp.maxOffset );
+			uni1f( "lm.layeredEmissivity.minOffsetEmittance", sp.minOffset );
+		}	else {
+			uni1b( "lm.layeredEmissivity.isEnabled", false );
+		}
+		if ( (mat.flags & CE2Material.Flag_Emissive)!=0 && scene.hasOption(Scene.DoGlow) ) {
+			CE2Material.EmissiveSettings sp = mat.emissiveSettings;
+			uni1b( "lm.emissiveSettings.isEnabled", sp.isEnabled );
+			uni1i( "lm.emissiveSettings.emissiveSourceLayer", sp.sourceLayer );
+			uni4srgb( "lm.emissiveSettings.emissiveTint", sp.emissiveTint );
+			uni1i( "lm.emissiveSettings.emissiveMaskSourceBlender", sp.maskSourceBlender );
+			uni1f( "lm.emissiveSettings.emissiveClipThreshold", sp.clipThreshold );
+			uni1b( "lm.emissiveSettings.adaptiveEmittance", sp.adaptiveEmittance );
+			uni1f( "lm.emissiveSettings.luminousEmittance", sp.luminousEmittance );
+			uni1f( "lm.emissiveSettings.exposureOffset", sp.exposureOffset );
+			uni1b( "lm.emissiveSettings.enableAdaptiveLimits", sp.enableAdaptiveLimits );
+			uni1f( "lm.emissiveSettings.maxOffsetEmittance", sp.maxOffset );
+			uni1f( "lm.emissiveSettings.minOffsetEmittance", sp.minOffset );
+		}	else {
+			uni1b( "lm.emissiveSettings.isEnabled", false );
+		}
+
+		// translucency settings
+		if ( (mat.flags & CE2Material.Flag_Translucency)!=0 ) {
+			CE2Material.TranslucencySettings sp = mat.translucencySettings;
+			uni1b( "lm.translucencySettings.isEnabled", sp.isEnabled );
+			uni1b( "lm.translucencySettings.isThin", sp.isThin );
+			uni1b( "lm.translucencySettings.flipBackFaceNormalsInViewSpace", sp.flipBackFaceNormalsInVS );
+			uni1b( "lm.translucencySettings.useSSS", sp.useSSS );
+			uni1f( "lm.translucencySettings.sssWidth", sp.sssWidth );
+			uni1f( "lm.translucencySettings.sssStrength", sp.sssStrength );
+			uni1f( "lm.translucencySettings.transmissiveScale", sp.transmissiveScale );
+			uni1f( "lm.translucencySettings.transmittanceWidth", sp.transmittanceWidth );
+			uni1f( "lm.translucencySettings.specLobe0RoughnessScale", sp.specLobe0RoughnessScale );
+			uni1f( "lm.translucencySettings.specLobe1RoughnessScale", sp.specLobe1RoughnessScale );
+			uni1i( "lm.translucencySettings.transmittanceSourceLayer", sp.sourceLayer );
+		} else {
+			uni1b( "lm.translucencySettings.isEnabled", false );
+		}
+
+		// decal settings
+		if ( (mat.flags & CE2Material.Flag_IsDecal)!=0 ) {
+			CE2Material.DecalSettings sp = mat.decalSettings;
+			uni1b( "lm.decalSettings.isDecal", sp.isDecal );
+			uni1f( "lm.decalSettings.materialOverallAlpha", sp.decalAlpha );
+			uni1i( "lm.decalSettings.writeMask", (sp.writeMask) );
+			uni1b( "lm.decalSettings.isPlanet", sp.isPlanet );
+			uni1b( "lm.decalSettings.isProjected", sp.isProjected );
+			uni1b( "lm.decalSettings.useParallaxOcclusionMapping", sp.useParallaxMapping );
+			FloatVector4	replUniform = new FloatVector4( 0.0f );
+			int	texUniform = getSFTexture(lsp, texunit, replUniform, (sp.surfaceHeightMap), 0, 0, null );
+			uni1i( "lm.decalSettings.surfaceHeightMap", texUniform );
+			uni1f( "lm.decalSettings.parallaxOcclusionScale", sp.parallaxOcclusionScale );
+			uni1b( "lm.decalSettings.parallaxOcclusionShadows", sp.parallaxOcclusionShadows );
+			uni1i( "lm.decalSettings.maxParralaxOcclusionSteps", sp.maxParallaxSteps );
+			uni1i( "lm.decalSettings.renderLayer", sp.renderLayer );
+			uni1b( "lm.decalSettings.useGBufferNormals", sp.useGBufferNormals );
+			uni1i( "lm.decalSettings.blendMode", sp.blendMode );
+			uni1b( "lm.decalSettings.animatedDecalIgnoresTAA", sp.animatedDecalIgnoresTAA );
+		} else {
+			uni1b( "lm.decalSettings.isDecal", false );
+		}
+
+		// effect settings
+		uni1b( "lm.isEffect", isEffect );
+		uni1b( "lm.hasOpacityComponent", ( isEffect && (mat.flags & CE2Material.Flag_HasOpacityComponent)!=0 ) );
+		int	layeredEdgeFalloffFlags = 0;
+		if ( isEffect ) {
+			CE2Material.EffectSettings sp = mat.effectSettings;
+			if ( (mat.flags & CE2Material.Flag_LayeredEdgeFalloff)!=0 )
+				layeredEdgeFalloffFlags = mat.layeredEdgeFalloff.activeLayersMask & 0x07;
+			uni1b( "lm.effectSettings.vertexColorBlend", (sp.flags & CE2Material.EffectFlag_VertexColorBlend)!=0 );
+			// these settings appear to be unused, effects are always alpha tested with a threshold of 1/128
+	 
+			//uni1b( "lm.effectSettings.isAlphaTested", bool(sp.flags & CE2Material.EffectFlag_IsAlphaTested) );
+			//uni1f( "lm.effectSettings.alphaTestThreshold", sp.alphaThreshold );
+	 
+			uni1b( "lm.effectSettings.noHalfResOptimization",  (sp.flags & CE2Material.EffectFlag_NoHalfResOpt)!=0 );
+			uni1b( "lm.effectSettings.softEffect",  (sp.flags & CE2Material.EffectFlag_SoftEffect)!=0 );
+			uni1f( "lm.effectSettings.softFalloffDepth", sp.softFalloffDepth );
+			uni1b( "lm.effectSettings.emissiveOnlyEffect",  (sp.flags & CE2Material.EffectFlag_EmissiveOnly)!=0 );
+			uni1b( "lm.effectSettings.emissiveOnlyAutomaticallyApplied",  (sp.flags & CE2Material.EffectFlag_EmissiveOnlyAuto)!=0 );
+			uni1b( "lm.effectSettings.receiveDirectionalShadows",  (sp.flags & CE2Material.EffectFlag_DirShadows)!=0 );
+			uni1b( "lm.effectSettings.receiveNonDirectionalShadows",  (sp.flags & CE2Material.EffectFlag_NonDirShadows)!=0 );
+			uni1b( "lm.effectSettings.isGlass",  (sp.flags & CE2Material.EffectFlag_IsGlass)!=0 );
+			uni1b( "lm.effectSettings.frosting",  (sp.flags & CE2Material.EffectFlag_Frosting)!=0 );
+			uni1f( "lm.effectSettings.frostingUnblurredBackgroundAlphaBlend", sp.frostingBgndBlend );
+			uni1f( "lm.effectSettings.frostingBlurBias", sp.frostingBlurBias );
+			uni1f( "lm.effectSettings.materialOverallAlpha", sp.materialAlpha );
+			uni1b( "lm.effectSettings.zTest",  (sp.flags & CE2Material.EffectFlag_ZTest)!=0 );
+			uni1b( "lm.effectSettings.zWrite",  (sp.flags & CE2Material.EffectFlag_ZWrite)!=0 );
+			uni1i( "lm.effectSettings.blendingMode", sp.blendMode );
+			uni1b( "lm.effectSettings.backLightingEnable",  (sp.flags & CE2Material.EffectFlag_BacklightEnable)!=0 );
+			uni1f( "lm.effectSettings.backlightingScale", sp.backlightScale );
+			uni1f( "lm.effectSettings.backlightingSharpness", sp.backlightSharpness );
+			uni1f( "lm.effectSettings.backlightingTransparencyFactor", sp.backlightTransparency );
+			uni4f( "lm.effectSettings.backLightingTintColor", sp.backlightTintColor );
+			uni1b( "lm.effectSettings.depthMVFixup",  (sp.flags & CE2Material.EffectFlag_MVFixup)!=0 );
+			uni1b( "lm.effectSettings.depthMVFixupEdgesOnly",  (sp.flags & CE2Material.EffectFlag_MVFixupEdgesOnly)!=0 );
+			uni1b( "lm.effectSettings.forceRenderBeforeOIT",  (sp.flags & CE2Material.EffectFlag_RenderBeforeOIT)!=0 );
+			uni1i( "lm.effectSettings.depthBiasInUlp", sp.depthBias );
+			// opacity component
+			if ( (mat.flags & CE2Material.Flag_HasOpacityComponent)!=0 ) {
+				uni1i( "lm.opacity.firstLayerIndex", mat.opacityLayer1 );
+				uni1b( "lm.opacity.secondLayerActive", (mat.flags & CE2Material.Flag_OpacityLayer2Active)!=0 );
+				if ( (mat.flags & CE2Material.Flag_OpacityLayer2Active)!=0 ) {
+					uni1i( "lm.opacity.secondLayerIndex", mat.opacityLayer2 );
+					uni1i( "lm.opacity.firstBlenderIndex", mat.opacityBlender1 );
+					uni1i( "lm.opacity.firstBlenderMode", mat.opacityBlender1Mode );
+				}
+				uni1b( "lm.opacity.thirdLayerActive", (mat.flags & CE2Material.Flag_OpacityLayer3Active)!=0 );
+				if ( (mat.flags & CE2Material.Flag_OpacityLayer3Active)!=0 ) {
+					uni1i( "lm.opacity.thirdLayerIndex", mat.opacityLayer3 );
+					uni1i( "lm.opacity.secondBlenderIndex", mat.opacityBlender2 );
+					uni1i( "lm.opacity.secondBlenderMode", mat.opacityBlender2Mode );
+				}
+				uni1f( "lm.opacity.specularOpacityOverride", mat.specularOpacityOverride );
+			}
+		}
+		if ( layeredEdgeFalloffFlags!=0 ) {
+			CE2Material.LayeredEdgeFalloff sp = mat.layeredEdgeFalloff;
+			uni3f( "lm.layeredEdgeFalloff.falloffStartAngles", sp.falloffStartAngles[0], sp.falloffStartAngles[1],sp.falloffStartAngles[2] );
+			uni3f( "lm.layeredEdgeFalloff.falloffStopAngles", sp.falloffStopAngles[0], sp.falloffStopAngles[1],sp.falloffStopAngles[2] );
+			uni3f( "lm.layeredEdgeFalloff.falloffStartOpacities", sp.falloffStartOpacities[0], sp.falloffStartOpacities[1],sp.falloffStartOpacities[2] );
+			uni3f( "lm.layeredEdgeFalloff.falloffStopOpacities", sp.falloffStopOpacities[0], sp.falloffStopOpacities[1],sp.falloffStopOpacities[2] );
+			if ( sp.useRGBFalloff )
+				layeredEdgeFalloffFlags = layeredEdgeFalloffFlags | 0x80;
+		}
+		uni1i( "lm.layeredEdgeFalloff.flags", layeredEdgeFalloffFlags );
+
+		// alpha settings
+		if ( (mat.flags & CE2Material.Flag_HasOpacity)!=0 ) {
+			uni1b( "lm.alphaSettings.hasOpacity", true );
+			uni1f( "lm.alphaSettings.alphaTestThreshold", mat.alphaThreshold );
+			uni1i( "lm.alphaSettings.opacitySourceLayer", mat.alphaSourceLayer );
+			uni1i( "lm.alphaSettings.alphaBlenderMode", mat.alphaBlendMode );
+			uni1b( "lm.alphaSettings.useDetailBlendMask",  (mat.flags & CE2Material.Flag_AlphaDetailBlendMask)!=0 );
+			uni1b( "lm.alphaSettings.useVertexColor",  (mat.flags & CE2Material.Flag_AlphaVertexColor)!=0 );
+			uni1i( "lm.alphaSettings.vertexColorChannel", mat.alphaVertexColorChannel );
+			CE2Material.UVStream uvStream = mat.alphaUVStream;
+			if ( uvStream != null )
+				uvStream = CE2Material.defaultUVStream();
+			uni4f( "lm.alphaSettings.opacityUVstream.scaleAndOffset", uvStream.scaleAndOffset );
+			uni1b( "lm.alphaSettings.opacityUVstream.useChannelTwo", (uvStream.channel > 1) );
+			uni1f( "lm.alphaSettings.heightBlendThreshold", mat.alphaHeightBlendThreshold );
+			uni1f( "lm.alphaSettings.heightBlendFactor", mat.alphaHeightBlendFactor );
+			uni1f( "lm.alphaSettings.position", mat.alphaPosition );
+			uni1f( "lm.alphaSettings.contrast", mat.alphaContrast );
+			uni1b( "lm.alphaSettings.useDitheredTransparency", (mat.flags & CE2Material.Flag_DitheredTransparency)!=0 );
+		} else {
+			uni1b( "lm.alphaSettings.hasOpacity", false );
+		}
+
+		// detail blender settings
+		if ( ( mat.flags & CE2Material.Flag_UseDetailBlender )!=0 && mat.detailBlenderSettings.isEnabled ) {
+			CE2Material.DetailBlenderSettings sp = mat.detailBlenderSettings;
+			uni1b( "lm.detailBlender.detailBlendMaskSupported", true );
+			CE2Material.UVStream uvStream = sp.uvStream;
+			if ( uvStream !=null )
+				uvStream = CE2Material.defaultUVStream();
+			FloatVector4	replUniform= new FloatVector4( 0.0f );
+			int	texUniform = getSFTexture(lsp, texunit, replUniform, (sp.texturePath), sp.textureReplacement, (sp.textureReplacementEnabled)?1:0, uvStream );
+			uni1i( "lm.detailBlender.maskTexture", texUniform );
+			if ( texUniform < 0 )
+				uni4f( "lm.detailBlender.maskTextureReplacement", replUniform );
+			uni4f( "lm.detailBlender.uvStream.scaleAndOffset", uvStream.scaleAndOffset );
+			uni1b( "lm.detailBlender.uvStream.useChannelTwo", (uvStream.channel > 1) );
+		} else {
+			uni1b( "lm.detailBlender.detailBlendMaskSupported", false );
+		}
+
+		// material layers
+		int[]	texUniforms = new int[9];
+		FloatVector4[]	replUniforms = new FloatVector4[9];
+		// limit the number of layers to 6, or 2 if the shader model is Eye1Layer, or 5 for Skin5Layer
+
+		int	numLayers = countr_one( mat.layerMask & ( mat.shaderModel != 41 ?
+															( mat.shaderModel != 48 ? 0x3F : 0x1F ) : 0x03 ) );
+		uni1i( "lm.numLayers", numLayers );
+		for ( int i = 0; i < numLayers; i++ ) {
+			CE2Material.Layer layer = mat.layers[i];
+			int	textureSlotMap = 0;
+			int	textureReplModes = 0x0055955E;	// 2, 3, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1
+			CE2Material.Blender blender = null;
+			byte	blendMode = 3;	// "None"
+			if ( i!=0 ) {
+				blender = mat.blenders[i - 1];
+				if ( blender == null ) 
+					blender = CE2Material.defaultBlender();
+				else
+					blendMode = blender.blendMode;
+				if ( blendMode == 4 ) {
+					// CharacterCombine: remap color, roughness and metalness to overlay texture slots (0,3,4 . 14,15,16)
+					textureSlotMap = 0x000CC00E;
+				}
+			}
+			CE2Material.Material material = layer.material;
+			if ( material ==null ) 
+				material = CE2Material.defaultMaterial();
+			CE2Material.TextureSet textureSet = material.textureSet;
+			if ( textureSet ==null ) 
+				textureSet = CE2Material.defaultTextureSet();
+			uni1f( "lm.layers["+(i)+"].material.textureSet.floatParam", textureSet.floatParam );
+			for ( int j = 0; j < 9; j++ ) {
+				int	k = j + ( textureSlotMap & 15 );
+				String	texturePath = textureSet.texturePaths[k];
+				int	textureReplacement = textureSet.textureReplacements[k];
+				int	textureReplacementMode =
+					( ( textureSet.textureReplacementMask & (1 << k) )==0 ? 0 : ( textureReplModes & 3 ) );
+				textureSlotMap = textureSlotMap >> 4;
+				textureReplModes = textureReplModes >> 2;
+				CE2Material.UVStream uvStream = layer.uvStream;
+				if ( j == 0 ) {
+					if ( (scene.hasVisMode(Scene.VisNormalsOnly) && scene.hasOption(Scene.DoLighting)) || useErrorColor ) {
+						texturePath = "";
+						textureReplacement = ( useErrorColor ? 0xFFFF00FF : 0xFFFFFFFF );
+						textureReplacementMode = 1;
+					} else if (  (texturePath == null || texturePath.length()==0) &&  textureReplacementMode==0
+								&& ( scene.options & (Scene.DoTexturing | Scene.DoErrorColor) ) != Scene.DoTexturing ) {
+						textureReplacement = ( ( scene.options & Scene.DoTexturing )!=0 ? 0xFFFF00FF : 0xFFFFFFFF );
+						textureReplacementMode = 1;
+					}
+				} else if ( j == 1 && !scene.hasOption(Scene.DoLighting) ) {
+					texturePath = "";
+					textureReplacement = 0xFFFF8080;
+					textureReplacementMode = 3;
+				} else if ( j == 2 && ( mat.flags & CE2Material.Flag_HasOpacity )!=0 && i == mat.alphaSourceLayer ) {
+					uvStream = mat.alphaUVStream;
+				}
+				replUniforms[j] = new FloatVector4( 0.0f );
+				texUniforms[j] = getSFTexture(lsp, texunit, replUniforms[j], texturePath, textureReplacement, textureReplacementMode, uvStream );
+			}
+			if ( blendMode == 4 )  {
+				// set default color (0.5) for overlay textures in CharacterCombine blend mode
+				if ( texUniforms[0]!=0 ) {
+					texUniforms[0] = -1;
+					replUniforms[0] = new FloatVector4( 0.5f );
+				}
+				if ( texUniforms[3]!=0 ) {
+					texUniforms[3] = -1;
+					replUniforms[3] = new FloatVector4( 0.5f );
+				}
+				if ( texUniforms[4]!=0 ) {
+					texUniforms[4] = -1;
+					replUniforms[4] = new FloatVector4( 0.5f );
+				}
+			}
+			if ( mat.shaderModel == 44 )  {	// Hair1Layer
+				if ( texUniforms[3]!=0 && ( mat.flags & CE2Material.Flag_IsHair )!=0 && mat.hairSettings !=null ) {
+					float	hairRoughness = mat.hairSettings.roughness;
+					texUniforms[3] = -1;
+					replUniforms[3] = new FloatVector4( ( ( hairRoughness - 2.0f ) * hairRoughness + 2.0f ) * hairRoughness );
+				}
+			}
+			uni1iv( ("lm.layers["+(i)+"].material.textureSet.textures"), texUniforms, 9 );
+			uni4fv( ("lm.layers["+(i)+"].material.textureSet.textureReplacements"), replUniforms, 9 );
+
+			CE2Material.UVStream uvStream = layer.uvStream;
+			if ( uvStream==null )
+				uvStream = CE2Material.defaultUVStream();
+			FloatVector4	uvScaleAndOffset =  ( uvStream.scaleAndOffset );
+			uni4srgb( ("lm.layers["+(i)+"].material.color"), layer.material.color );
+			// disable vertex color tint for 1LayerMouth
+			int	materialFlags = layer.material.colorModeFlags & ( mat.shaderModel != 9 ? 3 : 1 );
+			if ( (layer.material.flipbookFlags & 1)!=0 ) 
+				materialFlags = materialFlags | setFlipbookParameters( (layer.material), uvScaleAndOffset );
+			uni1i( ("lm.layers["+(i)+"].material.flags"), materialFlags );
+			uni4f( ("lm.layers["+(i)+"].uvStream.scaleAndOffset"), uvScaleAndOffset );
+			uni1b( ("lm.layers["+(i)+"].uvStream.useChannelTwo"), (uvStream.channel > 1) );
+
+			if ( blender==null )
+				continue;
+			uvStream = blender.uvStream;
+			if ( uvStream ==null)
+				uvStream = CE2Material.defaultUVStream();
+			uni4f( ("lm.blenders["+(i - 1)+"].uvStream.scaleAndOffset" ), uvStream.scaleAndOffset );
+			uni1b( ("lm.blenders["+(i - 1)+"].uvStream.useChannelTwo"), (uvStream.channel > 1) );
+			FloatVector4	replUniform = new FloatVector4( 0.0f );
+			int	texUniform = getSFTexture(lsp, texunit, replUniform, (blender.texturePath), blender.textureReplacement, (blender.textureReplacementEnabled)?1:0, uvStream );
+			uni1i( ("lm.blenders["+(i - 1)+"].maskTexture"), texUniform );
+			if ( texUniform < 0 )
+				uni4f( ("lm.blenders["+(i - 1)+"].maskTextureReplacement"), replUniform );
+			uni1i( ("lm.blenders["+(i - 1)+"].blendMode"), (int)(blendMode) );
+			uni1i( ("lm.blenders["+(i - 1)+"].colorChannel"), (int)(blender.colorChannel) );
+			
+			//so as an example in the frag shader I have an aray of 5 blenders and each has
+			//float	floatParams[5];
+			//bool	boolParams[8];
+			// so perhaps I set them one at a time?
+			
+			uni1fv( ("lm.blenders["+(i - 1)+"].floatParams"), blender.floatParams, CE2Material.Blender.maxFloatParams );
+			uni1bv( ("lm.blenders["+(i - 1)+"].boolParams"), blender.boolParams, CE2Material.Blender.maxBoolParams );
+		}
+
+		
+		
+		
+		//TODO:
+		//I wonder if my registerBind in getSFTexture plus the TextureUnitState[] tus calls below repalce this?
+		//uniSampler( ("textureUnits"), 2, texunit - 2, TexCache.num_texture_units - 2 );
+		
+		
+
+		//This is auto done by setting the Appearance attributes
+		//mesh.setUniforms( prog );
+		uni4f( "vertexColorOverride", new FloatVector4( scene.hasOption(Scene.DoVertexColors) ? 0.0f : 1.0f ) );
+
+		// setup alpha blending and testing
+
+		int	alphaFlags = 0;
+		if ( mat!=null && scene.hasOption(Scene.DoBlending) ) {
+			if ( isEffect || ( ~(mat.flags) & ( CE2Material.Flag_IsDecal | CE2Material.Flag_AlphaBlending ) )==0 ) {
+				int	blendMode;
+				if ( !isEffect ) {
+					blendMode = mat.decalSettings.blendMode;
+				} else if ( ( mat.effectSettings.flags & (CE2Material.EffectFlag_EmissiveOnly | CE2Material.EffectFlag_EmissiveOnlyAuto) )==0 ) {
+					blendMode = mat.effectSettings.blendMode;
+				} else {
+					blendMode = 1;	// emissive only: additive blending
+				}
+				//setupGLBlendModeSF( blendMode, prog.f ); //TODO: possibly quite important
+				alphaFlags = 2;
+			}
+
+			if ( isEffect )
+				alphaFlags |=  ( (mat.effectSettings.flags & CE2Material.EffectFlag_IsAlphaTested)!=0 )?1:0;
+			else
+				alphaFlags |=  ( (mat.flags & CE2Material.Flag_HasOpacity)!=0 && mat.alphaThreshold > 0.0f )?1:0;
+
+			if ( (mat.flags & CE2Material.Flag_IsDecal)!=0 ) {
+				//fn.glEnable( GL_POLYGON_OFFSET_FILL );
+				//fn.glPolygonOffset( -1.0f, -1.0f );
+				pa.setPolygonOffset(0.02f);
+				pa.setPolygonOffsetFactor(0.04f);
+			}
+		}
+		 
+
+		uni1i( "alphaFlags", alphaFlags );
+		if ( ( alphaFlags & 2 )==0 )
+			ta.setTransparencyMode(TransparencyAttributes.NONE);//fn.glDisable( GL_BLEND );
+	
+		if ( !mesh.depthTest ) 
+			ra.setDepthBufferEnable(false);//fn.glDisable( GL_DEPTH_TEST );
+		else
+			ra.setDepthBufferEnable(true);//fn.glEnable( GL_DEPTH_TEST );
+		//fn.glDepthMask( !mesh.depthWrite || mesh.translucent ? GL_FALSE : GL_TRUE );
+		//fn.glDepthFunc( GL_LEQUAL );
+		if ( (mat.flags & CE2Material.Flag_TwoSided)!=0 ) {
+			//fn.glDisable( GL_CULL_FACE );
+			pa.setCullFace(PolygonAttributes.CULL_NONE);
+			pa.setBackFaceNormalFlip(true);
+		} else {
+			//fn.glEnable( GL_CULL_FACE );
+			//fn.glCullFace( GL_BACK );
+			pa.setCullFace(PolygonAttributes.CULL_BACK);
+			pa.setBackFaceNormalFlip(false);
+		}
+		pa.setPolygonMode(PolygonAttributes.POLYGON_FILL);//fn.glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
+			 
+		
+		
+		
+		
+		
+		//DIRECTLY from CE1 above at the end to "set" the values a bit like the mesh.setUniforms( prog ); above	
+		TextureAttributes textureAttributes = null;
+		NiTimeController controller = null;
+ 
+		//controller skipped 
+		
+		if (textureAttributes == null)
+			textureAttributes = new TextureAttributes();
+		// don't share if we will be controlled or transformed
+		boolean sharable = (controller == null	&& textureScale.x == 1 && textureScale.y == 1 && textureOffset.x == 0
+							&& textureOffset.y == 0);
+		// note non shared TUS have default read caps on
+
+		// Texture Unit state does not require the same aggression as Java3D will find equivalence
+		// but it seem expensive and wasteful to me
+		TextureUnitState[] tus = new TextureUnitState[allTextureUnitStateBindings.size()];
+		for (int i = 0; i < allTextureUnitStateBindings.size(); i++) {
+			Binding binding = allTextureUnitStateBindings.get(i);
+			if (binding.CUBE_MAP) {
+				tus[i] = bindCube(binding);
+			} else {
+				tus[i] = bind(binding, sharable);
+			}
+
+			if (tus[i] != null) {
+				if ((textureScale.x != 1 || textureScale.y != 1 || textureOffset.x != 0 || textureOffset.y != 0)) {
+					Transform3D textureTransform = new Transform3D();
+					textureTransform.setScale(new Vector3d(textureScale.x, textureScale.y, 0));
+					textureTransform.setTranslation(new Vector3f(textureOffset.x, textureOffset.y, 0));
+					//System.out.println("textureScale " + textureScale);
+					//System.out.println("textureOffset " + textureOffset);
+					textureAttributes.setTextureTransform(textureTransform);
+					tus[i].setTextureAttributes(textureAttributes);
+				}
+
+				if (controller != null)
+					tus[i].setTextureAttributes(textureAttributes);
+			}
+
+		}
+
+		// Shape merging demand aggressive appearance sharing, and hence component re-use
+		// Shaders are newer and not well support for Shape merging
+		ShaderAttributeSet shaderAttributeSet = getShaderAttributeSet(shaderProgram, allShaderAttributeValues);
+
+		app.setTextureUnitState(tus);
+		app.setShaderProgram(shaderProgram);
+		app.setShaderAttributeSet(shaderAttributeSet);
+
+		if (ra.getDepthBufferEnable() != true	|| ra.getStencilEnable() == true || ra.getDepthBufferEnable() != true
+			|| ra.getDepthBufferWriteEnable() != true || ra.getAlphaTestFunction() != RenderingAttributes.ALWAYS)
+			app.setRenderingAttributes(ra);
+
+		if (pa.getCullFace() != PolygonAttributes.CULL_BACK || pa.getPolygonOffset() != 0.0
+			|| pa.getPolygonOffsetFactor() != 0.0)
+			app.setPolygonAttributes(pa);
+
+		if (ta.getTransparencyMode() != TransparencyAttributes.NONE)
+			app.setTransparencyAttributes(ta);
+
+		// empty these 2 temps
+		allShaderAttributeValues.clear();
+		allTextureUnitStateBindings.clear();
+
+		//so for now I'm sharing the texture attributes to ensure tex transforms, 
+		//but how about alpha and vertex colors and Flip? they won't be shared, so the second usage may not animate?
+
+		//Setting up controller must be done after the appearance is properly set up so the 
+		// controller can get at the pieces
+/*		if (controller != null) {
+			if (controller instanceof NiTextureTransformController) {
+				// did we get a pre made one or should we set it up now?
+				if (niToJ3dData.getTextureAttributes(controller.refId) == null) {
+					NiGeometryAppearanceFixed.setUpTimeController(controller, niToJ3dData, textureSource, target);
+					niToJ3dData.putTextureAttributes(controller.refId, textureAttributes);
+				}
+			} else {
+				NiGeometryAppearanceFixed.setUpTimeController(controller, niToJ3dData, textureSource, target);
+			}
+		}*/
+		return true;
+
+	}
+	
+	
+	
+
+
+
+
+
+	private static int[][] blendModeMap = new int[][] {
+		new int[] {TransparencyAttributes.BLEND_SRC_ALPHA,TransparencyAttributes.BLEND_ONE_MINUS_SRC_ALPHA,TransparencyAttributes.BLEND_ONE,TransparencyAttributes.BLEND_ONE_MINUS_SRC_ALPHA},
+		new int[] {TransparencyAttributes.BLEND_SRC_ALPHA,TransparencyAttributes.BLEND_ONE,TransparencyAttributes.BLEND_ONE_MINUS_SRC_ALPHA,TransparencyAttributes.BLEND_ONE_MINUS_SRC_ALPHA},
+		new int[] {TransparencyAttributes.BLEND_SRC_ALPHA,TransparencyAttributes.BLEND_ONE,TransparencyAttributes.BLEND_ONE_MINUS_SRC_ALPHA,TransparencyAttributes.BLEND_ONE_MINUS_SRC_ALPHA},
+		new int[] {TransparencyAttributes.BLEND_DST_COLOR,TransparencyAttributes.BLEND_ZERO,TransparencyAttributes.BLEND_SRC_ALPHA,TransparencyAttributes.BLEND_ZERO},
+		new int[] {TransparencyAttributes.BLEND_SRC_ALPHA,TransparencyAttributes.BLEND_SRC_ALPHA,TransparencyAttributes.BLEND_ONE,TransparencyAttributes.BLEND_ONE_MINUS_SRC_ALPHA},
+		new int[] {TransparencyAttributes.BLEND_SRC_ALPHA,TransparencyAttributes.BLEND_ONE_MINUS_SRC_ALPHA,TransparencyAttributes.BLEND_ONE,TransparencyAttributes.BLEND_ONE_MINUS_SRC_ALPHA},
+		new int[] {TransparencyAttributes.BLEND_SRC_ALPHA,TransparencyAttributes.BLEND_ONE_MINUS_SRC_ALPHA,TransparencyAttributes.BLEND_ONE,TransparencyAttributes.BLEND_ONE_MINUS_SRC_ALPHA},
+		new int[] {TransparencyAttributes.BLEND_ZERO,TransparencyAttributes.BLEND_ONE,TransparencyAttributes.BLEND_ZERO,TransparencyAttributes.BLEND_ONE},
+		};
+		
+	void setupGLBlendModeSF( int blendMode )
+	{
+	
+	// these lists are in sets of 4 and blendMode choses the row then the 4 are set
+	
+		// source RGB, destination RGB, source alpha, destination alpha
+	/*	static const GLenum blendModeMap[32] = {
+			GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA,	// AlphaBlend
+			GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE_MINUS_SRC_ALPHA,	// Additive
+			GL_SRC_ALPHA, GL_ONE, GL_ONE, GL_ONE_MINUS_SRC_ALPHA,	// SourceSoftAdditive (alpha is squared in the shader)
+			GL_DST_COLOR, GL_ZERO, GL_DST_ALPHA, GL_ZERO,	// Multiply
+			GL_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA,	// DestinationSoftAdditive
+			GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA,	// TODO: DestinationInvertedSoftAdditive
+			GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA,	// TODO: TakeSmaller
+			GL_ZERO, GL_ONE, GL_ZERO, GL_ONE	// None
+		};
+		const GLenum *	p = &( blendModeMap[blendMode << 2] );
+		fn->glEnable( GL_BLEND );
+		fn->glBlendFuncSeparate( p[0], p[1], p[2], p[3] );*/
+			
+		int[] p = blendModeMap[blendMode << 2];
+		//Like this, though I only have the first 2!!
+		ta.setTransparencyMode(TransparencyAttributes.BLENDED);
+		ta.setSrcBlendFunction(p[0]);
+		ta.setDstBlendFunction(p[1]);
+
+		//TODO: is this more correct? It's from CE1
+		// If mesh is alpha tested, override threshold (but not istestenabled notice)
+		//ra.setAlphaTestFunction(RenderingAttributes.GREATER);
+		//ra.setAlphaTestValue(0.1f);	
+		
+
+	}
+	
+	static int setFlipbookParameters( CE2Material.Material m, FloatVector4 uvScaleAndOffset )
+	{
+		int	flipbookColumns = Math.min( m.flipbookColumns, 127 );
+		int	flipbookRows = Math.min( m.flipbookRows, 127 );
+		int	flipbookFrames = flipbookColumns * flipbookRows;
+		if ( flipbookFrames < 2 )
+			return 0;
+		float	flipbookFPMS = Math.min( Math.max( m.flipbookFPS, 1.0f ), 100.0f ) * 0.001f;
+		double	flipbookFrame = System.currentTimeMillis();//double( std::chrono::duration_cast< std::chrono::milliseconds >( std::chrono::steady_clock::now().time_since_epoch() ).count() );
+		flipbookFrame = flipbookFrame * flipbookFPMS / (double)( flipbookFrames );
+		flipbookFrame = flipbookFrame - Math.floor( flipbookFrame );
+		int	n = Math.min( (int)( flipbookFrame * (double)( flipbookFrames ) ), flipbookFrames - 1 );
+		uvScaleAndOffset.x +=  0.0f;
+		uvScaleAndOffset.y +=0.0f;
+		uvScaleAndOffset.z +=(float)(n % flipbookColumns);
+		uvScaleAndOffset.w +=(float)(n / flipbookColumns);		
+		float	w = (float)( flipbookColumns );
+		float	h = (float)( flipbookRows );
+		uvScaleAndOffset.x= uvScaleAndOffset.x/w;
+		uvScaleAndOffset.y= uvScaleAndOffset.y/h;
+		uvScaleAndOffset.z=uvScaleAndOffset.z/w;
+		uvScaleAndOffset.w= uvScaleAndOffset.w/h;
+		return 4;
+	}
+	
+	//return texture units indexs (-3) so a fine number I'd say
+	int getSFTexture(	BSShaderProperty lsp, int texunit, FloatVector4 replUniform, String texturePath,
+						int textureReplacement, int textureReplacementMode, CE2Material.UVStream uvStream) {
+		do {
+			if(texturePath!=null) {
+				int n = texturePath.length();
+				if (((n - 1) & ~((1023))) != 0)
+					break; // empty path or not enough space in tmpBuf
+				if (!(texunit >= 3 ))//&& scene.textures.activateTextureUnit(texunit) != null))
+					break;
+	
+				TexClampMode clampMode = TexClampMode.WRAP_S_WRAP_T;
+				if (uvStream != null) {
+					TexClampMode[] clampModes = new TexClampMode[] {TexClampMode.WRAP_S_WRAP_T,
+						TexClampMode.CLAMP_S_CLAMP_T, TexClampMode.MIRRORED_S_MIRRORED_T, TexClampMode.BORDER_S_BORDER_T};
+					clampMode = (TexClampMode)(clampModes[uvStream.textureAddressMode & 3]);
+				}
+	
+				// convert std::string_view to a temporary array of QChar
+				//byte[] tmpBuf = new byte[1024];
+				//convertStringToUInt16(tmpBuf, texturePath.data(), n);
+	
+				//if (!bind(QStringView(tmpBuf, qsizetype(n)), false, clampMode))
+				//	break;
+				
+				//is this the equivilent of the above I wonder?
+				registerBind("textureUnits["+n+"]",texturePath,clampMode);//possibly not right
+	
+				if (clampMode == TexClampMode.BORDER_S_BORDER_T) {
+					// use replacement color as border (this may be incorrect)
+					FloatVector4 c = new FloatVector4(
+							convertTextureReplacementColor(textureReplacement, textureReplacementMode));
+					//TODO: what should I do here?
+					//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, (c.x));
+				}
+	
+				texunit++;
+				return texunit - 3;
+			}
+		} while (false);
+
+		if (textureReplacementMode > 0) {
+			replUniform.set(convertTextureReplacementColor(textureReplacement, textureReplacementMode));
+			return -1;
+		}
+
+		return 0;
+	}
+
+	static FloatVector4 convertTextureReplacementColor(int textureReplacement, int replacementMode) {
+		FloatVector4 c = new FloatVector4(textureReplacement);
+		c.mult(1.0f / 255.0f);
+		if (replacementMode < 2)
+			return c;
+		if (replacementMode == 2)
+			return c;//TODO: I wonder DDSTexture16::srgbExpand( c );
+		c.add(c);
+		c.sub(1.0f);
+		return c;
+	}
+
+	// mutha ucking c++ coders
+	//https://en.cppreference.com/w/cpp/numeric/countr_one.html
+	private static int countr_one(int x) {
+		for(int i=0;i<8;i++)
+			if(((1<<i)&x)==0)
+				return i;
+		return 0;
 	}
 
 }

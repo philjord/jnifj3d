@@ -23,3 +23,4 @@ sk_default.prog
 fo4_default.prog
 z_ffp_default.prog
 fo4_water.prog
+stf_default.prog

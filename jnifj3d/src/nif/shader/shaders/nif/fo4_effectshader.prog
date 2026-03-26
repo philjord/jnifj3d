@@ -6,6 +6,8 @@ checkgroup begin or
 		check HEADER/Version >= 0x14020007
 		check HEADER/User Version >= 12
         check HEADER/User Version 2 >= 130
+        # fo76 is >=151 and < 170 stf is  >=170
+        check HEADER/User Version 2 < 170
 	checkgroup end
 checkgroup end
 

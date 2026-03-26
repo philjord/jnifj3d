@@ -26,6 +26,7 @@ import nif.niobject.bs.BSLightingShaderProperty;
 import nif.niobject.bs.BSMeshData;
 import nif.niobject.bs.BSMeshLODTriShape;
 import nif.niobject.bs.BSShaderPPLightingProperty;
+import nif.niobject.bs.BSShaderProperty;
 import nif.niobject.bs.BSSubIndexTriShape;
 import nif.niobject.bs.BSTriShape;
 import nif.niobject.particle.NiPSysData;
@@ -121,7 +122,7 @@ public class ShaderPrograms {
 
 	static class FileShader {
 		private GLSLSourceCodeShader	sourceCodeShader;
-		public String					name;
+		public final String					name;
 		private boolean					status	= false;
 
 		private int						type;
@@ -167,7 +168,7 @@ public class ShaderPrograms {
 
 		private boolean							status			= false;
 
-		ConditionGroup							conditions		= new ConditionGroup();
+		private ConditionGroup					conditions		= new ConditionGroup();
 		private HashMap<Integer, String>		texcoords		= new HashMap<Integer, String>();
 
 		public Program(String name2) {
@@ -306,7 +307,15 @@ public class ShaderPrograms {
 		public String getName() {
 			return name;
 		}
+		
+		
+		public boolean eval(NiGeometry niGeometry, NiToJ3dData niToJ3dData, PropertyList props) {
+			return conditions.eval(niGeometry, niToJ3dData, props);
+		}
 
+		public boolean eval(BSGeometry bsGeometry, NiToJ3dData niToJ3dData, PropertyList props) {
+			return conditions.eval(bsGeometry, niToJ3dData, props);
+		}
 	}
 
 	static interface Condition {
@@ -539,65 +548,18 @@ public class ShaderPrograms {
 				return compare(bsGeometry.nVer.LOAD_USER_VER, Integer.parseInt(right)) ^ invert;
 			} else if (left.equalsIgnoreCase("HEADER/User Version 2")) {
 				return compare(bsGeometry.nVer.BS_Version, Integer.parseInt(right)) ^ invert;
-			} else if (left.equalsIgnoreCase("NiAVObject/Vertex Flag 1")) {
-				//TODO:??
-				return invert;				
-			} else if (left.equalsIgnoreCase("NiTriBasedGeom/Has Shader")) {
-				return compare((bsGeometry.ShaderProperty.ref != -1) ? 1 : 0, Integer.parseInt(right)) ^ invert;
-			} else if (left.equalsIgnoreCase("NiTriBasedGeomData/Has Vertices")) {
-				BSMeshData data = bsGeometry.Meshes[0].Mesh.MeshData;
-				return compare((data.NumVerts > 0) ? 1 : 0, Integer.parseInt(right)) ^ invert;				
-			} else if (left.equalsIgnoreCase("NiTriBasedGeomData/Has Normals")) {
-				BSMeshData data = bsGeometry.Meshes[0].Mesh.MeshData;
-				return compare((data.NumNormals > 0) ? 1 : 0, Integer.parseInt(right)) ^ invert;				 
-			} else if (left.equalsIgnoreCase("NiTriBasedGeomData/Has Vertex Colors")) {
-				BSMeshData data = bsGeometry.Meshes[0].Mesh.MeshData;
-				return compare((data.NumVertexColors > 0) ? 1 : 0, Integer.parseInt(right)) ^ invert;	
-			} else if (left.equalsIgnoreCase("BSTriShape")) {
-				return !invert;
-			} else if (left.equalsIgnoreCase("BSSubIndexTriShape")) {
-				return !invert;
-			} else if (left.equalsIgnoreCase("BSMeshLODTriShape")) {
-				return !invert;
-			} else if (left.equalsIgnoreCase("NiAlphaProperty")) {
-				return (props.get(NiAlphaProperty.class) != null) ^ invert;
-			} else if (left.equalsIgnoreCase("BSEffectShaderProperty")) {
-				return (props.get(BSEffectShaderProperty.class) != null) ^ invert;
+			} else if (left.equalsIgnoreCase("BSGeometry")) {
+				return true;				
 			} else if (left.equalsIgnoreCase("BSLightingShaderProperty")) {
-				return (props.getBSLightingShaderProperty() != null) ^ invert;
-			} else if (left.equalsIgnoreCase("BSLightingShaderProperty/Skyrim Shader Type")) {
-				BSLightingShaderProperty bslsp = props.getBSLightingShaderProperty();
-				if (bslsp == null)
-					return invert;
-				else
-					return compare(bslsp.ShaderType.getType(), Integer.parseInt(right)) ^ invert;
-			} else if (left.equalsIgnoreCase("NiTexturingProperty/Apply Mode")) {
-				NiTexturingProperty p = (NiTexturingProperty)props.get(NiTexturingProperty.class);
-				if (p != null) {
-					return compare(p.applyMode.applyMode, Integer.parseInt(right)) ^ invert;
-				} else {
-					return invert;
-				}
-
-			} else if (left.equalsIgnoreCase("NiVertexColorProperty")) {
-				return (props.get(NiVertexColorProperty.class) != null) ^ invert;
-			} else if (left.equalsIgnoreCase("NiVertexColorProperty/Vertex Mode")) {
-				NiVertexColorProperty p = (NiVertexColorProperty)props.get(NiVertexColorProperty.class);
-				if (p == null)
-					return invert;
-				else
-					return compare(p.vertexMode.mode, Integer.parseInt(right)) ^ invert;
-			} else if (left.equalsIgnoreCase("NiVertexColorProperty/Lighting Mode")) {
-				NiVertexColorProperty p = (NiVertexColorProperty)props.get(NiVertexColorProperty.class);
-				if (p == null)
-					return invert;
-				else
-					return compare(p.lightingMode.mode, Integer.parseInt(right)) ^ invert;
-			} else if (left.equalsIgnoreCase("BSShaderPPLightingProperty")) {
-				return (props.get(BSShaderPPLightingProperty.class) != null) ^ invert;
+				BSShaderProperty s = (BSShaderProperty)niToJ3dData.get(bsGeometry.ShaderProperty);
+				return (s instanceof BSLightingShaderProperty);
 			} else if (left.equalsIgnoreCase("BSEffectShaderProperty")) {
-				return (props.get(BSEffectShaderProperty.class) != null) ^ invert;
-			}
+				BSShaderProperty s = (BSShaderProperty)niToJ3dData.get(bsGeometry.ShaderProperty);
+				return (s instanceof BSEffectShaderProperty);
+			} else if (left.equalsIgnoreCase("NiAlphaProperty")) {
+				NiAlphaProperty s = (NiAlphaProperty)niToJ3dData.get(bsGeometry.AlphaProperty);
+				return (s != null);
+			} 
 			new Throwable("Unknown prog condition " + left + "/" + right + " " + (invert ? "not " : ""));
 			if (comp == Type.NONE)
 				return !invert;

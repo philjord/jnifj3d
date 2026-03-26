@@ -15,7 +15,7 @@ import tools.WeakValueHashMap;
  */
 public abstract class MaterialsSource {
 
-	// cachign is done here unlike other sources
+	// caching is done here unlike other sources
 	protected static WeakValueHashMap<String, BSMaterial>	materialFiles	= new WeakValueHashMap<String, BSMaterial>();
 
 	// a fat global for anyone to get at

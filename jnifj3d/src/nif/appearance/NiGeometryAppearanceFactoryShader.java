@@ -38,9 +38,10 @@ public class NiGeometryAppearanceFactoryShader implements NiGeometryAppearance
 		}
 		else
 		{
-			if (NiGeometryAppearanceShader.OUTPUT_BINDINGS)
-				System.out.println("using FFP");
-			return new NiGeometryAppearanceFixed().configureAppearance(niAVObject, niToJ3dData, textureSource, shape, target);
+			//if (NiGeometryAppearanceShader.OUTPUT_BINDINGS)
+			//	System.out.println("using FFP");
+			//return new NiGeometryAppearanceFixed().configureAppearance(niAVObject, niToJ3dData, textureSource, shape, target);'
+			return null; //fixed won't do nothing on the new glsl pipeline, so this code is dead
 		}
 	}
 	
