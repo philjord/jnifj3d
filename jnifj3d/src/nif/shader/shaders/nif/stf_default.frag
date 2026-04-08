@@ -1,4 +1,21 @@
-#version 410 core
+#version 130
+//#version 410 core
+#extension GL_EXT_gpu_shader4 : enable
+//NOTE changed from 120 and nothing, soi GLES is goona have toruble
+
+// FROM https://github.com/fo76utils/nifskope/tree/develop/res/shaders
+precision mediump float;
+
+
+//added cos of the version 130 gear above
+out vec4 fragColor;
+
+
+
+uniform int alphaTestEnabled;
+uniform int alphaTestFunction;
+uniform float alphaTestValue;
+//End of FFP inputs
 
 struct UVStream {
 	vec4	scaleAndOffset;
@@ -203,28 +220,18 @@ struct LayeredMaterial {
 	TranslucencySettingsComponent	translucencySettings;
 	DetailBlenderSettings	detailBlender;
 };
-layout ( std140 ) uniform globalUniforms
-{
-	mat3	viewMatrix;					// rotation part of view transform
+
 	mat3	envMapRotation;				// view space to environment map
-	mat4	projectionMatrix;
-	vec4	lightSourcePosition[3];
 	vec4	lightSourceDiffuse[3];
 	vec4	lightSourceAmbient;
 	float	toneMapScale;				// 1.0 = full tone mapping
 	float	brightnessScale;
 	float	glowScale;
-	float	glowScaleSRGB;
-	ivec4	viewportDimensions;			// X, Y, width, height
-	bool	doSkinning;
-	int	sceneOptions;
-	int	cubeBgndMipLevel;
 	int	sfParallaxMaxSteps;
 	float	sfParallaxScale;
 	float	sfParallaxOffset;
-	float	unusedUniform1;
-	float	unusedUniform2;
-};
+	
+
 
 uniform samplerCube	CubeMap;
 uniform samplerCube	CubeMap2;
@@ -246,8 +253,6 @@ in vec4 texCoord;
 in vec4 C;
 
 in mat3 btnMatrix;
-
-out vec4 fragColor;
 
 vec3 ViewDir_norm = normalize( ViewDir );
 mat3 btnMatrix_norm = mat3( normalize( btnMatrix[0] ), normalize( btnMatrix[1] ), normalize( btnMatrix[2] ) );
@@ -392,6 +397,9 @@ vec2 parallaxMapping( int n, vec3 V, vec2 offset )
 
 void main()
 {
+//fragColor = vec4(1,0,1,1);
+//return;
+
 	if ( lm.shaderModel == 45 )	// "Invisible"
 		discard;
 
@@ -713,4 +721,8 @@ void main()
 	color.rgb = tonemap( color.rgb * brightnessScale, toneMapScale );
 
 	fragColor = color;
+	
+	
+	//now so  debuggers
+	fragColor = vec4(H,1.0) ;
 }

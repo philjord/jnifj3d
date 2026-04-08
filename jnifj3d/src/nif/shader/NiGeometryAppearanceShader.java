@@ -1501,7 +1501,7 @@ public class NiGeometryAppearanceShader {
 		if (!(this.niAVObject instanceof BSGeometry)) {
 			System.err.println("!(this.niAVObject instanceof BSGeometry) " +this.niAVObject);
 			return false;
-		}
+		} 
 			
 		
 		if (OUTPUT_BINDINGS)
@@ -1607,15 +1607,15 @@ public class NiGeometryAppearanceShader {
 			uni1b( "lm.layeredEmissivity.isEnabled", sp.isEnabled );
 			uni1i( "lm.layeredEmissivity.firstLayerIndex", sp.layer1Index );
 			uni4c( "lm.layeredEmissivity.firstLayerTint", sp.layer1Tint, true );
-			uni1i( "lm.layeredEmissivity.firstLayerMaskIndex", sp.layer1MaskIndex );
+			//testing uni1i( "lm.layeredEmissivity.firstLayerMaskIndex", sp.layer1MaskIndex );
 			uni1i( "lm.layeredEmissivity.secondLayerIndex", ( sp.layer2Active ?  (sp.layer2Index) : -1 ) );
 			uni4c( "lm.layeredEmissivity.secondLayerTint", sp.layer2Tint, true );
-			uni1i( "lm.layeredEmissivity.secondLayerMaskIndex", sp.layer2MaskIndex );
+			//testing uni1i( "lm.layeredEmissivity.secondLayerMaskIndex", sp.layer2MaskIndex );
 			uni1i( "lm.layeredEmissivity.firstBlenderIndex", sp.blender1Index );
 			uni1i( "lm.layeredEmissivity.firstBlenderMode", sp.blender1Mode );
 			uni1i( "lm.layeredEmissivity.thirdLayerIndex", ( sp.layer3Active ?  (sp.layer3Index) : -1 ) );
 			uni4c( "lm.layeredEmissivity.thirdLayerTint", sp.layer3Tint, true );
-			uni1i( "lm.layeredEmissivity.thirdLayerMaskIndex", sp.layer3MaskIndex );
+			//testing  uni1i( "lm.layeredEmissivity.thirdLayerMaskIndex", sp.layer3MaskIndex );
 			uni1i( "lm.layeredEmissivity.secondBlenderIndex", sp.blender2Index );
 			uni1i( "lm.layeredEmissivity.secondBlenderMode", sp.blender2Mode );
 			uni1f( "lm.layeredEmissivity.emissiveClipThreshold", sp.clipThreshold );
