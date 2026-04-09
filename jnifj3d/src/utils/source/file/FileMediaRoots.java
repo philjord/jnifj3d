@@ -35,6 +35,7 @@ public class FileMediaRoots
 		defaultMediaRoots.add("D:/game_media/fallout4/");
 		defaultMediaRoots.add("D:/game_media/x3tc/");
 		defaultMediaRoots.add("D:/game_media/black prophecy/");
+		defaultMediaRoots.add("D:/game_media/starfield/");
 	}
 
 	public static void setMediaRoots(String[] mediaRoots)
