@@ -1,21 +1,20 @@
 #version 130
 //#version 410 core
 #extension GL_EXT_gpu_shader4 : enable
-//NOTE changed from 120 and nothing, soi GLES is goona have toruble
+//NOTE changed from 120 and nothing, so GLES is gonna have trouble
+
+//End of FFP inputs - note all attributes above this line are discarded in GLSLSourceCodeShader!
 
 // FROM https://github.com/fo76utils/nifskope/tree/develop/res/shaders
+
+
+#ifdef GL_ES
 precision mediump float;
+#endif
 
 
 //added cos of the version 130 gear above
 out vec4 fragColor;
-
-
-
-uniform int alphaTestEnabled;
-uniform int alphaTestFunction;
-uniform float alphaTestValue;
-//End of FFP inputs
 
 struct UVStream {
 	vec4	scaleAndOffset;
@@ -24,8 +23,8 @@ struct UVStream {
 
 struct TextureSet {
 	// >= 1: textureUnits index, -1: use replacement, 0: disabled
-	int	textures[9];
-	vec4	textureReplacements[9];
+	int	textures[9]; 						
+	vec4	textureReplacements[9];			
 	float	floatParam;
 };
 
@@ -52,8 +51,8 @@ struct Blender {
 	int	blendMode;
 	// 0 = "Red" (default), 1 = "Green", 2 = "Blue", 3 = "Alpha"
 	int	colorChannel;
-	float	floatParams[5];
-	bool	boolParams[8];
+	float	floatParams[5];					
+	bool	boolParams[8];					
 };
 
 struct LayeredEmissivityComponent {
@@ -227,7 +226,7 @@ struct LayeredMaterial {
 	float	toneMapScale;				// 1.0 = full tone mapping
 	float	brightnessScale;
 	float	glowScale;
-	int	sfParallaxMaxSteps;
+	int		sfParallaxMaxSteps;
 	float	sfParallaxScale;
 	float	sfParallaxOffset;
 	
@@ -238,7 +237,12 @@ uniform samplerCube	CubeMap2;
 uniform bool	hasCubeMap;
 uniform bool	hasSpecular;
 
-uniform sampler2D	textureUnits[21];//NUM_TEXTURE_UNITS];
+
+//It would appear that arrays as terminal variables need to be loaded by the attributearray system
+// but non terminal variables can be loaded by the single system! compare uni1i() and uni1iv()
+struct tu {sampler2D	s2D;};
+uniform tu textureUnits[21];
+//uniform sampler2D	textureUnits[21];//NUM_TEXTURE_UNITS];
 
 // bit 0: alpha testing, bit 1: alpha blending
 uniform int alphaFlags;
@@ -258,11 +262,11 @@ vec3 ViewDir_norm = normalize( ViewDir );
 mat3 btnMatrix_norm = mat3( normalize( btnMatrix[0] ), normalize( btnMatrix[1] ), normalize( btnMatrix[2] ) );
 
 #ifndef M_PI
-	#define M_PI 3.1415926535897932384626433832795
+	#define M_PI 3.1415926535897932384626433832795;
 #endif
 
-#define FLT_EPSILON 1.192092896e-07F // smallest such that 1.0 + FLT_EPSILON != 1.0
-
+#define FLT_EPSILON 1.192092896e-07F; // smallest such that 1.0 + FLT_EPSILON != 1.0
+ 
 float emissiveIntensity( bool useAdaptive, bool adaptiveLimits, vec4 luminanceParams )
 {
 	float	l = luminanceParams[0];	// luminousEmittance
@@ -318,7 +322,7 @@ vec4 getLayerTexture(int layerNum, int textureNum, vec2 offset)
 	int	n = lm.layers[layerNum].material.textureSet.textures[textureNum];
 	if ( n < 0 )
 		return lm.layers[layerNum].material.textureSet.textureReplacements[textureNum];
-	return texture(textureUnits[n], offset);
+	return texture(textureUnits[n].s2D, offset);
 }
 
 float getDetailBlendMask()
@@ -327,7 +331,7 @@ float getDetailBlendMask()
 		return 1.0;
 	if ( lm.detailBlender.maskTexture < 0 )
 		return lm.detailBlender.maskTextureReplacement.r;
-	return texture( textureUnits[lm.detailBlender.maskTexture], getTexCoord( lm.detailBlender.uvStream ) ).r;
+	return texture( textureUnits[lm.detailBlender.maskTexture].s2D, getTexCoord( lm.detailBlender.uvStream ) ).r;
 }
 
 float getBlenderMask(int n)
@@ -338,7 +342,7 @@ float getBlenderMask(int n)
 			r = lm.blenders[n].maskTextureReplacement.r;
 		} else {
 			vec2	offset = getTexCoord(lm.blenders[n].uvStream);
-			r = texture(textureUnits[lm.blenders[n].maskTexture], offset).r;
+			r = texture(textureUnits[lm.blenders[n].maskTexture].s2D, offset).r;
 		}
 	}
 	if ( lm.blenders[n].boolParams[5] )
@@ -368,7 +372,7 @@ vec2 parallaxMapping( int n, vec3 V, vec2 offset )
 	dtex *= layerHeight;
 
 	// height from heightmap
-	float	heightFromTexture = texture( textureUnits[n], currentTextureCoords ).r;
+	float	heightFromTexture = texture( textureUnits[n].s2D, currentTextureCoords ).r;
 
 	// while point is above the surface
 	while ( curLayerHeight > heightFromTexture ) {
@@ -377,7 +381,7 @@ vec2 parallaxMapping( int n, vec3 V, vec2 offset )
 		// shift of texture coordinates
 		currentTextureCoords -= dtex;
 		// new height from heightmap
-		heightFromTexture = texture( textureUnits[n], currentTextureCoords ).r;
+		heightFromTexture = texture( textureUnits[n].s2D, currentTextureCoords ).r;
 	}
 
 	// previous texture coordinates
@@ -385,7 +389,7 @@ vec2 parallaxMapping( int n, vec3 V, vec2 offset )
 
 	// heights for linear interpolation
 	float	nextH = curLayerHeight - heightFromTexture;
-	float	prevH = curLayerHeight + layerHeight - texture( textureUnits[n], prevTCoords ).r;
+	float	prevH = curLayerHeight + layerHeight - texture( textureUnits[n].s2D, prevTCoords ).r;
 
 	// proportions for linear interpolation
 	float	weight = nextH / ( nextH - prevH );
@@ -393,27 +397,30 @@ vec2 parallaxMapping( int n, vec3 V, vec2 offset )
 	// return interpolation of texture coordinates
 	return mix( currentTextureCoords, prevTCoords, weight );
 }
-
-
+ 
 void main()
-{
-//fragColor = vec4(1,0,1,1);
-//return;
+{	 
 
+
+					//fragColor = texture(textureUnits[5].s2D, texCoord.st);return;	
+
+					//fragColor = vec4(btnMatrix[2].rgb,1);	return;	 //normals are sexy sexy
+				
+															
 	if ( lm.shaderModel == 45 )	// "Invisible"
 		discard;
 
-	vec3	baseMap = C.rgb;
+	vec3	baseMap = C.rgb;								
 	vec3	normal = vec3(0.0, 0.0, 1.0);
 	vec3	pbrMap = vec3(0.0, 0.0, 1.0);	// roughness, metalness, AO
 	float	baseAlpha = C.a;
 	float	alpha = 1.0;
 	vec3	emissive = vec3(0.0);
 	vec3	transmissive = vec3(0.0);
-	int	numLayers = min( lm.numLayers, 6 );
+	int		numLayers = min( lm.numLayers, 6 );				
 
 	for ( int i = 0; i < numLayers; i++ ) {
-		vec3	layerBaseMap = vec3(0.0);
+		vec3	layerBaseMap = vec3(0.0);															
 		vec3	layerNormal = vec3(0.0, 0.0, 1.0);
 		vec3	layerPBRMap = vec3(0.0, 0.0, 1.0);
 
@@ -421,13 +428,13 @@ void main()
 		if ( i > 0 )
 			blendMode = lm.blenders[i - 1].blendMode;
 
-		vec2	offset = getTexCoord( lm.layers[i].uvStream );
+		vec2	offset = getTexCoord( lm.layers[i].uvStream );  			 			
 		// _height.dds
 		if ( lm.layers[i].material.textureSet.textures[6] >= 1 )
 			offset = parallaxMapping( lm.layers[i].material.textureSet.textures[6], normalize( ViewDir_norm * btnMatrix_norm ), offset );
 		// _color.dds
 		if ( lm.layers[i].material.textureSet.textures[0] != 0 )
-			layerBaseMap = getLayerTexture(i, 0, offset).rgb;
+			layerBaseMap = getLayerTexture(i, 0, offset).rgb;								//fragColor =  vec4(layerBaseMap,1);return;						
 		{
 			vec4	tintColor = ( (lm.layers[i].material.flags & 2) == 0 ? lm.layers[i].material.color : C );
 			if ( (lm.layers[i].material.flags & 1) == 0 )
@@ -439,11 +446,11 @@ void main()
 		if ( lm.layers[i].material.textureSet.textures[1] != 0 ) {
 			layerNormal.rg = getLayerTexture(i, 1, offset).rg * lm.layers[i].material.textureSet.floatParam;
 			// Calculate missing blue channel
-			layerNormal.b = sqrt(max(1.0 - dot(layerNormal.rg, layerNormal.rg), 0.0));
+			layerNormal.b = sqrt(max(1.0 - dot(layerNormal.rg, layerNormal.rg), 0.0));						fragColor =  vec4(layerNormal,1);return;
 		}
 		// _rough.dds
 		if ( lm.layers[i].material.textureSet.textures[3] != 0 )
-			layerPBRMap.r = getLayerTexture(i, 3, offset).r;
+			layerPBRMap.r = getLayerTexture(i, 3, offset).r;	
 		// _metal.dds
 		if ( lm.layers[i].material.textureSet.textures[4] != 0 )
 			layerPBRMap.g = getLayerTexture(i, 4, offset).r;
@@ -661,9 +668,9 @@ void main()
 	// Diffuse
 	vec3	diffuse = vec3(NdotL0);
 	// Fresnel
-	vec2	fDirect = textureLod(textureUnits[0], vec2(LdotH, NdotL0), 0.0).ba;
+	vec2	fDirect = textureLod(textureUnits[0].s2D, vec2(LdotH, NdotL0), 0.0).ba;
 	spec *= mix(f0, vec3(1.0), fDirect.x);
-	vec4	envLUT = textureLod(textureUnits[0], vec2(NdotV, roughness), 0.0);
+	vec4	envLUT = textureLod(textureUnits[0].s2D, vec2(NdotV, roughness), 0.0);
 	vec2	fDiff = vec2(fDirect.y, envLUT.b);
 	fDiff = fDiff * (LdotH * LdotH * roughness * 2.0 - 0.5) + 1.0;
 	diffuse *= (vec3(1.0) - f0) * fDiff.x * fDiff.y;
@@ -721,8 +728,5 @@ void main()
 	color.rgb = tonemap( color.rgb * brightnessScale, toneMapScale );
 
 	fragColor = color;
-	
-	
-	//now so  debuggers
-	fragColor = vec4(H,1.0) ;
+		
 }

@@ -118,12 +118,12 @@ float scale( float f, float min, float max )
 	return f * ( max - min ) + min;
 }
 
-//NOTE!!!!!!!!!! I am in the middle of debuggin this thing!!
 void main( void )
-{
+{	 
+	
 	vec2 offset = glTexCoord0.st;
 
-	vec4 baseMap = texture2D( BaseMap, offset );	
+	vec4 baseMap = texture2D( BaseMap, offset );								//gl_FragColor = baseMap;return;		
 
 	if(alphaTestEnabled != 0){		
 		if(alphaTestFunction==512)discard;//never (never keep it)
@@ -136,31 +136,25 @@ void main( void )
 		//alphaTestFunction==519//always (always keep it)
 	}
 	
-//DEBUG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	//gl_FragColor = baseMap;
-	//return;
-	
-
-
 	//swizzle the alpha and green  
 	vec4 normalMap = vec4( texture2D( NormalMap, offset ).ag * 2.0 - 1.0, 0.0, 0.0 );
 	//re-create the z  
-	normalMap.z = sqrt( 1.0 - dot( normalMap.xy,normalMap.xy ) ); 
+	normalMap.z = sqrt( 1.0 - dot( normalMap.xy,normalMap.xy ) );    			//gl_FragColor =  normalMap;return;
 
 	// spec only use 2 value r and g below (r is gloss, g is spec)
 	//https://www.reddit.com/r/FalloutMods/comments/3uaq1l/fo4_lets_talk_about_texture_creation_editing/
-	vec2 specMap = texture2D( SpecularMap, offset ).ag; 
+	vec2 specMap = texture2D( SpecularMap, offset ).ag; 						//gl_FragColor =  vec4(specMap,0,1);return;
 	 
 	 
 	vec3 normal = normalize(normalMap.rgb * 2.0 - 1.0);
 	if ( !gl_FrontFacing && bool(doubleSided) ) {
 		normal *= -1.0;	
-	}
+	}																		//gl_FragColor =  vec4(normal,1);return;
 	
-	vec3 L = normalize(LightDir);
-	vec3 V = normalize(ViewVec);
-	vec3 R = reflect(-L, normal);
-	vec3 H = normalize( L + V );
+	vec3 L = normalize(LightDir);											//gl_FragColor =  vec4(L,1);return;
+	vec3 V = normalize(ViewVec);											//gl_FragColor =  vec4(V,1);return;
+	vec3 R = reflect(-L, normal);											//gl_FragColor =  vec4(R,1);return;
+	vec3 H = normalize( L + V );											//gl_FragColor =  vec4(H,1);return;
 	
 	float NdotL = max( dot(normal, L), 0.000001 );
 	float NdotH = max( dot(normal, H), 0.000001 );
@@ -174,26 +168,19 @@ void main( void )
 
 
 	vec4 color;
-	vec3 albedo = baseMap.rgb * C.rgb;
+	vec3 albedo = baseMap.rgb * C.rgb;										//gl_FragColor =  vec4(albedo,1);return;
 	
-	// I imagine NodtL is bum
-	NdotL = 1.0;
+	vec3 diffuse = A.rgb + (D.rgb * NdotL);									//gl_FragColor =  vec4(diffuse,1);return;
 	
-	vec3 diffuse = A.rgb + (D.rgb * NdotL);
-	
-	
-	
-	
-	if ( bool(greyscaleColor) ) {
+	if ( bool(greyscaleColor)) {
 		vec4 luG = colorLookup( baseMap.g, C.g * paletteScale );
-		albedo = luG.rgb;
+		albedo = luG.rgb;													//if(albedo.r > 0.2){gl_FragColor =  vec4(albedo,1);return;}//signal!
 	}
-
 	
 	// Emissive
 	vec3 emissive = vec3(0.0);
 	if ( bool(hasEmit) ) {
-		emissive += glowColor * glowMult;
+		emissive += glowColor * glowMult;									//if(emissive.r > 0.2){gl_FragColor =  vec4(emissive,1);return;}//signal!
 	}
 
 	// Specular
@@ -201,64 +188,65 @@ void main( void )
 	float s = 1.0;
 	float roughness = 0.1;
 	vec3 spec = vec3(0.0);
-/*	if ( bool(hasSpecularMap) ) {
+	if ( bool(hasSpecularMap) ) {
 		g = specMap.r;
 		s = specMap.g;
 		roughness = scale( 1.0 - ( g * specGlossiness ), 0.1, 0.9 );
 		spec = specColor * s * LightingFuncGGX_REF( NdotL, NdotV, NdotH, LdotH, roughness, 0.04 ) * specStrength;
 		spec *= D.rgb * 0.9;
-		spec = clamp( spec, 0.0, 1.0 );
-	}*/
+		spec = clamp( spec, 0.0, 1.0 );										//gl_FragColor =  vec4(spec,1);return;
+	}
 	
 	// Environment
 	// TODO: why does textureCube not work on Android?
-/*	
-	vec4 cube = vec4(1,1,1,1);//textureCube( CubeMap, reflectedWS );// gles doesn't have this in the frag shader textureCubeLod( CubeMap, reflectedWS, 8.0 - g * 8.0 );
-	vec4 env = texture2D( EnvironmentMap, offset );
-	if ( bool(hasCubeMap) ) {
+	
+	//can't get the textureCube() to return a value
+/*	if ( bool(hasCubeMap) ) {												//gl_FragColor =  vec4(0,1,1,1);return;//signal!
+		// gles doesn't have this in the frag shader 
+		vec4 cube = textureCubeLod( CubeMap, reflectedWS, 8.0 - g * 8.0 );			gl_FragColor =  vec4(cube.rgb,1);return;
+		//vec4 cube = textureCube( CubeMap, reflectedWS );				
+		
+		vec4 env = texture2D( EnvironmentMap, offset );		
 		cube.rgb *= envReflection * specStrength * sqrt(g) * 0.9;
-		cube.rgb *= mix( s, env.r, float(hasEnvMask) );
+		cube.rgb *= mix( s, env.r, float(hasEnvMask) );							
     
 		albedo += cube.rgb;
-	}
-*/
-/*
+	}*/
+
+
 	vec3 backlight = vec3(0.0);
-	if ( bool(hasBacklight) ) {
+	if ( bool(hasBacklight) ) {											//gl_FragColor =  vec4(1,1,1,1);return;//signal!
 		backlight = texture2D( BacklightMap, offset ).rgb;
 		backlight *= NdotNegL;
 		
-		emissive += backlight * D.rgb;
+		emissive += backlight * D.rgb;									//gl_FragColor =  vec4(D.rgb,1);return;//signal!
 	}
-	*/
- /*
+	
+ 
 	vec4 mask = vec4(0.0);
-	if ( bool(hasRimlight) || bool(hasSoftlight) ) {
-		mask = vec4( s );
+	if ( bool(hasRimlight) || bool(hasSoftlight) ) {					
+		mask = vec4( s );												//gl_FragColor =  vec4(mask.rgb,1);return;
 	}
-*/
-/*
+
+
 	vec3 rim = vec3(0.0);
-	if ( bool(hasRimlight) ) {
+	if ( bool(hasRimlight) ) {											
 		rim = mask.rgb * pow(vec3((1.0 - NdotV)), vec3(rimPower));
 		rim *= smoothstep( -0.2, 1.0, dot(-L, V) );
 		
-		emissive += rim * D.rgb;
+		emissive += rim * D.rgb;										//gl_FragColor =  vec4(emissive.rgb,1);return;
 	}
-*/
-/*	
+
+	
 	vec3 soft = vec3(0.0);
-	if ( bool(hasSoftlight) ) {
+	if ( bool(hasSoftlight) ) {											
 		float wrap = (dot(normal, L) + lightingEffect1) / (1.0 + lightingEffect1);
     
 		soft = max( wrap, 0.0 ) * mask.rgb * smoothstep( 1.0, 0.0, NdotL );
 		soft *= sqrt( clamp( lightingEffect1, 0.0, 1.0 ) );
 		
-		emissive += soft * D.rgb;
+		emissive += soft * D.rgb;											//gl_FragColor =  vec4(emissive,1);return;
 	}
-*/ 
-
-
 
 	color.rgb = albedo * (diffuse + emissive);	
 	color.rgb += spec;

@@ -12,6 +12,7 @@ import org.jogamp.java3d.PolygonAttributes;
 import org.jogamp.java3d.RenderingAttributes;
 import org.jogamp.java3d.ShaderAppearance;
 import org.jogamp.java3d.ShaderAttribute;
+import org.jogamp.java3d.ShaderAttributeObject;
 import org.jogamp.java3d.ShaderAttributeSet;
 import org.jogamp.java3d.ShaderAttributeValue;
 import org.jogamp.java3d.Shape3D;
@@ -117,7 +118,7 @@ public class NiGeometryAppearanceShader {
 
 	private GLSLShaderProgram2					shaderProgram				= null;
 
-	private ArrayList<ShaderAttributeValue2>	allShaderAttributeValues	= new ArrayList<ShaderAttributeValue2>();
+	private ArrayList<ShaderAttributeObject>	allShaderAttributeValues	= new ArrayList<ShaderAttributeObject>();
 	private ArrayList<Binding>					allTextureUnitStateBindings	= new ArrayList<Binding>();
 
 	private int									texunit						= 0;
@@ -225,6 +226,7 @@ public class NiGeometryAppearanceShader {
 			System.out.println("using prog " + prog.getName());
 
 		this.shaderProgram = prog.shaderProgram;
+		GLSLShaderProgram2.ALLOW_ANY_UNIFORM_NAME = false;
 
 		// note time controllers below need appearance set on the shape now
 		shape.setAppearance(app);
@@ -887,7 +889,7 @@ public class NiGeometryAppearanceShader {
 	private static WeakHashMap<GLSLShaderProgram2, WeakHashMap<ShaderAttributeSet, ShaderAttributeSet>> shaderAttributeSetsByProgram = new WeakHashMap<GLSLShaderProgram2, WeakHashMap<ShaderAttributeSet, ShaderAttributeSet>>();
 
 	private static ShaderAttributeSet getShaderAttributeSet(GLSLShaderProgram2 shaderProgram,
-															List<ShaderAttributeValue2> newShaderAttributeValues) {
+															List<ShaderAttributeObject> newShaderAttributeValues) {
 		ShaderAttributeSet sas = null;
 		WeakHashMap<ShaderAttributeSet, ShaderAttributeSet> currentShaderAttributeSets = null;
 		synchronized (shaderAttributeSetsByProgram) {
@@ -922,9 +924,11 @@ public class NiGeometryAppearanceShader {
 		}
 
 		if (sas == null) {
+			if (OUTPUT_BINDINGS)
+				System.out.println("Shader attributes and bound value:");
 			sas = new ShaderAttributeSet();
 			sas.setCapability(ShaderAttributeSet.ALLOW_ATTRIBUTES_READ);
-			for (ShaderAttributeValue sav : newShaderAttributeValues) {
+			for (ShaderAttributeObject sav : newShaderAttributeValues) {
 				if (OUTPUT_BINDINGS)
 					System.out.println(sav.getAttributeName() + " " + sav.getValue());
 				sas.put(sav);
@@ -1119,123 +1123,129 @@ public class NiGeometryAppearanceShader {
 	
 	// Sets a float
 	private void uni1f(String var, float x) {
-		if (shaderProgram.programHasVar(var, x))
-			allShaderAttributeValues.add(new ShaderAttributeValue2(var, new Float(x)));
-	}
-		
+		if (shaderProgram.programHasVar(var))
+			allShaderAttributeValues.add(new ShaderAttributeValue2(var, Float.valueOf(x)));
+	}		
 
 	// Sets a vec2 (two floats)
 	private void uni2f(String var, float x, float y) {
-		if (shaderProgram.programHasVar(var, x, 2))
+		if (shaderProgram.programHasVar(var))
 			allShaderAttributeValues.add(new ShaderAttributeValue2(var, new Vector2f(x, y)));
 	}
 
 	// Sets a vec3 (three floats)
 	private void uni3f(String var, float x, float y, float z) {
-		if (shaderProgram.programHasVar(var, x, 3))
+		if (shaderProgram.programHasVar(var))
 			allShaderAttributeValues.add(new ShaderAttributeValue2(var, new Vector3f(x, y, z)));
 	}
 
 	// Sets a vec4 (four floats)
 	private void uni4f(String var, float x, float y, float z, float w) {
-		if (shaderProgram.programHasVar(var, x, 4))
+		if (shaderProgram.programHasVar(var))
 			allShaderAttributeValues.add(new ShaderAttributeValue2(var, new Vector4f(x, y, z, w)));
 	};
 	private void uni4f(String var, FloatVector4 vec) {
-		if (shaderProgram.programHasVar(var, vec.x, 4))
+		if (shaderProgram.programHasVar(var))
 			allShaderAttributeValues.add(new ShaderAttributeValue2(var, new Vector4f(vec.x, vec.y, vec.z, vec.w)));
 	};
-	private void uni4c(String var, int c, boolean isSRGB )
-	{
+	private void uni4c(String var, int c, boolean isSRGB ) {
 		FloatVector4	vec= new FloatVector4(c);
 		vec.mult(1.0f / 255.0f);
 		//if ( isSRGB )
 		//	x = DDSTexture16::srgbExpand( x );
-		if (shaderProgram.programHasVar(var, vec.x, 4))
+		if (shaderProgram.programHasVar(var))
 			allShaderAttributeValues.add(new ShaderAttributeValue2(var, new Vector4f(vec.x, vec.y, vec.z, vec.w)));
 	}
-	private void uni4srgb(String var, FloatVector4 vec )
-	{
+	private void uni4srgb(String var, FloatVector4 vec ) {
 		//x = DDSTexture16::srgbExpand( x );
-		if (shaderProgram.programHasVar(var, vec.x, 4))
+		if (shaderProgram.programHasVar(var))
 			allShaderAttributeValues.add(new ShaderAttributeValue2(var, new Vector4f(vec.x, vec.y, vec.z, vec.w)));
 	}
 
-	// Sets a boolean
+	// Sets a an int in sahder, from a boolean in code
 	private void uni1i(String var, boolean val) {
-		if (shaderProgram.programHasVar(var, 1))
-			allShaderAttributeValues.add(new ShaderAttributeValue2(var, new Integer(val ? 1 : 0)));
+		if (shaderProgram.programHasVar(var))
+			allShaderAttributeValues.add(new ShaderAttributeValue2(var,  Integer.valueOf(val?1:0)));
 	};
+	
+	// Sets a boolean
 	private void uni1b(String var, boolean val) {
-		if (shaderProgram.programHasVar(var, 1))
-			allShaderAttributeValues.add(new ShaderAttributeValue2(var, new Integer(val ? 1 : 0)));
+		if (shaderProgram.programHasVar(var))
+			allShaderAttributeValues.add(new ShaderAttributeValue2(var, Boolean.valueOf(val)));
 	};
 
 	// Sets an integer  
 	private void uni1i(String var, int val) {
-		if (shaderProgram.programHasVar(var, val))
-			allShaderAttributeValues.add(new ShaderAttributeValue2(var, new Integer(val)));
+		if (shaderProgram.programHasVar(var))
+			allShaderAttributeValues.add(new ShaderAttributeValue2(var, Integer.valueOf(val)));
 	};
 
 	// Sets a mat3 (3x3 matrix)
 	private void uni3m(String var, NifMatrix33 val) {
-		uni3m(var, new Matrix3f(val.data()));
+		if (shaderProgram.programHasVar(var))
+			uni3m(var, new Matrix3f(val.data()));
 	}
 
 	private void uni3m(String var, Matrix3f val) {
-		if (shaderProgram.programHasVar(var, 1.0f, 3))
+		if (shaderProgram.programHasVar(var))
 			allShaderAttributeValues.add(new ShaderAttributeValue2(var, val));
 	};
 
 	// Sets a mat4 (4x4 matrix)
 	private void uni4m(String var, NifMatrix44 val) {
-		uni4m(var, new Matrix4f(val.data()));
+		if (shaderProgram.programHasVar(var))
+			uni4m(var, new Matrix4f(val.data()));
 	};
 
 	private void uni4m(String var, Matrix4f val) {
-		if (shaderProgram.programHasVar(var, 1.0f, 4))
+		if (shaderProgram.programHasVar(var))
 			allShaderAttributeValues.add(new ShaderAttributeValue2(var, val));
 	};
 	
 	
-	// set an array of values, my system does not allow passing
-	// to the pipeline for an easy gl cal to set them, sadly
+	// set an array of values
 	private void uni1fv(String var, float[] vals, int maxParams) {
-		//TODO: defiantly allow arrays to be passed
-		for (int i = 0; i < maxParams; i++) {
-			if (shaderProgram.programHasVar(var+"["+i+"]", vals[i], 1))
-				allShaderAttributeValues.add(new ShaderAttributeValue2(var, vals[i]));
+		//NOTE! must always call programHasVar to add name to list
+		if (shaderProgram.programHasVar(var)) {
+			Float[] v2 = new Float[vals.length];
+			for (int i = 0; i < maxParams; i++) {
+				v2[i] = Float.valueOf(vals[i]);
+			}
+			allShaderAttributeValues.add(new ShaderAttributeArray2(var, v2));
 		}
 	}
 
-	// set an array of values, my system does not allow passing
-	// to the pipeline for an easy gl cal to set them, sadly
+	// set an array of values
 	private void uni1iv(String var, int[] vals, int maxParams) {
-		//TODO: defiantly allow arrays to be passed
-		for (int i = 0; i < maxParams; i++) {
-			if (shaderProgram.programHasVar(var + "[" + i + "]", vals[i], 1))
-				allShaderAttributeValues.add(new ShaderAttributeValue2(var, vals[i]));
+		if (shaderProgram.programHasVar(var)) {
+			Integer[] v2 = new Integer[vals.length];
+			for (int i = 0; i < maxParams; i++) {
+				v2[i] = Integer.valueOf(vals[i]);
+			}
+			allShaderAttributeValues.add(new ShaderAttributeArray2(var, v2));
 		}
 	}
 
-	// set an array of values, my system does not allow passing
-	// to the pipeline for an easy gl cal to set them, sadly
+	// set an array of values
 	private void uni1bv(String var, boolean[] vals, int maxParams) {
-		//TODO: defiantly allow arrays to be passed
-		for (int i = 0; i < maxParams; i++) {
-			if (shaderProgram.programHasVar(var + "[" + i + "]", vals[i], 1))
-				allShaderAttributeValues.add(new ShaderAttributeValue2(var, vals[i]));
+		if (shaderProgram.programHasVar(var)) {
+			Boolean[] v2 = new Boolean[vals.length];
+			for (int i = 0; i < maxParams; i++) {
+				v2[i] = Boolean.valueOf(vals[i]);
+			}
+			allShaderAttributeValues.add(new ShaderAttributeArray2(var, v2));
 		}
 	}
 	
-	// set an array of values, my system does not allow passing
-	// to the pipeline for an easy gl cal to set them, sadly
+	// set an array of values
 	private void uni4fv(String var, FloatVector4[] vals, int maxParams) {
-		//TODO: defiantly allow arrays to be passed
-		for (int i = 0; i < maxParams; i++) {
-			if (shaderProgram.programHasVar(var + "[" + i + "]", vals[i].x, 4))
-				allShaderAttributeValues
-						.add(new ShaderAttributeValue2(var, new Vector4f(vals[i].x, vals[i].y, vals[i].z, vals[i].w)));
+		if (shaderProgram.programHasVar(var)) {
+			Vector4f[] v2 = new Vector4f[vals.length];
+			for (int i = 0; i < maxParams; i++) {
+				v2[i] = new Vector4f(vals[i].x, vals[i].y, vals[i].z, vals[i].w);
+			}
+
+			allShaderAttributeValues.add(new ShaderAttributeArray2(var, v2));
 		}
 	}
 	
@@ -1272,20 +1282,28 @@ public class NiGeometryAppearanceShader {
 			System.out.println("bindCube BSLightingShaderProperty " + binding.fileName + " No Texture found for nif "
 								+ niAVObject.nVer.fileName);
 		}
-
-		uni1i(binding.samplerName, texunit++);
+		
+		if(tus == null) {
+			//this is ok, handing back a null TUS just disables that textureunit, so the texunit++ is probably right
+		}
+		// Each TexureUnit needs to be allocated to a sampler2D in the shader by getting setting the
+		// TUS id to be the value of the uniform, like any other uniform
+		if (OUTPUT_BINDINGS)
+			System.out.println("Cube " + binding.samplerName + " texunit " + texunit + " file=" + binding.fileName);
+ 		
+		uni1i(binding.samplerName, texunit++);		
+		
 		return tus;
 	}
 
 	private void registerBind(String samplerName, String fileName, TexClampMode clamp) {
-		if (shaderProgram.programHasVar(samplerName) && fileName != null && fileName.length() > 0) {
+		if (shaderProgram.programHasVar(samplerName) && fileName != null && fileName.length() > 0) {  
 			Binding binding = new Binding(samplerName, fileName, clamp);
 			allTextureUnitStateBindings.add(binding);
 		}
 	}
-
+	
 	private TextureUnitState bind(Binding binding, boolean shared) {
-
 		TextureUnitState tus = null;
 
 		if (shared) {
@@ -1306,12 +1324,19 @@ public class NiGeometryAppearanceShader {
 				tus.setTexture(tex);
 				tus.setName(binding.fileName);
 			}
+		}		
+	 
+		
+		if(tus == null) {
+			//this is ok, handing back a null TUS just disables that textureunit, so the texunit++ is probably right
 		}
-
 		// Each TexureUnit needs to be allocated to a sampler2D in the shader by getting setting the
 		// TUS id to be the value of the uniform, like any other uniform
-		uni1i(binding.samplerName, texunit++);
-		return tus;
+		if (OUTPUT_BINDINGS)
+			System.out.println("" + binding.samplerName + " texunit " + texunit + " file=" + binding.fileName);
+		
+		uni1i(binding.samplerName, texunit++); 
+		return tus;		 
 	}
 
 	private boolean hasFileName(BSLightingShaderProperty bslsp, int textureSlot) {
@@ -1423,6 +1448,21 @@ public class NiGeometryAppearanceShader {
 	}
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+	
 	// to dumy off the scene code below easily
 	public static class Scene {
 		
@@ -1499,7 +1539,7 @@ public class NiGeometryAppearanceShader {
 		}
 		
 		if (!(this.niAVObject instanceof BSGeometry)) {
-			System.err.println("!(this.niAVObject instanceof BSGeometry) " +this.niAVObject);
+			System.err.println("!(this.niAVObject instanceof BSGeometry) " + this.niAVObject);
 			return false;
 		} 
 			
@@ -1508,10 +1548,16 @@ public class NiGeometryAppearanceShader {
 			System.out.println("using prog " + prog.getName());
 
 		this.shaderProgram = prog.shaderProgram;
-
+				
 		// note time controllers below need appearance set on the shape now
 		shape.setAppearance(app);
 		
+		
+	
+		//this shader is super complex, so we just set names furiously and then the pipeline does validation very late on
+		GLSLShaderProgram2.ALLOW_ANY_UNIFORM_NAME = true;
+
+
 		BSGeometry bsGeometry = (BSGeometry)niAVObject;
 
 		// not in the properties list now, just in the BSGeometry directly		
@@ -1554,7 +1600,7 @@ public class NiGeometryAppearanceShader {
 
 		// texturing
 
-		int texunit = 0;
+		int[] texunit = new int[] {0};// so it can be treated as an address
 
 		// Always bind cube to texture units 0 (specular) and 1 (diffuse),
 		// regardless of shader settings
@@ -1571,8 +1617,7 @@ public class NiGeometryAppearanceShader {
 
 		//note always bind so always sampler 0
 		registerBindCube("CubeMap", Scene.cubeMapPathSTF);
-		texunit++;
-		
+		texunit[0]++;
 		
 		//TODO: see CubeMap above
 		//uniCubeMap = uniLocation( "CubeMap2" );
@@ -1585,20 +1630,20 @@ public class NiGeometryAppearanceShader {
 		//fn.glUniform1i( uniCubeMap, texunit++ );
 			
 		//note always bind so always sampler 1
-		registerBindCube("CubeMap", Scene.cubeMapPathSTF);
-		texunit++;
+		registerBindCube("CubeMap2", Scene.cubeMapPathSTF);
+		texunit[0]++;
 		
-		uni1i( "hasCubeMap2", hasCubeMap );
+		uni1b( "hasCubeMap", hasCubeMap );
 
 		// texture unit 2 is reserved for the environment BRDF LUT texture
 		//fn.glActiveTexture( GL_TEXTURE0 + texunit );
 		//if ( !lsp.bind( Scene.pbr_lut_sf, true, TexClampMode.CLAMP_S_CLAMP_T ) )
 		//	return false;
-		texunit++;
+		texunit[0]++;
 
-		String	emptyTexturePath = "";
+		//String	emptyTexturePath = "";
 
-		uni1i( "hasSpecular", (scene.hasOption(Scene.DoSpecular))?1:0 );
+		uni1b( "hasSpecular", scene.hasOption(Scene.DoSpecular) );
 		uni1i( "lm.shaderModel", mat.shaderModel );
 
 		// emissive settings
@@ -1607,15 +1652,15 @@ public class NiGeometryAppearanceShader {
 			uni1b( "lm.layeredEmissivity.isEnabled", sp.isEnabled );
 			uni1i( "lm.layeredEmissivity.firstLayerIndex", sp.layer1Index );
 			uni4c( "lm.layeredEmissivity.firstLayerTint", sp.layer1Tint, true );
-			//testing uni1i( "lm.layeredEmissivity.firstLayerMaskIndex", sp.layer1MaskIndex );
+			uni1i( "lm.layeredEmissivity.firstLayerMaskIndex", sp.layer1MaskIndex );
 			uni1i( "lm.layeredEmissivity.secondLayerIndex", ( sp.layer2Active ?  (sp.layer2Index) : -1 ) );
 			uni4c( "lm.layeredEmissivity.secondLayerTint", sp.layer2Tint, true );
-			//testing uni1i( "lm.layeredEmissivity.secondLayerMaskIndex", sp.layer2MaskIndex );
+			uni1i( "lm.layeredEmissivity.secondLayerMaskIndex", sp.layer2MaskIndex );
 			uni1i( "lm.layeredEmissivity.firstBlenderIndex", sp.blender1Index );
 			uni1i( "lm.layeredEmissivity.firstBlenderMode", sp.blender1Mode );
 			uni1i( "lm.layeredEmissivity.thirdLayerIndex", ( sp.layer3Active ?  (sp.layer3Index) : -1 ) );
 			uni4c( "lm.layeredEmissivity.thirdLayerTint", sp.layer3Tint, true );
-			//testing  uni1i( "lm.layeredEmissivity.thirdLayerMaskIndex", sp.layer3MaskIndex );
+			uni1i( "lm.layeredEmissivity.thirdLayerMaskIndex", sp.layer3MaskIndex );
 			uni1i( "lm.layeredEmissivity.secondBlenderIndex", sp.blender2Index );
 			uni1i( "lm.layeredEmissivity.secondBlenderMode", sp.blender2Mode );
 			uni1f( "lm.layeredEmissivity.emissiveClipThreshold", sp.clipThreshold );
@@ -1673,7 +1718,7 @@ public class NiGeometryAppearanceShader {
 			uni1b( "lm.decalSettings.isProjected", sp.isProjected );
 			uni1b( "lm.decalSettings.useParallaxOcclusionMapping", sp.useParallaxMapping );
 			FloatVector4	replUniform = new FloatVector4( 0.0f );
-			int	texUniform = getSFTexture(lsp, texunit, replUniform, (sp.surfaceHeightMap), 0, 0, null );
+			int	texUniform = getSFTexture(texunit, replUniform, (sp.surfaceHeightMap), 0, 0, null );
 			uni1i( "lm.decalSettings.surfaceHeightMap", texUniform );
 			uni1f( "lm.decalSettings.parallaxOcclusionScale", sp.parallaxOcclusionScale );
 			uni1b( "lm.decalSettings.parallaxOcclusionShadows", sp.parallaxOcclusionShadows );
@@ -1784,7 +1829,7 @@ public class NiGeometryAppearanceShader {
 			if ( uvStream !=null )
 				uvStream = CE2Material.defaultUVStream();
 			FloatVector4	replUniform= new FloatVector4( 0.0f );
-			int	texUniform = getSFTexture(lsp, texunit, replUniform, (sp.texturePath), sp.textureReplacement, (sp.textureReplacementEnabled)?1:0, uvStream );
+			int	texUniform = getSFTexture(texunit, replUniform, (sp.texturePath), sp.textureReplacement, (sp.textureReplacementEnabled)?1:0, uvStream );
 			uni1i( "lm.detailBlender.maskTexture", texUniform );
 			if ( texUniform < 0 )
 				uni4f( "lm.detailBlender.maskTextureReplacement", replUniform );
@@ -1802,6 +1847,8 @@ public class NiGeometryAppearanceShader {
 		int	numLayers = countr_one( mat.layerMask & ( mat.shaderModel != 41 ?
 															( mat.shaderModel != 48 ? 0x3F : 0x1F ) : 0x03 ) );
 		uni1i( "lm.numLayers", numLayers );
+		
+
 		for ( int i = 0; i < numLayers; i++ ) {
 			CE2Material.Layer layer = mat.layers[i];
 			int	textureSlotMap = 0;
@@ -1853,7 +1900,7 @@ public class NiGeometryAppearanceShader {
 					uvStream = mat.alphaUVStream;
 				}
 				replUniforms[j] = new FloatVector4( 0.0f );
-				texUniforms[j] = getSFTexture(lsp, texunit, replUniforms[j], texturePath, textureReplacement, textureReplacementMode, uvStream );
+				texUniforms[j] = getSFTexture(texunit, replUniforms[j], texturePath, textureReplacement, textureReplacementMode, uvStream );
 			}
 			if ( blendMode == 4 )  {
 				// set default color (0.5) for overlay textures in CharacterCombine blend mode
@@ -1901,7 +1948,7 @@ public class NiGeometryAppearanceShader {
 			uni4f( ("lm.blenders["+(i - 1)+"].uvStream.scaleAndOffset" ), uvStream.scaleAndOffset );
 			uni1b( ("lm.blenders["+(i - 1)+"].uvStream.useChannelTwo"), (uvStream.channel > 1) );
 			FloatVector4	replUniform = new FloatVector4( 0.0f );
-			int	texUniform = getSFTexture(lsp, texunit, replUniform, (blender.texturePath), blender.textureReplacement, (blender.textureReplacementEnabled)?1:0, uvStream );
+			int	texUniform = getSFTexture(texunit, replUniform, (blender.texturePath), blender.textureReplacement, (blender.textureReplacementEnabled)?1:0, uvStream );
 			uni1i( ("lm.blenders["+(i - 1)+"].maskTexture"), texUniform );
 			if ( texUniform < 0 )
 				uni4f( ("lm.blenders["+(i - 1)+"].maskTextureReplacement"), replUniform );
@@ -1921,7 +1968,7 @@ public class NiGeometryAppearanceShader {
 		
 		
 		//TODO:
-		//I wonder if my registerBind in getSFTexture plus the TextureUnitState[] tus calls below repalce this?
+		//I wonder if my registerBind in getSFTexture plus the TextureUnitState[] tus calls below replace this?
 		//uniSampler( ("textureUnits"), 2, texunit - 2, TexCache.num_texture_units - 2 );
 		
 		
@@ -1985,21 +2032,27 @@ public class NiGeometryAppearanceShader {
 
 			 
 		
+		if (ra.getDepthBufferEnable() != true	|| ra.getStencilEnable() == true || ra.getDepthBufferEnable() != true
+				|| ra.getDepthBufferWriteEnable() != true || ra.getAlphaTestFunction() != RenderingAttributes.ALWAYS)
+				app.setRenderingAttributes(ra);
+
+			if (pa.getCullFace() != PolygonAttributes.CULL_BACK || pa.getPolygonOffset() != 0.0
+				|| pa.getPolygonOffsetFactor() != 0.0)
+				app.setPolygonAttributes(pa);
+
+			if (ta.getTransparencyMode() != TransparencyAttributes.NONE)
+				app.setTransparencyAttributes(ta);
 		
 		
 		
-		
-		//DIRECTLY from CE1 above at the end to "set" the values a bit like the mesh.setUniforms( prog ); above	
-		TextureAttributes textureAttributes = null;
+		//Directly from CE1 above at the end to "set" the values a bit like the mesh.setUniforms( prog ); above	
 		NiTimeController controller = null;
+		// no texture attributes
  
 		//controller skipped 
 		
-		if (textureAttributes == null)
-			textureAttributes = new TextureAttributes();
-		// don't share if we will be controlled or transformed
-		boolean sharable = (controller == null	&& textureScale.x == 1 && textureScale.y == 1 && textureOffset.x == 0
-							&& textureOffset.y == 0);
+		// nothing stops sharing for this shaders
+		boolean sharable = true;
 		// note non shared TUS have default read caps on
 
 		// Texture Unit state does not require the same aggression as Java3D will find equivalence
@@ -2007,29 +2060,18 @@ public class NiGeometryAppearanceShader {
 		TextureUnitState[] tus = new TextureUnitState[allTextureUnitStateBindings.size()];
 		for (int i = 0; i < allTextureUnitStateBindings.size(); i++) {
 			Binding binding = allTextureUnitStateBindings.get(i);
+			//TESTY converting binding across
+			System.out.println("" + i + " " + binding.samplerName + " " + binding.fileName);
+			
 			if (binding.CUBE_MAP) {
 				tus[i] = bindCube(binding);
 			} else {
 				tus[i] = bind(binding, sharable);
 			}
-
-			if (tus[i] != null) {
-				if ((textureScale.x != 1 || textureScale.y != 1 || textureOffset.x != 0 || textureOffset.y != 0)) {
-					Transform3D textureTransform = new Transform3D();
-					textureTransform.setScale(new Vector3d(textureScale.x, textureScale.y, 0));
-					textureTransform.setTranslation(new Vector3f(textureOffset.x, textureOffset.y, 0));
-					//System.out.println("textureScale " + textureScale);
-					//System.out.println("textureOffset " + textureOffset);
-					textureAttributes.setTextureTransform(textureTransform);
-					tus[i].setTextureAttributes(textureAttributes);
-				}
-
-				if (controller != null)
-					tus[i].setTextureAttributes(textureAttributes);
-			}
-
 		}
 
+	
+ 
 		// Shape merging demand aggressive appearance sharing, and hence component re-use
 		// Shaders are newer and not well support for Shape merging
 		ShaderAttributeSet shaderAttributeSet = getShaderAttributeSet(shaderProgram, allShaderAttributeValues);
@@ -2038,16 +2080,7 @@ public class NiGeometryAppearanceShader {
 		app.setShaderProgram(shaderProgram);
 		app.setShaderAttributeSet(shaderAttributeSet);
 
-		if (ra.getDepthBufferEnable() != true	|| ra.getStencilEnable() == true || ra.getDepthBufferEnable() != true
-			|| ra.getDepthBufferWriteEnable() != true || ra.getAlphaTestFunction() != RenderingAttributes.ALWAYS)
-			app.setRenderingAttributes(ra);
-
-		if (pa.getCullFace() != PolygonAttributes.CULL_BACK || pa.getPolygonOffset() != 0.0
-			|| pa.getPolygonOffsetFactor() != 0.0)
-			app.setPolygonAttributes(pa);
-
-		if (ta.getTransparencyMode() != TransparencyAttributes.NONE)
-			app.setTransparencyAttributes(ta);
+		
 
 		// empty these 2 temps
 		allShaderAttributeValues.clear();
@@ -2069,8 +2102,11 @@ public class NiGeometryAppearanceShader {
 				NiGeometryAppearanceFixed.setUpTimeController(controller, niToJ3dData, textureSource, target);
 			}
 		}*/
+		
+		
+		// cos of the new accept all uniforms system for starfield
+		prog.refreshShaders();		
 		return true;
-
 	}
 	
 	
@@ -2150,34 +2186,31 @@ public class NiGeometryAppearanceShader {
 		return 4;
 	}
 	
-	//return texture units indexs (-3) so a fine number I'd say
-	int getSFTexture(	BSShaderProperty lsp, int texunit, FloatVector4 replUniform, String texturePath,
+	//return texture units indexs (-3) so a fine number I'd say texUnit is an int address
+	int getSFTexture(int[] texunit, FloatVector4 replUniform, String texturePath,
 						int textureReplacement, int textureReplacementMode, CE2Material.UVStream uvStream) {
+		
 		do {
-			if(texturePath!=null) {
-				int n = texturePath.length();
-				if (((n - 1) & ~((1023))) != 0)
-					break; // empty path or not enough space in tmpBuf
-				if (!(texunit >= 3 ))//&& scene.textures.activateTextureUnit(texunit) != null))
-					break;
+			if(texturePath!=null && texturePath.length() > 0) {				
+				 
+				// I'm not activating anything so no way to fail
+				//if (!(texunit >= 3  && scene.textures.activateTextureUnit(texunit) != null))
+				//	break;
 	
 				TexClampMode clampMode = TexClampMode.WRAP_S_WRAP_T;
 				if (uvStream != null) {
 					TexClampMode[] clampModes = new TexClampMode[] {TexClampMode.WRAP_S_WRAP_T,
 						TexClampMode.CLAMP_S_CLAMP_T, TexClampMode.MIRRORED_S_MIRRORED_T, TexClampMode.BORDER_S_BORDER_T};
 					clampMode = (TexClampMode)(clampModes[uvStream.textureAddressMode & 3]);
-				}
-	
-				// convert std::string_view to a temporary array of QChar
-				//byte[] tmpBuf = new byte[1024];
-				//convertStringToUInt16(tmpBuf, texturePath.data(), n);
-	
-				//if (!bind(QStringView(tmpBuf, qsizetype(n)), false, clampMode))
-				//	break;
+				}			
+			 
+				// noting that 0-2 texture were bound above (as 2 cubes and environment BRDF LUT texture)
 				
-				//is this the equivilent of the above I wonder?
-				registerBind("textureUnits["+n+"]",texturePath,clampMode);//possibly not right
-	
+				//the .s2D is because 
+				//It would appear that arrays as terminal variables need to eb laoded by the attributearray system
+				// but non terminal variables acna be loaded by the single system!
+				registerBind("textureUnits["+texunit[0]+"].s2D",texturePath,clampMode); 
+			
 				if (clampMode == TexClampMode.BORDER_S_BORDER_T) {
 					// use replacement color as border (this may be incorrect)
 					FloatVector4 c = new FloatVector4(
@@ -2186,8 +2219,8 @@ public class NiGeometryAppearanceShader {
 					//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, (c.x));
 				}
 	
-				texunit++;
-				return texunit - 3;
+				texunit[0]++;
+				return texunit[0] - 3;
 			}
 		} while (false);
 
@@ -2214,8 +2247,8 @@ public class NiGeometryAppearanceShader {
 	// mutha ucking c++ coders
 	//https://en.cppreference.com/w/cpp/numeric/countr_one.html
 	private static int countr_one(int x) {
-		for(int i=0;i<8;i++)
-			if(((1<<i)&x)==0)
+		for (int i = 0; i < 8; i++)
+			if (((1 << i) & x) == 0)
 				return i;
 		return 0;
 	}

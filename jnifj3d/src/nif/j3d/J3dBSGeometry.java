@@ -29,7 +29,7 @@ import utils.source.TextureSource;
 
 // No fader appearance, just dummy interfaces
 // no outlines at all, just dummy interfaces
-// no morphing meshes ata ll
+// no morphing meshes at all
 
 
 public class J3dBSGeometry extends J3dNiAVObject implements Fadable
@@ -45,42 +45,7 @@ public class J3dBSGeometry extends J3dNiAVObject implements Fadable
 	
 	
 	/**
-	 *  so BSGeom that I've seen has a shader prop but the one I saw had no alpha
-	 *  none f te ones I saw had a MeshData they all pointed at meshpath
-	 *  examples
-	 *  
-	 *  ShaderProperty 10 AlphaProperty -1
-MeshPAth = ce04a383d77ed8024962\88240de2a57125a07f5d
-MeshPAth = 0d1f52439e4be388b685\6086a00fa49e1ceaf40a
-MeshPAth = eb0e4b7e5a7a3ff560be\45507f1921761cef1eaa
-
-ShaderProperty 30 AlphaProperty -1
-MeshPAth = dae59cbdace4fb083392\6e2370be5cb8b5024bb9
-MeshPAth = dae59cbdace4fb083392\6e2370be5cb8b5024bb9
-MeshPAth = dae59cbdace4fb083392\6e2370be5cb8b5024bb9
-MeshPAth = 68cc3f60d3352211498b\0fdcd0c123d31ea0eff3
-	 * 
-	 * ShaderProperty 6 AlphaProperty -1
-MeshPAth = 5c4368417859d8d7357e\24c2f45b93e75e5ffefc
-MeshPAth = fd81ab9e3dc21482837e\cddd93c1297ff38efee4
-MeshPAth = fd81ab9e3dc21482837e\cddd93c1297ff38efee4
-MeshPAth = 8a08403691e164f4493b\5742fed8402ad3f82dbe
-h lods
-	 * 
-	 * ShaderProperty 24 AlphaProperty -1
-MeshPAth = 569caf4c101df55098d9\8925d29384ee10a719dd
-
-
-	 * I see lots with 3 or 2 repeats, so perhaps each one means something? LOd or something?
-	 * always 1 first then 2 etc, nne skipped only foreshortened 
-	 * going down in verts super suggests Lodding
-	 * 
-	 * small count of verts less liekly to have more mes
-
-
-
-
-J3dLODNode is the lod node guy
+		J3dLODNode is the lod node guy
 	 * @param bsTriShape
 	 * @param niToJ3dData
 	 * @param textureSource
@@ -147,20 +112,21 @@ J3dLODNode is the lod node guy
 
 		ga.setCoordRefBuffer(new J3DBuffer(data.verticesOptBuf));
 
-		if (data.normalsOptBuf != null)
+		if (data.normalsOptBuf != null) 
 			ga.setNormalRefBuffer(new J3DBuffer(data.normalsOptBuf));
 
 		if (data.colorsOptBuf != null)
 			ga.setColorRefBuffer(new J3DBuffer(data.colorsOptBuf));
 
-		if (data.uVSetOptBuf != null) {
+		if (data.uVSetOptBuf != null) 
 			ga.setTexCoordRefBuffer(0, new J3DBuffer(data.uVSetOptBuf));
-		}
+		
+		if (data.uVSet2OptBuf != null) 
+			ga.setTexCoordRefBuffer(1, new J3DBuffer(data.uVSet2OptBuf));
+		
 
-		if (data.normalsOptBuf != null && data.tangentsOptBuf != null && BSMeshData.TANGENTS) {
+		if (data.normalsOptBuf != null && data.tangentsOptBuf != null && BSMeshData.TANGENTS) 
 			ga.setVertexAttrRefBuffer(0, new J3DBuffer(data.tangentsOptBuf));
-			//ga.setVertexAttrRefBuffer(1, new J3DBuffer(data.binormalsOptBuf));
-		}
 
 	}
 
@@ -174,7 +140,7 @@ J3dLODNode is the lod node guy
 		}
 
 		try {
-			//TODO: I'm just going to load up mesh[0] which is closest LOD and should always be HsaMesh==1
+			//TODO: I'm just going to load up mesh[0] which is closest LOD and should always be HasMesh==1
 			BSMeshData data;
 
 			if (bsGeometry.Meshes[0].Mesh.MeshData == null) {
@@ -188,9 +154,10 @@ J3dLODNode is the lod node guy
 
 			if (data.IndicesSize > 0) {
 				// All tex units use the 0ith , all others are ignored
+				int texCoordCount = data.uVSet2OptBuf != null ? 2 : 1;
 				int[] texMap = new int[9];
 				for (int i = 0; i < 9; i++)
-					texMap[i] = 0;
+					texMap[i] = (data.uVSet2OptBuf != null && i == 1) ? 1 : 0;
 
 				int vertexFormat = 0;
 
@@ -206,10 +173,12 @@ J3dLODNode is the lod node guy
 									&& data.tangentsOptBuf != null) ? GeometryArray.VERTEX_ATTRIBUTES : 0);
 
 				if (data.normalsOptBuf != null && data.tangentsOptBuf != null && BSMeshData.TANGENTS) {
-					iga = new IndexedTriangleArray(data.NumVerts, vertexFormat, 1, texMap, 1, new int[] {3},
+					iga = new IndexedTriangleArray(data.NumVerts, vertexFormat, texCoordCount, 
+							texMap, 1, new int[] {3},
 							data.IndicesSize);
 				} else {
-					iga = new IndexedTriangleArray(data.NumVerts, vertexFormat, 1, texMap, data.IndicesSize);
+					iga = new IndexedTriangleArray(data.NumVerts, vertexFormat, texCoordCount,
+							texMap, data.IndicesSize);
 				}
 
 				if (J3dNiTriBasedGeom.BUFFERS)

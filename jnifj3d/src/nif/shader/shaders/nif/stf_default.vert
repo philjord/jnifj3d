@@ -1,29 +1,13 @@
 #version 120
 //#version 410 core
 
-// FROM https://github.com/fo76utils/nifskope/tree/develop/res/shaders
- 
-varying vec3 LightDir;
-varying vec3 ViewDir;
 
-varying vec4 texCoord;
-
-varying mat3 btnMatrix;
-
-varying vec4 C;
-varying vec2 glTexCoord0;
-
-attribute vec3 tangentVector;
-attribute vec3 bitangentVector;
-
-
-
-//Start of FFP inputs
-attribute vec4 glVertex;         
-attribute vec4 glColor;       
+attribute vec4 glVertex;  
+attribute vec4 glColor;    
 attribute vec3 glNormal;     
 attribute vec2 glMultiTexCoord0; 
 attribute vec2 glMultiTexCoord1; 
+       
 
 uniform mat4 glModelViewMatrix;
 uniform mat4 glModelViewProjectionMatrix;
@@ -59,10 +43,23 @@ const int maxLights = 2;
 uniform lightSource glLightSource[maxLights];
 
 uniform mat4 textureTransform;
-//End of FFP inputs
+//End of FFP inputs - note all attributes above this line are discarded in GLSLSourceCodeShader!
 
 
 
+// FROM https://github.com/fo76utils/nifskope/tree/develop/res/shaders
+ 
+varying vec3 LightDir;
+varying vec3 ViewDir;
+
+varying vec4 texCoord;
+
+varying mat3 btnMatrix;
+
+varying vec4 C;
+
+attribute vec3 tangent;// these attributes are fixed names
+//attribute vec3 bitangentVector;
 
  
 //ffp mat4	projectionMatrix;
@@ -88,29 +85,28 @@ void main()
 {
 	vec4	v = vec4( glVertex.xyz, 1.0 );
 	vec3	n = glNormal;
-	vec3	t = tangentVector;
-	vec3	b = bitangentVector;
+	vec3	t = tangent;
+	vec3	b = cross(n,t);
 
-//not doing GPU skinning 
+	//Not doing GPU skinning 
 	//if ( boneWeights[0].x > 0.0 && doSkinning )
 	//	boneTransform( v, n, t, b );
 
-	//v = modelViewMatrix * v;
+	//v = modelViewMatrix * v;// both in one
 	gl_Position = glModelViewProjectionMatrix * v; // both in one
-	texCoord = vec4( glMultiTexCoord0, glMultiTexCoord1 );
+	texCoord = vec4(glMultiTexCoord0, glMultiTexCoord1);
 
 	btnMatrix[2] = normalize( n * glNormal );
 	btnMatrix[1] = normalize( t * glNormal );
 	btnMatrix[0] = normalize( b * glNormal );
 
-	// no ortho graphic otpion
+	//No orthographic option
 	//if ( projectionMatrix[3][3] == 1.0 )
 	//	ViewDir = vec3(0.0, 0.0, 1.0);	// orthographic view
 	//else
 		ViewDir = -v.xyz;
 	LightDir = glLightSource[0].position.xyz;
+		
+	C = mix( glColor, vertexColorOverride, vec4(greaterThan( vertexColorOverride, vec4( 0.0 ) )) );
 
-	//C = mix( glColor, vertexColorOverride, greaterThan( vertexColorOverride, vec4( 0.0 ) ) );
-	//0(113) : error C1115: unable to find compatible overloaded function "mix(vec4, vec4, bvec4)"	
-	C = glColor;
 }

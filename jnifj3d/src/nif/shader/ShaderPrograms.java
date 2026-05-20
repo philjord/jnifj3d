@@ -23,7 +23,6 @@ import nif.niobject.NiVertexColorProperty;
 import nif.niobject.bs.BSEffectShaderProperty;
 import nif.niobject.bs.BSGeometry;
 import nif.niobject.bs.BSLightingShaderProperty;
-import nif.niobject.bs.BSMeshData;
 import nif.niobject.bs.BSMeshLODTriShape;
 import nif.niobject.bs.BSShaderPPLightingProperty;
 import nif.niobject.bs.BSShaderProperty;
@@ -153,8 +152,7 @@ public class ShaderPrograms {
 							}
 						}*/
 
-			sourceCodeShader = new GLSLSourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, type, shaderCode);
-			sourceCodeShader.setName(source);
+			sourceCodeShader = new GLSLSourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, type, source, shaderCode);
 			status = true;
 
 			return true;
@@ -259,7 +257,7 @@ public class ShaderPrograms {
 						line = line.substring("texcoords".length()).trim();
 						String[] list = line.split(" ");
 
-						Integer unit = Integer.parseInt(list [0]);
+						Integer unit = Integer.valueOf(list [0]);
 						String id = list [1].toLowerCase();
 
 						if (id.length() == 0)
@@ -298,6 +296,15 @@ public class ShaderPrograms {
 
 			status = true;
 			return true;
+		}
+		
+		// so uniform names can be applied by CE2 "all attributes system
+		public void refreshShaders() {
+			// this only needs to be applied once for a given program, so if it's live tehn don't reapply the shader
+			if (!shaderProgram.isLive()) {
+				Shader[] shaderArray = shaders.toArray(new Shader[] {});
+				shaderProgram.setShaders(shaderArray);//this guy sets the shader variable names, run in the constructor normally
+			}
 		}
 
 		public boolean isStatusOk() {
