@@ -12,6 +12,7 @@ import org.jogamp.java3d.PolygonAttributes;
 import org.jogamp.java3d.RenderingAttributes;
 import org.jogamp.java3d.ShaderAppearance;
 import org.jogamp.java3d.ShaderAttribute;
+import org.jogamp.java3d.ShaderAttributeArray;
 import org.jogamp.java3d.ShaderAttributeObject;
 import org.jogamp.java3d.ShaderAttributeSet;
 import org.jogamp.java3d.ShaderAttributeValue;
@@ -929,8 +930,16 @@ public class NiGeometryAppearanceShader {
 			sas = new ShaderAttributeSet();
 			sas.setCapability(ShaderAttributeSet.ALLOW_ATTRIBUTES_READ);
 			for (ShaderAttributeObject sav : newShaderAttributeValues) {
-				if (OUTPUT_BINDINGS)
-					System.out.println(sav.getAttributeName() + " " + sav.getValue());
+				if (OUTPUT_BINDINGS) {
+					if (sav instanceof ShaderAttributeArray) {
+						System.out.print(sav.getAttributeName() + "={");
+						for (Object v : (Object[])sav.getValue())
+							System.out.print(v + ", ");
+						System.out.println("}");
+					} else {
+						System.out.println(sav.getAttributeName() + "=" + sav.getValue());
+					}
+				}
 				sas.put(sav);
 			}
 			synchronized (currentShaderAttributeSets) {
@@ -2045,6 +2054,12 @@ public class NiGeometryAppearanceShader {
 		
 		
 		
+		//there are some magic values in the shader that I'll set now for fun
+		// could be rotated about a bit I'm guessing
+		uni3m("envMapRotation", new Matrix3f(1,0,0,0,1,0,0,0,1));//identity
+			
+			
+			
 		//Directly from CE1 above at the end to "set" the values a bit like the mesh.setUniforms( prog ); above	
 		NiTimeController controller = null;
 		// no texture attributes
@@ -2191,7 +2206,7 @@ public class NiGeometryAppearanceShader {
 						int textureReplacement, int textureReplacementMode, CE2Material.UVStream uvStream) {
 		
 		do {
-			if(texturePath!=null && texturePath.length() > 0) {				
+			if (texturePath != null && texturePath.length() > 0) {	
 				 
 				// I'm not activating anything so no way to fail
 				//if (!(texunit >= 3  && scene.textures.activateTextureUnit(texunit) != null))
@@ -2206,10 +2221,10 @@ public class NiGeometryAppearanceShader {
 			 
 				// noting that 0-2 texture were bound above (as 2 cubes and environment BRDF LUT texture)
 				
-				//the .s2D is because 
-				//It would appear that arrays as terminal variables need to eb laoded by the attributearray system
-				// but non terminal variables acna be loaded by the single system!
-				registerBind("textureUnits["+texunit[0]+"].s2D",texturePath,clampMode); 
+				// the .s2D is because 
+				// It would appear that arrays as terminal variables need to be loaded by the attributearray system
+				// but non terminal variables can be loaded by the single system!
+				registerBind("textureUnits[" + texunit[0] + "].s2D", texturePath, clampMode);
 			
 				if (clampMode == TexClampMode.BORDER_S_BORDER_T) {
 					// use replacement color as border (this may be incorrect)
@@ -2219,8 +2234,7 @@ public class NiGeometryAppearanceShader {
 					//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, (c.x));
 				}
 	
-				texunit[0]++;
-				return texunit[0] - 3;
+				return texunit[0]++;// note the ++ applies to the arrray value after the return, bit complicated, c++y
 			}
 		} while (false);
 

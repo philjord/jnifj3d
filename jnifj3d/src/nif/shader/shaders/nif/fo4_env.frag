@@ -200,7 +200,7 @@ void main( void )
 	// Environment
 	// TODO: why does textureCube not work on Android?
 	
-	//can't get the textureCube() to return a value
+	//FIXEM: can't get the textureCube() to return a value
 /*	if ( bool(hasCubeMap) ) {												//gl_FragColor =  vec4(0,1,1,1);return;//signal!
 		// gles doesn't have this in the frag shader 
 		vec4 cube = textureCubeLod( CubeMap, reflectedWS, 8.0 - g * 8.0 );			gl_FragColor =  vec4(cube.rgb,1);return;
