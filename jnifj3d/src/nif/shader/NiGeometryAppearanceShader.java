@@ -1552,7 +1552,6 @@ public class NiGeometryAppearanceShader {
 			return false;
 		} 
 			
-		
 		if (OUTPUT_BINDINGS)
 			System.out.println("using prog " + prog.getName());
 
@@ -1817,7 +1816,7 @@ public class NiGeometryAppearanceShader {
 			uni1b( "lm.alphaSettings.useVertexColor",  (mat.flags & CE2Material.Flag_AlphaVertexColor)!=0 );
 			uni1i( "lm.alphaSettings.vertexColorChannel", mat.alphaVertexColorChannel );
 			CE2Material.UVStream uvStream = mat.alphaUVStream;
-			if ( uvStream != null )
+			if ( uvStream == null )
 				uvStream = CE2Material.defaultUVStream();
 			uni4f( "lm.alphaSettings.opacityUVstream.scaleAndOffset", uvStream.scaleAndOffset );
 			uni1b( "lm.alphaSettings.opacityUVstream.useChannelTwo", (uvStream.channel > 1) );
@@ -1835,7 +1834,7 @@ public class NiGeometryAppearanceShader {
 			CE2Material.DetailBlenderSettings sp = mat.detailBlenderSettings;
 			uni1b( "lm.detailBlender.detailBlendMaskSupported", true );
 			CE2Material.UVStream uvStream = sp.uvStream;
-			if ( uvStream !=null )
+			if ( uvStream ==null )
 				uvStream = CE2Material.defaultUVStream();
 			FloatVector4	replUniform= new FloatVector4( 0.0f );
 			int	texUniform = getSFTexture(texunit, replUniform, (sp.texturePath), sp.textureReplacement, (sp.textureReplacementEnabled)?1:0, uvStream );
@@ -2066,6 +2065,14 @@ public class NiGeometryAppearanceShader {
  
 		//controller skipped 
 		
+		
+		
+		if (OUTPUT_BINDINGS) {
+			System.out.println("******************************");
+			System.out.println("Shader material: " + mat);
+		}
+		
+		
 		// nothing stops sharing for this shaders
 		boolean sharable = true;
 		// note non shared TUS have default read caps on
@@ -2075,9 +2082,6 @@ public class NiGeometryAppearanceShader {
 		TextureUnitState[] tus = new TextureUnitState[allTextureUnitStateBindings.size()];
 		for (int i = 0; i < allTextureUnitStateBindings.size(); i++) {
 			Binding binding = allTextureUnitStateBindings.get(i);
-			//TESTY converting binding across
-			System.out.println("" + i + " " + binding.samplerName + " " + binding.fileName);
-			
 			if (binding.CUBE_MAP) {
 				tus[i] = bindCube(binding);
 			} else {
@@ -2085,7 +2089,6 @@ public class NiGeometryAppearanceShader {
 			}
 		}
 
-	
  
 		// Shape merging demand aggressive appearance sharing, and hence component re-use
 		// Shaders are newer and not well support for Shape merging
@@ -2094,8 +2097,6 @@ public class NiGeometryAppearanceShader {
 		app.setTextureUnitState(tus);
 		app.setShaderProgram(shaderProgram);
 		app.setShaderAttributeSet(shaderAttributeSet);
-
-		
 
 		// empty these 2 temps
 		allShaderAttributeValues.clear();
@@ -2125,11 +2126,6 @@ public class NiGeometryAppearanceShader {
 	}
 	
 	
-	
-
-
-
-
 
 	private static int[][] blendModeMap = new int[][] {
 		new int[] {TransparencyAttributes.BLEND_SRC_ALPHA,TransparencyAttributes.BLEND_ONE_MINUS_SRC_ALPHA,TransparencyAttributes.BLEND_ONE,TransparencyAttributes.BLEND_ONE_MINUS_SRC_ALPHA},
@@ -2145,7 +2141,7 @@ public class NiGeometryAppearanceShader {
 	void setupGLBlendModeSF( int blendMode )
 	{
 	
-	// these lists are in sets of 4 and blendMode choses the row then the 4 are set
+	// these lists are in sets of 4 and blendMode chooses the row then the 4 are set
 	
 		// source RGB, destination RGB, source alpha, destination alpha
 	/*	static const GLenum blendModeMap[32] = {

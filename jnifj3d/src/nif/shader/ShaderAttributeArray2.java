@@ -12,6 +12,10 @@ public class ShaderAttributeArray2 extends ShaderAttributeArray {
 
 	@Override
 	public String toString() {
-		return "ShaderAttributeArray2: " + this.getAttributeName() + " " + this.getValue();
+		String ret = "ShaderAttributeArray2: " + this.getAttributeName() + "={";
+		for (Object v : (Object[])getValue())
+			System.out.print(v + ", ");
+		System.out.println("}");		
+		return ret;
 	}
 }
