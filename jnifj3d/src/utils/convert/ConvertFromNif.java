@@ -1,7 +1,5 @@
 package utils.convert;
 
-import utils.ESConfig;
-
 import org.jogamp.vecmath.Color4f;
 import org.jogamp.vecmath.Point3d;
 import org.jogamp.vecmath.Point3f;
@@ -15,92 +13,98 @@ import nif.compound.NifMatrix33;
 import nif.compound.NifQuaternion;
 import nif.compound.NifTexCoord;
 import nif.compound.NifVector3;
+import nif.compound.NifVector4;
+import nif.niobject.bs.BSTriShape;
 
-public class ConvertFromNif
-{
-	public static Quat4f toJ3d(NifMatrix33 rotation)
-	{
+public class ConvertFromNif {
+	public static Quat4f toJ3d(NifMatrix33 rotation) {
 		return NifRotToJava3DRot.makeJ3dQ4f(rotation);
 	}
 
-	public static Quat4f toJ3d(NifQuaternion rotation)
-	{
+	public static Quat4f toJ3d(NifQuaternion rotation) {
 		Quat4f q = new Quat4f(rotation.x, rotation.y, rotation.z, rotation.w);
 		return NifRotToJava3DRot.flipAxis(q);
 	}
 
-	public static float toJ3d(float x)
-	{
-		return x * ESConfig.ES_TO_METERS_SCALE;
+	public static float toJ3d(float x) {
+		return x * BSTriShape.ES_TO_METERS_SCALE;
 	}
 
-	public static Vector3f toJ3d(NifVector3 v)
-	{
+	public static Vector3f toJ3d(NifVector3 v) {
 		return createScaledVector(v.x, v.y, v.z);
 	}
 
-	public static Point3f toJ3dP3f(NifVector3 v)
-	{
+	public static Point3f toJ3dP3f(NifVector3 v) {
 		return createScaledPoint(v.x, v.y, v.z);
 	}
 
-	public static void toJ3d(Tuple3f p)
-	{
-		p.set(p.x * ESConfig.ES_TO_METERS_SCALE, //
-				p.z * ESConfig.ES_TO_METERS_SCALE, //
-				-p.y * ESConfig.ES_TO_METERS_SCALE);
-	}
-
-	public static Point3f toJ3dP3f(float x, float y, float z)
-	{
-		return createScaledPoint(x, y, z);
-	}
-
-	private static Point3f createScaledPoint(float x, float y, float z)
-	{
-		return new Point3f(x * ESConfig.ES_TO_METERS_SCALE, //
-				z * ESConfig.ES_TO_METERS_SCALE, //
-				-y * ESConfig.ES_TO_METERS_SCALE);
-	}
-
-	private static Vector3f createScaledVector(float x, float y, float z)
-	{
-		return new Vector3f(x * ESConfig.ES_TO_METERS_SCALE, //
-				z * ESConfig.ES_TO_METERS_SCALE, //
-				-y * ESConfig.ES_TO_METERS_SCALE);
-	}
-
-	// NOTE: no scale
-	public static Vector3f toJ3dNoScale(NifVector3 v)
-	{
-		return new Vector3f(v.x, v.z, -v.y);
-	}
-
-	public static Point3d toJ3dP3d(NifVector3 v)
-	{
-		return createScaledPoint((double) v.x, (double) v.y, (double) v.z);
+	public static void toJ3d(Tuple3f p) {
+		p.set(p.x * BSTriShape.ES_TO_METERS_SCALE, //
+				p.z * BSTriShape.ES_TO_METERS_SCALE, //
+				-p.y * BSTriShape.ES_TO_METERS_SCALE);
 	}
 	
-	public static Point3d toJ3dP3d(double x, double y, double z)
-	{
+	public static Vector3f toJ3d(float x, float y, float z) {
+		return createScaledVector(x, y, z);
+	}
+
+	public static Point3f toJ3dP3f(float x, float y, float z) {
 		return createScaledPoint(x, y, z);
 	}
 
-	private static Point3d createScaledPoint(double x, double y, double z)
-	{
-		return new Point3d(x * ESConfig.ES_TO_METERS_SCALE, //
-				z * ESConfig.ES_TO_METERS_SCALE, //
-				-y * ESConfig.ES_TO_METERS_SCALE);
-	}
-
-	public static Color4f toJ3d(NifColor4 color4)
-	{
+	public static Color4f toJ3d(NifColor4 color4) {
 		return new Color4f(color4.r, color4.g, color4.b, color4.a);
 	}
 
-	public static TexCoord2f toJ3d(NifTexCoord coord)
-	{
+	public static TexCoord2f toJ3d(NifTexCoord coord) {
 		return new TexCoord2f(coord.u, -coord.v);
 	}
 
+
+	// NOTE: no scaling from nif to meters
+	public static Vector3f toJ3dNoScale(NifVector3 v) {
+		return new Vector3f(v.x, v.z, -v.y);
+	}
+
+	public static Point3d toJ3dP3d(NifVector3 v) {
+		return createScaledPoint((double)v.x, (double)v.y, (double)v.z);
+	}
+
+	public static Point3d toJ3dP3d(double x, double y, double z) {
+		return createScaledPoint(x, y, z);
+	}
+	
+	private static Point3f createScaledPoint(float x, float y, float z) {
+		return new Point3f(x * BSTriShape.ES_TO_METERS_SCALE, //
+				z * BSTriShape.ES_TO_METERS_SCALE, //
+				-y * BSTriShape.ES_TO_METERS_SCALE);
+	}
+
+	private static Vector3f createScaledVector(float x, float y, float z) {
+		return new Vector3f(x * BSTriShape.ES_TO_METERS_SCALE, //
+				z * BSTriShape.ES_TO_METERS_SCALE, //
+				-y * BSTriShape.ES_TO_METERS_SCALE);
+	}
+
+	private  static Point3d createScaledPoint(double x, double y, double z) {
+		return new Point3d(x * BSTriShape.ES_TO_METERS_SCALE, //
+				z * BSTriShape.ES_TO_METERS_SCALE, //
+				-y * BSTriShape.ES_TO_METERS_SCALE);
+	}
+
+	//package level
+	static Point3f toJ3dP3fNif(NifVector3 v, float scale) {
+		return new Point3f(v.x * BSTriShape.ES_TO_METERS_SCALE * scale, //
+				v.z * BSTriShape.ES_TO_METERS_SCALE * scale, //
+				-v.y * BSTriShape.ES_TO_METERS_SCALE * scale);
+	}
+	
+	//package level
+	static Point3f toJ3dP3fNif(NifVector4 v, float scale) {
+		return new Point3f(v.x * BSTriShape.ES_TO_METERS_SCALE * scale, //
+				v.z * BSTriShape.ES_TO_METERS_SCALE * scale, //
+				-v.y * BSTriShape.ES_TO_METERS_SCALE * scale);
+	}
+
+	
 }

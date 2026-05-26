@@ -7,6 +7,7 @@ import org.jogamp.java3d.Node;
 import org.jogamp.java3d.Transform3D;
 import org.jogamp.java3d.TransformGroup;
 import org.jogamp.java3d.utils.shader.Cube;
+import org.jogamp.vecmath.Vector3f;
 
 import nif.NifVer;
 import nif.j3d.animation.SequenceAlpha.SequenceAlphaListener;
@@ -18,6 +19,8 @@ import utils.convert.ConvertFromNif;
 
 public abstract class J3dNiAVObject extends J3dNiObjectNET implements SequenceAlphaListener
 {
+	public static final float STF_TRANS_SCALE = 32;
+
 	protected NiAVObject niAVObject;
 
 	public Cube visualMarker;
@@ -48,16 +51,19 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET implements SequenceAl
 				}*/
 		if (!ignoreTopTransformTrans(niAVObject))
 		{
-			t1.setTranslation(ConvertFromNif.toJ3d(niAVObject.translation));
+			Vector3f t = ConvertFromNif.toJ3d(niAVObject.translation);
+			if(this instanceof J3dBSGeometry) //TODO: just the new BSGeometries or all NiNodes as well?
+				t.scale(STF_TRANS_SCALE);//FIXME: unknown, related to scale in BSMeshData, and ROTR in InstRECO
+			t1.setTranslation(t);
 		} 
 		t1.setScale(niAVObject.scale);
 
 		this.setTransform(t1);
 	}
 
-	//  Oblivion does not ignore root rotations (will return false here
+	// Oblivion does not ignore root rotations (will return false here)
 	// all other games assume the placement type operations happen on the root node
-	// except morrowind does not ignore Bip01 node transforms
+	// except Morrowind does not ignore Bip01 node transforms
 	public static boolean ignoreTopTransformRot(NiAVObject niAVObject)
 	{
 		boolean ignoreTopTransform = (niAVObject instanceof BSFadeNode) || //fallout and upwards
@@ -66,7 +72,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET implements SequenceAl
 		return ignoreTopTransform;
 	}
 	// Morrowind also ignores the root translations (but does not ignore Bip01 node transforms)
-	// not sure what other games think?see if you see floaty mcfloatsters
+	// not sure what other games think? see if you see floaty mcfloatsters
 	public static boolean ignoreTopTransformTrans(NiAVObject niAVObject)
 	{
 		boolean ignoreTopTransform = (niAVObject.nVer.LOAD_VER < NifVer.VER_10_0_1_0 && // morrowind

@@ -21,7 +21,6 @@ import nif.niobject.NiKeyframeData;
 import nif.niobject.NiTransformData;
 import nif.niobject.interpolator.NiTransformInterpolator;
 import tools.WeakValueHashMap;
-import utils.ESConfig;
 import utils.convert.ConvertFromNif;
 
 /**
@@ -206,9 +205,9 @@ public class J3dNiTransformInterpolator extends J3dNiInterpolator
 					float[] positions = new float[translations.value.length];
 					for (int i = 0; i < translations.time.length; i++) {
 						//positions[i] = ConvertFromNif.toJ3dP3f(x,y,z);
-						positions[i*3+0] = translations.value[i*3+0] * ESConfig.ES_TO_METERS_SCALE;
-						positions[i*3+1] = translations.value[i*3+2] * ESConfig.ES_TO_METERS_SCALE;
-						positions[i*3+2] = -translations.value[i*3+1] * ESConfig.ES_TO_METERS_SCALE;
+						positions[i*3+0] = ConvertFromNif.toJ3d(translations.value[i*3+0]);
+						positions[i*3+1] = ConvertFromNif.toJ3d(translations.value[i*3+2]);
+						positions[i*3+2] = ConvertFromNif.toJ3d(-translations.value[i*3+1]);
 					}
 					data = new TranslationData(knots, positions);
 					

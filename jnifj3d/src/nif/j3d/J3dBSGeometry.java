@@ -11,6 +11,7 @@ import org.jogamp.java3d.J3DBuffer;
 import org.jogamp.java3d.Shape3D;
 import org.jogamp.java3d.TransparencyAttributes;
 import org.jogamp.vecmath.Color3f;
+import org.jogamp.vecmath.Point3d;
 
 import nif.appearance.NiGeometryAppearance;
 import nif.niobject.bs.BSGeometry;
@@ -80,11 +81,15 @@ public class J3dBSGeometry extends J3dNiAVObject implements Fadable
 			{
 				getShape().setBoundsAutoCompute(false);// expensive to do regularly so animated node just get one
 				//TODO: possibly bounding box rather than bounding sphere?
-				getShape().setBounds(new BoundingSphere(ConvertFromNif.toJ3dP3d(bsGeometry.BoundingSphere.Center), ConvertFromNif.toJ3d(bsGeometry.BoundingSphere.Radius)));
+				
+				Point3d c = ConvertFromNif.toJ3dP3d(bsGeometry.BoundingSphere.Center);
+				c.scale(STF_TRANS_SCALE);
+				float r = ConvertFromNif.toJ3d(bsGeometry.BoundingSphere.Radius);
+				r *= STF_TRANS_SCALE;
+				
+				getShape().setBounds(new BoundingSphere(c, r));
 			}
 		}
-
-		
 	}
 	
 
@@ -110,6 +115,7 @@ public class J3dBSGeometry extends J3dNiAVObject implements Fadable
 
 	private static void fillIn(GeometryArray ga, BSMeshData data) {
 
+		
 		ga.setCoordRefBuffer(new J3DBuffer(data.verticesOptBuf));
 
 		if (data.normalsOptBuf != null) 
@@ -151,6 +157,7 @@ public class J3dBSGeometry extends J3dNiAVObject implements Fadable
 			} else {
 				data = bsGeometry.Meshes[0].Mesh.MeshData;
 			}
+			
 
 			if (data.IndicesSize > 0) {
 				// All tex units use the 0ith , all others are ignored

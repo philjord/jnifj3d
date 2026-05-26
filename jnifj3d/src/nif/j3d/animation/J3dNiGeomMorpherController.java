@@ -23,7 +23,7 @@ import nif.niobject.NiMorphData;
 import nif.niobject.controller.NiGeomMorpherController;
 import nif.niobject.interpolator.NiInterpolator;
 import tools3d.utils.scenegraph.VaryingLODBehaviour;
-import utils.ESConfig;
+import utils.convert.ConvertFromNif;
 
 public class J3dNiGeomMorpherController extends J3dNiTimeController
 {
@@ -172,9 +172,10 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 			final NifMorph localCurrentNifMorph = currentNifMorph;
 
 			currentGeoArray.updateData(new GeometryUpdater() {
+				@Override
 				public void updateData(Geometry geometry)
 				{
-					// Note teh below only works if character attachment constantly resetting for us
+					// Note the below only works if character attachment constantly resetting for us
 
 					FloatBuffer coordRefFloat = (FloatBuffer) currentGeoArray.getCoordRefBuffer().getBuffer();
 					FloatBuffer baseCoords = (FloatBuffer) baseGeoArray.getCoordRefBuffer().getBuffer();
@@ -186,9 +187,9 @@ public class J3dNiGeomMorpherController extends J3dNiTimeController
 						float z1 = baseCoords.get((i * 3) + 2);
 
 						// notice ConvertFromNif work here
-						float x2 = localCurrentNifMorph.vectors[i].x * ESConfig.ES_TO_METERS_SCALE;
-						float y2 = localCurrentNifMorph.vectors[i].z * ESConfig.ES_TO_METERS_SCALE;
-						float z2 = -localCurrentNifMorph.vectors[i].y * ESConfig.ES_TO_METERS_SCALE;
+						float x2 = ConvertFromNif.toJ3d(localCurrentNifMorph.vectors[i].x);
+						float y2 = ConvertFromNif.toJ3d(localCurrentNifMorph.vectors[i].z);
+						float z2 = ConvertFromNif.toJ3d(-localCurrentNifMorph.vectors[i].y);
 
 						coordRefFloat.put((i * 3) + 0, x1 + (x2 * (interpValue)));
 						coordRefFloat.put((i * 3) + 1, y1 + (y2 * (interpValue)));
