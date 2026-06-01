@@ -29,7 +29,7 @@ import nif.niobject.NiBinaryExtraData;
 import nif.niobject.NiObject;
 import nif.niobject.NiTriBasedGeom;
 import nif.niobject.NiTriBasedGeomData;
-import nif.tools.MiniFloat;
+import nif.tools.FP16;
 import tools.WeakValueHashMap;
 import tools3d.utils.Utils3D;
 import utils.source.TextureSource;
@@ -358,7 +358,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 								int startPos2 = interleavedBuffer.position();
 								for (int c = 0; c < 3; c++)
 								{
-									short hf = (short) MiniFloat.fromFloat(verticesOptBuf.get());
+									short hf = FP16.toHalf(verticesOptBuf.get());
 									interleavedBuffer.putShort(hf);
 								}
 
@@ -409,7 +409,7 @@ public abstract class J3dNiTriBasedGeom extends J3dNiGeometry
 									int startPos = interleavedBuffer.position();
 									for (int c = 0; c < texStride; c++)
 									{
-										short hf = (short) MiniFloat.fromFloat(uVSetsOptBuf.get());
+										short hf = FP16.toHalf(uVSetsOptBuf.get());
 										interleavedBuffer.putShort(hf);
 									}
 

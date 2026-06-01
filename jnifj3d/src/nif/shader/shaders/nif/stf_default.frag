@@ -3,7 +3,7 @@
 #extension GL_EXT_gpu_shader4 : enable
 //NOTE changed from 120 and nothing, so GLES is gonna have trouble
 
-//End of FFP inputs - note all attributes above this line are discarded in GLSLSourceCodeShader!
+//End of FFP inputs
 
 // FROM https://github.com/fo76utils/nifskope/tree/develop/res/shaders
 
@@ -243,17 +243,13 @@ uniform	mat3	envMapRotation;				// view space to environment map
 	
 	//I don't have uniforms.glsl so here are some defaults
 	float	toneMapScale = 0.5;				// 1.0 = full tone mapping
-	float	brightnessScale = 1.0;
-	float	glowScale = 10.0;
+	float	brightnessScale = 1.0; 			// only used in tone mapping which is disabled for now
+	float	glowScale = 100.0;				// FIXME: used in emissiveIntensity seems like a 0-100 scale?
 	int		sfParallaxMaxSteps = 1;
-	float	sfParallaxScale = 0.0;
-	float	sfParallaxOffset = 0.0;
+	float	sfParallaxScale = 1.0;
+	float	sfParallaxOffset = 0.1;
 	
 	
-	
-	
-	
-
 
 uniform samplerCube	CubeMap;
 uniform samplerCube	CubeMap2;
@@ -421,12 +417,19 @@ vec2 parallaxMapping( int n, vec3 V, vec2 offset )
 	return mix( currentTextureCoords, prevTCoords, weight );
 }
  
+ 
+ uniform int highlighter = 0;// just for testy debugs
+ 
+ 
 void main()
 {	 																								//fragColor = texture(textureUnits[3].s2D, texCoord.st);return;	
 	//uniforms.glsl need setting from my normal ffp style uniforms
 	lightSourceAmbient = glLightModelambient;
 	lightSourceDiffuse[0] = glLightSource[0].diffuse;
 	lightSourceDiffuse[1] = glLightSource[1].diffuse;
+	
+	// just for testy debugs
+	if(highlighter==1){fragColor =  vec4(1,1,0,1);return;}
 					
 															
 	if ( lm.shaderModel == 45 )	// "Invisible"
@@ -450,7 +453,7 @@ void main()
 		if ( i > 0 )
 			blendMode = lm.blenders[i - 1].blendMode;
 
-		vec2	offset = getTexCoord( lm.layers[i].uvStream );  									//	fragColor = texture(textureUnits[3].s2D, offset);return;						 			
+		vec2	offset = getTexCoord( lm.layers[i].uvStream );  									//fragColor = texture(textureUnits[3].s2D, offset);return;						 			
 		// _height.dds
 		if ( lm.layers[i].material.textureSet.textures[6] >= 1 )
 			offset = parallaxMapping( lm.layers[i].material.textureSet.textures[6], normalize( ViewDir_norm * btnMatrix_norm ), offset );
@@ -473,27 +476,27 @@ void main()
 		if ( lm.layers[i].material.textureSet.textures[1] != 0 ) {
 			layerNormal.rg = getLayerTexture(i, 1, offset).rg * lm.layers[i].material.textureSet.floatParam;
 			// Calculate missing blue channel
-			layerNormal.b = sqrt(max(1.0 - dot(layerNormal.rg, layerNormal.rg), 0.0)) ;			//fragColor =  vec4(layerNormal,1);return;				
+			layerNormal.b = sqrt(max(1.0 - dot(layerNormal.rg, layerNormal.rg), 0.0)) ;				//fragColor =  vec4(layerNormal,1);return;				
 		}
 		
 		
 		// _rough.dds
 		if ( lm.layers[i].material.textureSet.textures[3] != 0 )
 			layerPBRMap.r = getLayerTexture(i, 3, offset).r;	
-																								//fragColor =  vec4(layerPBRMap,1);return;	
+																									//fragColor =  vec4(layerPBRMap,1);return;	
 		
 		// _metal.dds
 		if ( lm.layers[i].material.textureSet.textures[4] != 0 )
 			layerPBRMap.g = getLayerTexture(i, 4, offset).r;
-																								//fragColor =  vec4(layerPBRMap,1);return;	
+																									//fragColor =  vec4(layerPBRMap,1);return;	
 																							
 		// _ao.dds
 		if ( lm.layers[i].material.textureSet.textures[5] != 0 )
-			layerPBRMap.b = getLayerTexture(i, 5, offset).r;									//fragColor =  vec4(layerPBRMap,1);return;	
+			layerPBRMap.b = getLayerTexture(i, 5, offset).r;										//fragColor =  vec4(layerPBRMap,1);return;	
 
 		// falloff
 		float	f = 1.0;
-		if ( ( lm.layeredEdgeFalloff.flags & ( 1 << i ) ) != 0 ) {								fragColor =  vec4(0,1,0,1);return;	//signal
+		if ( ( lm.layeredEdgeFalloff.flags & ( 1 << i ) ) != 0 ) {									//fragColor =  vec4(0,1,0,1);return;	//signal
 			float	startAngle = cos( radians(lm.layeredEdgeFalloff.falloffStartAngles[i]) );
 			float	stopAngle = cos( radians(lm.layeredEdgeFalloff.falloffStopAngles[i]) );
 			float	startOpacity = lm.layeredEdgeFalloff.falloffStartOpacities[i];
@@ -514,7 +517,7 @@ void main()
 		if ( i == 0 ) {
 			if ( lm.decalSettings.isDecal && lm.layers[0].material.textureSet.textures[0] == 0 )
 				discard;
-			baseMap = layerBaseMap;																//fragColor =  vec4(baseMap,1);return;
+			baseMap = layerBaseMap;																	//fragColor =  vec4(baseMap,1);return;
 			normal = layerNormal;
 			pbrMap = layerPBRMap;
 			baseAlpha = 1.0;
@@ -549,7 +552,7 @@ void main()
 					if ( !lm.blenders[i - 1].boolParams[4] )
 						layerNormal += normal;
 				}
-				srcMask = clamp( srcMask, 0.0, 1.0 ) * f;										//	fragColor  =  vec4(srcMask,0,0,1);return;	 
+				srcMask = clamp( srcMask, 0.0, 1.0 ) * f;											//fragColor  =  vec4(srcMask,0,0,1);return;	 
 				if ( lm.blenders[i - 1].boolParams[0] )
 					baseMap = min( mix( baseMap, layerBaseMap, srcMask ), vec3(1.0) );	// blend color
 				layerPBRMap = min( mix( pbrMap, layerPBRMap, srcMask ), vec3(1.0) );
@@ -602,7 +605,7 @@ void main()
 				} else if ( i == 0 ) {
 					baseAlpha = a;																		
 				}
-			} else if ( lm.alphaSettings.hasOpacity && i == lm.alphaSettings.opacitySourceLayer ) {				//fragColor =  vec4(0.5,0,1,1);return;//signal
+			} else if ( lm.alphaSettings.hasOpacity && i == lm.alphaSettings.opacitySourceLayer ) {			//fragColor =  vec4(0.5,0,1,1);return;//signal
 				if ( (lm.layers[i].material.flags & 4) == 0 )
 					baseAlpha = getLayerTexture( i, 2, getTexCoord(lm.alphaSettings.opacityUVstream) ).r;
 				else
@@ -632,17 +635,17 @@ void main()
 			}
 			if ( maskBlender > 0 && maskBlender < numLayers )
 				tmp.a *= getBlenderMask( maskBlender - 1 );
-			emissive += getLayerTexture( i, 7, offset ).rgb * tmp.rgb * tmp.a;											//fragColor =  vec4(0,1,0,1);return;
+			emissive += getLayerTexture( i, 7, offset ).rgb * tmp.rgb * tmp.a;										//fragColor =  vec4(0,1,0,1);return;
 		}
 
-		if ( lm.layers[i].material.textureSet.textures[8] != 0 ) {														fragColor =  vec4(1,0.5,0.5,1);return;//signal
+		if ( lm.layers[i].material.textureSet.textures[8] != 0 ) {													//fragColor =  vec4(1,0,0,1);return;//signal
 			// _transmissive.dds
 			if ( lm.translucencySettings.isEnabled && i == lm.translucencySettings.transmittanceSourceLayer )
 				transmissive = vec3( getLayerTexture( i, 8, offset ).r * lm.translucencySettings.transmissiveScale );
 		}
 	}
 
-	vec4	color = vec4(1.0);
+	vec4 color = vec4(1.0);
 
 	if ( alphaFlags != 0 ) {																						//fragColor =  vec4(0.5,1,0.5,1);return;//signal
 		if ( lm.isEffect ) {
@@ -712,18 +715,19 @@ void main()
 	// Environment
 	vec3	refl = vec3(0.0);
 	vec3	ambient = lightSourceAmbient.rgb;
-	//FIXME: CubeMaps not working yet!									 
-	if ( hasCubeMap && false) {																						fragColor =  vec4(0.5,0,0.5,1);return;//signal																	
+	//FIXME: CubeMaps not working yet!			
+	// I note with this turned off I'm getting some colors appearing now, here and there						 
+	if ( hasCubeMap ) {																							//fragColor =  vec4(1,0,0,1);return;//signal																	
 		float	m = roughness * (roughness * -4.0 + 10.0);
 		refl = textureLod(CubeMap, reflectedWS, max(m, 0.0)).rgb;				
 		refl *= ambient;
-		ambient *= textureLod(CubeMap2, normalWS, 0.0).rgb;						
-	} else {
+		ambient *= textureLod(CubeMap2, normalWS, 0.0).rgb;					
+	} else {																									fragColor =  vec4(0,1,0,1);return;//signal	  												
 		ambient *= 0.08;
 		refl = ambient;
 	}
 	vec3	f = mix(f0, vec3(1.0), envLUT.r);
-	if (!hasSpecular) {																								fragColor =  vec4(0,0.5,0,1);return;//signal
+	if (!hasSpecular) {																								//fragColor =  vec4(0,0.5,0,1);return;//signal
 		albedo = baseMap;
 		diffuse = vec3(NdotL0);
 		spec = vec3(0.0);
@@ -750,7 +754,7 @@ void main()
 	color.rgb += emissive;	
 
 	// Transmissive
-	if ( lm.translucencySettings.isEnabled && lm.translucencySettings.isThin ) {									fragColor =  vec4(0,0.5,0.5,1);return;//signal
+	if ( lm.translucencySettings.isEnabled && lm.translucencySettings.isThin ) {									//fragColor =  vec4(0,0.5,0.5,1);return;//signal
 		transmissive *= albedo * ( vec3(1.0) - f ) * ao;
 		// TODO: implement flipBackFaceNormalsInViewSpace
 		color.rgb += transmissive * lightSourceDiffuse[0].rgb * max( -NdotL, 0.0 );
@@ -760,7 +764,8 @@ void main()
 			color.rgb += transmissive * lightSourceAmbient.rgb * 0.08;
 	}
 
-	color.rgb = tonemap( color.rgb * brightnessScale, toneMapScale );								 
+	//FIXME: tone map seems oddly dark and dirty
+	//color.rgb = tonemap( color.rgb * brightnessScale, toneMapScale );								 
 
 	fragColor = color;
 		

@@ -296,7 +296,11 @@ public class NifCharacter extends BranchGroup implements Fadable
 				}
 				else
 				{
+					//FIXME: Oblivion is missing these sorts of kf files? what?
+					//Meshes\characters\_male\mt_idle_a_arms_crossedloop.kf
+					
 					System.out.println("kf file does not exist :) " + currentAnimation);
+					idleAnimations.remove(currentAnimation);// non need to try again, it isn't going to magically appear
 				}
 	
 			} else if(nextAnimation.endsWith(".hkx")) {

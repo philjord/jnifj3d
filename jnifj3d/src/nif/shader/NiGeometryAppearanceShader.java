@@ -1529,14 +1529,17 @@ public class NiGeometryAppearanceShader {
 	}
 	public static class Mesh {
 
-		public boolean depthWrite;
-		public boolean depthTest;
-		public boolean translucent;//TODO: important for transparency
+		public boolean depthWrite = true;
+		public boolean depthTest = true;
+		public boolean translucent = false; 
 		
 	}
 	
 	private boolean setupProgramCE2(Program prog) {
 
+		if (OUTPUT_BINDINGS) {
+			System.out.println("****************************** setupProgramCE2 ****************************** ");
+		}
 		//https://github.com/fo76utils/nifskope/blob/develop/src/gl/renderer.cpp#L200
 		
 		if(!prog.getName().equals("stf_default.prog")) {
@@ -1552,58 +1555,77 @@ public class NiGeometryAppearanceShader {
 			return false;
 		} 
 			
-		if (OUTPUT_BINDINGS)
-			System.out.println("using prog " + prog.getName());
-
 		this.shaderProgram = prog.shaderProgram;
 				
 		// note time controllers below need appearance set on the shape now
 		shape.setAppearance(app);
-		
-		
-	
+			
 		//this shader is super complex, so we just set names furiously and then the pipeline does validation very late on
 		GLSLShaderProgram2.ALLOW_ANY_UNIFORM_NAME = true;
 
 
 		BSGeometry bsGeometry = (BSGeometry)niAVObject;
+		
+		
+		if (OUTPUT_BINDINGS)
+			System.out.println("using prog " + prog.getName() + "for BSGeometry "+ bsGeometry.name);
 
-		// not in the properties list now, just in the BSGeometry directly		
 		//https://github.com/fo76utils/nifskope/blob/develop/src/gl/renderer.cpp#L200
 		BSShaderProperty lsp = (BSShaderProperty)niToJ3dData.get(bsGeometry.ShaderProperty);
-		//BSEffectShaderProperty/BSLightingShaderProperty; 
+
 		
+		//tester to highlight bits of a model for fun
+		if (bsGeometry.name.contains("not any thing")) {
+			System.err.println("HIGHLIGHTING in yellow");
+			uni1i("highlighter", 1);
+		} else {
+			//FIXME: damn it, the reuse of shader must make unset uniforms stay as previous, gosh darn it all
+			// perhaps I want to share a shader, but give every mesh it's own shader attributes, unless the material is
+			// identical, so cache up the result of this call by material name! could be, could be			
+
+			// this can be tested by using OUTPUT_BINDINGS==true to suppress any sharing, then none of the odd errors on shader variables
+			
+			// so I need a much better shader sharign system. I wonder if teh CE1 code needs looking at as well perhaps?
+			//wtf 0 doens't reset it but -1 does! like 0 is ignored soemwhere along teh way? what?
+			// but 09 did work before so some damn oddity
+			uni1i("highlighter", -1);// shouldn't have to do this surely, or are my uniforms staying stuck on somehow??
+		}
+
 		Scene scene = new Scene();
 		Mesh mesh = new Mesh();
-		 
-		if ( lsp == null) {
+
+		if (lsp == null) {
 			System.err.println("BSLightingShaderProperty is null, sad");
 			return false;
 		}
-				
-		if(lsp.name == null || lsp.name.length()==0) {
+
+		if (lsp.name == null || lsp.name.length() == 0) {
 			//happens on things like Meshes\Markers\EditorMarkers\MarkerDummyA.nif
 			return false;
 		}
 		
+		if (OUTPUT_BINDINGS)
+			System.out.println("BSLightingShaderProperty " + lsp.name);
+		
+		
 		CE2BSMaterial ce2bsm = (CE2BSMaterial)MaterialsSource.bgsmSource.readMaterialFileCDB(lsp.name);
-		if ( ce2bsm == null ) {
+		if (ce2bsm == null) {
 			System.err.println("ce2bsm is null, also sad " + lsp.name);
 			return false;
 		}
-		CE2Material mat = ce2bsm.ce2material;		
+		CE2Material mat = ce2bsm.ce2material;
 		 
-		if ( mat == null ) {
+		if (mat == null) {
 			System.err.println("mat is null, also sad");
 			return false;
 		}
 		boolean useErrorColor = false;
 		mesh.depthWrite = true;
 		mesh.depthTest = true;
-		boolean isEffect = ( (mat.flags & CE2Material.Flag_IsEffect) != 0 && mat.shaderRoute != 0 );
-		if ( isEffect ) {
-			mesh.depthWrite =  (mat.effectSettings.flags & CE2Material.EffectFlag_ZWrite)!= 0;
-			mesh.depthTest =  (mat.effectSettings.flags & CE2Material.EffectFlag_ZTest)!= 0;
+		boolean isEffect = ((mat.flags & CE2Material.Flag_IsEffect) != 0 && mat.shaderRoute != 0);
+		if (isEffect) {
+			mesh.depthWrite = (mat.effectSettings.flags & CE2Material.EffectFlag_ZWrite) != 0;
+			mesh.depthTest = (mat.effectSettings.flags & CE2Material.EffectFlag_ZTest) != 0;
 		}
 
 		// texturing
@@ -1641,7 +1663,7 @@ public class NiGeometryAppearanceShader {
 		registerBindCube("CubeMap2", Scene.cubeMapPathSTF);
 		texunit[0]++;
 		
-		uni1b( "hasCubeMap", hasCubeMap );
+		uni1b("hasCubeMap", hasCubeMap);
 
 		// texture unit 2 is reserved for the environment BRDF LUT texture
 		//fn.glActiveTexture( GL_TEXTURE0 + texunit );
@@ -1651,361 +1673,361 @@ public class NiGeometryAppearanceShader {
 
 		//String	emptyTexturePath = "";
 
-		uni1b( "hasSpecular", scene.hasOption(Scene.DoSpecular) );
-		uni1i( "lm.shaderModel", mat.shaderModel );
+		uni1b("hasSpecular", scene.hasOption(Scene.DoSpecular));
+		uni1i("lm.shaderModel", mat.shaderModel);
 
 		// emissive settings
-		if ( (mat.flags & CE2Material.Flag_LayeredEmissivity)!=0 && scene.hasOption(Scene.DoGlow) ) {
+		if ((mat.flags & CE2Material.Flag_LayeredEmissivity) != 0 && scene.hasOption(Scene.DoGlow)) {
 			CE2Material.LayeredEmissiveSettings sp = mat.layeredEmissiveSettings;
-			uni1b( "lm.layeredEmissivity.isEnabled", sp.isEnabled );
-			uni1i( "lm.layeredEmissivity.firstLayerIndex", sp.layer1Index );
-			uni4c( "lm.layeredEmissivity.firstLayerTint", sp.layer1Tint, true );
-			uni1i( "lm.layeredEmissivity.firstLayerMaskIndex", sp.layer1MaskIndex );
-			uni1i( "lm.layeredEmissivity.secondLayerIndex", ( sp.layer2Active ?  (sp.layer2Index) : -1 ) );
-			uni4c( "lm.layeredEmissivity.secondLayerTint", sp.layer2Tint, true );
-			uni1i( "lm.layeredEmissivity.secondLayerMaskIndex", sp.layer2MaskIndex );
-			uni1i( "lm.layeredEmissivity.firstBlenderIndex", sp.blender1Index );
-			uni1i( "lm.layeredEmissivity.firstBlenderMode", sp.blender1Mode );
-			uni1i( "lm.layeredEmissivity.thirdLayerIndex", ( sp.layer3Active ?  (sp.layer3Index) : -1 ) );
-			uni4c( "lm.layeredEmissivity.thirdLayerTint", sp.layer3Tint, true );
-			uni1i( "lm.layeredEmissivity.thirdLayerMaskIndex", sp.layer3MaskIndex );
-			uni1i( "lm.layeredEmissivity.secondBlenderIndex", sp.blender2Index );
-			uni1i( "lm.layeredEmissivity.secondBlenderMode", sp.blender2Mode );
-			uni1f( "lm.layeredEmissivity.emissiveClipThreshold", sp.clipThreshold );
-			uni1b( "lm.layeredEmissivity.adaptiveEmittance", sp.adaptiveEmittance );
-			uni1f( "lm.layeredEmissivity.luminousEmittance", sp.luminousEmittance );
-			uni1f( "lm.layeredEmissivity.exposureOffset", sp.exposureOffset );
-			uni1b( "lm.layeredEmissivity.enableAdaptiveLimits", sp.enableAdaptiveLimits );
-			uni1f( "lm.layeredEmissivity.maxOffsetEmittance", sp.maxOffset );
-			uni1f( "lm.layeredEmissivity.minOffsetEmittance", sp.minOffset );
-		}	else {
-			uni1b( "lm.layeredEmissivity.isEnabled", false );
+			uni1b("lm.layeredEmissivity.isEnabled", sp.isEnabled);
+			uni1i("lm.layeredEmissivity.firstLayerIndex", sp.layer1Index);
+			uni4c("lm.layeredEmissivity.firstLayerTint", sp.layer1Tint, true);
+			uni1i("lm.layeredEmissivity.firstLayerMaskIndex", sp.layer1MaskIndex);
+			uni1i("lm.layeredEmissivity.secondLayerIndex", (sp.layer2Active ? (sp.layer2Index) : -1));
+			uni4c("lm.layeredEmissivity.secondLayerTint", sp.layer2Tint, true);
+			uni1i("lm.layeredEmissivity.secondLayerMaskIndex", sp.layer2MaskIndex);
+			uni1i("lm.layeredEmissivity.firstBlenderIndex", sp.blender1Index);
+			uni1i("lm.layeredEmissivity.firstBlenderMode", sp.blender1Mode);
+			uni1i("lm.layeredEmissivity.thirdLayerIndex", (sp.layer3Active ? (sp.layer3Index) : -1));
+			uni4c("lm.layeredEmissivity.thirdLayerTint", sp.layer3Tint, true);
+			uni1i("lm.layeredEmissivity.thirdLayerMaskIndex", sp.layer3MaskIndex);
+			uni1i("lm.layeredEmissivity.secondBlenderIndex", sp.blender2Index);
+			uni1i("lm.layeredEmissivity.secondBlenderMode", sp.blender2Mode);
+			uni1f("lm.layeredEmissivity.emissiveClipThreshold", sp.clipThreshold);
+			uni1b("lm.layeredEmissivity.adaptiveEmittance", sp.adaptiveEmittance);
+			uni1f("lm.layeredEmissivity.luminousEmittance", sp.luminousEmittance);
+			uni1f("lm.layeredEmissivity.exposureOffset", sp.exposureOffset);
+			uni1b("lm.layeredEmissivity.enableAdaptiveLimits", sp.enableAdaptiveLimits);
+			uni1f("lm.layeredEmissivity.maxOffsetEmittance", sp.maxOffset);
+			uni1f("lm.layeredEmissivity.minOffsetEmittance", sp.minOffset);
+		} else {
+			uni1b("lm.layeredEmissivity.isEnabled", false);
 		}
-		if ( (mat.flags & CE2Material.Flag_Emissive)!=0 && scene.hasOption(Scene.DoGlow) ) {
+		if ((mat.flags & CE2Material.Flag_Emissive) != 0 && scene.hasOption(Scene.DoGlow)) {
 			CE2Material.EmissiveSettings sp = mat.emissiveSettings;
-			uni1b( "lm.emissiveSettings.isEnabled", sp.isEnabled );
-			uni1i( "lm.emissiveSettings.emissiveSourceLayer", sp.sourceLayer );
-			uni4srgb( "lm.emissiveSettings.emissiveTint", sp.emissiveTint );
-			uni1i( "lm.emissiveSettings.emissiveMaskSourceBlender", sp.maskSourceBlender );
-			uni1f( "lm.emissiveSettings.emissiveClipThreshold", sp.clipThreshold );
-			uni1b( "lm.emissiveSettings.adaptiveEmittance", sp.adaptiveEmittance );
-			uni1f( "lm.emissiveSettings.luminousEmittance", sp.luminousEmittance );
-			uni1f( "lm.emissiveSettings.exposureOffset", sp.exposureOffset );
-			uni1b( "lm.emissiveSettings.enableAdaptiveLimits", sp.enableAdaptiveLimits );
-			uni1f( "lm.emissiveSettings.maxOffsetEmittance", sp.maxOffset );
-			uni1f( "lm.emissiveSettings.minOffsetEmittance", sp.minOffset );
-		}	else {
-			uni1b( "lm.emissiveSettings.isEnabled", false );
+			uni1b("lm.emissiveSettings.isEnabled", sp.isEnabled);
+			uni1i("lm.emissiveSettings.emissiveSourceLayer", sp.sourceLayer);
+			uni4srgb("lm.emissiveSettings.emissiveTint", sp.emissiveTint);
+			uni1i("lm.emissiveSettings.emissiveMaskSourceBlender", sp.maskSourceBlender);
+			uni1f("lm.emissiveSettings.emissiveClipThreshold", sp.clipThreshold);
+			uni1b("lm.emissiveSettings.adaptiveEmittance", sp.adaptiveEmittance);
+			uni1f("lm.emissiveSettings.luminousEmittance", sp.luminousEmittance);
+			uni1f("lm.emissiveSettings.exposureOffset", sp.exposureOffset);
+			uni1b("lm.emissiveSettings.enableAdaptiveLimits", sp.enableAdaptiveLimits);
+			uni1f("lm.emissiveSettings.maxOffsetEmittance", sp.maxOffset);
+			uni1f("lm.emissiveSettings.minOffsetEmittance", sp.minOffset);
+		} else {
+			uni1b("lm.emissiveSettings.isEnabled", false);
 		}
 
 		// translucency settings
-		if ( (mat.flags & CE2Material.Flag_Translucency)!=0 ) {
+		if ((mat.flags & CE2Material.Flag_Translucency) != 0) {
 			CE2Material.TranslucencySettings sp = mat.translucencySettings;
-			uni1b( "lm.translucencySettings.isEnabled", sp.isEnabled );
-			uni1b( "lm.translucencySettings.isThin", sp.isThin );
-			uni1b( "lm.translucencySettings.flipBackFaceNormalsInViewSpace", sp.flipBackFaceNormalsInVS );
-			uni1b( "lm.translucencySettings.useSSS", sp.useSSS );
-			uni1f( "lm.translucencySettings.sssWidth", sp.sssWidth );
-			uni1f( "lm.translucencySettings.sssStrength", sp.sssStrength );
-			uni1f( "lm.translucencySettings.transmissiveScale", sp.transmissiveScale );
-			uni1f( "lm.translucencySettings.transmittanceWidth", sp.transmittanceWidth );
-			uni1f( "lm.translucencySettings.specLobe0RoughnessScale", sp.specLobe0RoughnessScale );
-			uni1f( "lm.translucencySettings.specLobe1RoughnessScale", sp.specLobe1RoughnessScale );
-			uni1i( "lm.translucencySettings.transmittanceSourceLayer", sp.sourceLayer );
+			uni1b("lm.translucencySettings.isEnabled", sp.isEnabled);
+			uni1b("lm.translucencySettings.isThin", sp.isThin);
+			uni1b("lm.translucencySettings.flipBackFaceNormalsInViewSpace", sp.flipBackFaceNormalsInVS);
+			uni1b("lm.translucencySettings.useSSS", sp.useSSS);
+			uni1f("lm.translucencySettings.sssWidth", sp.sssWidth);
+			uni1f("lm.translucencySettings.sssStrength", sp.sssStrength);
+			uni1f("lm.translucencySettings.transmissiveScale", sp.transmissiveScale);
+			uni1f("lm.translucencySettings.transmittanceWidth", sp.transmittanceWidth);
+			uni1f("lm.translucencySettings.specLobe0RoughnessScale", sp.specLobe0RoughnessScale);
+			uni1f("lm.translucencySettings.specLobe1RoughnessScale", sp.specLobe1RoughnessScale);
+			uni1i("lm.translucencySettings.transmittanceSourceLayer", sp.sourceLayer);
+			
+			mesh.translucent = sp.isEnabled;
 		} else {
-			uni1b( "lm.translucencySettings.isEnabled", false );
+			uni1b("lm.translucencySettings.isEnabled", false);
 		}
 
 		// decal settings
-		if ( (mat.flags & CE2Material.Flag_IsDecal)!=0 ) {
+		if ((mat.flags & CE2Material.Flag_IsDecal) != 0) {
 			CE2Material.DecalSettings sp = mat.decalSettings;
-			uni1b( "lm.decalSettings.isDecal", sp.isDecal );
-			uni1f( "lm.decalSettings.materialOverallAlpha", sp.decalAlpha );
-			uni1i( "lm.decalSettings.writeMask", (sp.writeMask) );
-			uni1b( "lm.decalSettings.isPlanet", sp.isPlanet );
-			uni1b( "lm.decalSettings.isProjected", sp.isProjected );
-			uni1b( "lm.decalSettings.useParallaxOcclusionMapping", sp.useParallaxMapping );
-			FloatVector4	replUniform = new FloatVector4( 0.0f );
-			int	texUniform = getSFTexture(texunit, replUniform, (sp.surfaceHeightMap), 0, 0, null );
-			uni1i( "lm.decalSettings.surfaceHeightMap", texUniform );
-			uni1f( "lm.decalSettings.parallaxOcclusionScale", sp.parallaxOcclusionScale );
-			uni1b( "lm.decalSettings.parallaxOcclusionShadows", sp.parallaxOcclusionShadows );
-			uni1i( "lm.decalSettings.maxParralaxOcclusionSteps", sp.maxParallaxSteps );
-			uni1i( "lm.decalSettings.renderLayer", sp.renderLayer );
-			uni1b( "lm.decalSettings.useGBufferNormals", sp.useGBufferNormals );
-			uni1i( "lm.decalSettings.blendMode", sp.blendMode );
-			uni1b( "lm.decalSettings.animatedDecalIgnoresTAA", sp.animatedDecalIgnoresTAA );
+			uni1b("lm.decalSettings.isDecal", sp.isDecal);
+			uni1f("lm.decalSettings.materialOverallAlpha", sp.decalAlpha);
+			uni1i("lm.decalSettings.writeMask", (sp.writeMask));
+			uni1b("lm.decalSettings.isPlanet", sp.isPlanet);
+			uni1b("lm.decalSettings.isProjected", sp.isProjected);
+			uni1b("lm.decalSettings.useParallaxOcclusionMapping", sp.useParallaxMapping);
+			FloatVector4 replUniform = new FloatVector4(0.0f);
+			int texUniform = getSFTexture(texunit, replUniform, (sp.surfaceHeightMap), 0, 0, null);
+			uni1i("lm.decalSettings.surfaceHeightMap", texUniform);
+			uni1f("lm.decalSettings.parallaxOcclusionScale", sp.parallaxOcclusionScale);
+			uni1b("lm.decalSettings.parallaxOcclusionShadows", sp.parallaxOcclusionShadows);
+			uni1i("lm.decalSettings.maxParralaxOcclusionSteps", sp.maxParallaxSteps);
+			uni1i("lm.decalSettings.renderLayer", sp.renderLayer);
+			uni1b("lm.decalSettings.useGBufferNormals", sp.useGBufferNormals);
+			uni1i("lm.decalSettings.blendMode", sp.blendMode);
+			uni1b("lm.decalSettings.animatedDecalIgnoresTAA", sp.animatedDecalIgnoresTAA);
 		} else {
-			uni1b( "lm.decalSettings.isDecal", false );
+			uni1b("lm.decalSettings.isDecal", false);
 		}
 
 		// effect settings
-		uni1b( "lm.isEffect", isEffect );
-		uni1b( "lm.hasOpacityComponent", ( isEffect && (mat.flags & CE2Material.Flag_HasOpacityComponent)!=0 ) );
-		int	layeredEdgeFalloffFlags = 0;
-		if ( isEffect ) {
+		uni1b("lm.isEffect", isEffect);
+		uni1b("lm.hasOpacityComponent", (isEffect && (mat.flags & CE2Material.Flag_HasOpacityComponent) != 0));
+		int layeredEdgeFalloffFlags = 0;
+		if (isEffect) {
 			CE2Material.EffectSettings sp = mat.effectSettings;
-			if ( (mat.flags & CE2Material.Flag_LayeredEdgeFalloff)!=0 )
+			if ((mat.flags & CE2Material.Flag_LayeredEdgeFalloff) != 0)
 				layeredEdgeFalloffFlags = mat.layeredEdgeFalloff.activeLayersMask & 0x07;
-			uni1b( "lm.effectSettings.vertexColorBlend", (sp.flags & CE2Material.EffectFlag_VertexColorBlend)!=0 );
+			uni1b("lm.effectSettings.vertexColorBlend", (sp.flags & CE2Material.EffectFlag_VertexColorBlend) != 0);
 			// these settings appear to be unused, effects are always alpha tested with a threshold of 1/128
-	 
+
 			//uni1b( "lm.effectSettings.isAlphaTested", bool(sp.flags & CE2Material.EffectFlag_IsAlphaTested) );
 			//uni1f( "lm.effectSettings.alphaTestThreshold", sp.alphaThreshold );
-	 
-			uni1b( "lm.effectSettings.noHalfResOptimization",  (sp.flags & CE2Material.EffectFlag_NoHalfResOpt)!=0 );
-			uni1b( "lm.effectSettings.softEffect",  (sp.flags & CE2Material.EffectFlag_SoftEffect)!=0 );
-			uni1f( "lm.effectSettings.softFalloffDepth", sp.softFalloffDepth );
-			uni1b( "lm.effectSettings.emissiveOnlyEffect",  (sp.flags & CE2Material.EffectFlag_EmissiveOnly)!=0 );
-			uni1b( "lm.effectSettings.emissiveOnlyAutomaticallyApplied",  (sp.flags & CE2Material.EffectFlag_EmissiveOnlyAuto)!=0 );
-			uni1b( "lm.effectSettings.receiveDirectionalShadows",  (sp.flags & CE2Material.EffectFlag_DirShadows)!=0 );
-			uni1b( "lm.effectSettings.receiveNonDirectionalShadows",  (sp.flags & CE2Material.EffectFlag_NonDirShadows)!=0 );
-			uni1b( "lm.effectSettings.isGlass",  (sp.flags & CE2Material.EffectFlag_IsGlass)!=0 );
-			uni1b( "lm.effectSettings.frosting",  (sp.flags & CE2Material.EffectFlag_Frosting)!=0 );
-			uni1f( "lm.effectSettings.frostingUnblurredBackgroundAlphaBlend", sp.frostingBgndBlend );
-			uni1f( "lm.effectSettings.frostingBlurBias", sp.frostingBlurBias );
-			uni1f( "lm.effectSettings.materialOverallAlpha", sp.materialAlpha );
-			uni1b( "lm.effectSettings.zTest",  (sp.flags & CE2Material.EffectFlag_ZTest)!=0 );
-			uni1b( "lm.effectSettings.zWrite",  (sp.flags & CE2Material.EffectFlag_ZWrite)!=0 );
-			uni1i( "lm.effectSettings.blendingMode", sp.blendMode );
-			uni1b( "lm.effectSettings.backLightingEnable",  (sp.flags & CE2Material.EffectFlag_BacklightEnable)!=0 );
-			uni1f( "lm.effectSettings.backlightingScale", sp.backlightScale );
-			uni1f( "lm.effectSettings.backlightingSharpness", sp.backlightSharpness );
-			uni1f( "lm.effectSettings.backlightingTransparencyFactor", sp.backlightTransparency );
-			uni4f( "lm.effectSettings.backLightingTintColor", sp.backlightTintColor );
-			uni1b( "lm.effectSettings.depthMVFixup",  (sp.flags & CE2Material.EffectFlag_MVFixup)!=0 );
-			uni1b( "lm.effectSettings.depthMVFixupEdgesOnly",  (sp.flags & CE2Material.EffectFlag_MVFixupEdgesOnly)!=0 );
-			uni1b( "lm.effectSettings.forceRenderBeforeOIT",  (sp.flags & CE2Material.EffectFlag_RenderBeforeOIT)!=0 );
-			uni1i( "lm.effectSettings.depthBiasInUlp", sp.depthBias );
+
+			uni1b("lm.effectSettings.noHalfResOptimization", (sp.flags & CE2Material.EffectFlag_NoHalfResOpt) != 0);
+			uni1b("lm.effectSettings.softEffect", (sp.flags & CE2Material.EffectFlag_SoftEffect) != 0);
+			uni1f("lm.effectSettings.softFalloffDepth", sp.softFalloffDepth);
+			uni1b("lm.effectSettings.emissiveOnlyEffect", (sp.flags & CE2Material.EffectFlag_EmissiveOnly) != 0);
+			uni1b("lm.effectSettings.emissiveOnlyAutomaticallyApplied",
+					(sp.flags & CE2Material.EffectFlag_EmissiveOnlyAuto) != 0);
+			uni1b("lm.effectSettings.receiveDirectionalShadows", (sp.flags & CE2Material.EffectFlag_DirShadows) != 0);
+			uni1b("lm.effectSettings.receiveNonDirectionalShadows",
+					(sp.flags & CE2Material.EffectFlag_NonDirShadows) != 0);
+			uni1b("lm.effectSettings.isGlass", (sp.flags & CE2Material.EffectFlag_IsGlass) != 0);
+			uni1b("lm.effectSettings.frosting", (sp.flags & CE2Material.EffectFlag_Frosting) != 0);
+			uni1f("lm.effectSettings.frostingUnblurredBackgroundAlphaBlend", sp.frostingBgndBlend);
+			uni1f("lm.effectSettings.frostingBlurBias", sp.frostingBlurBias);
+			uni1f("lm.effectSettings.materialOverallAlpha", sp.materialAlpha);
+			uni1b("lm.effectSettings.zTest", (sp.flags & CE2Material.EffectFlag_ZTest) != 0);
+			uni1b("lm.effectSettings.zWrite", (sp.flags & CE2Material.EffectFlag_ZWrite) != 0);
+			uni1i("lm.effectSettings.blendingMode", sp.blendMode);
+			uni1b("lm.effectSettings.backLightingEnable", (sp.flags & CE2Material.EffectFlag_BacklightEnable) != 0);
+			uni1f("lm.effectSettings.backlightingScale", sp.backlightScale);
+			uni1f("lm.effectSettings.backlightingSharpness", sp.backlightSharpness);
+			uni1f("lm.effectSettings.backlightingTransparencyFactor", sp.backlightTransparency);
+			uni4f("lm.effectSettings.backLightingTintColor", sp.backlightTintColor);
+			uni1b("lm.effectSettings.depthMVFixup", (sp.flags & CE2Material.EffectFlag_MVFixup) != 0);
+			uni1b("lm.effectSettings.depthMVFixupEdgesOnly", (sp.flags & CE2Material.EffectFlag_MVFixupEdgesOnly) != 0);
+			uni1b("lm.effectSettings.forceRenderBeforeOIT", (sp.flags & CE2Material.EffectFlag_RenderBeforeOIT) != 0);
+			uni1i("lm.effectSettings.depthBiasInUlp", sp.depthBias);
 			// opacity component
-			if ( (mat.flags & CE2Material.Flag_HasOpacityComponent)!=0 ) {
-				uni1i( "lm.opacity.firstLayerIndex", mat.opacityLayer1 );
-				uni1b( "lm.opacity.secondLayerActive", (mat.flags & CE2Material.Flag_OpacityLayer2Active)!=0 );
-				if ( (mat.flags & CE2Material.Flag_OpacityLayer2Active)!=0 ) {
-					uni1i( "lm.opacity.secondLayerIndex", mat.opacityLayer2 );
-					uni1i( "lm.opacity.firstBlenderIndex", mat.opacityBlender1 );
-					uni1i( "lm.opacity.firstBlenderMode", mat.opacityBlender1Mode );
+			if ((mat.flags & CE2Material.Flag_HasOpacityComponent) != 0) {
+				uni1i("lm.opacity.firstLayerIndex", mat.opacityLayer1);
+				uni1b("lm.opacity.secondLayerActive", (mat.flags & CE2Material.Flag_OpacityLayer2Active) != 0);
+				if ((mat.flags & CE2Material.Flag_OpacityLayer2Active) != 0) {
+					uni1i("lm.opacity.secondLayerIndex", mat.opacityLayer2);
+					uni1i("lm.opacity.firstBlenderIndex", mat.opacityBlender1);
+					uni1i("lm.opacity.firstBlenderMode", mat.opacityBlender1Mode);
 				}
-				uni1b( "lm.opacity.thirdLayerActive", (mat.flags & CE2Material.Flag_OpacityLayer3Active)!=0 );
-				if ( (mat.flags & CE2Material.Flag_OpacityLayer3Active)!=0 ) {
-					uni1i( "lm.opacity.thirdLayerIndex", mat.opacityLayer3 );
-					uni1i( "lm.opacity.secondBlenderIndex", mat.opacityBlender2 );
-					uni1i( "lm.opacity.secondBlenderMode", mat.opacityBlender2Mode );
+				uni1b("lm.opacity.thirdLayerActive", (mat.flags & CE2Material.Flag_OpacityLayer3Active) != 0);
+				if ((mat.flags & CE2Material.Flag_OpacityLayer3Active) != 0) {
+					uni1i("lm.opacity.thirdLayerIndex", mat.opacityLayer3);
+					uni1i("lm.opacity.secondBlenderIndex", mat.opacityBlender2);
+					uni1i("lm.opacity.secondBlenderMode", mat.opacityBlender2Mode);
 				}
-				uni1f( "lm.opacity.specularOpacityOverride", mat.specularOpacityOverride );
+				uni1f("lm.opacity.specularOpacityOverride", mat.specularOpacityOverride);
 			}
 		}
-		if ( layeredEdgeFalloffFlags!=0 ) {
+		if (layeredEdgeFalloffFlags != 0) {
 			CE2Material.LayeredEdgeFalloff sp = mat.layeredEdgeFalloff;
-			uni3f( "lm.layeredEdgeFalloff.falloffStartAngles", sp.falloffStartAngles[0], sp.falloffStartAngles[1],sp.falloffStartAngles[2] );
-			uni3f( "lm.layeredEdgeFalloff.falloffStopAngles", sp.falloffStopAngles[0], sp.falloffStopAngles[1],sp.falloffStopAngles[2] );
-			uni3f( "lm.layeredEdgeFalloff.falloffStartOpacities", sp.falloffStartOpacities[0], sp.falloffStartOpacities[1],sp.falloffStartOpacities[2] );
-			uni3f( "lm.layeredEdgeFalloff.falloffStopOpacities", sp.falloffStopOpacities[0], sp.falloffStopOpacities[1],sp.falloffStopOpacities[2] );
-			if ( sp.useRGBFalloff )
+			uni3f("lm.layeredEdgeFalloff.falloffStartAngles", sp.falloffStartAngles[0], sp.falloffStartAngles[1],
+					sp.falloffStartAngles[2]);
+			uni3f("lm.layeredEdgeFalloff.falloffStopAngles", sp.falloffStopAngles[0], sp.falloffStopAngles[1],
+					sp.falloffStopAngles[2]);
+			uni3f("lm.layeredEdgeFalloff.falloffStartOpacities", sp.falloffStartOpacities[0],
+					sp.falloffStartOpacities[1], sp.falloffStartOpacities[2]);
+			uni3f("lm.layeredEdgeFalloff.falloffStopOpacities", sp.falloffStopOpacities[0], sp.falloffStopOpacities[1],
+					sp.falloffStopOpacities[2]);
+			if (sp.useRGBFalloff)
 				layeredEdgeFalloffFlags = layeredEdgeFalloffFlags | 0x80;
 		}
-		uni1i( "lm.layeredEdgeFalloff.flags", layeredEdgeFalloffFlags );
+		uni1i("lm.layeredEdgeFalloff.flags", layeredEdgeFalloffFlags);
 
 		// alpha settings
-		if ( (mat.flags & CE2Material.Flag_HasOpacity)!=0 ) {
-			uni1b( "lm.alphaSettings.hasOpacity", true );
-			uni1f( "lm.alphaSettings.alphaTestThreshold", mat.alphaThreshold );
-			uni1i( "lm.alphaSettings.opacitySourceLayer", mat.alphaSourceLayer );
-			uni1i( "lm.alphaSettings.alphaBlenderMode", mat.alphaBlendMode );
-			uni1b( "lm.alphaSettings.useDetailBlendMask",  (mat.flags & CE2Material.Flag_AlphaDetailBlendMask)!=0 );
-			uni1b( "lm.alphaSettings.useVertexColor",  (mat.flags & CE2Material.Flag_AlphaVertexColor)!=0 );
-			uni1i( "lm.alphaSettings.vertexColorChannel", mat.alphaVertexColorChannel );
+		if ((mat.flags & CE2Material.Flag_HasOpacity) != 0) {
+			uni1b("lm.alphaSettings.hasOpacity", true);
+			uni1f("lm.alphaSettings.alphaTestThreshold", mat.alphaThreshold);
+			uni1i("lm.alphaSettings.opacitySourceLayer", mat.alphaSourceLayer);
+			uni1i("lm.alphaSettings.alphaBlenderMode", mat.alphaBlendMode);
+			uni1b("lm.alphaSettings.useDetailBlendMask", (mat.flags & CE2Material.Flag_AlphaDetailBlendMask) != 0);
+			uni1b("lm.alphaSettings.useVertexColor", (mat.flags & CE2Material.Flag_AlphaVertexColor) != 0);
+			uni1i("lm.alphaSettings.vertexColorChannel", mat.alphaVertexColorChannel);
 			CE2Material.UVStream uvStream = mat.alphaUVStream;
-			if ( uvStream == null )
+			if (uvStream == null)
 				uvStream = CE2Material.defaultUVStream();
-			uni4f( "lm.alphaSettings.opacityUVstream.scaleAndOffset", uvStream.scaleAndOffset );
-			uni1b( "lm.alphaSettings.opacityUVstream.useChannelTwo", (uvStream.channel > 1) );
-			uni1f( "lm.alphaSettings.heightBlendThreshold", mat.alphaHeightBlendThreshold );
-			uni1f( "lm.alphaSettings.heightBlendFactor", mat.alphaHeightBlendFactor );
-			uni1f( "lm.alphaSettings.position", mat.alphaPosition );
-			uni1f( "lm.alphaSettings.contrast", mat.alphaContrast );
-			uni1b( "lm.alphaSettings.useDitheredTransparency", (mat.flags & CE2Material.Flag_DitheredTransparency)!=0 );
+			uni4f("lm.alphaSettings.opacityUVstream.scaleAndOffset", uvStream.scaleAndOffset);
+			uni1b("lm.alphaSettings.opacityUVstream.useChannelTwo", (uvStream.channel > 1));
+			uni1f("lm.alphaSettings.heightBlendThreshold", mat.alphaHeightBlendThreshold);
+			uni1f("lm.alphaSettings.heightBlendFactor", mat.alphaHeightBlendFactor);
+			uni1f("lm.alphaSettings.position", mat.alphaPosition);
+			uni1f("lm.alphaSettings.contrast", mat.alphaContrast);
+			uni1b("lm.alphaSettings.useDitheredTransparency", (mat.flags & CE2Material.Flag_DitheredTransparency) != 0);
 		} else {
-			uni1b( "lm.alphaSettings.hasOpacity", false );
+			uni1b("lm.alphaSettings.hasOpacity", false);
 		}
 
 		// detail blender settings
-		if ( ( mat.flags & CE2Material.Flag_UseDetailBlender )!=0 && mat.detailBlenderSettings.isEnabled ) {
+		if ((mat.flags & CE2Material.Flag_UseDetailBlender) != 0 && mat.detailBlenderSettings.isEnabled) {
 			CE2Material.DetailBlenderSettings sp = mat.detailBlenderSettings;
-			uni1b( "lm.detailBlender.detailBlendMaskSupported", true );
+			uni1b("lm.detailBlender.detailBlendMaskSupported", true);
 			CE2Material.UVStream uvStream = sp.uvStream;
-			if ( uvStream ==null )
+			if (uvStream == null)
 				uvStream = CE2Material.defaultUVStream();
-			FloatVector4	replUniform= new FloatVector4( 0.0f );
-			int	texUniform = getSFTexture(texunit, replUniform, (sp.texturePath), sp.textureReplacement, (sp.textureReplacementEnabled)?1:0, uvStream );
-			uni1i( "lm.detailBlender.maskTexture", texUniform );
-			if ( texUniform < 0 )
-				uni4f( "lm.detailBlender.maskTextureReplacement", replUniform );
-			uni4f( "lm.detailBlender.uvStream.scaleAndOffset", uvStream.scaleAndOffset );
-			uni1b( "lm.detailBlender.uvStream.useChannelTwo", (uvStream.channel > 1) );
+			FloatVector4 replUniform = new FloatVector4(0.0f);
+			int texUniform = getSFTexture(texunit, replUniform, (sp.texturePath), sp.textureReplacement,
+					(sp.textureReplacementEnabled) ? 1 : 0, uvStream);
+			uni1i("lm.detailBlender.maskTexture", texUniform);
+			if (texUniform < 0)
+				uni4f("lm.detailBlender.maskTextureReplacement", replUniform);
+			uni4f("lm.detailBlender.uvStream.scaleAndOffset", uvStream.scaleAndOffset);
+			uni1b("lm.detailBlender.uvStream.useChannelTwo", (uvStream.channel > 1));
 		} else {
-			uni1b( "lm.detailBlender.detailBlendMaskSupported", false );
+			uni1b("lm.detailBlender.detailBlendMaskSupported", false);
 		}
 
 		// material layers
-		int[]	texUniforms = new int[9];
-		FloatVector4[]	replUniforms = new FloatVector4[9];
+		int[] texUniforms = new int[9];
+		FloatVector4[] replUniforms = new FloatVector4[9];
 		// limit the number of layers to 6, or 2 if the shader model is Eye1Layer, or 5 for Skin5Layer
 
-		int	numLayers = countr_one( mat.layerMask & ( mat.shaderModel != 41 ?
-															( mat.shaderModel != 48 ? 0x3F : 0x1F ) : 0x03 ) );
-		uni1i( "lm.numLayers", numLayers );
-		
+		int numLayers = countr_one(
+				mat.layerMask & (mat.shaderModel != 41 ? (mat.shaderModel != 48 ? 0x3F : 0x1F) : 0x03));
+		uni1i("lm.numLayers", numLayers);
 
-		for ( int i = 0; i < numLayers; i++ ) {
+		for (int i = 0; i < numLayers; i++) {
 			CE2Material.Layer layer = mat.layers[i];
-			int	textureSlotMap = 0;
-			int	textureReplModes = 0x0055955E;	// 2, 3, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1
+			int textureSlotMap = 0;
+			int textureReplModes = 0x0055955E; // 2, 3, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1
 			CE2Material.Blender blender = null;
-			byte	blendMode = 3;	// "None"
-			if ( i!=0 ) {
+			byte blendMode = 3; // "None"
+			if (i != 0) {
 				blender = mat.blenders[i - 1];
-				if ( blender == null ) 
+				if (blender == null)
 					blender = CE2Material.defaultBlender();
 				else
 					blendMode = blender.blendMode;
-				if ( blendMode == 4 ) {
+				if (blendMode == 4) {
 					// CharacterCombine: remap color, roughness and metalness to overlay texture slots (0,3,4 . 14,15,16)
 					textureSlotMap = 0x000CC00E;
 				}
 			}
 			CE2Material.Material material = layer.material;
-			if ( material ==null ) 
+			if (material == null)
 				material = CE2Material.defaultMaterial();
 			CE2Material.TextureSet textureSet = material.textureSet;
-			if ( textureSet ==null ) 
+			if (textureSet == null)
 				textureSet = CE2Material.defaultTextureSet();
-			uni1f( "lm.layers["+(i)+"].material.textureSet.floatParam", textureSet.floatParam );
-			for ( int j = 0; j < 9; j++ ) {
-				int	k = j + ( textureSlotMap & 15 );
-				String	texturePath = textureSet.texturePaths[k];
-				int	textureReplacement = textureSet.textureReplacements[k];
-				int	textureReplacementMode =
-					( ( textureSet.textureReplacementMask & (1 << k) )==0 ? 0 : ( textureReplModes & 3 ) );
+			uni1f("lm.layers[" + (i) + "].material.textureSet.floatParam", textureSet.floatParam);
+			for (int j = 0; j < 9; j++) {
+				int k = j + (textureSlotMap & 15);
+				String texturePath = textureSet.texturePaths[k];
+				int textureReplacement = textureSet.textureReplacements[k];
+				int textureReplacementMode = ((textureSet.textureReplacementMask
+												& (1 << k)) == 0 ? 0 : (textureReplModes & 3));
 				textureSlotMap = textureSlotMap >> 4;
 				textureReplModes = textureReplModes >> 2;
 				CE2Material.UVStream uvStream = layer.uvStream;
-				if ( j == 0 ) {
-					if ( (scene.hasVisMode(Scene.VisNormalsOnly) && scene.hasOption(Scene.DoLighting)) || useErrorColor ) {
+				if (j == 0) {
+					if ((scene.hasVisMode(Scene.VisNormalsOnly) && scene.hasOption(Scene.DoLighting))
+						|| useErrorColor) {
 						texturePath = "";
-						textureReplacement = ( useErrorColor ? 0xFFFF00FF : 0xFFFFFFFF );
+						textureReplacement = (useErrorColor ? 0xFFFF00FF : 0xFFFFFFFF);
 						textureReplacementMode = 1;
-					} else if (  (texturePath == null || texturePath.length()==0) &&  textureReplacementMode==0
-								&& ( scene.options & (Scene.DoTexturing | Scene.DoErrorColor) ) != Scene.DoTexturing ) {
-						textureReplacement = ( ( scene.options & Scene.DoTexturing )!=0 ? 0xFFFF00FF : 0xFFFFFFFF );
+					} else if ((texturePath == null || texturePath.length() == 0)	&& textureReplacementMode == 0
+								&& (scene.options & (Scene.DoTexturing | Scene.DoErrorColor)) != Scene.DoTexturing) {
+						textureReplacement = ((scene.options & Scene.DoTexturing) != 0 ? 0xFFFF00FF : 0xFFFFFFFF);
 						textureReplacementMode = 1;
 					}
-				} else if ( j == 1 && !scene.hasOption(Scene.DoLighting) ) {
+				} else if (j == 1 && !scene.hasOption(Scene.DoLighting)) {
 					texturePath = "";
 					textureReplacement = 0xFFFF8080;
 					textureReplacementMode = 3;
-				} else if ( j == 2 && ( mat.flags & CE2Material.Flag_HasOpacity )!=0 && i == mat.alphaSourceLayer ) {
+				} else if (j == 2 && (mat.flags & CE2Material.Flag_HasOpacity) != 0 && i == mat.alphaSourceLayer) {
 					uvStream = mat.alphaUVStream;
 				}
-				replUniforms[j] = new FloatVector4( 0.0f );
-				texUniforms[j] = getSFTexture(texunit, replUniforms[j], texturePath, textureReplacement, textureReplacementMode, uvStream );
+				replUniforms[j] = new FloatVector4(0.0f);
+				texUniforms[j] = getSFTexture(texunit, replUniforms[j], texturePath, textureReplacement,
+						textureReplacementMode, uvStream);
 			}
-			if ( blendMode == 4 )  {
+			if (blendMode == 4) {
 				// set default color (0.5) for overlay textures in CharacterCombine blend mode
-				if ( texUniforms[0]!=0 ) {
+				if (texUniforms[0] != 0) {
 					texUniforms[0] = -1;
-					replUniforms[0] = new FloatVector4( 0.5f );
+					replUniforms[0] = new FloatVector4(0.5f);
 				}
-				if ( texUniforms[3]!=0 ) {
+				if (texUniforms[3] != 0) {
 					texUniforms[3] = -1;
-					replUniforms[3] = new FloatVector4( 0.5f );
+					replUniforms[3] = new FloatVector4(0.5f);
 				}
-				if ( texUniforms[4]!=0 ) {
+				if (texUniforms[4] != 0) {
 					texUniforms[4] = -1;
-					replUniforms[4] = new FloatVector4( 0.5f );
+					replUniforms[4] = new FloatVector4(0.5f);
 				}
 			}
-			if ( mat.shaderModel == 44 )  {	// Hair1Layer
-				if ( texUniforms[3]!=0 && ( mat.flags & CE2Material.Flag_IsHair )!=0 && mat.hairSettings !=null ) {
-					float	hairRoughness = mat.hairSettings.roughness;
+			if (mat.shaderModel == 44) { // Hair1Layer
+				if (texUniforms[3] != 0 && (mat.flags & CE2Material.Flag_IsHair) != 0 && mat.hairSettings != null) {
+					float hairRoughness = mat.hairSettings.roughness;
 					texUniforms[3] = -1;
-					replUniforms[3] = new FloatVector4( ( ( hairRoughness - 2.0f ) * hairRoughness + 2.0f ) * hairRoughness );
+					replUniforms[3] = new FloatVector4(((hairRoughness - 2.0f) * hairRoughness + 2.0f) * hairRoughness);
 				}
 			}
-			uni1iv( ("lm.layers["+(i)+"].material.textureSet.textures"), texUniforms, 9 );
-			uni4fv( ("lm.layers["+(i)+"].material.textureSet.textureReplacements"), replUniforms, 9 );
+			uni1iv(("lm.layers[" + (i) + "].material.textureSet.textures"), texUniforms, 9);
+			uni4fv(("lm.layers[" + (i) + "].material.textureSet.textureReplacements"), replUniforms, 9);
 
 			CE2Material.UVStream uvStream = layer.uvStream;
-			if ( uvStream==null )
+			if (uvStream == null)
 				uvStream = CE2Material.defaultUVStream();
-			FloatVector4	uvScaleAndOffset =  ( uvStream.scaleAndOffset );
-			uni4srgb( ("lm.layers["+(i)+"].material.color"), layer.material.color );
+			FloatVector4 uvScaleAndOffset = (uvStream.scaleAndOffset);
+			uni4srgb(("lm.layers[" + (i) + "].material.color"), layer.material.color);
 			// disable vertex color tint for 1LayerMouth
-			int	materialFlags = layer.material.colorModeFlags & ( mat.shaderModel != 9 ? 3 : 1 );
-			if ( (layer.material.flipbookFlags & 1)!=0 ) 
-				materialFlags = materialFlags | setFlipbookParameters( (layer.material), uvScaleAndOffset );
-			uni1i( ("lm.layers["+(i)+"].material.flags"), materialFlags );
-			uni4f( ("lm.layers["+(i)+"].uvStream.scaleAndOffset"), uvScaleAndOffset );
-			uni1b( ("lm.layers["+(i)+"].uvStream.useChannelTwo"), (uvStream.channel > 1) );
+			int materialFlags = layer.material.colorModeFlags & (mat.shaderModel != 9 ? 3 : 1);
+			if ((layer.material.flipbookFlags & 1) != 0)
+				materialFlags = materialFlags | setFlipbookParameters((layer.material), uvScaleAndOffset);
+			uni1i(("lm.layers[" + (i) + "].material.flags"), materialFlags);
+			uni4f(("lm.layers[" + (i) + "].uvStream.scaleAndOffset"), uvScaleAndOffset);
+			uni1b(("lm.layers[" + (i) + "].uvStream.useChannelTwo"), (uvStream.channel > 1));
 
-			if ( blender==null )
+			if (blender == null)
 				continue;
 			uvStream = blender.uvStream;
-			if ( uvStream ==null)
+			if (uvStream == null)
 				uvStream = CE2Material.defaultUVStream();
-			uni4f( ("lm.blenders["+(i - 1)+"].uvStream.scaleAndOffset" ), uvStream.scaleAndOffset );
-			uni1b( ("lm.blenders["+(i - 1)+"].uvStream.useChannelTwo"), (uvStream.channel > 1) );
-			FloatVector4	replUniform = new FloatVector4( 0.0f );
-			int	texUniform = getSFTexture(texunit, replUniform, (blender.texturePath), blender.textureReplacement, (blender.textureReplacementEnabled)?1:0, uvStream );
-			uni1i( ("lm.blenders["+(i - 1)+"].maskTexture"), texUniform );
-			if ( texUniform < 0 )
-				uni4f( ("lm.blenders["+(i - 1)+"].maskTextureReplacement"), replUniform );
-			uni1i( ("lm.blenders["+(i - 1)+"].blendMode"), (int)(blendMode) );
-			uni1i( ("lm.blenders["+(i - 1)+"].colorChannel"), (int)(blender.colorChannel) );
-			
-			//so as an example in the frag shader I have an aray of 5 blenders and each has
-			//float	floatParams[5];
-			//bool	boolParams[8];
-			// so perhaps I set them one at a time?
-			
-			uni1fv( ("lm.blenders["+(i - 1)+"].floatParams"), blender.floatParams, CE2Material.Blender.maxFloatParams );
-			uni1bv( ("lm.blenders["+(i - 1)+"].boolParams"), blender.boolParams, CE2Material.Blender.maxBoolParams );
+			uni4f(("lm.blenders[" + (i - 1) + "].uvStream.scaleAndOffset"), uvStream.scaleAndOffset);
+			uni1b(("lm.blenders[" + (i - 1) + "].uvStream.useChannelTwo"), (uvStream.channel > 1));
+			FloatVector4 replUniform = new FloatVector4(0.0f);
+			int texUniform = getSFTexture(texunit, replUniform, (blender.texturePath), blender.textureReplacement,
+					(blender.textureReplacementEnabled) ? 1 : 0, uvStream);
+			uni1i(("lm.blenders[" + (i - 1) + "].maskTexture"), texUniform);
+			if (texUniform < 0)
+				uni4f(("lm.blenders[" + (i - 1) + "].maskTextureReplacement"), replUniform);
+			uni1i(("lm.blenders[" + (i - 1) + "].blendMode"), (int)(blendMode));
+			uni1i(("lm.blenders[" + (i - 1) + "].colorChannel"), (int)(blender.colorChannel));
+			uni1fv(("lm.blenders[" + (i - 1) + "].floatParams"), blender.floatParams,
+					CE2Material.Blender.maxFloatParams);
+			uni1bv(("lm.blenders[" + (i - 1) + "].boolParams"), blender.boolParams, CE2Material.Blender.maxBoolParams );
 		}
-
 		
-		
-		
-		//TODO:
-		//I wonder if my registerBind in getSFTexture plus the TextureUnitState[] tus calls below replace this?
+		// registerBind in getSFTexture plus the TextureUnitState[] tus calls below replace this
 		//uniSampler( ("textureUnits"), 2, texunit - 2, TexCache.num_texture_units - 2 );
-		
-		
-
+	
 		//This is auto done by setting the Appearance attributes
 		//mesh.setUniforms( prog );
-		uni4f( "vertexColorOverride", new FloatVector4( scene.hasOption(Scene.DoVertexColors) ? 0.0f : 1.0f ) );
-
+		uni4f("vertexColorOverride", new FloatVector4(scene.hasOption(Scene.DoVertexColors) ? 0.0f : 1.0f));
+		
 		// setup alpha blending and testing
-
 		int	alphaFlags = 0;
-		if ( mat!=null && scene.hasOption(Scene.DoBlending) ) {
-			if ( isEffect || ( ~(mat.flags) & ( CE2Material.Flag_IsDecal | CE2Material.Flag_AlphaBlending ) )==0 ) {
-				int	blendMode;
-				if ( !isEffect ) {
+		if (mat != null && scene.hasOption(Scene.DoBlending)) {
+			if (isEffect || (~(mat.flags) & (CE2Material.Flag_IsDecal | CE2Material.Flag_AlphaBlending)) == 0) {
+				int blendMode;
+				if (!isEffect) {
 					blendMode = mat.decalSettings.blendMode;
-				} else if ( ( mat.effectSettings.flags & (CE2Material.EffectFlag_EmissiveOnly | CE2Material.EffectFlag_EmissiveOnlyAuto) )==0 ) {
+				} else if ((mat.effectSettings.flags
+							& (CE2Material.EffectFlag_EmissiveOnly | CE2Material.EffectFlag_EmissiveOnlyAuto)) == 0) {
 					blendMode = mat.effectSettings.blendMode;
 				} else {
-					blendMode = 1;	// emissive only: additive blending
+					blendMode = 1; // emissive only: additive blending
 				}
 				//setupGLBlendModeSF( blendMode, prog.f ); //TODO: possibly quite important
 				alphaFlags = 2;
 			}
 
-			if ( isEffect )
-				alphaFlags |=  ( (mat.effectSettings.flags & CE2Material.EffectFlag_IsAlphaTested)!=0 )?1:0;
+			if (isEffect)
+				alphaFlags |= ((mat.effectSettings.flags & CE2Material.EffectFlag_IsAlphaTested) != 0) ? 1 : 0;
 			else
-				alphaFlags |=  ( (mat.flags & CE2Material.Flag_HasOpacity)!=0 && mat.alphaThreshold > 0.0f )?1:0;
+				alphaFlags |= ((mat.flags & CE2Material.Flag_HasOpacity) != 0 && mat.alphaThreshold > 0.0f) ? 1 : 0;
 
 			if ( (mat.flags & CE2Material.Flag_IsDecal)!=0 ) {
 				//fn.glEnable( GL_POLYGON_OFFSET_FILL );
@@ -2013,20 +2035,34 @@ public class NiGeometryAppearanceShader {
 				pa.setPolygonOffset(0.02f);
 				pa.setPolygonOffsetFactor(0.04f);
 			}
-		}
-		 
+		}		 
 
-		uni1i( "alphaFlags", alphaFlags );
-		if ( ( alphaFlags & 2 )==0 )
+		uni1i("alphaFlags", alphaFlags);
+		if ((alphaFlags & 2) == 0)
 			ta.setTransparencyMode(TransparencyAttributes.NONE);//fn.glDisable( GL_BLEND );
+		
+		
+		//FIXME: soem thigns are transparent some are not
+		if (mesh.translucent) {
+			ta.setTransparencyMode(TransparencyAttributes.BLENDED);
+			ta.setSrcBlendFunction(TransparencyAttributes.BLEND_SRC_ALPHA);
+			ta.setDstBlendFunction(TransparencyAttributes.BLEND_ONE_MINUS_SRC_ALPHA);
+
+			// If mesh is alpha tested, override threshold (but not istestenabled notice)
+			ra.setAlphaTestFunction(RenderingAttributes.GREATER);
+			ra.setAlphaTestValue(0.1f);
+		}	
 	
-		if ( !mesh.depthTest ) 
-			ra.setDepthBufferEnable(false);//fn.glDisable( GL_DEPTH_TEST );
-		else
-			ra.setDepthBufferEnable(true);//fn.glEnable( GL_DEPTH_TEST );
+
+		//FIXME: these 3 are note working properly yet
+//		ra.setDepthBufferEnable(mesh.depthTest);
+//		ra.setDepthBufferWriteEnable(!mesh.depthWrite || mesh.translucent ? false : true);
+//		ra.setDepthTestFunction(RenderingAttributes.LESS_OR_EQUAL);
 		//fn.glDepthMask( !mesh.depthWrite || mesh.translucent ? GL_FALSE : GL_TRUE );
 		//fn.glDepthFunc( GL_LEQUAL );
-		if ( (mat.flags & CE2Material.Flag_TwoSided)!=0 ) {
+		
+				
+		if ((mat.flags & CE2Material.Flag_TwoSided) != 0) {
 			//fn.glDisable( GL_CULL_FACE );
 			pa.setCullFace(PolygonAttributes.CULL_NONE);
 			pa.setBackFaceNormalFlip(true);
@@ -2037,38 +2073,30 @@ public class NiGeometryAppearanceShader {
 			pa.setBackFaceNormalFlip(false);
 		}
 		pa.setPolygonMode(PolygonAttributes.POLYGON_FILL);//fn.glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-
 			 
-		
-		if (ra.getDepthBufferEnable() != true	|| ra.getStencilEnable() == true || ra.getDepthBufferEnable() != true
-				|| ra.getDepthBufferWriteEnable() != true || ra.getAlphaTestFunction() != RenderingAttributes.ALWAYS)
-				app.setRenderingAttributes(ra);
+		if (ra.getDepthBufferEnable() != true	|| ra.getStencilEnable() == true || ra.getDepthBufferWriteEnable() != true
+			|| ra.getAlphaTestFunction() != RenderingAttributes.ALWAYS)
+			app.setRenderingAttributes(ra);
 
-			if (pa.getCullFace() != PolygonAttributes.CULL_BACK || pa.getPolygonOffset() != 0.0
-				|| pa.getPolygonOffsetFactor() != 0.0)
-				app.setPolygonAttributes(pa);
+		if (pa.getCullFace() != PolygonAttributes.CULL_BACK || pa.getPolygonOffset() != 0.0
+			|| pa.getPolygonOffsetFactor() != 0.0)
+			app.setPolygonAttributes(pa);
 
-			if (ta.getTransparencyMode() != TransparencyAttributes.NONE)
-				app.setTransparencyAttributes(ta);
-		
-		
+		if (ta.getTransparencyMode() != TransparencyAttributes.NONE)
+			app.setTransparencyAttributes(ta);
 		
 		//there are some magic values in the shader that I'll set now for fun
 		// could be rotated about a bit I'm guessing
-		uni3m("envMapRotation", new Matrix3f(1,0,0,0,1,0,0,0,1));//identity
-			
-			
-			
+		uni3m("envMapRotation", new Matrix3f(1, 0, 0, 0, 1, 0, 0, 0, 1));//identity
+
 		//Directly from CE1 above at the end to "set" the values a bit like the mesh.setUniforms( prog ); above	
 		NiTimeController controller = null;
 		// no texture attributes
- 
+
 		//controller skipped 
 		
 		
-		
 		if (OUTPUT_BINDINGS) {
-			System.out.println("******************************");
 			System.out.println("Shader material: " + mat);
 		}
 		

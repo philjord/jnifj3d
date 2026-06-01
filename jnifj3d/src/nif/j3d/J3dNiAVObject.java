@@ -52,7 +52,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET implements SequenceAl
 		if (!ignoreTopTransformTrans(niAVObject))
 		{
 			Vector3f t = ConvertFromNif.toJ3d(niAVObject.translation);
-			if(this instanceof J3dBSGeometry) //TODO: just the new BSGeometries or all NiNodes as well?
+			if(this instanceof J3dBSGeometry)
 				t.scale(STF_TRANS_SCALE);//FIXME: unknown, related to scale in BSMeshData, and ROTR in InstRECO
 			t1.setTranslation(t);
 		} 
