@@ -3,7 +3,7 @@ package nif.j3d;
 import java.util.Iterator;
 
 import org.jogamp.java3d.Node;
-import org.jogamp.java3d.OrderedGroup;
+import org.jogamp.java3d.MyOrderedGroup;
 
 import nif.niobject.bs.BSOrderedNode;
 import utils.source.TextureSource;
@@ -11,8 +11,10 @@ import utils.source.TextureSource;
 public class J3dBSOrderedNode extends J3dNiNode
 {
 	//Note super will call addchild before this node is inited, so must be constructed on first addchild call
-	private OrderedGroup orderedGroup;
-
+	private MyOrderedGroup orderedGroup;
+	
+ 
+	
 	//NOTE this class must be set uncompactable as this screws with things J3dNiAVObject does
 	protected J3dBSOrderedNode(BSOrderedNode bSOrderedNode, NiToJ3dData niToJ3dData, TextureSource textureSource, boolean onlyNiNodes)
 	{
@@ -25,7 +27,7 @@ public class J3dBSOrderedNode extends J3dNiNode
 		if (orderedGroup == null)
 		{
 			setUncompactable();
-			orderedGroup = new OrderedGroup();
+			orderedGroup = new MyOrderedGroup();
 			super.addChild(orderedGroup);
 		}
 	}
@@ -34,11 +36,10 @@ public class J3dBSOrderedNode extends J3dNiNode
 	public void addChild(Node child)
 	{
 		configureOrderedGroup();
-		orderedGroup.insertChild(child, 0);// reverse order
+		orderedGroup.insertChild(child, 0);// reverse order //PJ I wonder why?
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public Iterator<Node> getAllChildren()
 	{
 		return orderedGroup.getAllChildren();
