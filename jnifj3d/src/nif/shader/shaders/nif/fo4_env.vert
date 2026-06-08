@@ -70,9 +70,9 @@ void main( void )
 	b = normalize(glNormalMatrix * binormal);
 	
 	// NOTE: b<->t 
-	mat3 tbnMatrix = mat3(t.x, b.x, N.x,
-                          t.y, b.y, N.y,
-                          t.z, b.z, N.z);
+	mat3 tbnMatrix = mat3(b.x, t.x, N.x,
+                          b.y, t.y, N.y,
+                          b.z, t.z, N.z);
 						  
 	v = vec3(glModelViewMatrix * glVertex);
 	

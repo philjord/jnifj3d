@@ -109,8 +109,8 @@ vec3 toGrayscale(vec3 color)
 
 vec4 colorLookup( float x, float y ) 
 {	
-	//BTDX store these as BGRA so deswizzle to RGBA
-	return  texture2D( GreyscaleMap, vec2( clamp(x, 0.0, 1.0), clamp(y, 0.0, 1.0)) ).bgra;
+	//BTDX store these as BGRA so deswizzle to RGBA - PJ no?
+	return  texture2D( GreyscaleMap, vec2( clamp(x, 0.0, 1.0), clamp(y, 0.0, 1.0)) );//.bgra;
 }
 
 float scale( float f, float min, float max )
@@ -119,8 +119,7 @@ float scale( float f, float min, float max )
 }
 
 void main( void )
-{	 
-	
+{
 	vec2 offset = glTexCoord0.st;
 
 	vec4 baseMap = texture2D( BaseMap, offset );								//gl_FragColor = baseMap;return;		
@@ -137,13 +136,13 @@ void main( void )
 	}
 	
 	//swizzle the alpha and green  
-	vec4 normalMap = vec4( texture2D( NormalMap, offset ).ag * 2.0 - 1.0, 0.0, 0.0 );
+	vec4 normalMap = vec4( texture2D( NormalMap, offset ).xy * 2.0 - 1.0, 0.0, 0.0 );
 	//re-create the z  
 	normalMap.z = sqrt( 1.0 - dot( normalMap.xy,normalMap.xy ) );    			//gl_FragColor =  normalMap;return;
 
 	// spec only use 2 value r and g below (r is gloss, g is spec)
 	//https://www.reddit.com/r/FalloutMods/comments/3uaq1l/fo4_lets_talk_about_texture_creation_editing/
-	vec2 specMap = texture2D( SpecularMap, offset ).ag; 						//gl_FragColor =  vec4(specMap,0,1);return;
+	vec2 specMap = texture2D( SpecularMap, offset ).rg; 						//gl_FragColor =  vec4(specMap,0,1);return;
 	 
 	 
 	vec3 normal = normalize(normalMap.rgb * 2.0 - 1.0);
@@ -162,10 +161,10 @@ void main( void )
 	float LdotH = max( dot(L, H), 0.000001 );
 	float NdotNegL = max( dot(normal, -L), 0.000001 );
 
-	vec3 reflected = reflect( V, normal );
+/*	vec3 reflected = reflect( V, normal );
 	vec3 reflectedVS = t * reflected.x + b * reflected.y + N * reflected.z;
 	vec3 reflectedWS = vec3( glModelMatrix * (glModelViewMatrixInverse * vec4( reflectedVS, 0.0 )) );
-
+*/
 
 	vec4 color;
 	vec3 albedo = baseMap.rgb * C.rgb;										//gl_FragColor =  vec4(albedo,1);return;
@@ -250,7 +249,7 @@ void main( void )
 
 	color.rgb = albedo * (diffuse + emissive);	
 	color.rgb += spec;
-	color.rgb = tonemap( color.rgb ) / tonemap( vec3(1.0) );
+	color.rgb = tonemap( color.rgb ) / tonemap( vec3(1.0) ); 
 
 	color.a = C.a * baseMap.a;
 

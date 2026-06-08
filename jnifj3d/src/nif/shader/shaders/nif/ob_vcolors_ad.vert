@@ -73,7 +73,7 @@ void main( void )
 	b = normalize(glNormalMatrix * binormal);
 	
 	// NOTE: b<->t 
-	mat3 tbnMatrix = mat3(b.x, t.x, N.x, 
+	mat3 tbnMatrix = mat3(b.x, t.x, N.x,
                           b.y, t.y, N.y,
                           b.z, t.z, N.z);
 						  

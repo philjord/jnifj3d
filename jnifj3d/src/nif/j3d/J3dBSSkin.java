@@ -70,7 +70,7 @@ public class J3dBSSkin extends J3dSkin
 	private Transform3D accumulatorTrans = new Transform3D();
 
 	private float[] currentCoordRefFloatbf;	
-	private static float[] currentCoordRefFloatbfClearer = new float[40000];// is 20k big enough?
+	private static float[] currentCoordRefFloatbfClearer = new float[1000];// auto enlarged when needed
 	private float[] baseCoordRefFloatbf;
 
 	@Override
@@ -98,6 +98,8 @@ public class J3dBSSkin extends J3dSkin
 				currentCoordRefFloat.get(currentCoordRefFloatbf);
 			}
 			//clear out current in order to accum into it
+			if(currentCoordRefFloatbfClearer.length < currentCoordRefFloatbf.length)
+				currentCoordRefFloatbfClearer = new float[currentCoordRefFloatbf.length];
 			System.arraycopy(currentCoordRefFloatbfClearer, 0, currentCoordRefFloatbf, 0, currentCoordRefFloatbf.length);
 		}
 		else			

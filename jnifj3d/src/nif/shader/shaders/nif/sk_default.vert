@@ -46,20 +46,19 @@ varying vec2 glTexCoord0;
 attribute vec3 tangent;
 attribute vec3 binormal;
 
-uniform int isVertexAlphaAnimation;
-
 varying vec3 LightDir;
 varying vec3 ViewVec;
 
-varying vec3 N;
-varying vec3 t;
-varying vec3 b;
-varying vec3 v;
+vec3 N;
+vec3 t;
+vec3 b;
+vec3 v;
 
 varying vec4 A;
 varying vec4 C;
 varying vec4 D;
 
+uniform int isVertexAlphaAnimation;
 
 void main( void )
 {

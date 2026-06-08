@@ -57,8 +57,8 @@ varying vec3 v;
 
 vec4 colorLookup( float x, float y ) 
 {	
-	//BTDX store these as BGRA so deswizzle to RGBA
-	return  texture2D( GreyscaleMap, vec2( clamp(x, 0.0, 1.0), clamp(y, 0.0, 1.0)) ).bgra;
+	//BTDX store these as BGRA so deswizzle to RGBA - PJ no?
+	return  texture2D( GreyscaleMap, vec2( clamp(x, 0.0, 1.0), clamp(y, 0.0, 1.0)) );//.bgra;
 }
 
 void main( void )
@@ -78,10 +78,10 @@ void main( void )
 		//alphaTestFunction==519//always (always keep it)
 	}
 	//swizzle the alpha and green  
-	vec4 normalMap = vec4( texture2D( NormalMap, offset ).ag * 2.0 - 1.0, 0.0, 0.0 );
+	vec4 normalMap = vec4( texture2D( NormalMap, offset ).xy * 2.0 - 1.0, 0.0, 0.0 );
 	//re-create the z  
 	normalMap.z = sqrt( 1.0 - dot( normalMap.xy,normalMap.xy ) ); 
-	vec2 specMap = texture2D( SpecularMap, offset ).ag; 
+	vec2 specMap = texture2D( SpecularMap, offset ).rg; 
 	
 	vec3 normal = N;
 	if ( bool(hasNormalMap) ) {

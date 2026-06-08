@@ -422,7 +422,14 @@ vec2 parallaxMapping( int n, vec3 V, vec2 offset )
  
  
 void main()
-{	 																								//fragColor = texture(textureUnits[3].s2D, texCoord.st);return;	
+{	
+
+//fragColor =  glLightModelambient;return;
+//fragColor =  vec4(glLightSource[1].diffuse.rg,1,1);return;// 0 and 1 both coming through as black, what dir? 
+// I know ambinet is fine (check it) is this a scope issue?																								//fragColor = texture(textureUnits[3].s2D, texCoord.st);return;	
+	
+	
+	
 	//uniforms.glsl need setting from my normal ffp style uniforms
 	lightSourceAmbient = glLightModelambient;
 	lightSourceDiffuse[0] = glLightSource[0].diffuse;

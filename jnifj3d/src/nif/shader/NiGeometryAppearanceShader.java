@@ -1823,14 +1823,10 @@ public class NiGeometryAppearanceShader {
 		}
 		if (layeredEdgeFalloffFlags != 0) {
 			CE2Material.LayeredEdgeFalloff sp = mat.layeredEdgeFalloff;
-			uni3f("lm.layeredEdgeFalloff.falloffStartAngles", sp.falloffStartAngles[0], sp.falloffStartAngles[1],
-					sp.falloffStartAngles[2]);
-			uni3f("lm.layeredEdgeFalloff.falloffStopAngles", sp.falloffStopAngles[0], sp.falloffStopAngles[1],
-					sp.falloffStopAngles[2]);
-			uni3f("lm.layeredEdgeFalloff.falloffStartOpacities", sp.falloffStartOpacities[0],
-					sp.falloffStartOpacities[1], sp.falloffStartOpacities[2]);
-			uni3f("lm.layeredEdgeFalloff.falloffStopOpacities", sp.falloffStopOpacities[0], sp.falloffStopOpacities[1],
-					sp.falloffStopOpacities[2]);
+			uni1fv("lm.layeredEdgeFalloff.falloffStartAngles", sp.falloffStartAngles, 3);
+			uni1fv("lm.layeredEdgeFalloff.falloffStopAngles", sp.falloffStopAngles, 3);
+			uni1fv("lm.layeredEdgeFalloff.falloffStartOpacities", sp.falloffStartOpacities, 3);
+			uni1fv("lm.layeredEdgeFalloff.falloffStopOpacities", sp.falloffStopOpacities, 3);
 			if (sp.useRGBFalloff)
 				layeredEdgeFalloffFlags = layeredEdgeFalloffFlags | 0x80;
 		}
