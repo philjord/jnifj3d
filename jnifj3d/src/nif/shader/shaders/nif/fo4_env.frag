@@ -135,8 +135,8 @@ void main( void )
 		//alphaTestFunction==519//always (always keep it)
 	}
 	
-	//swizzle the alpha and green  
-	vec4 normalMap = vec4( texture2D( NormalMap, offset ).xy * 2.0 - 1.0, 0.0, 0.0 );
+	//swizzle the alpha and green  PJ, no.
+	vec4 normalMap = vec4( texture2D( NormalMap, offset ).xy * 2.0 - 1.0, 0.0, 0.0 ); 
 	//re-create the z  
 	normalMap.z = sqrt( 1.0 - dot( normalMap.xy,normalMap.xy ) );    			//gl_FragColor =  normalMap;return;
 
@@ -144,14 +144,13 @@ void main( void )
 	//https://www.reddit.com/r/FalloutMods/comments/3uaq1l/fo4_lets_talk_about_texture_creation_editing/
 	vec2 specMap = texture2D( SpecularMap, offset ).rg; 						//gl_FragColor =  vec4(specMap,0,1);return;
 	 
-	 
-	vec3 normal = normalize(normalMap.rgb * 2.0 - 1.0);
+	vec3 normal = normalize(normalMap.rgb * 2.0 - 1.0);							//gl_FragColor =  vec4(normal,1);return;
 	if ( !gl_FrontFacing && bool(doubleSided) ) {
 		normal *= -1.0;	
 	}																		//gl_FragColor =  vec4(normal,1);return;
 	
-	vec3 L = normalize(LightDir);											//gl_FragColor =  vec4(L,1);return;
-	vec3 V = normalize(ViewVec);											//gl_FragColor =  vec4(V,1);return;
+	vec3 L = normalize(LightDir);											//if(normal.x<0.9){gl_FragColor =  vec4(L,1);return;}
+	vec3 V = normalize(ViewVec);											//if(normal.x<0.9){gl_FragColor =  vec4(V,1);return;}
 	vec3 R = reflect(-L, normal);											//gl_FragColor =  vec4(R,1);return;
 	vec3 H = normalize( L + V );											//gl_FragColor =  vec4(H,1);return;
 	

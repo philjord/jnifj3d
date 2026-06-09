@@ -68,6 +68,8 @@ void main( void )
 	t = normalize(glNormalMatrix * tangent);
 	b = normalize(glNormalMatrix * binormal);
 	
+	b = cross( N, t ); // my binormal attribute data seems corrupt
+	
 	// NOTE: b<->t 
 	mat3 tbnMatrix = mat3(b.x, t.x, N.x,
                           b.y, t.y, N.y,
