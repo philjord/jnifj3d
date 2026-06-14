@@ -28,7 +28,6 @@ import nif.niobject.NiTriShape;
 import nif.niobject.RootCollisionNode;
 import nif.niobject.bhk.bhkCollisionObject;
 import nif.niobject.bs.BSTreeNode;
-import old.utils.SoftValueHashMap;
 import tools.WeakValueHashMap;
 import tools3d.utils.PhysAppearance;
 import utils.optimize.NifFileOptimizer;
@@ -44,9 +43,9 @@ public class NifToJ3d
 	public static boolean USE_SHADERS = false;
 
 	//Note this is caching the file read operations, not the j3d built object which are not shared
-	private static SoftValueHashMap<String, NifFile> loadedFiles = new SoftValueHashMap<String, NifFile>();	
+	//private static SoftValueHashMap<String, NifFile> loadedFiles = new SoftValueHashMap<String, NifFile>();	
 	
-	//private static Map<String, NifFile> loadedFiles = Collections.synchronizedMap(new WeakValueHashMap<String, NifFile>());
+	private static Map<String, NifFile> loadedFiles = Collections.synchronizedMap(new WeakValueHashMap<String, NifFile>());
 	
 //	private static Map<String, NifFile> loadedFiles = Collections.synchronizedMap(new WeakHashMap<String, NifFile>());
 	
