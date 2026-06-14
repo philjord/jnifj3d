@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 import org.jogamp.java3d.Group;
 
@@ -27,6 +28,7 @@ import nif.niobject.NiTriShape;
 import nif.niobject.RootCollisionNode;
 import nif.niobject.bhk.bhkCollisionObject;
 import nif.niobject.bs.BSTreeNode;
+import old.utils.SoftValueHashMap;
 import tools.WeakValueHashMap;
 import tools3d.utils.PhysAppearance;
 import utils.optimize.NifFileOptimizer;
@@ -42,12 +44,13 @@ public class NifToJ3d
 	public static boolean USE_SHADERS = false;
 
 	//Note this is caching the file read operations, not the j3d built object which are not shared
-	//private static SoftValueHashMap<String, NifFile> loadedFiles = new SoftValueHashMap<String, NifFile>();
+	private static SoftValueHashMap<String, NifFile> loadedFiles = new SoftValueHashMap<String, NifFile>();	
 	
-	
-	private static Map<String, NifFile> loadedFiles = Collections.synchronizedMap(new WeakValueHashMap<String, NifFile>());
+	//private static Map<String, NifFile> loadedFiles = Collections.synchronizedMap(new WeakValueHashMap<String, NifFile>());
 	
 //	private static Map<String, NifFile> loadedFiles = Collections.synchronizedMap(new WeakHashMap<String, NifFile>());
+	
+	private static Map<J3dNiAVObject, NifFile> inUseJ3dRoots = Collections.synchronizedMap(new WeakHashMap<J3dNiAVObject, NifFile>());
 
 	// we can't request the same file at the same time, this tell threads to wait for each other
 	private static Set<String> loadingFiles = Collections.synchronizedSet(new HashSet<String>());
@@ -58,9 +61,11 @@ public class NifToJ3d
 	}
 
 	//private static RequestStats requestStats = new RequestStats(loadedFiles);
-
+		
+	private static HashSet<String> allNifNames = new HashSet<String> ();
 	/**
 	 * This is a caching system and should generally be the ONLY class to call getNifFile on a MeshSource or else trouble
+	 * NOTE you should hang on to a pointer to this NifFile is possible to reduce reloads from the archive file
 	 * @param nifFilename
 	 * @param meshSource
 	 * @return
@@ -70,41 +75,57 @@ public class NifToJ3d
 		//enable to test is caching is good
 		//requestStats.request(nifFilename);
 
-		NifFile nifFile = loadedFiles.get(nifFilename);
-
-		if (nifFile == null)
-		{
-			boolean loading = loadingFiles.contains(nifFilename);
-
-			while (loading)
-			{
-				try
-				{
-					Thread.sleep(1);
-				}
-				catch (InterruptedException e)
-				{
-					e.printStackTrace();
-				}
-
-				loading = loadingFiles.contains(nifFilename);
-
+		NifFile nifFile = null;
+		boolean loading = false;
+		// in one go check if it's loaded or loading, and then indicate this thread will load it
+		synchronized(loadedFiles) {
+			nifFile = loadedFiles.get(nifFilename);
+			loading = loadingFiles.contains(nifFilename);
+			if (nifFile == null && !loading) {
+				loadingFiles.add(nifFilename);
 			}
-
-			loadingFiles.add(nifFilename);
-
-			nifFile = meshSource.getNifFile(nifFilename);
-			if (nifFile != null)
-			{
-				NifFileOptimizer nifFileOptimizer = new NifFileOptimizer(nifFile);
-				nifFileOptimizer.optimize();
-			}
-			loadedFiles.put(nifFilename, nifFile);
-
-			loadingFiles.remove(nifFilename);
-
 		}
+		
+		//FIXME: LODNif doesnt' appear to hang onto the nifFile as it should, softvalue loadedfiles removes the issue
+	/*	if(allNifNames.contains(nifFilename) && nifFile == null ) {
+			
+			if(nifFilename.equals("Landscape\\Trees\\TreePineForestSnow05_lod_flat.nif"))
+				System.out.println("debugger");
+			
+			System.out.println( "I've seen this guy before but I don't have him now?? "+nifFilename);	
+			//new Throwable("I've seen this guy before but I don't have him now?? "+nifFilename ).printStackTrace();
+		}*/
+		 
+		
 
+		if (nifFile == null) {
+			if(loading) {	
+				// just wait until loaded then return it
+				while (loading) {
+					try {
+						Thread.sleep(5);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					
+					loading = loadingFiles.contains(nifFilename);					
+				}
+				return loadedFiles.get(nifFilename); // better be good...
+			} else {		
+				nifFile = meshSource.getNifFile(nifFilename);
+				if (nifFile != null) {
+					NifFileOptimizer nifFileOptimizer = new NifFileOptimizer(nifFile);
+					nifFileOptimizer.optimize();
+				}
+					
+				synchronized(loadedFiles) {
+					loadedFiles.put(nifFilename, nifFile);
+					loadingFiles.remove(nifFilename);
+				}
+			}
+		}	
+		
+		allNifNames.add(nifFilename);
 		return nifFile;
 	}
 
@@ -118,7 +139,12 @@ public class NifToJ3d
 		{
 			try
 			{
-				NifJ3dVisRoot root = extractShapes(nifFile, textureSource, false);
+				NifJ3dVisRoot root = extractShapes(nifFile, textureSource, false);				
+				//now oddly the nifFile that needs to be held onto s the bsa isn't accessed again for data
+				// is really hard to point at, so I'm linking the j3dNiAVObjectRoot weakly to teh nifFIle to
+				// try to get some caching
+				inUseJ3dRoots.put(root.getVisualRoot(), nifFile);				
+				
 				NifJ3dHavokRoot phys = extractHavok(nifFile);
 				if (root != null)
 				{
@@ -145,8 +171,12 @@ public class NifToJ3d
 		if (nifFile != null)
 		{
 			try
-			{
-				return extractShapes(nifFile, textureSource, false);
+			{				
+				//now (oddly) the nifFile that needs to be held onto so the bsa isn't accessed again for data, but it is really hard to 
+				//point at, so I'm linking the j3dNiAVObjectRoot weakly to the nifFile to try to get some caching
+				NifJ3dVisRoot root = extractShapes(nifFile, textureSource, false);				
+				inUseJ3dRoots.put(root.getVisualRoot(), nifFile);				
+				return root;
 			}
 			catch (RuntimeException e)
 			{
@@ -163,7 +193,11 @@ public class NifToJ3d
 		NifFile nifFile = loadNiObjects(filename, meshSource);
 		if (nifFile != null)
 		{
-			return extractShapes(nifFile, null, nodesOnly);
+			//now (oddly) the nifFile that needs to be held onto so the bsa isn't accessed again for data, but it is really hard to 
+			//point at, so I'm linking the j3dNiAVObjectRoot weakly to the nifFile to try to get some caching
+			NifJ3dVisRoot root = extractShapes(nifFile, null, nodesOnly);
+			inUseJ3dRoots.put(root.getVisualRoot(), nifFile);				
+			return root;
 		}
 		return null;
 	}
@@ -175,7 +209,11 @@ public class NifToJ3d
 		{
 			try
 			{
-				return extractHavok(nifFile);
+				//now (oddly) the nifFile that needs to be held onto so the bsa isn't accessed again for data, but it is really hard to 
+				//point at, so I'm linking the j3dNiAVObjectRoot weakly to the nifFile to try to get some caching
+				NifJ3dHavokRoot root = extractHavok(nifFile);
+				inUseJ3dRoots.put(root.getHavokRoot(), nifFile);				
+				return root;
 			}
 			catch (RuntimeException e)
 			{
@@ -192,6 +230,7 @@ public class NifToJ3d
 		NifFile nifFile = loadNiObjects(filename, meshSource);
 		if (nifFile != null)
 		{
+			//notice the niffile cache above not able to be done here
 			return extractKf(nifFile);
 		}
 		return null;
@@ -330,6 +369,7 @@ public class NifToJ3d
 				{
 					jnao.compact();
 				}
+				
 
 				return nifJ3dRoot;
 			}

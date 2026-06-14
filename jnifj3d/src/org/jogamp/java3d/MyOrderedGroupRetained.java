@@ -29,7 +29,7 @@ public class MyOrderedGroupRetained extends OrderedGroupRetained {
 			if (i < childrenOrderedPaths.size()) {
 				childrenOrderedPaths.get(i).add(hkIndex, newOrderedPath);
 			} else {
-				System.out.println("this is where my toruble started");
+				System.out.println("MyOrderedGroupRetained this is where my toruble started");
 				//I've got 12 paths and 19 childs? what?
 			}
 		}
@@ -46,7 +46,7 @@ public class MyOrderedGroupRetained extends OrderedGroupRetained {
         if (childIndex < childrenOrderedPaths.size()) {
         	s.orderedPaths = childrenOrderedPaths.get(childIndex);
 		} else {
-			System.out.println("this is where my toruble started2 ");
+			System.out.println("MyOrderedGroupRetained this is where my toruble started2 ");
 		}
         
         if(child!=null)

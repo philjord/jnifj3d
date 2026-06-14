@@ -7,12 +7,12 @@ public class NifJ3dHavokRoot
 {
 	private NiToJ3dData niToJ3dData;
 
-	private J3dNiAVObject havokRoot;
-
+	private J3dNiAVObject havokRoot;	
+	
 	public NifJ3dHavokRoot(J3dNiAVObject havokRoot, NiToJ3dData niAVObjects)
 	{
 		this.havokRoot = havokRoot;
-		niToJ3dData = niAVObjects;
+		this.niToJ3dData = niAVObjects;
 	}
 
 	public J3dNiAVObject getHavokRoot()
