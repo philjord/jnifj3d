@@ -38,8 +38,7 @@ void main( void )
 	mat4 glModelViewMatrix = glViewMatrix * glModelMatrix;
 	gl_Position = glProjectionMatrix * glModelViewMatrix * glVertex;//glModelViewProjectionMatrix * glVertex;
 	
-	//just hand these vertex attributes across to the frag shader direct
-	glTexCoord0 = glMultiTexCoord0;
+	glTexCoord0 = (textureTransform * vec4(glMultiTexCoord0,0.0,1.0)).xy;	
 	TextureSize = SubTextureSize;
 	
 	vec4 v2 =  glModelViewMatrix * glVertex;

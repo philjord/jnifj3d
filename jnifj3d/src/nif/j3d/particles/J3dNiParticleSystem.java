@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 
 import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.BoundingBox;
 import org.jogamp.java3d.BoundingSphere;
 import org.jogamp.java3d.BranchGroup;
 import org.jogamp.java3d.GLSLShaderProgram;
@@ -22,22 +23,25 @@ import org.jogamp.java3d.ShaderProgram;
 import org.jogamp.java3d.Shape3D;
 import org.jogamp.java3d.SourceCodeShader;
 import org.jogamp.java3d.Texture;
+import org.jogamp.java3d.TextureAttributes;
 import org.jogamp.java3d.TextureUnitState;
+import org.jogamp.java3d.Transform3D;
 import org.jogamp.java3d.TransparencyAttributes;
 import org.jogamp.vecmath.Color3f;
 import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Vector3d;
 
 import nif.NifVer;
 import nif.basic.NifRef;
 import nif.j3d.J3dNiGeometry;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.animation.J3dNiTimeController;
-import nif.j3d.particles.tes3.J3dNiParticles;
 import nif.niobject.NiAlphaProperty;
 import nif.niobject.NiMaterialProperty;
 import nif.niobject.NiProperty;
 import nif.niobject.NiSourceTexture;
 import nif.niobject.NiTexturingProperty;
+import nif.niobject.bs.BSEffectShaderProperty;
 import nif.niobject.bs.BSStripParticleSystem;
 import nif.niobject.controller.NiTimeController;
 import nif.niobject.particle.NiMeshParticleSystem;
@@ -54,6 +58,29 @@ import utils.source.TextureSource;
 
 public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdater
 {		
+	
+	//THIS MUST BE SET WHEN SCREEN SIZE CHANGES!!!
+	private static float screenWidth = -1;
+	// NOTE! this screen attribute is used by both Tes3 J3dNiParticles and J3dNiParticleSystem
+	public static ShaderAttributeValue screenWidthShaderAttributeValue = new ShaderAttributeValue("screenWidth", new Float(screenWidth));
+
+	static
+	{
+		screenWidthShaderAttributeValue.setCapability(ShaderAttributeValue.ALLOW_VALUE_READ);
+		screenWidthShaderAttributeValue.setCapability(ShaderAttributeValue.ALLOW_VALUE_WRITE);
+	}
+
+	//TODO: I should really accept a glWindow and listen for myself
+	public static void setScreenWidth(float newWidth)
+	{
+		System.out.println("J3dNiParticle setScreenWidth " +newWidth);
+		screenWidth = newWidth;
+		screenWidthShaderAttributeValue.setValue(new Float(screenWidth));
+	}
+
+	
+	
+	
 	private static boolean SHOW_DEBUG_LINES = false;// flick it on with the beth settings
 
 	private ArrayList<J3dNiPSysModifier> modifiersInOrder = new ArrayList<J3dNiPSysModifier>();
@@ -109,9 +136,10 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 				addChild(shape);
 			}
 
-			//TODO: is this a good idea? thread show blocked on update bounds
+			//replaced on each updateData call
 			shape.setBoundsAutoCompute(false);
 			shape.setBounds(new BoundingSphere(new Point3d(0, 0, 0), 10));
+			shape.setCapability(Shape3D.ALLOW_BOUNDS_WRITE);
 
 			// get updated every 50 milliseconds
 			addChild(new PerTimeUpdateBehavior(50, new PerTimeUpdateBehavior.CallBack() {
@@ -199,12 +227,13 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		}
 
 		// now we tell the particles to update the nett effects
-		j3dPSysData.updateAllTexCoords();
-		j3dPSysData.recalcAllGaCoords();
-		j3dPSysData.recalcSizes();
+		j3dPSysData.updateAllTexCoords();		
 		j3dPSysData.recalcRotations();
 		j3dPSysData.recalcAllGaColors();
+		j3dPSysData.recalcSizes();
+		j3dPSysData.recalcAllGaCoords();
 		
+		shape.setBounds(j3dPSysData.bounds);		
 
 	}
 
@@ -288,7 +317,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 
 	public J3dNiTimeController getJ3dNiPSysModifierCtlr(NiPSysModifierCtlr niPSysModifierCtlr, NiToJ3dData niToJ3dData)
 	{
-		// the controlled modifer will need to be ready
+		// the controlled modifier will need to be ready
 		setUpModifers(niParticleSystem, niToJ3dData);
 
 		J3dNiTimeController j3dNiTimeController = j3dNiPSysModiferCtlrsByNi.get(niPSysModifierCtlr);
@@ -359,7 +388,8 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 			shaderProgram.setShaders(shaders);
 
 			shaderProgram.setShaderAttrNames(new String[] { "BaseMap", "screenWidth" });
-			shaderProgram.setVertexAttrNames(new String[] { "Size", "Rotation", "SubTextureSize" });
+			shaderProgram.setVertexAttrNames(new String[] { "Size", "Rotation", "SubTextureSize" });// why can't I find this string?
+	
 		}
 
 		app.setShaderProgram(shaderProgram);
@@ -368,15 +398,15 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		TransparencyAttributes ta = new TransparencyAttributes();
 
 		ShaderAttributeSet shaderAttributeSet = new ShaderAttributeSet();
-		if (J3dNiParticles.screenWidthShaderAttributeValue.getValue().equals(new Float(-1)))
-			System.out.println("J3dNiParticles.screenWidth must be set for particles to show!!");
-		shaderAttributeSet.put(J3dNiParticles.screenWidthShaderAttributeValue);
+		if (screenWidthShaderAttributeValue.getValue().equals(new Float(-1)))
+			System.out.println("J3dNiParticleSystem.screenWidth must be set for particles to show!!");
+		shaderAttributeSet.put(screenWidthShaderAttributeValue);
 
 		for (int p = 0; p < props.length; p++)
 		{
 			NiProperty prop = (NiProperty) niToJ3dData.get(props[p]);
 			if (prop != null)
-			{
+			{ 
 				//TODO: the NiGeometryAppearance lists heaps more texture thingies!
 				// but just get oblivion working for now which is this one
 				if (prop instanceof NiTexturingProperty)
@@ -414,13 +444,10 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 							shaderAttributeSet.put(new ShaderAttributeValue(textureUnitName, new Integer(0)));
 						}
 					}
-				}
-				else if (prop instanceof NiAlphaProperty)
-				{
+				} else if (prop instanceof NiAlphaProperty) {
 					NiAlphaProperty nap = (NiAlphaProperty) prop;
 
-					if (nap.alphaBlendingEnable())
-					{
+					if (nap.alphaBlendingEnable()) {
 
 						ta.setTransparencyMode(TransparencyAttributes.BLENDED);
 						ta.setSrcBlendFunction(NifOpenGLToJava3D.convertBlendMode(nap.sourceBlendMode(), true));
@@ -429,9 +456,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 
 					//if(nap.alphaTestEnabled()	){nap.alphaTestMode(), nap.threshold
 
-				}
-				else if (prop instanceof NiMaterialProperty)
-				{
+				} else if (prop instanceof NiMaterialProperty) {
 					NiMaterialProperty nmp = (NiMaterialProperty) prop;
 					Material mat = new Material();
 					mat.setLightingEnable(true);
@@ -457,6 +482,78 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 					mat.setSpecularColor(0, 0, 0);
 
 					app.setMaterial(mat);
+				} else if(prop instanceof BSEffectShaderProperty) {
+					//skyrim at least (this and an NiAlphaProperty seen in testing)
+					BSEffectShaderProperty bsesp = (BSEffectShaderProperty)prop;
+					
+					
+					/*
+					 	<field name="UV Offset" type="TexCoord">Offset UVs</field>
+				        <field name="UV Scale" type="TexCoord" default="#VEC2_ONE#">Offset UV Scale to repeat tiling textures</field>
+				        <field name="Source Texture"  type="SizedString">points to an external texture.</field>
+				        <field name="Base Color" type="Color4" default="#VEC4_ONE#">Base color</field>
+				        <field name="Base Color Scale" type="float" default="1.0" range="0.0:360.0">Multiplier for Base Color (RGB part)</field>
+					 */
+					
+
+					// now set the texture						
+					String fileName0 = bsesp.SourceTexture;
+					String fileName1 = bsesp.GreyscaleTexture;//gradblood, this guy is color
+					
+					Texture tex0 = J3dNiGeometry.loadTexture(fileName0, textureSource);
+					Texture tex1 = J3dNiGeometry.loadTexture(fileName1, textureSource);
+					if (tex0 == null || tex1 == null) {
+						System.out.println(
+								"TextureUnitState bind " + fileName0 + " no Texture found for nif " + bsesp.nVer.fileName);
+						System.out.println(
+								"TextureUnitState bind " + fileName1 + " no Texture found for nif " + bsesp.nVer.fileName);
+						// notice tus left as null!
+					} else {
+						System.out.println("TextureUnitState bind " + fileName0);
+						System.out.println("TextureUnitState bind " + fileName1);
+						
+						//POINT array data can't use mipmaps, texture loader default to nicest min filter
+						if(!tex0.isLive() && !tex0.isCompiled())
+							tex0.setMinFilter(Texture.BASE_LEVEL_LINEAR);
+						
+						TextureUnitState[] tus = new TextureUnitState[1];
+						TextureUnitState tus0 = new TextureUnitState();
+						tus0.setTexture(tex0);
+						tus0.setName(fileName0);
+						
+						if (bsesp.UVOffSet.u != 0	|| bsesp.UVOffSet.v != 0 || bsesp.UVScale.u != 1
+							|| bsesp.UVScale.v != 1 || bsesp.controller.ref != -1) {
+							TextureAttributes textureAttributes = new TextureAttributes();
+							Transform3D transform = new Transform3D();
+							transform.setTranslation(new Vector3d(-bsesp.UVOffSet.u, -bsesp.UVOffSet.v, 0));
+							transform.setScale(new Vector3d(bsesp.UVScale.u, bsesp.UVScale.v, 0));
+							textureAttributes.setTextureTransform(transform);
+							tus0.setTextureAttributes(textureAttributes);
+						}
+						
+						 
+						tus[0] = tus0;
+						app.setTextureUnitState(tus);
+
+						String textureUnitName = "BaseMap";
+						shaderAttributeSet.put(new ShaderAttributeValue(textureUnitName, new Integer(0)));
+							
+						
+						
+						
+						Material mat = new Material();
+						mat.setLightingEnable(true);
+						mat.setColorTarget(Material.AMBIENT_AND_DIFFUSE);
+						mat.setDiffuseColor(bsesp.BaseColor.r, bsesp.BaseColor.g, bsesp.BaseColor.b);
+						System.out.println("color = " + bsesp.BaseColor);
+						mat.setShininess(0.0f);
+						mat.setSpecularColor(0, 0, 0);
+						app.setMaterial(mat);											
+					}
+					
+					
+				} else {
+					System.out.println("property for particles not investigated " + prop);
 				}
 			}
 			

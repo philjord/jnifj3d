@@ -52,8 +52,8 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		}
 		shape.setName("" + this.getClass().getSimpleName() + ":" + niGeometry.name);
 
-		// no texture source probably just wants the geometry set up
-		if (textureSource != null)
+		// no texture source probably just wants the geometry set up, customShape == null ,means particles which do a different thing
+		if (customShape == null && textureSource != null)
 		{
 
 			normalApp = ((NiGeometryAppearance) AppearanceFactory.currentAppearanceFactory).configureAppearance(niGeometry, niToJ3dData,

@@ -24,6 +24,7 @@ import nif.NifVer;
 import nif.basic.NifRef;
 import nif.j3d.J3dNiGeometry;
 import nif.j3d.NiToJ3dData;
+import nif.j3d.particles.J3dNiParticleSystem;
 import nif.niobject.NiAlphaProperty;
 import nif.niobject.NiMaterialProperty;
 import nif.niobject.NiProperty;
@@ -40,22 +41,6 @@ import utils.source.TextureSource;
 
 public class J3dNiParticles extends J3dNiGeometry
 {
-	//THIS MUST BE SET WHEN SCREEN SIZE CHANGES!!!
-	private static float screenWidth = -1;
-
-	public static ShaderAttributeValue screenWidthShaderAttributeValue = new ShaderAttributeValue("screenWidth", new Float(screenWidth));
-
-	static
-	{
-		screenWidthShaderAttributeValue.setCapability(ShaderAttributeValue.ALLOW_VALUE_READ);
-		screenWidthShaderAttributeValue.setCapability(ShaderAttributeValue.ALLOW_VALUE_WRITE);
-	}
-
-	public static void setScreenWidth(float newWidth)
-	{
-		screenWidth = newWidth;
-		screenWidthShaderAttributeValue.setValue(new Float(screenWidth));
-	}
 
 	private static boolean SHOW_DEBUG_LINES = false;
 
@@ -111,7 +96,7 @@ public class J3dNiParticles extends J3dNiGeometry
 
 				addChild(shape);
 
-				//TODO: is this a good idea? 
+				//TODO: is this a good idea? I should really work out what a good maximum is from the particle properties
 				shape.setBoundsAutoCompute(false);
 				shape.setBounds(new BoundingSphere(new Point3d(0, 0, 0), 10));
 
@@ -296,8 +281,8 @@ public class J3dNiParticles extends J3dNiGeometry
 		if (shaderProgram == null)
 		{
 
-			String vertexProgram = ShaderSourceIO.getTextFileAsString("shaders/tes3particles.vert");
-			String fragmentProgram = ShaderSourceIO.getTextFileAsString("shaders/tes3particles.frag");
+			String vertexProgram = ShaderSourceIO.getTextFileAsString("shaders/tes3_particles.vert");
+			String fragmentProgram = ShaderSourceIO.getTextFileAsString("shaders/tes3_particles.frag");
 
 			Shader[] shaders = new Shader[2];
 			shaders[0] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_VERTEX, vertexProgram) {
@@ -335,9 +320,9 @@ public class J3dNiParticles extends J3dNiGeometry
 		TransparencyAttributes ta = new TransparencyAttributes();
 
 		ShaderAttributeSet shaderAttributeSet = new ShaderAttributeSet();
-		if (screenWidth == -1)
-			System.out.println("J3dNiParticles.screenWidth must be set for particles to show!!");
-		shaderAttributeSet.put(screenWidthShaderAttributeValue);
+		if (J3dNiParticleSystem.screenWidthShaderAttributeValue.getValue().equals(new Float(-1)))
+			System.out.println("J3dNiParticleSystem.screenWidth must be set for particles to show!!");
+		shaderAttributeSet.put(J3dNiParticleSystem.screenWidthShaderAttributeValue);
 
 		for (int p = 0; p < props.length; p++)
 		{

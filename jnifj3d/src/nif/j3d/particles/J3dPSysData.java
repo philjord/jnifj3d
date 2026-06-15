@@ -1,7 +1,10 @@
 package nif.j3d.particles;
 
+import org.jogamp.java3d.BoundingBox;
+import org.jogamp.java3d.BoundingSphere;
 import org.jogamp.java3d.GeometryArray;
 import org.jogamp.java3d.IndexedPointArray;
+import org.jogamp.vecmath.Point3d;
 
 import nif.niobject.particle.NiPSysData;
 
@@ -313,33 +316,54 @@ public class J3dPSysData
 	/** if you alter the translation or rotation arrays directly this must be called
 	 * 
 	 */
-	public void recalcAllGaCoords()
-	{
-		for (int i = 0; i < activeParticleCount; i++)
-		{
-
+	public void recalcAllGaCoords(){
+		float minX = Float.MAX_VALUE;
+		float minY = Float.MAX_VALUE;
+		float minZ = Float.MAX_VALUE;
+		float maxX = Float.MIN_VALUE;
+		float maxY = Float.MIN_VALUE;
+		float maxZ = Float.MIN_VALUE;
+		
+		for (int i = 0; i < activeParticleCount; i++) {
 			// with points we simply push the particles across to the gaCoords, in fact we only need agCoords
 
 			float x = particleTranslation[i * 3 + 0];
 			float y = particleTranslation[i * 3 + 1];
 			float z = particleTranslation[i * 3 + 2];
-
+			
+			minX = minX < x ? minX : x;
+			minY = minY < y ? minY : y;
+			minZ = minZ < z ? minZ : z;
+			maxX = maxX > x ? maxX : x;
+			maxY = maxY > y ? maxY : y;
+			maxZ = maxZ > z ? maxZ : z;
+			
+			
 			gaCoords[i * 3 + 0] = x;
 			gaCoords[i * 3 + 1] = y;
 			gaCoords[i * 3 + 2] = z;
 		}
+		
+		// now set the bounds is 5 enough, should figre out size max
+		bounds.setLower(minX-maxSize,minY-maxSize,minZ-maxSize);
+		bounds.setUpper(maxX+maxSize,maxY+maxSize,maxZ+maxSize);
+	
 	}
+	private float maxSize = 0;
+	public BoundingBox bounds = new BoundingBox();
 	
 	/**
 	 * NOTE!!!! all calls to this method must be in a GeomteryUpdater only. And violently single threaded
-	 * If particleRadius array is altered this must be called 
+	 * If particleRadius array is altered this must be called. MUST be called before recalcAllGaCoords due to bounds calcs
 	 * @param particle
 	 */
-	public void recalcSizes()
-	{
+	public void recalcSizes() {
+		float maxSize = Float.MIN_VALUE;
 		// actual size is radius * size multiplier from grow/fade
-		for(int i = 0 ; i < particleRadius.length;i++ ) {
-			gaVsizesF[i] = particleRadius[i] * particleSize[i];
+		for (int i = 0; i < particleRadius.length; i++) {
+			float s = particleRadius[i] * particleSize[i];
+			maxSize = maxSize > s ? maxSize : s;
+			gaVsizesF[i] = s;
 		}
 	}
 
