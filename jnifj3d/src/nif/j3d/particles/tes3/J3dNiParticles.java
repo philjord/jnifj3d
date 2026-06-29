@@ -35,7 +35,6 @@ import nif.niobject.particle.NiParticleSystemController;
 import nif.niobject.particle.NiParticles;
 import nif.shader.ShaderSourceIO;
 import tools.WeakListenerList;
-import tools3d.utils.PhysAppearance;
 import utils.convert.NifOpenGLToJava3D;
 import utils.source.TextureSource;
 
@@ -130,12 +129,11 @@ public class J3dNiParticles extends J3dNiGeometry
 	{
 		//for debug
 		if (SHOW_DEBUG_LINES && outlinerBG2 == null)
-		{
-			//TODO: textures and debug shapes are WAY off from each other
+		{			
 
 			Shape3D outliner = new Shape3D();
 			outliner.setGeometry(j3dNiParticlesData.getGeometryArray());
-			outliner.setAppearance(PhysAppearance.makeAppearance());
+			outliner.setAppearance(J3dNiParticleSystem.makeOutlineApp());			
 
 			outlinerBG2 = new BranchGroup();
 			outlinerBG2.setCapability(BranchGroup.ALLOW_DETACH);
@@ -149,6 +147,9 @@ public class J3dNiParticles extends J3dNiGeometry
 		}
 
 	}
+	
+	
+	
 
 	/**
 	 * Note this override the NiObjectNET method completely

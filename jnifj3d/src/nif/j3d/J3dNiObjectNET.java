@@ -52,13 +52,13 @@ public abstract class J3dNiObjectNET extends TransformGroup
 		// to get from HashMap, which checks current values are the same but doesn't consider 
 		// capabilities and everything has TRANSPARENT_WRITE on for fade
 		// however in GRoup.merge there is a appearance.isStatic call which does check for
-		// capabilities and if none will phyiscally swap appearances (what I want)
+		// capabilities and if none will physically swap appearances (what I want)
 		// so what happens when I change some thing other than transparency on one of these
 		// merged shapes? (can't happen because shaderappearance currently does not shared TUS if
 		// anything can change). So I should find out if appearance is swapped totally in this case
 		// I feel it should be as they get into a single compiled shape
 
-		//notice real merge of static transfomr and geom data can only happen for trivial coords in float []
+		//notice real merge of static transform and geom data can only happen for trivial coords in float []
 		// so my sexy br_ref buffer guys can't be optimized by java3d for now
 
 		// so new approach, use the same sort of gear to discover identical appearances and merge teh 
@@ -66,7 +66,7 @@ public abstract class J3dNiObjectNET extends TransformGroup
 		// then go through and find controls and share everything below them (that is to say go as high as possible
 		// with out a control and make into a shared array)
 
-		// start by making the tree in morrowind a shared gorups and check the per frame stats
+		// start by making the tree in morrowind a shared groups and check the per frame stats
 		// them merge that damn geoms
 	}
 
@@ -222,5 +222,22 @@ public abstract class J3dNiObjectNET extends TransformGroup
 
 		}
 		return ret;
+	}
+		
+    /**
+     * Returns a String representation of this SceneGraphObject.
+     * If its name is non-null, then it is concatenated with
+     * super.toString().
+     */
+	@Override
+	public String toString() {
+		String name = getName();
+
+		if (name != null) {
+			name = "[" + name + "]-";
+		}
+
+		name = "";
+		return name + "[" + this.getClass().getSimpleName() + "] ";
 	}
 }

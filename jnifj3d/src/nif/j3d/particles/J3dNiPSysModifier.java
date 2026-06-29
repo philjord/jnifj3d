@@ -30,156 +30,147 @@ import nif.niobject.particle.NiPSysSpawnModifier;
 import nif.niobject.particle.NiPSysSphereEmitter;
 import nif.niobject.particle.NiParticleSystem;
 
-public abstract class J3dNiPSysModifier
-{
-	public String name;
+public abstract class J3dNiPSysModifier {
+	public String					name;
 
-	public int order = 0;
+	public int						order	= 0;
 
-	public boolean active;
+	public boolean					active;
 
-	protected J3dNiParticleSystem j3dNiParticleSystem;
+	protected J3dNiParticleSystem	j3dNiParticleSystem;
 
-	public J3dNiPSysModifier(NiPSysModifier niPSysModifier, NiToJ3dData niToJ3dData)
-	{
+	public J3dNiPSysModifier(NiPSysModifier niPSysModifier, NiToJ3dData niToJ3dData) {
 		this.name = niPSysModifier.name;
 		this.order = niPSysModifier.order;
 		this.active = niPSysModifier.active;
-		this.j3dNiParticleSystem = (J3dNiParticleSystem) niToJ3dData.get((NiParticleSystem) niToJ3dData.get(niPSysModifier.target));
+		this.j3dNiParticleSystem = (J3dNiParticleSystem)niToJ3dData
+				.get((NiParticleSystem)niToJ3dData.get(niPSysModifier.target));
 	}
 
 	// Called by particle system to get the modifier to apply it's effect, to a newly created particle
-	public void particleCreated(int pId)
-	{
+	public void particleCreated(int pId) {
 		//default ignore
 	}
 
 	// Called by particle system to get the modifier to apply it's effect
 	public abstract void updatePSys(long elapsedMillisec);
 
-	public void updateActive(boolean value)
-	{
+	public void updateActive(boolean value) {
 		this.active = value;
 	}
 
-	public static J3dNiPSysModifier createJ3dNiPSysModifier(NiPSysModifier niPSysModifier, NiToJ3dData niToJ3dData)
-	{
-		if (niPSysModifier instanceof NiPSysBoxEmitter)
-		{
-			return new J3dNiPSysBoxEmitter((NiPSysBoxEmitter) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof BSPSysArrayEmitter)
-		{
-			return new J3dBSPSysArrayEmitter((BSPSysArrayEmitter) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof NiPSysCylinderEmitter)
-		{
-			return new J3dNiPSysCylinderEmitter((NiPSysCylinderEmitter) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof NiPSysSphereEmitter)
-		{
-			return new J3dNiPSysSphereEmitter((NiPSysSphereEmitter) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof NiPSysMeshEmitter)
-		{
-			return new J3dNiPSysMeshEmitter((NiPSysMeshEmitter) niPSysModifier, niToJ3dData);
+	public static J3dNiPSysModifier createJ3dNiPSysModifier(NiPSysModifier niPSysModifier, NiToJ3dData niToJ3dData) {
+
+		// For finding example 
+		if (!((niPSysModifier instanceof NiPSysBoxEmitter) //
+				|| (niPSysModifier instanceof NiPSysSphereEmitter) //
+				|| (niPSysModifier instanceof NiPSysCylinderEmitter)//
+				|| (niPSysModifier instanceof NiPSysAgeDeathModifier) //
+				|| (niPSysModifier instanceof NiPSysSpawnModifier) //
+				|| (niPSysModifier instanceof NiPSysRotationModifier)//
+				|| (niPSysModifier instanceof NiPSysGravityModifier)//
+				|| (niPSysModifier instanceof NiPSysPositionModifier)//
+				|| (niPSysModifier instanceof NiPSysGrowFadeModifier) //
+				|| (niPSysModifier instanceof NiPSysDragModifier)//
+				|| (niPSysModifier instanceof NiPSysColorModifier)//
+				|| (niPSysModifier instanceof NiPSysBoundUpdateModifier)//
+				|| (niPSysModifier instanceof BSWindModifier)//				
+				|| (niPSysModifier instanceof BSPSysLODModifier) //
+				|| (niPSysModifier instanceof BSPSysSimpleColorModifier) //
+				
+				
+				// needs more work
+				|| (niPSysModifier instanceof BSPSysScaleModifier)//
+				|| (niPSysModifier instanceof BSPSysSubTexModifier)//
+				||(niPSysModifier instanceof NiPSysMeshEmitter) //
+		)) {
+			System.out.println("*********** NEW file " + niPSysModifier.nVer.fileName);
+			System.out.println("niPSysModifier " + niPSysModifier);
 		}
 
-		else if (niPSysModifier instanceof NiPSysColliderManager)
-		{
-			return new J3dNiPSysColliderManager((NiPSysColliderManager) niPSysModifier, niToJ3dData);
+		if (J3dNiParticleSystem.DEBUG_DATA) {
+			System.out.println("Creating J3dNiPSysModifier from " + niPSysModifier);
 		}
-
-		else if (niPSysModifier instanceof NiPSysAgeDeathModifier)
-		{
-			return new J3dNiPSysAgeDeathModifier((NiPSysAgeDeathModifier) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof NiPSysSpawnModifier)
-		{
-			return new J3dNiPSysSpawnModifier((NiPSysSpawnModifier) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof NiPSysRotationModifier)
-		{
-			return new J3dNiPSysRotationModifier((NiPSysRotationModifier) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof NiPSysGravityModifier)
-		{
-			return new J3dNiPSysGravityModifier((NiPSysGravityModifier) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof NiPSysPositionModifier)
-		{
-			return new J3dNiPSysPositionModifier((NiPSysPositionModifier) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof NiPSysGrowFadeModifier)
-		{
-			return new J3dNiPSysGrowFadeModifier((NiPSysGrowFadeModifier) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof BSPSysSimpleColorModifier)
-		{
-			return new J3dBSPSysSimpleColorModifier((BSPSysSimpleColorModifier) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof NiPSysDragModifier)
-		{
-			return new J3dNiPSysDragModifier((NiPSysDragModifier) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof NiPSysBombModifier)
-		{
-			return new J3dNiPSysBombModifier((NiPSysBombModifier) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof BSWindModifier)
-		{
-			return new J3dBSWindModifier((BSWindModifier) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof NiPSysColorModifier)
-		{
-			return new J3dNiPSysColorModifier((NiPSysColorModifier) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof NiPSysBoundUpdateModifier)
-		{
-			return new J3dNiPSysBoundUpdateModifier((NiPSysBoundUpdateModifier) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof BSPSysLODModifier)
-		{
-			return new J3dBSPSysLODModifier((BSPSysLODModifier) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof BSPSysInheritVelocityModifier)
-		{
-			return new J3dBSPSysInheritVelocityModifier((BSPSysInheritVelocityModifier) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof BSPSysSubTexModifier)
-		{
-			return new J3dBSPSysSubTexModifier((BSPSysSubTexModifier) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof BSPSysScaleModifier)
-		{
-			return new J3dBSPSysScaleModifier((BSPSysScaleModifier) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof BSPSysRecycleBoundModifier)
-		{
-			return new J3dBSPSysRecycleBoundModifier((BSPSysRecycleBoundModifier) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof BSPSysHavokUpdateModifier)
-		{
-			return new J3dBSPSysHavokUpdateModifier((BSPSysHavokUpdateModifier) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof BSPSysStripUpdateModifier)
-		{
-			return new J3dBSPSysStripUpdateModifier((BSPSysStripUpdateModifier) niPSysModifier, niToJ3dData);
-		}
-		else if (niPSysModifier instanceof BSParentVelocityModifier)
-		{
-			return new J3dBSParentVelocityModifier((BSParentVelocityModifier) niPSysModifier, niToJ3dData);
-		}
-		else
-		{
+		if (niPSysModifier instanceof NiPSysBoxEmitter) {
+			return new J3dNiPSysBoxEmitter((NiPSysBoxEmitter)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof BSPSysArrayEmitter) {
+			return new J3dBSPSysArrayEmitter((BSPSysArrayEmitter)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof NiPSysCylinderEmitter) {
+			return new J3dNiPSysCylinderEmitter((NiPSysCylinderEmitter)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof NiPSysSphereEmitter) {
+			return new J3dNiPSysSphereEmitter((NiPSysSphereEmitter)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof NiPSysMeshEmitter) {
+			return new J3dNiPSysMeshEmitter((NiPSysMeshEmitter)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof NiPSysColliderManager) {
+			return new J3dNiPSysColliderManager((NiPSysColliderManager)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof NiPSysAgeDeathModifier) {
+			return new J3dNiPSysAgeDeathModifier((NiPSysAgeDeathModifier)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof NiPSysSpawnModifier) {
+			return new J3dNiPSysSpawnModifier((NiPSysSpawnModifier)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof NiPSysRotationModifier) {
+			return new J3dNiPSysRotationModifier((NiPSysRotationModifier)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof NiPSysGravityModifier) {
+			return new J3dNiPSysGravityModifier((NiPSysGravityModifier)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof NiPSysPositionModifier) {
+			return new J3dNiPSysPositionModifier((NiPSysPositionModifier)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof NiPSysGrowFadeModifier) {
+			return new J3dNiPSysGrowFadeModifier((NiPSysGrowFadeModifier)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof BSPSysSimpleColorModifier) {
+			return new J3dBSPSysSimpleColorModifier((BSPSysSimpleColorModifier)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof NiPSysDragModifier) {
+			return new J3dNiPSysDragModifier((NiPSysDragModifier)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof NiPSysBombModifier) {
+			return new J3dNiPSysBombModifier((NiPSysBombModifier)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof BSWindModifier) {
+			return new J3dBSWindModifier((BSWindModifier)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof NiPSysColorModifier) {
+			return new J3dNiPSysColorModifier((NiPSysColorModifier)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof NiPSysBoundUpdateModifier) {
+			return new J3dNiPSysBoundUpdateModifier((NiPSysBoundUpdateModifier)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof BSPSysLODModifier) {
+			return new J3dBSPSysLODModifier((BSPSysLODModifier)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof BSPSysInheritVelocityModifier) {
+			return new J3dBSPSysInheritVelocityModifier((BSPSysInheritVelocityModifier)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof BSPSysSubTexModifier) {
+			return new J3dBSPSysSubTexModifier((BSPSysSubTexModifier)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof BSPSysScaleModifier) {
+			return new J3dBSPSysScaleModifier((BSPSysScaleModifier)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof BSPSysRecycleBoundModifier) {
+			return new J3dBSPSysRecycleBoundModifier((BSPSysRecycleBoundModifier)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof BSPSysHavokUpdateModifier) {
+			return new J3dBSPSysHavokUpdateModifier((BSPSysHavokUpdateModifier)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof BSPSysStripUpdateModifier) {
+			return new J3dBSPSysStripUpdateModifier((BSPSysStripUpdateModifier)niPSysModifier, niToJ3dData);
+		} else if (niPSysModifier instanceof BSParentVelocityModifier) {
+			return new J3dBSParentVelocityModifier((BSParentVelocityModifier)niPSysModifier, niToJ3dData);
+		} else {
 			System.out.println("J3dNiPSysModifier createJ3dNiPSysModifier unhandled NiPSysModifier " + niPSysModifier);
 		}
 
 		return null;
 	}
 
-	protected static float var(float range)
+	/**
+	 * random -range/2 to +range/2
+	 * @param range
+	 * @return
+	 */
+	protected static float varHalf(float range) {
+		return (float)(Math.random() * range) - range / 2f;
+	}
+
+	/**
+	 * random -range to +range
+	 * @param range
+	 * @return
+	 */
+	protected static float varFull(float range) {
+		return (float)(Math.random() * range * 2) - range;
+	}
+	
+	@Override
+	public String toString()
 	{
-		return (float) (Math.random() * range) - range / 2f;
+		return "[" + this.getClass().getSimpleName() + "] ";
 	}
 }

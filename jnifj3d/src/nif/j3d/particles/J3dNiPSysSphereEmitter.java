@@ -7,46 +7,32 @@ import nif.j3d.NiToJ3dData;
 import nif.niobject.particle.NiPSysSphereEmitter;
 import utils.convert.ConvertFromNif;
 
-public class J3dNiPSysSphereEmitter extends J3dNiPSysEmitter
-{
-	private NiPSysSphereEmitter niPSysSphereEmitter;
+public class J3dNiPSysSphereEmitter extends J3dNiPSysVolumeEmittter {
+	private float radius;
 
-	public J3dNiPSysSphereEmitter(NiPSysSphereEmitter niPSysSphereEmitter, NiToJ3dData niToJ3dData)
-	{
+	public J3dNiPSysSphereEmitter(NiPSysSphereEmitter niPSysSphereEmitter, NiToJ3dData niToJ3dData) {
 		super(niPSysSphereEmitter, niToJ3dData);
-		this.niPSysSphereEmitter = niPSysSphereEmitter;
+		this.radius = ConvertFromNif.toJ3d(niPSysSphereEmitter.radius);
+
+		if (J3dNiParticleSystem.DEBUG_DATA && J3dNiParticleSystem.MODIFIER_DEBUG_DATA) {
+			System.out.print("J3dNiPSysSphereEmitter");
+			System.out.println(" radius " + niPSysSphereEmitter.radius);
+		}
 	}
 
-	//deburner
-	private Vector3f v = new Vector3f();
-
 	@Override
-	protected void getCreationPoint(Point3f pos)
-	{
-		//The reject method below is fine it's equals 1.9 time s teh effort of this better algorithm
-		// for unit shpere
-		// choose z as random [-1,1]
-		// choose t as random [0, 2PI]
-		// r = root(1-z^2)
-		// x = r*cos(t)
-		// y = r*sin(t)
+	protected void getCreationPoint(Point3f pos, Vector3f vel) {
+		
+		//https://stackoverflow.com/questions/5531827/random-point-on-a-given-sphere
+		float r = (float)(radius * Math.sqrt(Math.random()));
+		float theta = (float)(Math.random() * 2 * Math.PI);
+		float phi = (float)Math.acos((2 * Math.random()) - 1);
+		float x = (float)(r * Math.sin(phi) * Math.cos(theta));
+		float y = (float)(r * Math.sin(phi) * Math.sin(theta));
+		float z = (float)(r * Math.cos(phi));
 
-		float x = 0;
-		float y = 0;
-		float z = 0;
-		boolean isInRadius = false;
-
-		while (!isInRadius)
-		{
-			x = var(niPSysSphereEmitter.radius);
-			y = var(niPSysSphereEmitter.radius);
-			z = var(niPSysSphereEmitter.radius);
-			v.set(x, y, z);
-			isInRadius = v.length() <= niPSysSphereEmitter.radius;
-		}
-		x = ConvertFromNif.toJ3d(x);
-		y = ConvertFromNif.toJ3d(y);
-		z = ConvertFromNif.toJ3d(z);
 		pos.set(x, y, z);
+		
+		getCurrentNiNodeTransform().transform(pos);
 	}
 }

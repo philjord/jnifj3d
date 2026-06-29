@@ -117,21 +117,21 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET implements SequenceAl
 
 	/**
 	 * For use by Particle system mainly to get at the real root
+	 * //TODO: bad news impossible now, need to find the parent or root or something else
 	 * @param child
 	 */
 	public void addChildBeforeTrans(Node child)
-	{
-		//TODO: bad news impossible now, need to find the parent or root or something else
+	{		
 		super.addChild(child);
 	}
 
 	/**
 	 * For use by Particle system mainly to get at the real root
+	 * 		//TODO: bad news impossible now, need to find the parent or root or something else
 	 * @param child
 	 */
 	public void removeChildBeforeTrans(Node child)
 	{
-		//TODO: bad news impossible now, need to find the parent or root or something else
 		super.removeChild(child);
 	}
 

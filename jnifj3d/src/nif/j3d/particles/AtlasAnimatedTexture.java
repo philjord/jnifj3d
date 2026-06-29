@@ -55,23 +55,26 @@ public class AtlasAnimatedTexture {
 		if (uvQuadrants != null) {
 			//TODO: why is fallout3 ashpile01 always going for subImage==0
 			NifVector4 uv = uvQuadrants [subImage];
-		//	System.out.println("subImage " + subImage);
+
 			uStart = uv.x;
 			uStride = uv.y;
 			vStart = uv.z;
 			vStride = uv.w;
 		} else if (subtextureOffsetUVs != null) {
-			//TODO: why is this different from the above???
-			// looks like x and z are u,v stride (1/8 and 1/4) for 8 across 4 down
-			// image is 1024 by 512 so sizes are fixed to square
-			// so start from y and w-x then take z and x worths (hope 0-0.125) is correct?
+			// 4x2 images image is 1024 by 512 so sizes are fixed to square
+			//x is uStart, y is uStride, 
+			//z is vStart, w is vStride 
+			//or swap u and v
+			
+			//FIXME:
+			//aspectRatio of 0.9 in  textures\effects\FXFireAtlas02.dds looks to be 0.9 as wide as tall
+			// so I should do some squeeze up on x and y? or maybe in fact widen them out?
 
 			NifVector4 uv = subtextureOffsetUVs [subImage];
-			uStart = uv.w - uv.x;
-			vStart = uv.y;
-
-			uStride = uv.x;
-			vStride = uv.z;
+			uStart = uv.x;
+			uStride = uv.y;
+			vStart = uv.z;
+			vStride = uv.w;
 		} else if (uCount != -1) {
 			uStride = (1f / uCount);
 			vStride = (1f / vCount);
@@ -89,6 +92,9 @@ public class AtlasAnimatedTexture {
 		gaVsubTextureSizeF [indx * 2 + 0] = uStride;
 		gaVsubTextureSizeF [indx * 2 + 1] = vStride;
 
+		
+		//System.out.println("subImage " + subImage + " uStart " + uStart+ " vStart " + vStart+ " uStride " + uStride+ " vStride " + vStride);
+		
 	}
 
 	public int getSubImageCount() {

@@ -18,24 +18,27 @@ uniform int ignoreVertexColors;
 uniform mat4 textureTransform;
 //End of FFP inputs
 
+uniform float screenWidth;      //screen width in pixels
+
 in float Size;
 in float rCos;
 in float rSin;
-
-out mat3 v_rotationMatrix;
-out vec4 C;
-
 // The size of the sprite being rendered as a sub texture for an atlas. 
 in vec2 SubTextureSize;
 
-out vec2 glTexCoord0;
-out vec2 TextureSize;
+out mediump mat3 v_rotationMatrix;
+out vec4 C;
 
+out mediump vec2 glTexCoord0;
+out mediump vec2 TextureSize;
  
-uniform float screenWidth;      //screen width in pixels
+
 
 void main( void )
-{
+{																 
+
+
+
 	mat4 glModelViewMatrix = glViewMatrix * glModelMatrix;
 	gl_Position = glProjectionMatrix * glModelViewMatrix * glVertex;//glModelViewProjectionMatrix * glVertex;
 	
@@ -43,8 +46,9 @@ void main( void )
 	TextureSize = SubTextureSize;
 	
 	vec4 v2 =  glModelViewMatrix * glVertex;
-	vec4 projCorner = glProjectionMatrix * vec4(0.5*Size, 0.5*Size, v2.z, v2.w);
-	gl_PointSize = screenWidth * projCorner.x / projCorner.w;
+	vec4 projCorner = glProjectionMatrix * vec4(0.5*Size, 0.5*Size, v2.z, v2.w); //this was 0.5 and 0.5, but 0.25 makes teh size/radius closer
+	gl_PointSize = screenWidth * projCorner.x / projCorner.w;  //It is measured in pixels
+	
 	
 	//rotated or not we need to increase the size to fit the rotateers into the square shape
 	//https://stackoverflow.com/questions/57619285/calculate-how-much-smaller-a-square-would-have-to-be-to-fit-after-rotated-45-deg
@@ -53,7 +57,7 @@ void main( void )
 		
 	// Also we need to reduce the texcoord so it's a smaller  square inside the new unit square
 	// but this is done in the frag as the uv are no longer axis aligned
-	
+
 	
 	if(ignoreVertexColors == 0)
 		C = glColor; 
@@ -73,5 +77,13 @@ void main( void )
                         (rSin-rCos+1.0)*((( TextureSize) * 0.5)).s, 
                         (-rSin-rCos+1.0)*((( TextureSize) * 0.5)).t,
                         1.0);
- 
+            
+            
+            
+					            			//if(SubTextureSize.x == 0.7)
+											//	C=vec4(0,1,0,1);   
+											//if(Rotation == 0.5)
+											//	C=vec4(1,0,1,1);            
+											//if(Size == 4)
+											//	C=vec4(0,0,1,1);  
 }

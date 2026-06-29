@@ -7,39 +7,35 @@ import nif.j3d.NiToJ3dData;
 import nif.niobject.particle.NiPSysCylinderEmitter;
 import utils.convert.ConvertFromNif;
 
-public class J3dNiPSysCylinderEmitter extends J3dNiPSysEmitter
-{
+public class J3dNiPSysCylinderEmitter extends J3dNiPSysVolumeEmittter {
 
-	private NiPSysCylinderEmitter niPSysCylinderEmitter;
+	float	radius;
+	float	height;
 
-	public J3dNiPSysCylinderEmitter(NiPSysCylinderEmitter niPSysCylinderEmitter, NiToJ3dData niToJ3dData)
-	{
+	public J3dNiPSysCylinderEmitter(NiPSysCylinderEmitter niPSysCylinderEmitter, NiToJ3dData niToJ3dData) {
 		super(niPSysCylinderEmitter, niToJ3dData);
-		this.niPSysCylinderEmitter = niPSysCylinderEmitter;
+
+		this.radius = ConvertFromNif.toJ3d(niPSysCylinderEmitter.radius);
+		this.height = ConvertFromNif.toJ3d(niPSysCylinderEmitter.height);
+
+		if (J3dNiParticleSystem.DEBUG_DATA && J3dNiParticleSystem.MODIFIER_DEBUG_DATA) {
+			System.out.print("J3dNiPSysCylinderEmitter");
+			System.out.print(" radius " + radius);
+			System.out.println(" height " + height);
+		}
+
 	}
 
-	//deburner
-	private Vector3f v = new Vector3f();
-
 	@Override
-	protected void getCreationPoint(Point3f pos)
-	{
+	protected void getCreationPoint(Point3f pos, Vector3f vel) {
+		//https://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly
+		float r = (float)(radius * Math.sqrt(Math.random()));
+		float theta = (float)(Math.random() * 2 * Math.PI);
+		float x = (float)(r * Math.cos(theta));
+		float y = varHalf(height);
+		float z = (float)(r * Math.sin(theta));
 
-		float x = 0;
-		float y = var(niPSysCylinderEmitter.height);
-		float z = 0;
-		boolean isInRadius = false;
-
-		while (!isInRadius)
-		{
-			x = var(niPSysCylinderEmitter.radius);
-			z = var(niPSysCylinderEmitter.radius);
-			v.set(x, 0, z);
-			isInRadius = v.length() <= niPSysCylinderEmitter.radius;
-		}
-		x = ConvertFromNif.toJ3d(x);
-		y = ConvertFromNif.toJ3d(y);
-		z = ConvertFromNif.toJ3d(z);
 		pos.set(x, y, z);
+		getCurrentNiNodeTransform().transform(pos);
 	}
 }
