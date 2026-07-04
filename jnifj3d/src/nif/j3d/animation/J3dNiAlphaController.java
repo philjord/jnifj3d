@@ -38,8 +38,8 @@ public class J3dNiAlphaController extends J3dNiTimeController implements FloatIn
 		//TODO: constants hand this to me, should do the divide at construction time
 		if (value > 1)
 			value = value / 255f;
-		
-		if (value < 0 || value > 1)
+		//Fallout 3 seems to get -0.005150215 ocasionally, is that a rounding issue?
+		if (value < -0.005150215 || value > 1)
 		{
 			System.out.println("J3dNiAlphaController.update bum alpha " + value);
 			//new Throwable().printStackTrace();

@@ -60,36 +60,17 @@ public abstract class J3dNiPSysModifier {
 	}
 
 	public static J3dNiPSysModifier createJ3dNiPSysModifier(NiPSysModifier niPSysModifier, NiToJ3dData niToJ3dData) {
-
-		// For finding example 
-		if (!((niPSysModifier instanceof NiPSysBoxEmitter) //
-				|| (niPSysModifier instanceof NiPSysSphereEmitter) //
-				|| (niPSysModifier instanceof NiPSysCylinderEmitter)//
-				|| (niPSysModifier instanceof NiPSysAgeDeathModifier) //
-				|| (niPSysModifier instanceof NiPSysSpawnModifier) //
-				|| (niPSysModifier instanceof NiPSysRotationModifier)//
-				|| (niPSysModifier instanceof NiPSysGravityModifier)//
-				|| (niPSysModifier instanceof NiPSysPositionModifier)//
-				|| (niPSysModifier instanceof NiPSysGrowFadeModifier) //
-				|| (niPSysModifier instanceof NiPSysDragModifier)//
-				|| (niPSysModifier instanceof NiPSysColorModifier)//
-				|| (niPSysModifier instanceof NiPSysBoundUpdateModifier)//
-				|| (niPSysModifier instanceof BSWindModifier)//				
-				|| (niPSysModifier instanceof BSPSysLODModifier) //
-				|| (niPSysModifier instanceof BSPSysSimpleColorModifier) //
-				
-				
-				// needs more work
-				|| (niPSysModifier instanceof BSPSysScaleModifier)//
-				|| (niPSysModifier instanceof BSPSysSubTexModifier)//
-				||(niPSysModifier instanceof NiPSysMeshEmitter) //
-		)) {
-			System.out.println("*********** NEW file " + niPSysModifier.nVer.fileName);
-			System.out.println("niPSysModifier " + niPSysModifier);
-		}
-
 		if (J3dNiParticleSystem.DEBUG_DATA) {
 			System.out.println("Creating J3dNiPSysModifier from " + niPSysModifier);
+
+			if (niPSysModifier instanceof NiPSysBombModifier) {
+				System.out.println("***********  file " + niPSysModifier.nVer.fileName);
+				System.out.println("*** niPSysModifier " + niPSysModifier);
+
+				//plane collider needs work
+				//|| (niPSysModifier instanceof NiPSysColliderManager)
+			}
+
 		}
 		if (niPSysModifier instanceof NiPSysBoxEmitter) {
 			return new J3dNiPSysBoxEmitter((NiPSysBoxEmitter)niPSysModifier, niToJ3dData);
@@ -167,10 +148,9 @@ public abstract class J3dNiPSysModifier {
 	protected static float varFull(float range) {
 		return (float)(Math.random() * range * 2) - range;
 	}
-	
+
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return "[" + this.getClass().getSimpleName() + "] ";
 	}
 }

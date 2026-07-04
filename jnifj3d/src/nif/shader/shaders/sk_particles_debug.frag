@@ -8,6 +8,9 @@ in vec2 glTexCoord0; // represents only the start of the uv, does not vary acros
 uniform float transparencyAlpha;	
 
 uniform sampler2D BaseMap;
+uniform sampler2D GreyscaleMap;
+
+uniform bool hasGreyscaleMap;
  
 in mediump vec2 TextureSize;
 
@@ -16,15 +19,13 @@ in mediump mat3 v_rotationMatrix;
 
 out vec4 glFragColor;
 
+
+vec4 colorLookup( float x, float y ) {	
+	return texture2D( GreyscaleMap, vec2( clamp(x, 0.0, 1.0), clamp(y, 0.0, 1.0)) );
+}
+
 void main( void )
 {	
-							//glFragColor = vec4(vec2(1)-gl_PointCoord.xy,0,1);return;
-							//if(gl_PointCoord.x < gl_PointCoord.y){glFragColor = vec4(0,1,1,1);return;}
-	 
-	//rotate the point coord in the space of one sub texture
-//	mediump vec3 rotCoord = v_rotationMatrix * vec3((gl_PointCoord * TextureSize), 1.0); 
-
- 
 	// we need to increase the texcoord so it's a smaller square inside the unit square
 	mediump vec2  unrotatedUV = gl_PointCoord; //unit 0-1	
 	// reduce the texcoords to be a smaller square by sampling a larger range	
@@ -46,31 +47,29 @@ void main( void )
  	if( rotCoord.s < 0|| rotCoord.t < 0 ||  rotCoord.s > TextureSize.s  || rotCoord.t > TextureSize.t){ 
  		discard;		
 	}
- 	
- 	// get the color	
-    mediump vec4 fragColor = texture(BaseMap, realTexCoord.st); 
-			
-			
-																		// takign roation out of it
-																		//texture(BaseMap, glTexCoord0); 
-			
-    glFragColor = fragColor * C;
-    glFragColor.a *= transparencyAlpha;   
-   																		//if(glTexCoord0.t == 0 )
-   																		//glFragColor = vec4(glTexCoord0 * 100,1,1);
-   																		 
-   																		glFragColor.a *= 10; // just so we can see it a bit better
-   																		 
-   																		    																		 
-   																		 
-   																		 
-   																		// if(C == vec4(1,0,1,1))
-   																		// 	glFragColor = C;
-   																		 
-   																		// glFragColor = vec4(1,0,1,1);
-   																		
-   																		// if(rotCoord.s == realTexCoord.s)
-   																		 //	glFragColor = vec4(1,0,1,1);
-   																		
-   																		//glFragColor = vec4(gl_PointCoord.xy,0,1);
+ 	   
+    //Taken from sk_effectshader, very roughly
+	mediump vec4 baseMap = texture(BaseMap, realTexCoord.st); 
+		
+		
+	vec4 color;
+	color.rgb = baseMap.rgb;
+	color.a = baseMap.a;
+																																						
+	color.rgb *= C.rgb;
+	color.a *= C.a;
+
+	if(hasGreyscaleMap) {
+		vec4 luG = colorLookup( baseMap.g, C.g );
+		color.rgb = luG.rgb; 
+	}
+	
+	glFragColor.rgb = color.rgb;
+	glFragColor.a = color.a;
+
+
+																	// if(hasGreyscaleMap) 
+   																	//		glFragColor = vec4(1,0,1,1);
+   																
+   																	 
 }

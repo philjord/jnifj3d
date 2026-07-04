@@ -78,7 +78,12 @@ public abstract class J3dNiPSysCollider {
 		j3dNiNode = (J3dNiNode)niToJ3dData.get((NiAVObject)niToJ3dData.get(niPSysCollider.colliderObject));
 
 		//make the caps correct up to the root
-		root = niToJ3dData.getJ3dRoot();
+		//TODO the whiole root system should be decided by the particle system and handed out from there, no one should be checking world
+		if (j3dNiParticleSystem.worldSpace) {
+			root = niToJ3dData.getJ3dRoot();
+		} else {
+			root = j3dNiParticleSystem;
+		}
 		Group g = j3dNiNode;
 		while (g != null) {
 			g.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
@@ -118,10 +123,10 @@ public abstract class J3dNiPSysCollider {
 	protected Point3f	velApplied	= new Point3f();
 
 	protected Vector3f	partLoc		= new Vector3f();
-	
+
 	//deburner
 	private Transform3D	trans		= new Transform3D();
-	
+
 	protected Transform3D getCurrentNiNodeTransform() {
 		j3dNiNode.getTreeTransform(trans, root);
 		return trans;

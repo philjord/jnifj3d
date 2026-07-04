@@ -1353,7 +1353,7 @@ public class NiGeometryAppearanceShader {
 		return fn != null && fn.trim().length() > 0;
 	}
 
-	private static BSMaterialDataBGEM getMaterial(BSEffectShaderProperty bsesp) {
+	public static BSMaterialDataBGEM getMaterial(BSEffectShaderProperty bsesp) {
 		// FO4 has material files pointed at by name
 		if (bsesp.name.toLowerCase().endsWith(".bgem")) {
 			try {

@@ -44,10 +44,10 @@ public class J3dBSPSysArrayEmitter extends J3dNiPSysVolumeEmittter {
 		float y = varHalf(1f);
 		float z = varHalf(1f);
 
-		
+		pos.set(x, y, z);
 		//TODO: just to put it near the emitter node
 		getCurrentNiNodeTransform().transform(pos);
-		pos.set(x, y, z);
+		getCurrentNiNodeTransform().transform(vel);		
 	}
 
 }

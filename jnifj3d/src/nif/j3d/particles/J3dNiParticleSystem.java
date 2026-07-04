@@ -40,6 +40,7 @@ import org.jogamp.java3d.utils.shader.SimpleShaderAppearance;
 import org.jogamp.vecmath.Color3f;
 import org.jogamp.vecmath.Point3d;
 import org.jogamp.vecmath.Point3f;
+import org.jogamp.vecmath.Vector2f;
 import org.jogamp.vecmath.Vector3d;
 
 import nif.NifVer;
@@ -55,6 +56,7 @@ import nif.niobject.NiSourceTexture;
 import nif.niobject.NiTexturingProperty;
 import nif.niobject.NiVertexColorProperty;
 import nif.niobject.NiZBufferProperty;
+import nif.niobject.bgsm.BSMaterialDataBGEM;
 import nif.niobject.bs.BSEffectShaderProperty;
 import nif.niobject.bs.BSStripParticleSystem;
 import nif.niobject.controller.NiTimeController;
@@ -64,6 +66,7 @@ import nif.niobject.particle.NiPSysData;
 import nif.niobject.particle.NiPSysModifier;
 import nif.niobject.particle.NiPSysModifierCtlr;
 import nif.niobject.particle.NiParticleSystem;
+import nif.shader.NiGeometryAppearanceShader;
 import nif.shader.ShaderSourceIO;
 import tools.WeakListenerList;
 import tools3d.utils.PhysAppearance;
@@ -83,7 +86,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 	private static float				screenWidth						= -1;
 	// NOTE! this screen attribute is used by both Tes3 J3dNiParticles and J3dNiParticleSystem
 	public static ShaderAttributeValue	screenWidthShaderAttributeValue	= new ShaderAttributeValue("screenWidth",
-			new Float(screenWidth));
+			Float.valueOf(screenWidth));
 
 	static {
 		screenWidthShaderAttributeValue.setCapability(ShaderAttributeValue.ALLOW_VALUE_READ);
@@ -94,7 +97,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 	public static void setScreenWidth(float newWidth) {
 		System.out.println("J3dNiParticle setScreenWidth " + newWidth);
 		screenWidth = newWidth;
-		screenWidthShaderAttributeValue.setValue(new Float(screenWidth));
+		screenWidthShaderAttributeValue.setValue(Float.valueOf(screenWidth));
 	}
 
 	//Used only to publish out show outlines config change
@@ -145,7 +148,6 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		if (niPSysData != null) {
 
 			if (DEBUG_DATA) {
-
 				j3dPSysData = new J3dPSysData.J3dPSysDataTest(niPSysData);
 				sleep = J3dPSysData.J3dPSysDataTest.SLEEP_OVERRIDE;
 				System.out.println("J3dNiParticleSystem created " + niParticleSystem.name);
@@ -168,8 +170,10 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 				niToJ3dData.getJ3dRoot().addChildBeforeTrans(shape);
 				niToJ3dData.getJ3dRoot().addChildBeforeTrans(outlinerBG1);
 			} else {
-
 				// this one will make emitter etc a real pain, watch out
+
+				//TODO: what if an emitter uses a node not under the particle system, then the transforms will go to...
+				//the top of J3dNiAVObject so probably including the locating transform, opposite of what I want
 				addChild(shape);
 				addChild(outlinerBG1);
 			}
@@ -204,9 +208,10 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 			configureOutLines();
 			// put it in the pile for outline notices
 			allParticleSystems.add(this);
+		} else  {
+			System.err.println("niPSysData is null possibly falllout 4? so no particles at all");
 		}
 	}
-
 
 	private void configureOutLines() {
 		//for debug
@@ -302,6 +307,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 			}
 
 		}
+
 	}
 
 	public void particleCreated(int newParticleId) {
@@ -417,60 +423,9 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 												TextureSource textureSource) {
 		NifRef[] props = niParticleSystem.properties;
 		ShaderAppearance app = new ShaderAppearance();
-		if (shaderProgram == null) {
-
-			// also used by fallout3 ob is with atlas textures set to 1x1
-			String vertexProgramStr = "shaders/ob_particles.vert";
-			String fragmentProgramStr = "shaders/ob_particles.frag";
-
-			if (niToJ3dData.nifVer.LOAD_VER == NifVer.VER_20_2_0_7) {
-				if (niToJ3dData.nifVer.BS_GT_FO3()) {
-					//vertexProgramStr = "shaders/sk_particles.vert";
-					//fragmentProgramStr = "shaders/sk_particles.frag";
-				}
-			}
-
-			if (DEBUG_DATA) {
-				vertexProgramStr = "shaders/debug_particles.vert";
-				fragmentProgramStr = "shaders/debug_particles.frag";
-			}
-
-			String vertexProgram = ShaderSourceIO.getTextFileAsString(vertexProgramStr);
-			String fragmentProgram = ShaderSourceIO.getTextFileAsString(fragmentProgramStr);
-
-			Shader[] shaders = new Shader[2];
-			shaders[0] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_VERTEX, vertexProgram) {
-				@Override
-				public String toString() {
-					return "vertexProgram";
-				}
-			};
-			shaders[1] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_FRAGMENT,
-					fragmentProgram) {
-				@Override
-				public String toString() {
-					return "fragmentProgram";
-				}
-			};
-
-			shaderProgram = new GLSLShaderProgram() {
-				@Override
-				public String toString() {
-					return "Particles Shader Program";
-				}
-			};
-			shaderProgram.setShaders(shaders);
-
-			shaderProgram.setShaderAttrNames(new String[] {"BaseMap", "screenWidth"});
-
-			// gaVsizesF, gaVrcosF, gaVrsinF, gaVsubTextureSizeF in J3dPSysData but the name is not used again only the index of 0,1,2
-			shaderProgram.setVertexAttrNames(new String[] {"Size", "rCos", "rSin", "SubTextureSize"});
-		}
-
-		app.setShaderProgram(shaderProgram);
 
 		ShaderAttributeSet shaderAttributeSet = new ShaderAttributeSet();
-		if (screenWidthShaderAttributeValue.getValue().equals(new Float(-1)))
+		if (screenWidthShaderAttributeValue.getValue().equals(Float.valueOf(-1)))
 			System.err.println("J3dNiParticleSystem.screenWidth must be set for particles to show!!");
 		shaderAttributeSet.put(screenWidthShaderAttributeValue);
 
@@ -515,7 +470,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 							app.setTextureUnitState(tus);
 
 							String textureUnitName = "BaseMap";
-							shaderAttributeSet.put(new ShaderAttributeValue(textureUnitName, new Integer(0)));
+							shaderAttributeSet.put(new ShaderAttributeValue(textureUnitName, Integer.valueOf(0)));
 
 						}
 					}
@@ -551,68 +506,139 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 
 					app.setMaterial(mat);
 				} else if (prop instanceof BSEffectShaderProperty) {
+
 					//skyrim at least (this and an NiAlphaProperty seen in testing)
 					BSEffectShaderProperty bsesp = (BSEffectShaderProperty)prop;
+					//for fallout 4 we need to go get the BGEM like in NiGeometryAppearanceShader 
+					BSMaterialDataBGEM em = NiGeometryAppearanceShader.getMaterial(bsesp);
+
+					String SourceTexture = em == null ? bsesp.SourceTexture : em.BaseTexture;
+					boolean hasSourceTexture = SourceTexture != null && SourceTexture.trim().length() > 0;
+					String GreyscaleMap = em == null ? bsesp.GreyscaleTexture : em.GrayscaleToPaletteTexture;
+					boolean hasGreyscaleMap = GreyscaleMap != null && GreyscaleMap.trim().length() > 0;
 
 					// now set the texture						
-					String fileName0 = bsesp.SourceTexture;
-					String fileName1 = bsesp.GreyscaleTexture;//gradblood, this guy is color
 					if (DEBUG_DATA) {
-						System.out
-								.println("J3dNiParticleSystem " + niParticleSystem.name + " baseTexture " + fileName0);
 						System.out.println(
-								"J3dNiParticleSystem " + niParticleSystem.name + " GreyscaleTexture " + fileName1);
+								"J3dNiParticleSystem " + niParticleSystem.name + " baseTexture " + SourceTexture);
+						System.out.println(
+								"J3dNiParticleSystem " + niParticleSystem.name + " GreyscaleTexture " + GreyscaleMap);
 					}
 
-					Texture tex0 = J3dNiGeometry.loadTexture(fileName0, textureSource);
-					if (fileName0 != null && fileName0.length() > 0 && tex0 == null) {
-						System.out.println("TextureUnitState SourceTexture bind "	+ fileName0
-											+ " Texture not found for nif " + bsesp.nVer.fileName);
-					} else {
+					int numTus = 1;
+					if (hasGreyscaleMap)
+						numTus = 2;
 
-						if (DEBUG_DATA) {
-							System.out.println("TextureUnitState SourceTexture bind " + fileName0);
+					TextureUnitState[] tus = new TextureUnitState[numTus];
 
+					if (hasSourceTexture) {
+						Texture tex0 = J3dNiGeometry.loadTexture(SourceTexture, textureSource);
+						if (tex0 == null) {
+							System.out.println("TextureUnitState SourceTexture bind "	+ SourceTexture
+												+ " Texture not found for nif " + bsesp.nVer.fileName);
+						} else {
+
+							if (DEBUG_DATA) {
+								System.out.println("TextureUnitState SourceTexture bind " + SourceTexture);
+
+							}
+
+							//POINT array data can't use mipmaps, texture loader default to nicest min filter
+							if (!tex0.isLive() && !tex0.isCompiled())
+								tex0.setMinFilter(Texture.BASE_LEVEL_LINEAR);
+
+							TextureUnitState tus0 = new TextureUnitState();
+							tus0.setTexture(tex0);
+							tus0.setName(SourceTexture);
+
+							Vector2f textureScale = new Vector2f(1, 1);
+							Vector2f textureOffset = new Vector2f(0, 0);
+
+							if (em == null) {
+								textureScale.set(bsesp.UVScale.u, bsesp.UVScale.v);
+								textureOffset.set(bsesp.UVOffSet.u, bsesp.UVOffSet.v);
+							} else {
+								textureScale.set(em.fUScale, em.fVScale);
+								textureOffset.set(em.fUOffset, em.fVOffset);
+							}
+
+							if (textureOffset.x != 0	|| textureOffset.y != 0 || textureScale.x != 1
+								|| textureScale.y != 1 || bsesp.controller.ref != -1) {
+								TextureAttributes textureAttributes = new TextureAttributes();
+								Transform3D transform = new Transform3D();
+								transform.setTranslation(new Vector3d(-textureOffset.x, -textureOffset.y, 0));
+								transform.setScale(new Vector3d(textureScale.x, textureScale.y, 0));
+								textureAttributes.setTextureTransform(transform);
+								tus0.setTextureAttributes(textureAttributes);
+							}
+
+							tus[0] = tus0;
+
+							String textureUnitName = "BaseMap";
+							shaderAttributeSet.put(new ShaderAttributeValue(textureUnitName, Integer.valueOf(0)));
 						}
-
-						//POINT array data can't use mipmaps, texture loader default to nicest min filter
-						if (!tex0.isLive() && !tex0.isCompiled())
-							tex0.setMinFilter(Texture.BASE_LEVEL_LINEAR);
-
-						TextureUnitState[] tus = new TextureUnitState[1];
-						TextureUnitState tus0 = new TextureUnitState();
-						tus0.setTexture(tex0);
-						tus0.setName(fileName0);
-
-						if (bsesp.UVOffSet.u != 0	|| bsesp.UVOffSet.v != 0 || bsesp.UVScale.u != 1
-							|| bsesp.UVScale.v != 1 || bsesp.controller.ref != -1) {
-							TextureAttributes textureAttributes = new TextureAttributes();
-							Transform3D transform = new Transform3D();
-							transform.setTranslation(new Vector3d(-bsesp.UVOffSet.u, -bsesp.UVOffSet.v, 0));
-							transform.setScale(new Vector3d(bsesp.UVScale.u, bsesp.UVScale.v, 0));
-							textureAttributes.setTextureTransform(transform);
-							tus0.setTextureAttributes(textureAttributes);
-						}
-
-						tus[0] = tus0;
-						app.setTextureUnitState(tus);
-
-						String textureUnitName = "BaseMap";
-						shaderAttributeSet.put(new ShaderAttributeValue(textureUnitName, new Integer(0)));
 					}
 
-					Texture tex1 = J3dNiGeometry.loadTexture(fileName1, textureSource);
-					if (fileName1 != null && fileName1.length() > 0 && tex1 == null) {
-						System.out.println("TextureUnitState GreyscaleTexture bind "	+ fileName1
-											+ " Texture not found for nif " + bsesp.nVer.fileName);
-						// notice tus left as null!
-					} else {
-						if (DEBUG_DATA) {
-							System.out.println("TextureUnitState GreyscaleTexture bind " + fileName1);
+					if (hasGreyscaleMap) {
+						Texture tex1 = J3dNiGeometry.loadTexture(GreyscaleMap, textureSource);
+						if (tex1 == null) {
+							System.out.println("TextureUnitState GreyscaleTexture bind "	+ GreyscaleMap
+												+ " Texture not found for nif " + bsesp.nVer.fileName);
+							// notice tus left as null!
+						} else if (tex1 != null) {
+							if (DEBUG_DATA) {
+								System.out.println("TextureUnitState GreyscaleTexture bind " + GreyscaleMap);
+							}
+
+							// If grey scale is true then we must be on the skyrim shader (presumably)
+
+							//POINT array data can't use mipmaps, texture loader default to nicest min filter
+							if (!tex1.isLive() && !tex1.isCompiled())
+								tex1.setMinFilter(Texture.BASE_LEVEL_LINEAR);
+
+							TextureUnitState tus1 = new TextureUnitState();
+							tus1.setTexture(tex1);
+							tus1.setName(GreyscaleMap);
+
+							//TODO: same offsets?
+							Vector2f textureScale = new Vector2f(1, 1);
+							Vector2f textureOffset = new Vector2f(0, 0);
+
+							if (em == null) {
+								textureScale.set(bsesp.UVScale.u, bsesp.UVScale.v);
+								textureOffset.set(bsesp.UVOffSet.u, bsesp.UVOffSet.v);
+							} else {
+								textureScale.set(em.fUScale, em.fVScale);
+								textureOffset.set(em.fUOffset, em.fVOffset);
+							}
+
+							if (textureOffset.x != 0	|| textureOffset.y != 0 || textureScale.x != 1
+								|| textureScale.y != 1 || bsesp.controller.ref != -1) {
+								TextureAttributes textureAttributes = new TextureAttributes();
+								Transform3D transform = new Transform3D();
+								transform.setTranslation(new Vector3d(-textureOffset.x, -textureOffset.y, 0));
+								transform.setScale(new Vector3d(textureScale.x, textureScale.y, 0));
+								textureAttributes.setTextureTransform(transform);
+								tus1.setTextureAttributes(textureAttributes);
+							}
+
+							tus[1] = tus1;
+
+							String textureUnitName = "GreyscaleMap";
+							shaderAttributeSet.put(new ShaderAttributeValue(textureUnitName, Integer.valueOf(1)));
+
+							
 						}
-						//umm?? FIXME:
-						//probably by opeing the NiShaderAppearance code and having a wee looky loo
+						
+						
 					}
+					
+					ShaderAttributeValue hasGreyscaleMapAttributeValue = new ShaderAttributeValue(
+							"hasGreyscaleMap", hasGreyscaleMap);
+					shaderAttributeSet.put(hasGreyscaleMapAttributeValue);
+
+
+					app.setTextureUnitState(tus);
 
 					mat.setDiffuseColor(bsesp.BaseColor.r, bsesp.BaseColor.g, bsesp.BaseColor.b);
 					if (DEBUG_DATA)
@@ -649,6 +675,68 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		// this is required to turn on the point size feature sometimes
 		// note this point size is ignored in the vert shader the point vertex attributes are used
 		app.setPointAttributes(new PointAttributes(1, true));
+
+		if (shaderProgram == null) {
+
+			// also used by fallout3 ob is with atlas textures set to 1x1
+			String vertexProgramStr = "";
+			String fragmentProgramStr = "";
+			String[] attribNames = null;
+
+			// later version only sometimes have the grey scale so change f detection
+			if (niToJ3dData.nifVer.LOAD_VER == NifVer.VER_20_2_0_7 && niToJ3dData.nifVer.BS_GT_FO3()) {
+
+				attribNames = new String[] {"BaseMap", "GreyscaleMap", "hasGreyscaleMap", "screenWidth"};
+				vertexProgramStr = "shaders/sk_particles.vert";
+				fragmentProgramStr = "shaders/sk_particles.frag";
+				if (DEBUG_DATA) {
+					vertexProgramStr = "shaders/sk_particles_debug.vert";
+					fragmentProgramStr = "shaders/sk_particles_debug.frag";
+				}
+
+			} else {
+				attribNames = new String[] {"BaseMap", "screenWidth"};
+				vertexProgramStr = "shaders/ob_particles.vert";
+				fragmentProgramStr = "shaders/ob_particles.frag";
+				if (DEBUG_DATA) {
+					vertexProgramStr = "shaders/ob_particles_debug.vert";
+					fragmentProgramStr = "shaders/ob_particles_debug.frag";
+				}
+			}
+
+			String vertexProgram = ShaderSourceIO.getTextFileAsString(vertexProgramStr);
+			String fragmentProgram = ShaderSourceIO.getTextFileAsString(fragmentProgramStr);
+
+			Shader[] shaders = new Shader[2];
+			shaders[0] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_VERTEX, vertexProgram) {
+				@Override
+				public String toString() {
+					return "vertexProgram";
+				}
+			};
+			shaders[1] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_FRAGMENT,
+					fragmentProgram) {
+				@Override
+				public String toString() {
+					return "fragmentProgram";
+				}
+			};
+
+			shaderProgram = new GLSLShaderProgram() {
+				@Override
+				public String toString() {
+					return "Particles Shader Program";
+				}
+			};
+			shaderProgram.setShaders(shaders);
+
+			shaderProgram.setShaderAttrNames(attribNames);
+
+			// gaVsizesF, gaVrcosF, gaVrsinF, gaVsubTextureSizeF in J3dPSysData but the name is not used again only the index of 0,1,2
+			shaderProgram.setVertexAttrNames(new String[] {"Size", "rCos", "rSin", "SubTextureSize"});
+		}
+
+		app.setShaderProgram(shaderProgram);
 
 		return app;
 	}

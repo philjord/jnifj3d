@@ -46,5 +46,6 @@ public class J3dNiPSysBoxEmitter extends J3dNiPSysVolumeEmittter {
 		pos.set(x, y, z);
 
 		getCurrentNiNodeTransform().transform(pos);
+		getCurrentNiNodeTransform().transform(vel);
 	}
 }

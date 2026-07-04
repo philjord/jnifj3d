@@ -254,8 +254,8 @@ public class J3dPSysData {
 
 			particleRotationAngle[indx] = 0f;
 			//gaVrotationsF[indx] = 0f;
-			gaVrcosF[indx] = 0f;
-			gaVrsinF[indx] = 0f;
+			gaVrcosF[indx] = 1.0f;//=(float)Math.cos(0f);
+			gaVrsinF[indx] = 0.0f;//=(float)Math.sin(0f);
 
 			particleVelocity[indx * 3 + 0] = velx;
 			particleVelocity[indx * 3 + 1] = vely;
@@ -378,6 +378,7 @@ public class J3dPSysData {
 			//gaVrotationsF[i] = particleRotationAngle[i];
 			gaVrcosF[i] = (float)Math.cos(particleRotationAngle[i]);
 			gaVrsinF[i] = (float)Math.sin(particleRotationAngle[i]);
+			
 		}
 	}
 
@@ -405,7 +406,7 @@ public class J3dPSysData {
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////// //////////////////////////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -422,8 +423,8 @@ public class J3dPSysData {
 		static int		TOTAL_PARTS			= -1;	//-1 for disable
 		static float	FIXED_RADIUS		= -1;	//-1 for disable
 		static float	FIXED_ROTATION		= -1;	//-1 for disable
-		static Vector3f	FIXED_LOCATION		= null;	//new Vector3f(0.0f, 0.0f, 0);	//null for disable
-		static Color4f	FIXED_COLOR			= null;	//new Color4f(1, 0, 0, 0.8f);	//null for disable
+		static Vector3f	FIXED_LOCATION		= null;//new Vector3f(0.0f, 0.0f, 0);	//null for disable
+		static Color4f	FIXED_COLOR			= null;//new Color4f(1, 0, 0, 0.8f);	//null for disable
 		static boolean	CUT_OUT_INACT		= false;
 		static boolean	CUT_OUT_GROW_FADE	= false;
 		static long		SLEEP_OVERRIDE		= 50;
@@ -620,8 +621,8 @@ public class J3dPSysData {
 
 				particleRotationAngle[indx] = 0f;
 				//gaVrotationsF[indx] = 0f;
-				gaVrcosF[indx] = 0f;
-				gaVrsinF[indx] = 0f;
+				gaVrcosF[indx] = 1.0f;//=(float)Math.cos(0f);
+				gaVrsinF[indx] = 0.0f;//=(float)Math.sin(0f);
 
 				particleVelocity[indx * 3 + 0] = velx;
 				particleVelocity[indx * 3 + 1] = vely;
@@ -821,31 +822,10 @@ public class J3dPSysData {
 		}
 
 		/*
-
-		 * FIXME: NOTE bug, the first loaded particle system looks good, others seem to be 1 pixel wide etc, so look out!
-		 * find the bug at some point
-		 * 
-		 * 
 		 FIXME: each time the bounds is update oddly the particles themselves seem to flicker
 		 
 		
-		SKYRIM
-		
-		
-		// this one has a grey texture needs integrating, by way of NiGeometryShaderAppearance
-		Auto opening node: ArchiveFile:Skyrim - Meshes.bsa/meshes/clutter/woodfires/fireplacewood01burning.nif
-		atlasAnimatedTexture!!!!
-		J3dNiParticleSystem created FlamesSmall01
-		J3dNiParticleSystem FlamesSmall01 baseTexture textures\effects\FXFireAtlas02.dds
-		J3dNiParticleSystem FlamesSmall01 GreyscaleTexture textures\effects\gradients\GradFireExplosion.dds
-		TextureUnitState bind textures\effects\FXFireAtlas02.dds
-		TextureUnitState bind textures\effects\gradients\GradFireExplosion.dds
-		J3dNiParticleSystem FlamesSmall01 color = NifColor4: r=0.94901973,g=0.7294118,b=0.61960787,a=1.0
-		using prog sk_effectshader.prog
-		SourceTexture texunit 0 file=textures\effects\FXFireAtlas04.dds
-		GreyscaleMap texunit 1 file=textures\effects\gradients\GradFireExplosion.dds
-		
-				
+		SKYRIM	
 		
 		// the keys seem far to large and the dust cloud is in teh wrong spot?
 		/// // keys are going upwards?
@@ -855,7 +835,7 @@ public class J3dPSysData {
 		J3dNiPSysCylinderEmitter niPSysCylinderEmitter.radius 190.85454 niPSysCylinderEmitter.height 69.12
 		
 		
-		I notice most of my water particels in skyrim are firing off at right angles to wehre they should be too
+		Whilst my initial vel on some waterfalls in skyrim look good, now, fires in oblivion don't seem right yet
 		
 		
 		Auto opening node: ArchiveFile:Skyrim - Meshes.bsa/meshes/effects/fxicewraithtest.nif
@@ -872,6 +852,9 @@ public class J3dPSysData {
 		*********** NEW file Meshes\Effects\FXWaterfallBodySlope.nif
 		niPSysModifier [NiPSysColliderManager] 
 		
+		
+		//after the above I wna to examine falout4 normals because that flows on to the rest of tehm
+		/// find somethign sinle to fix up
 		 * 
 		 */
 	}

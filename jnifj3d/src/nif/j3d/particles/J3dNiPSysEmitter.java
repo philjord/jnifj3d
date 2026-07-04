@@ -6,34 +6,37 @@ import org.jogamp.vecmath.Color4f;
 import org.jogamp.vecmath.Point3f;
 import org.jogamp.vecmath.Vector3f;
 
+import nif.j3d.J3dNiAVObject;
 import nif.j3d.NiToJ3dData;
 import nif.niobject.particle.NiPSysEmitter;
 import utils.convert.ConvertFromNif;
 
 public abstract class J3dNiPSysEmitter extends J3dNiPSysModifier {
-	private float	birthRate	= 0;
+	private float			birthRate	= 0;
 
-	private float	speed;
+	private float			speed;
 
-	private float	speedVariation;
+	private float			speedVariation;
 
-	private float	declination;
+	private float			declination;
 
-	private float	declinationVariation;
+	private float			declinationVariation;
 
-	private float	planarAngle;
+	private float			planarAngle;
 
-	private float	planarAngleVariation;
+	private float			planarAngleVariation;
 
-	private Color4f	initialColor;
+	private Color4f			initialColor;
 
-	private float	initialRadius;
+	private float			initialRadius;
 
-	private float	radiusVariation;
+	private float			radiusVariation;
 
-	private float	lifeSpan;
+	private float			lifeSpan;
 
-	private float	lifeSpanVariation;
+	private float			lifeSpanVariation;
+
+	protected J3dNiAVObject	root; // must be set by a sub class
 
 	public J3dNiPSysEmitter(NiPSysEmitter niPSysEmitter, NiToJ3dData niToJ3dData) {
 		super(niPSysEmitter, niToJ3dData);
@@ -145,17 +148,22 @@ public abstract class J3dNiPSysEmitter extends J3dNiPSysModifier {
 		float pa = planarAngle;
 		pa += varFull(planarAngleVariation);
 
+		//Question? where does a 0 rotation point at for Nif?
+	
 		// calculate the velocity vector
-		aaZ.setAngle(dec);
-		aaY.setAngle(pa);
+		aaZ.setAngle(-dec);
+		// pa in radians I see 4.712389 in Skyrim - Meshes.bsa/meshes/effects/fxwaterfallthin2048x128.nif
+		aaY.setAngle(pa); //TODO: not entirely convinced I've got his pa right
 		t.set(aaZ);
 		t2.set(aaY);
 		t.mul(t2);
-		vel.set(0, 1, 0);
+		
+		// tested to be the right intial on Skyrim - Meshes.bsa/meshes/effects/fxwaterfallthin2048x128.nif
+		vel.set(1, 0, 0);
 		t.transform(vel);
 		vel.scale(particleSpeed);
-
-		//notice it's optional for teh emitter to alter the vel data, it may be left as is
+		
+		//notice it's optional for the emitter to alter the vel data, it may be left as is
 		getCreationPoint(pos, vel);
 
 		col.set(initialColor);

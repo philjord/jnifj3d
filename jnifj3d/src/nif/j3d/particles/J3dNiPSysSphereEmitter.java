@@ -34,5 +34,6 @@ public class J3dNiPSysSphereEmitter extends J3dNiPSysVolumeEmittter {
 		pos.set(x, y, z);
 		
 		getCurrentNiNodeTransform().transform(pos);
+		getCurrentNiNodeTransform().transform(vel);
 	}
 }

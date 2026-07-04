@@ -47,7 +47,12 @@ public class J3dNiPSysBombModifier extends J3dNiPSysModifier {
 		j3dNiNode = (J3dNiNode)niToJ3dData.get((NiAVObject)niToJ3dData.get(niPSysBombModifier.bombObject));
 
 		//make the caps correct up to the root
-		root = niToJ3dData.getJ3dRoot();
+		//TODO the whiole root system should be decided by the particle system and handed out from there, no one should be checking world
+		if (j3dNiParticleSystem.worldSpace) {
+			root = niToJ3dData.getJ3dRoot();
+		} else {
+			root = this.j3dNiParticleSystem;
+		}
 		Group g = j3dNiNode;
 		while (g != null) {
 			g.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);

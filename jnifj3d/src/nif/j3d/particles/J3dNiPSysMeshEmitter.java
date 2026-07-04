@@ -10,7 +10,6 @@ import org.jogamp.java3d.TransformGroup;
 import org.jogamp.vecmath.Point3f;
 import org.jogamp.vecmath.Vector3f;
 
-import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiTriBasedGeom;
 import nif.j3d.NiToJ3dData;
 import nif.niobject.NiTriBasedGeom;
@@ -55,7 +54,6 @@ public class J3dNiPSysMeshEmitter extends J3dNiPSysEmitter {
 		VELOCITY_USE_NORMALS, VELOCITY_USE_RANDOM, VELOCITY_USE_DIRECTION, VELOCITY_MAX
 	};
 
-	private J3dNiAVObject					root;
 
 	private ArrayList<J3dNiTriBasedGeom>	j3dNiTriBasedGeoms	= new ArrayList<J3dNiTriBasedGeom>();
 	private ArrayList<NiTriBasedGeomData>	datas				= new ArrayList<NiTriBasedGeomData>();
@@ -69,7 +67,13 @@ public class J3dNiPSysMeshEmitter extends J3dNiPSysEmitter {
 	public J3dNiPSysMeshEmitter(NiPSysMeshEmitter niPSysMeshEmitter, NiToJ3dData niToJ3dData) {
 		super(niPSysMeshEmitter, niToJ3dData);
 
-		root = niToJ3dData.getJ3dRoot();
+		//TODO the whiole root system should be decided by the particle system and handed out from there, no one should be checking world
+		if (j3dNiParticleSystem.worldSpace) {
+			root = niToJ3dData.getJ3dRoot();
+		} else {
+			root = this.j3dNiParticleSystem;
+		}
+		
 
 		for (int i = 0; i < niPSysMeshEmitter.numEmitterMeshes; i++) {
 			NiTriBasedGeom niTriBasedGeom = (NiTriBasedGeom)niToJ3dData.get(niPSysMeshEmitter.emitterMeshes[i]);
@@ -128,8 +132,7 @@ public class J3dNiPSysMeshEmitter extends J3dNiPSysEmitter {
 		//emissionAxis [NifVector3] 1.0 0.0 0.0
 
 		if (!j3dNiParticleSystem.worldSpace) {
-			System.err.println("nonono emitter fail not woprldSpace! but can be fixed no panic");
-			//root = niToJ3dData.getJ3dRoot(); would need to just be this.j3dNiParticleSystem
+			//TODO: have I tested this properly? Camorean paradise example seems good
 		}
 
 		if (datas.size() > 0) {
