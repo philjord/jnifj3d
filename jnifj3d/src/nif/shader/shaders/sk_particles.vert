@@ -31,7 +31,8 @@ in vec2 SubTextureSize;
 out vec2 glTexCoord0;
 out vec2 TextureSize;
 
- 
+float sqrt2 = sqrt(2.0);
+
 uniform float screenWidth;      //screen width in pixels
 
 void main( void )
@@ -49,7 +50,7 @@ void main( void )
 	//rotated or not we need to increase the size to fit the rotateers into the square shape
 	//https://stackoverflow.com/questions/57619285/calculate-how-much-smaller-a-square-would-have-to-be-to-fit-after-rotated-45-deg
 	//A square of edge length a has a diagonal of length d = sqrt(2)*a 
-	gl_PointSize = sqrt(2)*gl_PointSize;
+	gl_PointSize = sqrt2*gl_PointSize;
 		
 	// Also we need to reduce the texcoord so it's a smaller  square inside the new unit square
 	// but this is done in the frag as the uv are no longer axis aligned

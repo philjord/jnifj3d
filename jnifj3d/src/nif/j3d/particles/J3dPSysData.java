@@ -827,8 +827,8 @@ public class J3dPSysData {
 		
 		SKYRIM	
 		
-		// the keys seem far to large and the dust cloud is in teh wrong spot?
-		/// // keys are going upwards?
+		// the keys seem far to large and the dust cloud is in the wrong spot?
+		// keys are going upwards?
 		Auto opening node: ArchiveFile:DLCShiveringIsles - Meshes.bsa/meshes/effects/se03keys.nif
 		Creating J3dNiPSysModifier from [NiPSysCylinderEmitter] 
 		J3dNiPSysEmitter parent of next Emitter speed 24.0 speedVariation 0.14400001 declination 0.0 declinationVariation 3.1415927 planarAngle 0.0 planarAngleVariation 6.2831855 initialColor (1.0, 1.0, 1.0, 1.0) initialRadius 75.0 radiusVariation 22.499998 lifeSpan 2.5 lifeSpanVariation 1.6666667
@@ -836,10 +836,15 @@ public class J3dPSysData {
 		
 		
 		Whilst my initial vel on some waterfalls in skyrim look good, now, fires in oblivion don't seem right yet
+		I've seen other skyrim water moving at right angles to the mesh too
 		
 		
 		Auto opening node: ArchiveFile:Skyrim - Meshes.bsa/meshes/effects/fxicewraithtest.nif
 		// shows that the square particle is clearly cutting off one side of the atlas texture, I'm thinking aspect ratio?
+		// no for that guy aspect is 1 and the atlas values look good, though it is 0.125x0.25 stride
+		// so perhaps I'm doing all math on u (or v) and therefore hitting the discard as wrong?
+		// I was ponddering the sqrt2 of the rotate must be off the longer side and therefore
+		// should be handed from teh vert to teh frag at some point bubt htat's not this issue
 		
 		
 		

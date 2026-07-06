@@ -1,6 +1,5 @@
 package nif.j3d.particles;
 
-import java.nio.Buffer;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -131,6 +130,10 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 	private long												sleep						= 50;														//20 fps for updates
 	boolean														worldSpace					= false;
 
+	// we want these reused and they are identical across particel systems, however the game version may required on or the other
+	private static ShaderProgram								shaderProgramOb				= null;
+	private static ShaderProgram								shaderProgramSk				= null;
+
 	public J3dNiParticleSystem(	NiParticleSystem niParticleSystem, NiToJ3dData niToJ3dData,
 								TextureSource textureSource) {
 
@@ -208,7 +211,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 			configureOutLines();
 			// put it in the pile for outline notices
 			allParticleSystems.add(this);
-		} else  {
+		} else {
 			System.err.println("niPSysData is null possibly falllout 4? so no particles at all");
 		}
 	}
@@ -416,8 +419,6 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 			ps.configureOutLines();
 		}
 	}
-
-	private static ShaderProgram shaderProgram = null;
 
 	public static Appearance createAppearance(	NiParticleSystem niParticleSystem, NiToJ3dData niToJ3dData,
 												TextureSource textureSource) {
@@ -627,16 +628,13 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 							String textureUnitName = "GreyscaleMap";
 							shaderAttributeSet.put(new ShaderAttributeValue(textureUnitName, Integer.valueOf(1)));
 
-							
 						}
-						
-						
-					}
-					
-					ShaderAttributeValue hasGreyscaleMapAttributeValue = new ShaderAttributeValue(
-							"hasGreyscaleMap", hasGreyscaleMap);
-					shaderAttributeSet.put(hasGreyscaleMapAttributeValue);
 
+					}
+
+					ShaderAttributeValue hasGreyscaleMapAttributeValue = new ShaderAttributeValue("hasGreyscaleMap",
+							hasGreyscaleMap);
+					shaderAttributeSet.put(hasGreyscaleMapAttributeValue);
 
 					app.setTextureUnitState(tus);
 
@@ -676,6 +674,15 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 		// note this point size is ignored in the vert shader the point vertex attributes are used
 		app.setPointAttributes(new PointAttributes(1, true));
 
+		boolean skShader = false;
+		ShaderProgram shaderProgram;
+		if (niToJ3dData.nifVer.LOAD_VER == NifVer.VER_20_2_0_7 && niToJ3dData.nifVer.BS_GT_FO3()) {
+			skShader = true;
+			shaderProgram = shaderProgramSk;
+		} else {
+			shaderProgram = shaderProgramOb;
+		}
+
 		if (shaderProgram == null) {
 
 			// also used by fallout3 ob is with atlas textures set to 1x1
@@ -684,7 +691,7 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 			String[] attribNames = null;
 
 			// later version only sometimes have the grey scale so change f detection
-			if (niToJ3dData.nifVer.LOAD_VER == NifVer.VER_20_2_0_7 && niToJ3dData.nifVer.BS_GT_FO3()) {
+			if (skShader) {
 
 				attribNames = new String[] {"BaseMap", "GreyscaleMap", "hasGreyscaleMap", "screenWidth"};
 				vertexProgramStr = "shaders/sk_particles.vert";
@@ -732,8 +739,14 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 
 			shaderProgram.setShaderAttrNames(attribNames);
 
-			// gaVsizesF, gaVrcosF, gaVrsinF, gaVsubTextureSizeF in J3dPSysData but the name is not used again only the index of 0,1,2
+			// gaVsizesF, gaVrcosF, gaVrsinF, gaVsubTextureSizeF in J3dPSysData but the name is not used again only the index of 0,1,2,3
 			shaderProgram.setVertexAttrNames(new String[] {"Size", "rCos", "rSin", "SubTextureSize"});
+
+			if (skShader) {
+				shaderProgramSk = shaderProgram;
+			} else {
+				shaderProgramOb = shaderProgram;
+			}
 		}
 
 		app.setShaderProgram(shaderProgram);

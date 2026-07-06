@@ -58,7 +58,8 @@ varying vec4 A;
 varying vec4 C;
 varying vec4 D;
 
-
+// this is not env but it has the same vert code
+//https://github.com/niftools/nifskope/blob/develop/res/shaders/fo4_default.vert
 void main( void )
 {
 	gl_Position = glModelViewProjectionMatrix * glVertex;
@@ -69,17 +70,41 @@ void main( void )
 	t = normalize(glNormalMatrix * tangent);
 	b = normalize(glNormalMatrix * binormal);
 	
-	b = cross( N, t ); // my binormal attribute data seems corrupt
+				//notice with glNormalMatrix taken out, my lighting calcs are still wrong so that's not the problem
+				//N = normalize( glNormal);
+				//t = normalize( tangent);
+				//b = normalize( binormal);
 	
-	// NOTE: b<->t 
-	mat3 tbnMatrix = mat3(b.x, t.x, N.x,
-                          b.y, t.y, N.y,
-                          b.z, t.z, N.z);
+	// No this doens't seem to fix nothinf in FO4 but I did it because of FO76?
+	//b = cross( N, t ); // my binormal attribute data seems corrupt
+	
+	// NOTE: b<->t versus the nifskope source
+	mat3 tbnMatrix = mat3(t.x, b.x, N.x,
+                          t.y, b.y, N.y,
+                          t.z, b.z, N.z);
+   // ok so there's also this constructor
+   // tbnMatrix = mat3(t,b,N);               
+                          
+                          
+                         //this version has consistent lighting across edges N,t,t
+                         
+                         //N,t,b
+                         //N,b,t
+                         //t,n,b
+                         //b,n,t
+                         //t,b,n
+                         //b,t,n
+                         
+                         // ok so there's also this constructor
+                        // b = cross( N, t );
+                        //  tbnMatrix = mat3( N,t,b);
 						  
 	v = vec3(glModelViewMatrix * glVertex);
 	
 	ViewVec = tbnMatrix * -v.xyz;
 	LightDir = tbnMatrix * glLightSource[0].position.xyz;
+	
+								//LightDir = glNormalMatrix * glLightSource[0].position.xyz;
 	
 	A = glLightModelambient;
 	if( ignoreVertexColors != 0) 

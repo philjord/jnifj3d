@@ -54,7 +54,6 @@ public class J3dNiPSysMeshEmitter extends J3dNiPSysEmitter {
 		VELOCITY_USE_NORMALS, VELOCITY_USE_RANDOM, VELOCITY_USE_DIRECTION, VELOCITY_MAX
 	};
 
-
 	private ArrayList<J3dNiTriBasedGeom>	j3dNiTriBasedGeoms	= new ArrayList<J3dNiTriBasedGeom>();
 	private ArrayList<NiTriBasedGeomData>	datas				= new ArrayList<NiTriBasedGeomData>();
 
@@ -73,28 +72,29 @@ public class J3dNiPSysMeshEmitter extends J3dNiPSysEmitter {
 		} else {
 			root = this.j3dNiParticleSystem;
 		}
-		
 
 		for (int i = 0; i < niPSysMeshEmitter.numEmitterMeshes; i++) {
 			NiTriBasedGeom niTriBasedGeom = (NiTriBasedGeom)niToJ3dData.get(niPSysMeshEmitter.emitterMeshes[i]);
 			J3dNiTriBasedGeom j3dNiTriBasedGeom = (J3dNiTriBasedGeom)niToJ3dData.get(niTriBasedGeom);
 			NiTriBasedGeomData data = (NiTriBasedGeomData)niToJ3dData.get(niTriBasedGeom.data);
 
-			if ((data instanceof NiTriStripsData) || (data instanceof NiTriShapeData)) {
-				j3dNiTriBasedGeoms.add(j3dNiTriBasedGeom);
-				datas.add(data);
+			if (data != null) {
+				if ((data instanceof NiTriStripsData) || (data instanceof NiTriShapeData)) {
+					j3dNiTriBasedGeoms.add(j3dNiTriBasedGeom);
+					datas.add(data);
 
-				//make the caps correct up to the root
-				Group g = j3dNiTriBasedGeom;
-				while (g != null) {
-					g.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-					g.setCapability(Group.ALLOW_PARENT_READ);
-					if (g == niToJ3dData.getJ3dRoot())
-						break;
-					g = (Group)g.getParent();
+					//make the caps correct up to the root
+					Group g = j3dNiTriBasedGeom;
+					while (g != null) {
+						g.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+						g.setCapability(Group.ALLOW_PARENT_READ);
+						if (g == niToJ3dData.getJ3dRoot())
+							break;
+						g = (Group)g.getParent();
+					}
+				} else {
+					System.out.println("J3dNiPSysMeshEmitter unhandled emitter geom type " + data);
 				}
-			} else {
-				System.out.println("J3dNiPSysMeshEmitter unhandled emitter geom type " + data);
 			}
 		}
 
@@ -156,24 +156,22 @@ public class J3dNiPSysMeshEmitter extends J3dNiPSysEmitter {
 
 			FloatBuffer coords = data.verticesOptBuf;
 
-			
-
 			idx = rnd.nextInt(coords.limit() / 3);
 			pos.set(coords.get(idx * 3 + 0), coords.get(idx * 3 + 1), coords.get(idx * 3 + 2));
 			trans.transform(pos);
-			
+
 			FloatBuffer normals = data.normalsOptBuf;
 			// TODO: black smith has VELOCITY_USE_NORMALS but null normals
 			if (initialVelocityType == VELOCITY_TYPE.VELOCITY_USE_NORMALS.ordinal() && normals != null) {
-				
+
 				vel.set(normals.get(idx * 3 + 0), normals.get(idx * 3 + 1), normals.get(idx * 3 + 2));
-				
+
 				//TODO: transform of a Vector3f should be fine for normals
 				trans.transform(vel);
 			}
 			// FIXME: testy just for blacksmith
-			vel.set(0,1,1f);
-			trans.transform(vel);		
+			vel.set(0, 1, 1f);
+			trans.transform(vel);
 
 		}
 	}
