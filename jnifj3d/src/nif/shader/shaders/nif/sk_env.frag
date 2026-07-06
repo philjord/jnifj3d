@@ -70,6 +70,7 @@ vec3 toGrayscale(vec3 color)
 
 void main( void )
 {
+													//if(N.x != -50){gl_FragColor=vec4(1,0,1,1);return;}
 	vec2 offset = glTexCoord0.st;
 
 	vec4 baseMap = texture2D( BaseMap, offset );
@@ -101,15 +102,15 @@ void main( void )
 	vec3 reflected = reflect( -E, normal );
 	vec3 reflectedVS = b * reflected.x + t * reflected.y + N * reflected.z;
 	vec3 reflectedWS = vec3( glModelMatrix * (glModelViewMatrixInverse * vec4( reflectedVS, 0.0 )) );
-
-
 	vec4 color;
 	vec3 albedo = baseMap.rgb * C.rgb;
 	vec3 diffuse = A.rgb + (D.rgb * NdotL);
 
-
+/* FIXME: something in this code makes the frag disappear completely. Even, and I want to make this absolutely clear, 
+	//even if you early out at the start and fix the glFragColor
+	BE CAREFUL the BSA display does not show this random issue at all.
 	// Environment
-	if ( hasCubeMap == 1 ) {
+/*	if ( bool(hasCubeMap) ) {
 		vec4 cube = textureCube( CubeMap, reflectedWS );
 		cube.rgb *= envReflection;
 		
@@ -123,10 +124,10 @@ void main( void )
 
 		albedo += cube.rgb;
 	}
-	
+*/	
 	// Emissive
 	vec3 emissive = vec3(0.0);
-	if ( hasEmit == 1 ) {
+	if ( bool(hasEmit) ) {
 		emissive += glowColor * glowMult;
 	}
 
@@ -135,7 +136,7 @@ void main( void )
 	spec *= D.rgb;
 
 	vec3 backlight = vec3(0.0);
-	if ( hasBacklight == 1 ) {
+	if ( bool(hasBacklight) ) {
 		backlight = texture2D( BacklightMap, offset ).rgb;
 		backlight *= NdotNegL;
 		
@@ -143,12 +144,12 @@ void main( void )
 	}
 
 	vec4 mask = vec4(0.0);
-	if ( hasRimlight == 1 || hasSoftlight == 1 ) {
+	if ( bool(hasRimlight) || bool(hasSoftlight) ) {
 		mask = texture2D( LightMask, offset );
 	}
 
 	vec3 rim = vec3(0.0);
-	if ( hasRimlight == 1 ) {
+	if ( bool(hasRimlight) ) {
 		rim = mask.rgb * pow(vec3((1.0 - EdotN)), vec3(lightingEffect2));
 		rim *= smoothstep( -0.2, 1.0, dot(-L, E) );
 		
@@ -156,7 +157,7 @@ void main( void )
 	}
 	
 	vec3 soft = vec3(0.0);
-	if ( hasSoftlight == 1 ) {
+	if ( bool(hasSoftlight) ) {
 		float wrap = (dot(normal, L) + lightingEffect1) / (1.0 + lightingEffect1);
 
 		soft = max( wrap, 0.0 ) * mask.rgb * smoothstep( 1.0, 0.0, NdotL );
@@ -170,5 +171,6 @@ void main( void )
 	color.a = C.a * baseMap.a;
 
 	gl_FragColor = color;
-	gl_FragColor.a *= alpha;
+	gl_FragColor.a *= alpha;	
+		 											
 }

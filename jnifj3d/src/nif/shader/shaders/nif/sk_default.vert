@@ -46,19 +46,15 @@ varying vec2 glTexCoord0;
 attribute vec3 tangent;
 attribute vec3 binormal;
 
+uniform int isVertexAlphaAnimation;
+
 varying vec3 LightDir;
 varying vec3 ViewVec;
-
-vec3 N;
-vec3 t;
-vec3 b;
-vec3 v;
 
 varying vec4 A;
 varying vec4 C;
 varying vec4 D;
 
-uniform int isVertexAlphaAnimation;
 
 void main( void )
 {
@@ -66,16 +62,16 @@ void main( void )
 	
 	glTexCoord0 = (textureTransform * vec4(glMultiTexCoord0,0.0,1.0)).st;	
 	
-	N = normalize(glNormalMatrix * glNormal);
-	t = normalize(glNormalMatrix * tangent);
-	b = normalize(glNormalMatrix * binormal);
+	vec3 N = normalize(glNormalMatrix * glNormal);
+	vec3 t = normalize(glNormalMatrix * tangent);
+	vec3 b = normalize(glNormalMatrix * binormal);
 	
 	// NOTE: b<->t 
 	mat3 tbnMatrix = mat3(b.x, t.x, N.x,
                           b.y, t.y, N.y,
                           b.z, t.z, N.z);
 						  
-	v = vec3(glModelViewMatrix * glVertex);
+	vec3 v = vec3(glModelViewMatrix * glVertex);
 	
 	ViewVec = tbnMatrix * -v.xyz;
 	LightDir = tbnMatrix * glLightSource[0].position.xyz;

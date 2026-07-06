@@ -43,22 +43,21 @@ uniform mat4 textureTransform;
 //End of FFP inputs
 varying vec2 glTexCoord0;
 
-uniform int isVertexAlphaAnimation;
-
 attribute vec3 tangent;
 attribute vec3 binormal;
+
+uniform int isVertexAlphaAnimation;
 
 varying vec3 LightDir;
 varying vec3 ViewVec;
 
-varying vec3 N;
-varying vec3 t;
-varying vec3 b;
-varying vec3 v;
-
 varying vec4 A;
 varying vec4 C;
 varying vec4 D;
+
+varying vec3 N;
+varying vec3 t;
+varying vec3 b;
 
 
 void main( void )
@@ -76,7 +75,7 @@ void main( void )
                           b.y, t.y, N.y,
                           b.z, t.z, N.z);
 						  
-	v = vec3(glModelViewMatrix * glVertex);
+	vec3 v = vec3(glModelViewMatrix * glVertex);
 	
 	ViewVec = tbnMatrix * -v.xyz;
 	LightDir = tbnMatrix * glLightSource[0].position.xyz;

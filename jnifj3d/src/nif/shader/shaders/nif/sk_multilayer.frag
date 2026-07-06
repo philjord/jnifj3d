@@ -159,13 +159,14 @@ void main( void )
 	float outerMix = max( 1.0 - EdotN, baseMap.a );
 	albedo = mix( inner, outer, outerMix );
 
-
+/*
+//Turned off because this cause sk_env.frag to fail completely and I'm suspicious of it
 	// Environment
-	if ( hasCubeMap == 1 ) {
+	if ( bool(hasCubeMap) ) {
 		vec4 cube = textureCube( CubeMap, reflectedWS );
 		cube.rgb *= outerReflection;
 		
-		if ( hasEnvMask == 1 ) {
+		if ( bool(hasEnvMask) ) {
 			vec4 env = texture2D( EnvironmentMap, offset );
 			cube.rgb *= env.r;
 		} else {
@@ -174,7 +175,7 @@ void main( void )
 
 		albedo += cube.rgb;
 	}
-
+*/
 	// Specular
 	vec3 spec = specColor * specStrength * normalMap.a * pow(NdotH, specGlossiness);
 	spec *= D.rgb;
@@ -182,7 +183,7 @@ void main( void )
 	// Emissive
 	//	Mixed with outer map
 	vec3 emissive = vec3(0.0);
-	if ( hasEmit == 1 ) {
+	if ( bool(hasEmit) ) {
 		emissive += glowColor * glowMult;
 	}
 
