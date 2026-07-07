@@ -22,7 +22,7 @@ out vec4 glFragColor;
 float sqrt2 = sqrt(2.0);
 
 vec4 colorLookup( float x, float y ) {	
-	return texture2D( GreyscaleMap, vec2( clamp(x, 0.0, 1.0), clamp(y, 0.0, 1.0)) );
+	return texture( GreyscaleMap, vec2( clamp(x, 0.0, 1.0), clamp(y, 0.0, 1.0)) );
 }
 
 void main( void )
