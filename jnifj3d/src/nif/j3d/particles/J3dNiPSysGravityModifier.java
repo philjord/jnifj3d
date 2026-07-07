@@ -83,14 +83,16 @@ public class J3dNiPSysGravityModifier extends J3dNiPSysModifier {
 	private Point3f		gravityLoc		= new Point3f();
 
 	private Vector3f	gravityApplied	= new Vector3f();
-
+	private boolean nodeIssueReported = false;
 	@Override
 	public void updatePSys(long elapsedMillisec) {
 		if (forceType == NiPSysGravityModifier.FORCE_PLANAR) {
 			gravityLoc.set(0, 0, 0);
 			if (gravityNode.isCompiled() && !gravityNode.isLive()) {
+				if(!nodeIssueReported)
 				System.out.println("gravityNode that can't be used "	+ gravityJ3dNiNode.getName() + " "
 									+ gravityJ3dNiNode.getNiAVObject().nVer.fileName);
+				nodeIssueReported = true;
 			} else {
 				gravityNode.getLocalToVworld(trans);
 			}

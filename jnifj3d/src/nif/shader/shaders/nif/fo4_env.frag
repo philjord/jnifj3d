@@ -160,10 +160,6 @@ void main( void )
 	float LdotH = max( dot(L, H), 0.000001 );
 	float NdotNegL = max( dot(normal, -L), 0.000001 );
 
-/*	vec3 reflected = reflect( V, normal );
-	vec3 reflectedVS = t * reflected.x + b * reflected.y + N * reflected.z;
-	vec3 reflectedWS = vec3( glModelMatrix * (glModelViewMatrixInverse * vec4( reflectedVS, 0.0 )) );
-*/
 
 	vec4 color;
 	vec3 albedo = baseMap.rgb * C.rgb;										//gl_FragColor =  vec4(albedo,1);return;
@@ -198,18 +194,24 @@ void main( void )
 	// Environment
 	// TODO: why does textureCube not work on Android?
 	
+	//FIXME: I notice sk_env also has same problem, possibly all cubes are bum
+	// note carefully that bsa display does not show all problems
+	vec3 reflected = reflect( V, normal );
+	vec3 reflectedVS = t * reflected.x + b * reflected.y + N * reflected.z;
+	vec3 reflectedWS = vec3( glModelMatrix * (glModelViewMatrixInverse * vec4( reflectedVS, 0.0 )) );
+
 	//FIXEM: can't get the textureCube() to return a value
-/*	if ( bool(hasCubeMap) ) {												//gl_FragColor =  vec4(0,1,1,1);return;//signal!
+	if ( bool(hasCubeMap) ) {												//gl_FragColor =  vec4(0,1,1,1);return;//signal!
 		// gles doesn't have this in the frag shader 
-		vec4 cube = textureCubeLod( CubeMap, reflectedWS, 8.0 - g * 8.0 );			gl_FragColor =  vec4(cube.rgb,1);return;
-		//vec4 cube = textureCube( CubeMap, reflectedWS );				
+		//vec4 cube = textureCubeLod( CubeMap, reflectedWS, 8.0 - g * 8.0 );			//gl_FragColor =  vec4(cube.rgb,1);return;
+		vec4 cube = textureCube( CubeMap, reflectedWS );				
 		
 		vec4 env = texture2D( EnvironmentMap, offset );		
 		cube.rgb *= envReflection * specStrength * sqrt(g) * 0.9;
 		cube.rgb *= mix( s, env.r, float(hasEnvMask) );							
     
 		albedo += cube.rgb;
-	}*/
+	}
 
 
 	vec3 backlight = vec3(0.0);

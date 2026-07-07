@@ -68,6 +68,9 @@ vec3 toGrayscale(vec3 color)
 	return vec3(dot(vec3(0.3, 0.59, 0.11), color));
 }
 
+// looks like this has been merged with the default shader
+//https://github.com/niftools/nifskope/blob/develop/res/shaders/sk_default.frag
+
 void main( void )
 {
 													//if(N.x != -50){gl_FragColor=vec4(1,0,1,1);return;}
@@ -106,25 +109,39 @@ void main( void )
 	vec3 albedo = baseMap.rgb * C.rgb;
 	vec3 diffuse = A.rgb + (D.rgb * NdotL);
 
-/* FIXME: something in this code makes the frag disappear completely. Even, and I want to make this absolutely clear, 
-	//even if you early out at the start and fix the glFragColor
-	BE CAREFUL the BSA display does not show this random issue at all.
+
 	// Environment
-/*	if ( bool(hasCubeMap) ) {
-		vec4 cube = textureCube( CubeMap, reflectedWS );
-		cube.rgb *= envReflection;
+	if ( bool(hasCubeMap) ) {
+		vec4 cube = textureCube( CubeMap, reflectedWS );		
+		cube.rgb *= envReflection;		
 		
-		if ( hasEnvMask == 1) {
-			vec4 env = texture2D( EnvironmentMap, offset );
+		 	//FIXME: something in this code makes the frag disappear completely. Even, and I want to make this absolutely clear, 
+			//even if you early out at the start and fix the glFragColor
+			//BE CAREFUL the BSA display does not show this random issue at all.
+			// with only this much removed I still lose env shaded thigns when lights go crazy
+			
+			
+			// ok ok, I've got a wee spider in bthardamz02 that's poping pink and not pink from this tet right here
+			// now that suggests the hasEnvMask is changing based on random, which can only be other 
+			// geoms using their attirbute sets with uncleared out data in them!!
+			// so I'm over optomising on the pipeline if I'm any judge!
+		
+			
+			
+			
+			
+		if ( false && bool(hasEnvMask)) {
+			
+		// it seems to be the actual calling of this line that's a problem
+			vec4 env = texture2D( EnvironmentMap, offset ); 			
 			cube.rgb *= env.r;
 		} else {
 			cube.rgb *= normalMap.a;
-		}
-		
+		}		
 
-		albedo += cube.rgb;
+		albedo += cube.rgb;		
 	}
-*/	
+	
 	// Emissive
 	vec3 emissive = vec3(0.0);
 	if ( bool(hasEmit) ) {
