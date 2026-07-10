@@ -63,7 +63,7 @@ vec4 colorLookup( float x, float y )
 
 void main( void )
 {
-
+																															//if(N.x>=0.0 ) {gl_FragColor = vec4(0,1,1,1);return;}
 	vec2 offset = glTexCoord0.st;
 	
 	vec4 baseMap = texture2D( SourceTexture, offset );
@@ -77,10 +77,12 @@ void main( void )
 		if(alphaTestFunction==518 && !(baseMap.a>=alphaTestValue))discard;			
 		//alphaTestFunction==519//always (always keep it)
 	}
-	//swizzle the alpha and green  
-	vec4 normalMap = vec4( texture2D( NormalMap, offset ).xy * 2.0 - 1.0, 0.0, 0.0 );
+	
+	//FIXME: PJ, this seems to cause big lighting trouble? it's cause teh sharp shadow lines
+	//NOTE the my coords are y up whereas nifskope has z up
+	vec4 normalMap = vec4( texture2D( NormalMap, offset ).xyy * 2.0 - 1.0, 0.0 ); normalMap.y=0.0;
 	//re-create the z  
-	normalMap.z = sqrt( 1.0 - dot( normalMap.xy,normalMap.xy ) ); 
+	//normalMap.z = sqrt( 1.0 - dot( normalMap.xy,normalMap.xy ) ); 
 	vec2 specMap = texture2D( SpecularMap, offset ).rg; 
 	
 	vec3 normal = N;
@@ -103,7 +105,7 @@ void main( void )
 	float NdotNegL = max( dot(normal, -L), 0.000001 );
 
 	vec3 reflected = reflect( V, normal );
-	vec3 reflectedVS = t * reflected.x + b * reflected.y + N * reflected.z;
+	vec3 reflectedVS = b * reflected.x + t * reflected.y + N * reflected.z;
 	vec3 reflectedWS = vec3( glViewMatrix * (glModelViewMatrixInverse * vec4( reflectedVS, 0.0 )) );
 	
 	// Falloff

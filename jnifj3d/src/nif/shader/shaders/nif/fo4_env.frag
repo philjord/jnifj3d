@@ -2,6 +2,8 @@
 
 precision mediump float;
 
+//https://github.com/niftools/nifskope/blob/develop/res/shaders/fo4_default.frag
+
 uniform mat4 glModelMatrix;
 uniform mat4 glModelViewMatrixInverse;
 
@@ -117,10 +119,12 @@ float scale( float f, float min, float max )
 {
 	return f * ( max - min ) + min;
 }
-
+#define FLT_EPSILON 1.192092896e-07F // smallest such that 1.0 + FLT_EPSILON != 1.0
 void main( void )
 {
-	vec2 offset = glTexCoord0.st;
+
+																																			
+	vec2 offset = glTexCoord0.st; 
 
 	vec4 baseMap = texture2D( BaseMap, offset );								//gl_FragColor = baseMap;return;		
 
@@ -135,10 +139,12 @@ void main( void )
 		//alphaTestFunction==519//always (always keep it)
 	}
 	
-	//swizzle the alpha and green  PJ, no.
-	vec4 normalMap = vec4( texture2D( NormalMap, offset ).xy * 2.0 - 1.0, 0.0, 0.0 ); 
+	
+	//FIXME: PJ, this seems to cause big lighting trouble? it's cause teh sharp shadow lines
+	//NOTE the my coords are y up whereas nifskope has z up
+	vec4 normalMap = vec4( texture2D( NormalMap, offset ).xyy * 2.0 - 1.0, 0.0); normalMap.y=0.0;
 	//re-create the z  
-	normalMap.z = sqrt( 1.0 - dot( normalMap.xy,normalMap.xy ) );    			//gl_FragColor =  normalMap;return;
+	//normalMap.z = sqrt( 1.0 - dot( normalMap.xy,normalMap.xy ) );    			//gl_FragColor =  normalMap;return;
 
 	// spec only use 2 value r and g below (r is gloss, g is spec)
 	//https://www.reddit.com/r/FalloutMods/comments/3uaq1l/fo4_lets_talk_about_texture_creation_editing/
@@ -154,12 +160,11 @@ void main( void )
 	vec3 R = reflect(-L, normal);											//gl_FragColor =  vec4(R,1);return;
 	vec3 H = normalize( L + V );											//gl_FragColor =  vec4(H,1);return;
 	
-	float NdotL = max( dot(normal, L), 0.000001 );
-	float NdotH = max( dot(normal, H), 0.000001 );
-	float NdotV = max( dot(normal, V), 0.000001 );
-	float LdotH = max( dot(L, H), 0.000001 );
-	float NdotNegL = max( dot(normal, -L), 0.000001 );
-
+	float NdotL = max( dot(normal, L), FLT_EPSILON );
+	float NdotH = max( dot(normal, H), FLT_EPSILON );
+	float NdotV = max( dot(normal, V), FLT_EPSILON );
+	float LdotH = max( dot(L, H), FLT_EPSILON );
+	float NdotNegL = max( dot(normal, -L), FLT_EPSILON );
 
 	vec4 color;
 	vec3 albedo = baseMap.rgb * C.rgb;										//gl_FragColor =  vec4(albedo,1);return;
@@ -192,12 +197,13 @@ void main( void )
 	}
 	
 	// Environment
-	// TODO: why does textureCube not work on Android?
+	// TODO: why does textureCube not work on Android? check again is does seem to
 	
 	//FIXME: I notice sk_env also has same problem, possibly all cubes are bum
 	// note carefully that bsa display does not show all problems
+	// notice I'm runnig hasEnvMask and it seems to work now
 	vec3 reflected = reflect( V, normal );
-	vec3 reflectedVS = t * reflected.x + b * reflected.y + N * reflected.z;
+	vec3 reflectedVS = b * reflected.x + t * reflected.y + N * reflected.z;
 	vec3 reflectedWS = vec3( glModelMatrix * (glModelViewMatrixInverse * vec4( reflectedVS, 0.0 )) );
 
 	//FIXEM: can't get the textureCube() to return a value
@@ -206,9 +212,12 @@ void main( void )
 		//vec4 cube = textureCubeLod( CubeMap, reflectedWS, 8.0 - g * 8.0 );			//gl_FragColor =  vec4(cube.rgb,1);return;
 		vec4 cube = textureCube( CubeMap, reflectedWS );				
 		
-		vec4 env = texture2D( EnvironmentMap, offset );		
+	
 		cube.rgb *= envReflection * specStrength * sqrt(g) * 0.9;
-		cube.rgb *= mix( s, env.r, float(hasEnvMask) );							
+			
+		//disabled because sk_env had trouble with this
+		//vec4 env = texture2D( EnvironmentMap, offset );		
+		//cube.rgb *= mix( s, env.r, float(hasEnvMask) );							
     
 		albedo += cube.rgb;
 	}
@@ -248,9 +257,10 @@ void main( void )
 		emissive += soft * D.rgb;											//gl_FragColor =  vec4(emissive,1);return;
 	}
 
+
 	color.rgb = albedo * (diffuse + emissive);	
 	color.rgb += spec;
-	color.rgb = tonemap( color.rgb ) / tonemap( vec3(1.0) ); 
+//	color.rgb = tonemap( color.rgb ) / tonemap( vec3(1.0) );   //tonemaps do weirds things sometimes
 
 	color.a = C.a * baseMap.a;
 

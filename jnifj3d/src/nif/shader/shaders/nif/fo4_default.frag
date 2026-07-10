@@ -128,7 +128,8 @@ float scale( float f, float min, float max )
 
 void main( void )
 {
-
+																						// this shader deoesn't appear ot eb used at all, possibly why merged with env
+																						if(A.x>=0.0 ) {gl_FragColor = vec4(1,1,0,1);return;}
 	vec2 offset = glTexCoord0.st;
 
 	vec4 baseMap = texture2D( BaseMap, offset );
@@ -144,10 +145,11 @@ void main( void )
 		//alphaTestFunction==519//always (always keep it)
 	}
 	
-	//swizzle the alpha and green  
-	vec4 normalMap = vec4( texture2D( NormalMap, offset ).xy * 2.0 - 1.0, 0.0, 0.0 );
+	//FIXME: PJ, this seems to cause big lighting trouble? it's cause teh sharp shadow lines
+	//NOTE the my coords are y up whereas nifskope has z up
+	vec4 normalMap = vec4( texture2D( NormalMap, offset ).xyy * 2.0 - 1.0, 0.0); normalMap.y=0.0;
 	//re-create the z  
-	normalMap.z = sqrt( 1.0 - dot( normalMap.xy,normalMap.xy ) ); 
+	//normalMap.z = sqrt( 1.0 - dot( normalMap.xy,normalMap.xy ) );
 	vec2 specMap = texture2D( SpecularMap, offset ).rg; 
 	
 	vec4 glowMap = texture2D( GlowMap, offset );

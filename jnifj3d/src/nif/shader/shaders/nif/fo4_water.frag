@@ -76,7 +76,11 @@ void main( void )
 		//alphaTestFunction==519//always (always keep it)
 	}
 	
-	vec4 normalMap = texture2D( NormalMap, offset );
+	//FIXME: PJ, this seems to cause big lighting trouble? it's cause teh sharp shadow lines
+	//NOTE the my coords are y up whereas nifskope has z up
+	vec4 normalMap = vec4( texture2D( NormalMap, offset ).xyy * 2.0 - 1.0, 0.0); normalMap.y=0.0;
+	//re-create the z  
+	//normalMap.z = sqrt( 1.0 - dot( normalMap.xy,normalMap.xy ) );
 
 	vec3 normal = normalize(normalMap.rgb * 2.0 - 1.0);
 	

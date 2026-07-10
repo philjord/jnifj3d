@@ -27,7 +27,7 @@ uniform material glFrontMaterial;
 
 struct lightSource
 {
-	 vec4 position;
+	 vec4 position;// w=0 means directional light, w=1.0 means positional
 	 vec4 diffuse;
 	 vec4 specular;
 	 float constantAttenuation, linearAttenuation, quadraticAttenuation;
@@ -59,7 +59,7 @@ varying vec3 N;
 varying vec3 t;
 varying vec3 b;
 
-
+																		varying vec4 signal;
 void main( void )
 {
 	gl_Position = glModelViewProjectionMatrix * glVertex;
@@ -78,7 +78,11 @@ void main( void )
 	vec3 v = vec3(glModelViewMatrix * glVertex);
 	
 	ViewVec = tbnMatrix * -v.xyz;
-	LightDir = tbnMatrix * glLightSource[0].position.xyz;
+	//https://stackoverflow.com/questions/47992011/opengl-directional-light-shader	
+	if(glLightSource[0].position.w == 1.0)
+		LightDir = vec3(mat4(tbnMatrix) * vec4(glLightSource[0].position.xyz, 1.0));
+	else
+		LightDir = tbnMatrix * glLightSource[0].position.xyz;	 
 	
 	A = glLightModelambient;
 	if( ignoreVertexColors != 0) 
@@ -89,4 +93,8 @@ void main( void )
 	
 	if( bool(isVertexAlphaAnimation) )
 		C.a = 1.0;
+		
+															//signal = vec4(0);
+															//if(glLightSource[0].position.w == 0.0)
+																//signal=glLightSource[0].position;
 }

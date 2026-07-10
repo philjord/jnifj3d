@@ -27,7 +27,7 @@ uniform material glFrontMaterial;
 
 struct lightSource
 {
-	 vec4 position;
+	 vec4 position;// w=0 means directional light, w=1.0 means positional
 	 vec4 diffuse;
 	 vec4 specular;
 	 float constantAttenuation, linearAttenuation, quadraticAttenuation;
@@ -61,8 +61,7 @@ varying vec4 D;
 // this is not env but it has the same vert code
 //https://github.com/niftools/nifskope/blob/develop/res/shaders/fo4_default.vert
 void main( void )
-{
-	gl_Position = glModelViewProjectionMatrix * glVertex;
+{gl_Position = glModelViewProjectionMatrix * glVertex;
 	
 	glTexCoord0 = (textureTransform * vec4(glMultiTexCoord0,0.0,1.0)).st;	
 	
@@ -70,41 +69,18 @@ void main( void )
 	t = normalize(glNormalMatrix * tangent);
 	b = normalize(glNormalMatrix * binormal);
 	
-				//notice with glNormalMatrix taken out, my lighting calcs are still wrong so that's not the problem
-				//N = normalize( glNormal);
-				//t = normalize( tangent);
-				//b = normalize( binormal);
-	
-	// No this doens't seem to fix nothinf in FO4 but I did it because of FO76?
-	//b = cross( N, t ); // my binormal attribute data seems corrupt
-	
-	// NOTE: b<->t versus the nifskope source
-	mat3 tbnMatrix = mat3(t.x, b.x, N.x,
-                          t.y, b.y, N.y,
-                          t.z, b.z, N.z);
-   // ok so there's also this constructor
-   // tbnMatrix = mat3(t,b,N);               
-                          
-                          
-                         //this version has consistent lighting across edges N,t,t
-                         
-                         //N,t,b
-                         //N,b,t
-                         //t,n,b
-                         //b,n,t
-                         //t,b,n
-                         //b,t,n
-                         
-                         // ok so there's also this constructor
-                        // b = cross( N, t );
-                        //  tbnMatrix = mat3( N,t,b);
+	mat3 tbnMatrix = mat3(b.x, t.x, N.x,
+                          b.y, t.y, N.y,
+                          b.z, t.z, N.z);
 						  
-	v = vec3(glModelViewMatrix * glVertex);
+	vec3 v = vec3(glModelViewMatrix * glVertex);
 	
 	ViewVec = tbnMatrix * -v.xyz;
-	LightDir = tbnMatrix * glLightSource[0].position.xyz;
-	
-								//LightDir = glNormalMatrix * glLightSource[0].position.xyz;
+	//https://stackoverflow.com/questions/47992011/opengl-directional-light-shader	
+	if(glLightSource[0].position.w == 1.0)
+		LightDir = vec3(mat4(tbnMatrix) * vec4(-glLightSource[0].position.xyz, 1.0));
+	else
+		LightDir = tbnMatrix * -glLightSource[0].position.xyz;	
 	
 	A = glLightModelambient;
 	if( ignoreVertexColors != 0) 
@@ -112,4 +88,7 @@ void main( void )
 	else 
 		C = glColor;
 	D = glLightSource[0].diffuse;
+	
+	//if( bool(isVertexAlphaAnimation) )
+	//	C.a = 1.0;
 }

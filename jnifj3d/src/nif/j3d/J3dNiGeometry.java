@@ -12,18 +12,16 @@ import tools3d.utils.AppearanceFactory;
 import tools3d.utils.scenegraph.Fadable;
 import utils.source.TextureSource;
 
-public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
-{
-	private Appearance normalApp;
+public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable {
+	private Appearance				normalApp;
 
-	private Shape3D shape;
+	private Shape3D					shape;
 
-	private TransparencyAttributes normalTA = null;
+	private TransparencyAttributes	normalTA	= null;
 
-	private TransparencyAttributes faderTA = null;
+	private TransparencyAttributes	faderTA		= null;
 
-	public J3dNiGeometry(NiGeometry niGeometry, NiToJ3dData niToJ3dData, TextureSource textureSource)
-	{
+	public J3dNiGeometry(NiGeometry niGeometry, NiToJ3dData niToJ3dData, TextureSource textureSource) {
 		this(niGeometry, niToJ3dData, textureSource, null);
 	}
 
@@ -36,38 +34,34 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 	 * @param imageDir
 	 * @param customShape
 	 */
-	public J3dNiGeometry(NiGeometry niGeometry, NiToJ3dData niToJ3dData, TextureSource textureSource, Shape3D customShape)
-	{
+	public J3dNiGeometry(	NiGeometry niGeometry, NiToJ3dData niToJ3dData, TextureSource textureSource,
+							Shape3D customShape) {
 		super(niGeometry, niToJ3dData);
 
-		if (customShape == null)
-		{
+		if (customShape == null) {
 			shape = new Shape3D();
 			addChild(shape);
-		}
-		else
-		{
+		} else {
 			// Don't add as this is for particles which is different
 			shape = customShape;
 		}
 		shape.setName("" + this.getClass().getSimpleName() + ":" + niGeometry.name);
 
 		// no texture source probably just wants the geometry set up, customShape == null ,means particles which do a different thing
-		if (customShape == null && textureSource != null)
-		{
+		if (customShape == null && textureSource != null) {
 
-			normalApp = ((NiGeometryAppearance) AppearanceFactory.currentAppearanceFactory).configureAppearance(niGeometry, niToJ3dData,
-					textureSource, shape, this);
+			normalApp = ((NiGeometryAppearance)AppearanceFactory.currentAppearanceFactory)
+					.configureAppearance(niGeometry, niToJ3dData, textureSource, shape, this);
 
 			/*
-			 * System.out.println("niGeometry " +niGeometry.nVer.fileName); System.out.println(
-			 * "normalApp.getTransparencyAttributes() " + normalApp.getTransparencyAttributes()); System.out.println(
-			 * "normalApp.getRenderingAttributes() " + normalApp.getRenderingAttributes()); System.out.println(
-			 * "normalApp.getColoringAttributes() " + normalApp.getColoringAttributes()); System.out.println(
-			 * "normalApp.getLineAttributes() " + normalApp.getLineAttributes()); System.out.println(
-			 * "normalApp.getTextureUnitCount() " + normalApp.getTextureUnitCount()); System.out.println(
-			 * "normalApp.getMaterial() " + normalApp.getMaterial()); System.out.println(
-			 * "normalApp.getPolygonAttributes() " + normalApp.getPolygonAttributes());
+			 System.out.println("niGeometry " +niGeometry.nVer.fileName); System.out.println(
+			 "normalApp.getTransparencyAttributes() " + normalApp.getTransparencyAttributes()); System.out.println(
+			 "normalApp.getRenderingAttributes() " + normalApp.getRenderingAttributes()); System.out.println(
+			 "normalApp.getColoringAttributes() " + normalApp.getColoringAttributes()); System.out.println(
+			 "normalApp.getLineAttributes() " + normalApp.getLineAttributes()); System.out.println(
+			 "normalApp.getTextureUnitCount() " + normalApp.getTextureUnitCount()); System.out.println(
+			 "normalApp.getMaterial() " + normalApp.getMaterial()); System.out.println(
+			 "normalApp.getPolygonAttributes() " + normalApp.getPolygonAttributes());
 			 */
 
 			// Some times the nif just has no texture, odd. see BSShaderNoLightingProperty
@@ -76,15 +70,12 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 
 	}
 
-	public Shape3D getShape()
-	{
+	public Shape3D getShape() {
 		return shape;
 	}
 
-	public static boolean textureExists(String texName, TextureSource ts)
-	{
-		if (ts != null && texName != null && texName.length() > 0)
-		{
+	public static boolean textureExists(String texName, TextureSource ts) {
+		if (ts != null && texName != null && texName.length() > 0) {
 			// morrowind has bmp and tga endings ?
 			texName = texName.toLowerCase().trim();
 			if (texName.endsWith(".bmp"))
@@ -98,10 +89,8 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		return false;
 	}
 
-	public static Texture loadTexture(String texName, TextureSource ts)
-	{
-		if (ts != null && texName != null && texName.length() > 0)
-		{
+	public static Texture loadTexture(String texName, TextureSource ts) {
+		if (ts != null && texName != null && texName.length() > 0) {
 			// morrowind has bmp and tga endings ?
 			texName = texName.toLowerCase().trim();
 			if (texName.endsWith(".bmp"))
@@ -115,15 +104,12 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 		return null;
 	}
 
-	public static TextureUnitState loadTextureUnitState(String texName, TextureSource ts)
-	{
+	public static TextureUnitState loadTextureUnitState(String texName, TextureSource ts) {
 		return loadTextureUnitState(texName, ts, false);
 	}
-	
-	public static TextureUnitState loadTextureUnitState(String texName, TextureSource ts, boolean dropMip0)
-	{
-		if (ts != null && texName != null && texName.length() > 0)
-		{
+
+	public static TextureUnitState loadTextureUnitState(String texName, TextureSource ts, boolean dropMip0) {
+		if (ts != null && texName != null && texName.length() > 0) {
 			// morrowind has bmp and tga endings ?
 			texName = texName.toLowerCase().trim();
 			if (texName.endsWith(".bmp"))
@@ -145,40 +131,34 @@ public abstract class J3dNiGeometry extends J3dNiAVObject implements Fadable
 	 * @see tools3d.utils.scenegraph.Fadable#fade(float)
 	 */
 	@Override
-	public void fade(float percent)
-	{
-		// check for setup indicator
-		if (percent == -1f)
-		{
-			// Various parts to allow fading in and out
-			normalTA = normalApp.getTransparencyAttributes();
-			normalApp.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_READ);
-			normalApp.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_WRITE);
-			faderTA = new TransparencyAttributes(TransparencyAttributes.BLENDED, 0f);
-			faderTA.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE);
-		}
-		else
-		{
-			// setting transparency is expensive early out it if possible
-			if (currentTrans != percent)
-			{
-				if (percent <= 0 || percent >= 1.0f)
-				{
-					if (normalApp.getTransparencyAttributes() != normalTA)
-					{
-						// System.out.println("set normal");
-						normalApp.setTransparencyAttributes(normalTA);
-					}
-				}
-				else
-				{
-					if (normalApp.getTransparencyAttributes() != faderTA)
-						normalApp.setTransparencyAttributes(faderTA);
+	public void fade(float percent) {
+		//normalApp can be null for particles, need to include them friom their sub calss somehow
+		if (normalApp != null) {
+			// check for setup indicator
+			if (percent == -1f) {
+				// Various parts to allow fading in and out
+				normalTA = normalApp.getTransparencyAttributes();
+				normalApp.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_READ);
+				normalApp.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_WRITE);
+				faderTA = new TransparencyAttributes(TransparencyAttributes.BLENDED, 0f);
+				faderTA.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE);
+			} else {
+				// setting transparency is expensive early out it if possible
+				if (currentTrans != percent) {
+					if (percent <= 0 || percent >= 1.0f) {
+						if (normalApp.getTransparencyAttributes() != normalTA) {
+							// System.out.println("set normal");
+							normalApp.setTransparencyAttributes(normalTA);
+						}
+					} else {
+						if (normalApp.getTransparencyAttributes() != faderTA)
+							normalApp.setTransparencyAttributes(faderTA);
 
-					// System.out.println("fade set to " + percent);
-					faderTA.setTransparency(percent);
+						// System.out.println("fade set to " + percent);
+						faderTA.setTransparency(percent);
+					}
+					currentTrans = percent;
 				}
-				currentTrans = percent;
 			}
 		}
 	}

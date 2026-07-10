@@ -27,7 +27,7 @@ uniform material glFrontMaterial;
 
 struct lightSource
 {
-	 vec4 position;
+	 vec4 position;// w=0 means directional light, w=1.0 means positional
 	 vec4 diffuse;
 	 vec4 specular;
 	 float constantAttenuation, linearAttenuation, quadraticAttenuation;
@@ -69,9 +69,6 @@ void main( void )
 	t = normalize(glNormalMatrix * tangent);
 	b = normalize(glNormalMatrix * binormal);
 	
-	b = cross( N, t ); // my binormal attribute data seems corrupt
-	
-	// NOTE: b<->t 
 	mat3 tbnMatrix = mat3(b.x, t.x, N.x,
                           b.y, t.y, N.y,
                           b.z, t.z, N.z);
@@ -79,7 +76,11 @@ void main( void )
 	v = vec3(glModelViewMatrix * glVertex);
 	
 	ViewVec = tbnMatrix * -v.xyz;
-	LightDir = tbnMatrix * glLightSource[0].position.xyz;
+	//https://stackoverflow.com/questions/47992011/opengl-directional-light-shader	
+	if(glLightSource[0].position.w == 1.0)
+		LightDir = vec3(mat4(tbnMatrix) * vec4(-glLightSource[0].position.xyz, 1.0));
+	else
+		LightDir = tbnMatrix * -glLightSource[0].position.xyz;	
 	
 	A = glLightModelambient;
 	if( ignoreVertexColors != 0) 

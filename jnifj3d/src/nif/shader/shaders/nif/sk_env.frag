@@ -70,10 +70,10 @@ vec3 toGrayscale(vec3 color)
 
 // looks like this has been merged with the default shader
 //https://github.com/niftools/nifskope/blob/develop/res/shaders/sk_default.frag
-
+														varying vec4 signal;
 void main( void )
 {
-													//if(N.x != -50){gl_FragColor=vec4(1,0,1,1);return;}
+													//if(signal!=vec4(0)){gl_FragColor=vec4(signal.rgb,1);return;}
 	vec2 offset = glTexCoord0.st;
 
 	vec4 baseMap = texture2D( BaseMap, offset );
@@ -121,14 +121,10 @@ void main( void )
 			// with only this much removed I still lose env shaded thigns when lights go crazy
 			
 			
-			// ok ok, I've got a wee spider in bthardamz02 that's poping pink and not pink from this tet right here
+			// ok ok, I've got a wee spider in bthardamz02 that's poping pink and not pink from this test right here
 			// now that suggests the hasEnvMask is changing based on random, which can only be other 
 			// geoms using their attirbute sets with uncleared out data in them!!
-			// so I'm over optomising on the pipeline if I'm any judge!
-		
-			
-			
-			
+			// so I'm over optomising on the pipeline if I'm any judge!			
 			
 		if ( false && bool(hasEnvMask)) {
 			
