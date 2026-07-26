@@ -23,7 +23,6 @@ import org.jogamp.vecmath.Point3f;
 import org.jogamp.vecmath.Tuple3f;
 import org.jogamp.vecmath.Vector3d;
 import org.jogamp.vecmath.Vector3f;
-import org.jogamp.vecmath.Vector4f;
 
 import com.bulletphysics.collision.shapes.ConvexHullShape;
 import com.bulletphysics.collision.shapes.ShapeHull;
@@ -31,6 +30,9 @@ import com.bulletphysics.util.IntArrayList;
 import com.bulletphysics.util.ObjectArrayList;
 
 import nif.NifVer;
+import nif.niobject.bhk.bhkPhysicsSystem;
+import nif.niobject.bhk.bhkRagdollSystem;
+import nif.niobject.bs.BSClothExtraData;
 import nif.niobject.bs.BSbhkNPObject;
 import nif.niobject.hkx.hkAabb;
 import nif.niobject.hkx.hkBaseObject;
@@ -59,79 +61,106 @@ import utils.convert.ConvertFromHavok;
  * @author philip
  *
  */
-public class J3dBSbhkNPObject extends Group
-{
-	private static final boolean COMPACT = false;
-	private static final boolean BY_REF = true;
-	private static final boolean INTERLEAVED = false;
-	private static final boolean NIO = true;
+public class J3dBSbhkNPObject extends Group {
+	private static final boolean	COMPACT			= false;
+	private static final boolean	BY_REF			= true;
+	private static final boolean	INTERLEAVED		= false;
+	private static final boolean	NIO				= true;
 
-	private static final int defaultFormat = GeometryArray.COORDINATES | GeometryArray.BY_REFERENCE | GeometryArray.USE_NIO_BUFFER;
-	
+	private static final int		defaultFormat	= GeometryArray.COORDINATES | GeometryArray.BY_REFERENCE
+														| GeometryArray.USE_NIO_BUFFER;
 
-	public static NifVer nifVer = new NifVer("FO4", NifVer.VER_20_2_0_7, 12, 130);
+	public static NifVer			nifVer			= new NifVer("FO4", NifVer.VER_20_2_0_7, 12, 130);
 
 	//TODO: many more JBullet style conversions
 
-	public J3dBSbhkNPObject(BSbhkNPObject object, NiToJ3dData niToJ3dData)
-	{
+	public J3dBSbhkNPObject(BSbhkNPObject object, NiToJ3dData niToJ3dData) {
+
+		// so object can be bhkPhysicsSystem or bhkRagdollSystem or BSClothExtraData
 		HKXContents contents = object.hkxContents;
-		if(contents != null) {
-		
+		if (contents != null) {
+
 			Iterator<hkBaseObject> iter = contents.getContentCollection().iterator();
-			if(iter.hasNext()) {
-				// the first one had better be a system
-				hknpPhysicsSystemData hknpPhysicsSystemData = (hknpPhysicsSystemData)iter.next();
-					
-				//physics bodies are here
-				hknpBodyCinfo[] bodyCinfos = hknpPhysicsSystemData.bodyCinfos;
-				for(int b = 0 ; b < bodyCinfos.length; b++) {
-					hknpBodyCinfo bodyCinfo = bodyCinfos[b];
-					
-					long shapeId = bodyCinfo.shape;
-					if(shapeId > 0) {
-						hknpShape hknpShape = (hknpShape)contents.get(shapeId);
-						if(hknpShape instanceof hknpConvexPolytopeShape) {
-							Transform3D t = new Transform3D();						
-							t.setRotation(ConvertFromHavok.toJ3d(bodyCinfo.orientation)); 	
-			
-							Vector3f pos = ConvertFromHavok.toJ3d(bodyCinfo.position, niToJ3dData.nifVer);
-							// ok so the position wants to be the center of the polytopeshape, but my polytopeshape seem to be offset from 0,0,0
-							// so I tell them to cetner at 0,0,0, but NOTE! not if the pos is 0,0,0
-							
-							addChild(createDebugPointShape(new Vector3f[]{pos}, new Color3f(1f,1f,1f)));
-	
-							t.setTranslation(pos);
-							 
-							TransformGroup lowerGroup = new TransformGroup(t);					
-							lowerGroup.addChild(hknpConvexPolytopeShape((hknpConvexPolytopeShape)hknpShape, contents, pos.lengthSquared() != 0));
-							addChild(lowerGroup);
-							 
-						} else {				
-							addChild(processHknpShape(hknpShape, contents));						
+			if (object instanceof bhkPhysicsSystem) {
+				if (iter.hasNext()) {
+
+					// the first one had better be a system data
+					hknpPhysicsSystemData hknpPhysicsSystemData = (hknpPhysicsSystemData)iter.next();
+
+					//physics bodies are here
+					hknpBodyCinfo[] bodyCinfos = hknpPhysicsSystemData.bodyCinfos;
+					for (int b = 0; b < bodyCinfos.length; b++) {
+						hknpBodyCinfo bodyCinfo = bodyCinfos[b];
+
+						long shapeId = bodyCinfo.shape;
+						if (shapeId > 0) {
+							hknpShape hknpShape = (hknpShape)contents.get(shapeId);
+							if (hknpShape instanceof hknpConvexPolytopeShape) {
+								Transform3D t = new Transform3D();
+								t.setRotation(ConvertFromHavok.toJ3d(bodyCinfo.orientation));
+
+								Vector3f pos = ConvertFromHavok.toJ3d(bodyCinfo.position, niToJ3dData.nifVer);
+								// ok so the position wants to be the center of the polytopeshape, but my polytopeshape seem to be offset from 0,0,0
+								// so I tell them to cetner at 0,0,0, but NOTE! not if the pos is 0,0,0
+
+								addChild(createDebugPointShape(new Vector3f[] {pos}, new Color3f(1f, 1f, 1f)));
+
+								t.setTranslation(pos);
+
+								TransformGroup lowerGroup = new TransformGroup(t);
+								lowerGroup.addChild(hknpConvexPolytopeShape((hknpConvexPolytopeShape)hknpShape,
+										contents, pos.lengthSquared() != 0));
+								addChild(lowerGroup);
+
+							} else {
+								addChild(processHknpShape(hknpShape, contents));
+							}
 						}
 					}
 				}
+			} else if (object instanceof bhkRagdollSystem) {
+				//example meshes\actors\character\characterassets\skeleton.nif
+			//	System.err.println("bhkRagdollSystem example found in " + niToJ3dData.nifVer.fileName);
+				while (iter.hasNext()) {
+					// seems to be a list of capsule shapes 
+					hkBaseObject shapeObj = iter.next();
+				//	System.out.println("content = " + shapeObj);
+					if (shapeObj instanceof hknpShape) {
+						hknpShape hknpShape = (hknpShape)shapeObj;
+						addChild(processHknpShape(hknpShape, contents));						
+					} else {
+						System.err.println("bhkRagdollSystem object not processed " + shapeObj + " in "
+											+ niToJ3dData.nifVer.fileName);
+					}
+				}
+
+			} else if (object instanceof BSClothExtraData) {
+				// no example yet
+				System.err.println("BSClothExtraData example found in " + niToJ3dData.nifVer.fileName);
 			} else {
-				System.out.println("HKXContents contents is empty? odd");
+				System.err
+						.println("Unknown sub type of BSbhkNPObject " + object + " in " + niToJ3dData.nifVer.fileName);
 			}
-		}		
+		} else {
+			System.err.println("HKXContents contents is empty? in " + niToJ3dData.nifVer.fileName);
+		}
 	}
+
 	private static Node processHknpShape(hknpShape hknpShape, HKXContents contents) {
 		return processHknpShape(hknpShape, contents, false);
 	}
-	private static Node processHknpShape(hknpShape hknpShape, HKXContents contents, boolean centerAtOrgin)
-	{
+
+	private static Node processHknpShape(hknpShape hknpShape, HKXContents contents, boolean centerAtOrgin) {
 		if (hknpShape instanceof hknpSphereShape) {
-			return hknpSphereShape((hknpSphereShape) hknpShape, contents);
+			return hknpSphereShape((hknpSphereShape)hknpShape, contents);
 		} else if (hknpShape instanceof hknpCapsuleShape) {
-			return hknpCapsuleShape((hknpCapsuleShape) hknpShape, contents);
-		} else	if (hknpShape instanceof hknpDynamicCompoundShape) {
-			return hknpCompoundShape((hknpDynamicCompoundShape) hknpShape, contents);
-		} else	if (hknpShape instanceof hknpStaticCompoundShape) {
-			return hknpCompoundShape((hknpDynamicCompoundShape) hknpShape, contents);
+			return hknpCapsuleShape((hknpCapsuleShape)hknpShape, contents);
+		} else if (hknpShape instanceof hknpDynamicCompoundShape) {
+			return hknpCompoundShape((hknpDynamicCompoundShape)hknpShape, contents);
+		} else if (hknpShape instanceof hknpStaticCompoundShape) {
+			return hknpCompoundShape((hknpDynamicCompoundShape)hknpShape, contents);
 		} else if (hknpShape instanceof hknpScaledConvexShape) {
-			return hknpScaledConvexShape((hknpScaledConvexShape) hknpShape, contents);
+			return hknpScaledConvexShape((hknpScaledConvexShape)hknpShape, contents);
 		} else if (hknpShape instanceof hknpConvexPolytopeShape) {
 			return hknpConvexPolytopeShape((hknpConvexPolytopeShape)hknpShape, contents, centerAtOrgin);
 		} else if (hknpShape instanceof hknpCompressedMeshShape) {
@@ -150,63 +179,60 @@ public class J3dBSbhkNPObject extends Group
 		}
 		return null;
 	}
-	
-	private static Node hknpScaledConvexShape(hknpScaledConvexShape data,  HKXContents contents)
-	{
+
+	private static Node hknpScaledConvexShape(hknpScaledConvexShape data, HKXContents contents) {
 
 		long shapeId = data.coreShape;
-		if(shapeId > 0) {
+		if (shapeId > 0) {
 			hknpShape hknpShape = (hknpShape)contents.get(shapeId);
 			TransformGroup transformGroup = new TransformGroup();
 			Transform3D t3d = new Transform3D();
 			Vector3f pos = ConvertFromHavok.toJ3d(data.position, nifVer);
 			t3d.set(pos);
-			
+
 			//Note no ConvertFromHavok as these are just straight multipliers 
 			t3d.setScale(new Vector3d(data.scale.x, data.scale.z, data.scale.y));
 
 			transformGroup.setTransform(t3d);
-			
+
 			transformGroup.addChild(processHknpShape(hknpShape, contents, pos.lengthSquared() != 0));
 			return transformGroup;
-			
-		}	
+
+		}
 		return null;
-		
+
 	}
-	
-	private static Node hknpCompoundShape(hknpCompoundShape data, HKXContents contents)
-	{
+
+	private static Node hknpCompoundShape(hknpCompoundShape data, HKXContents contents) {
 		Group g = new Group();
-		for(int i = 0 ; i < data.instances.elements.length;i++) {
+		for (int i = 0; i < data.instances.elements.length; i++) {
 			hknpShapeInstance s = data.instances.elements[i];
 			long shapeId = s.shape;
-			if(shapeId > 0) {
+			if (shapeId > 0) {
 				TransformGroup transformGroup = new TransformGroup();
 				Transform3D t3d = new Transform3D();
 
 				Matrix4f m = ConvertFromHavok.toJ3dM4(s.transform, nifVer);
 				t3d.set(m);
-				
+
 				//Note no ConvertFromHavok as these are just straight multipliers 
 				t3d.setScale(new Vector3d(s.scale.x, s.scale.z, s.scale.y));
 
 				transformGroup.setTransform(t3d);
-				
+
 				hknpShape hknpShape = (hknpShape)contents.get(shapeId);
 				transformGroup.addChild(processHknpShape(hknpShape, contents));
-				g.addChild(transformGroup);				
-			}			
+				g.addChild(transformGroup);
+			}
 		}
 		return g;
 	}
-	
-	private static Shape3D hknpSphereShape(hknpSphereShape data, HKXContents contents)
-	{
+
+	private static Shape3D hknpSphereShape(hknpSphereShape data, HKXContents contents) {
 		//System.out.println("just out of interest vertices for sphere " +data.convexRadius+ " " + data.vertices[0]+ " " + data.vertices[1]+ " " + data.vertices[2]);
 		//just out of interest vertices for sphere 0.29049572 [NPVector4] x:2.3510652E-38 y:0.29049572 z:2.664476E24 w:0.0 [NPVector4] x:0.0 y:0.0 z:0.0 w:0.0 [NPVector4] x:1.469374E-39 y:0.0 z:0.0 w:0.0
 		// so vertices[0].y is the radius, and the others are weird numbers
-		
+
 		float radius = ConvertFromHavok.toJ3d(data.convexRadius, nifVer);
 		SphereGenerator sg = new SphereGenerator(radius);
 		GeometryData gd = new GeometryData();
@@ -223,10 +249,7 @@ public class J3dBSbhkNPObject extends Group
 		return shape;
 	}
 
-
-
-	private static Group hknpCapsuleShape(hknpCapsuleShape data, HKXContents contents)
-	{
+	private static Group hknpCapsuleShape(hknpCapsuleShape data, HKXContents contents) {
 		//TODO: try JBullet CapsuleShapeX
 		Group g = new Group();
 
@@ -304,14 +327,16 @@ public class J3dBSbhkNPObject extends Group
 
 		return g;
 
-	}	
+	}
 
 	public static Node hknpConvexPolytopeShape(hknpConvexPolytopeShape data, HKXContents contents) {
-		return hknpConvexPolytopeShape(data, contents, false);		
+		return hknpConvexPolytopeShape(data, contents, false);
 	}
-	public static Node hknpConvexPolytopeShape(hknpConvexPolytopeShape data, HKXContents contents, boolean centerAtOrgin) {		
-		Group group = new Group();	
-				
+
+	public static Node hknpConvexPolytopeShape(	hknpConvexPolytopeShape data, HKXContents contents,
+												boolean centerAtOrgin) {
+		Group group = new Group();
+
 		/*Point3f[] vertices = new Point3f[data.vertices.length];
 		for (int i = 0; i < data.vertices.length; i++) {
 			vertices[i] = new Point3f(ConvertFromHavok.toJ3dP3f(data.vertices[i], nifVer));
@@ -323,14 +348,13 @@ public class J3dBSbhkNPObject extends Group
 		}	
 		group.addChild(createDebugPointShape(vertices2, new Color3f(1.0f,0.5f,0.3f)));
 		*/
-		
+
 		// ok vertices and planes, I'm see for a box which wants 8 vertexs I see oddly, very oddly, 
 		//vertices 3 oddly close to 0,0,0 then 4 good verts, planes, 4 that look like verts almost and 3 that are
 		// like a plane, normal and distance (e.g. 0,0,1,-0.16)		
 		// like 3 odds to start and 3 odds to finish
 		// so this 3 thingy below works
-		
-		
+
 		// super suspect these first 3 are a bunch of flags, notice very diff poly topes (boxes) same numbers 
 		//ftoi xyzw 0: 0, 0, 0, 0
 		//ftoi xyzw 1: 001000000000000000001000, 0, 0, 0
@@ -339,7 +363,7 @@ public class J3dBSbhkNPObject extends Group
 		//ftoi xyzw 0 0, 0, 0, 0
 		//ftoi xyzw 1 001000000000000000001000, 0, 0, 0
 		//ftoi xyzw 2 100100000000000000001000, 1000011000000000000000110, 1001010000000000000011000, 0
-		
+
 		/*for (int i = 0; i < 3; i++) {
 			//System.out.println("ftoi "+i+" " + Float.floatToIntBits(data.vertices[i].x) );
 			System.out.println("ftoi xyzw "+i+": " + Integer.toBinaryString( Float.floatToIntBits(data.vertices[i].x))
@@ -356,17 +380,16 @@ public class J3dBSbhkNPObject extends Group
 			Vector4f p= new Vector4f(data.planes[i].x * hs ,   data.planes[i].z * hs ,  -data.planes[i].y * hs, data.planes[i].w );
 			System.out.println("pi " + i + "" + p);
 		} */
-	
-		
+
 		ObjectArrayList<Vector3f> points = new ObjectArrayList<Vector3f>();
-		
+
 		// used if the centering is required below
-		Vector3f min = new Vector3f(Float.MAX_VALUE,Float.MAX_VALUE,Float.MAX_VALUE);
-		Vector3f max = new Vector3f(Float.MIN_VALUE,Float.MIN_VALUE,Float.MIN_VALUE);
-		if( data.vertices.length > 3 && data.planes.length > 3) { 			
+		Vector3f min = new Vector3f(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
+		Vector3f max = new Vector3f(Float.MIN_VALUE, Float.MIN_VALUE, Float.MIN_VALUE);
+		if (data.vertices.length > 3 && data.planes.length > 3) {
 			for (int i = 3; i < data.vertices.length; i++) {
 				Vector3f v = new Vector3f(ConvertFromHavok.toJ3dP3f(data.vertices[i], nifVer));
-				if(centerAtOrgin) {
+				if (centerAtOrgin) {
 					min.x = v.x < min.x ? v.x : min.x;
 					max.x = v.x > max.x ? v.x : max.x;
 					min.y = v.y < min.y ? v.y : min.y;
@@ -378,7 +401,7 @@ public class J3dBSbhkNPObject extends Group
 			}
 			for (int i = 0; i < data.planes.length - 3; i++) {
 				Vector3f p = new Vector3f(ConvertFromHavok.toJ3dP3f(data.planes[i], nifVer));
-				if(centerAtOrgin) {
+				if (centerAtOrgin) {
 					min.x = p.x < min.x ? p.x : min.x;
 					max.x = p.x > max.x ? p.x : max.x;
 					min.y = p.y < min.y ? p.y : min.y;
@@ -389,17 +412,17 @@ public class J3dBSbhkNPObject extends Group
 				points.add(p);
 			}
 		} else {
-			System.out.println("Interesting hknpConvexPolytopeShape " + data.vertices.length + " " + data.planes.length);
+			System.out
+					.println("Interesting hknpConvexPolytopeShape " + data.vertices.length + " " + data.planes.length);
 		}
 
-		if(centerAtOrgin) {
-			Vector3f mod = new Vector3f(((max.x+min.x)/2f), ((max.y+min.y)/2f), ((max.z+min.z)/2f));		
-			for(int  i = 0; i < points.size(); i++) {
+		if (centerAtOrgin) {
+			Vector3f mod = new Vector3f(((max.x + min.x) / 2f), ((max.y + min.y) / 2f), ((max.z + min.z) / 2f));
+			for (int i = 0; i < points.size(); i++) {
 				points.get(i).sub(mod);
 			}
 		}
-	
-		
+
 		ConvexHullShape convexShape = new ConvexHullShape(points);
 		// create a hull approximation
 		ShapeHull hull = new ShapeHull(convexShape);
@@ -439,55 +462,55 @@ public class J3dBSbhkNPObject extends Group
 		return group;
 	}
 
-
-	public static Node hknpCompressedMeshShapeData(hknpCompressedMeshShapeData data, HKXContents contents)
-	{		
- 		// we are in fact dealing only with the meshTree not the simdTree
+	public static Node hknpCompressedMeshShapeData(hknpCompressedMeshShapeData data, HKXContents contents) {
+		// we are in fact dealing only with the meshTree not the simdTree
 		hknpCompressedMeshShapeTree meshTree = data.meshTree;
 
-		Group group = new Group();		
-		
+		Group group = new Group();
+
 		// first decompress shared Vertices against the full AABB
 		hkAabb meshTreehkAabb = meshTree.domain; // full AABB of all sections
-			
+
 		Point3f[] sharedVertices = new Point3f[0];// avoid null pointer checks
-		if(meshTree.sharedVertices != null) {
+		if (meshTree.sharedVertices != null) {
 			sharedVertices = new Point3f[meshTree.sharedVertices.length];
-			for (int pvi = 0; pvi < meshTree.sharedVertices.length; pvi++) {			
-				long pv = meshTree.sharedVertices[pvi];			
-			
+			for (int pvi = 0; pvi < meshTree.sharedVertices.length; pvi++) {
+				long pv = meshTree.sharedVertices[pvi];
+
 				//z value are what I'm calling x, so is this is in zyx format, 10, 11, 11 bit			 
 				//21bit x, 21 bit y, 22 bit z this time!
-				float fx = (((pv >> 0) & 0x1FFFFF)/(float)0x1FFFFF * (meshTreehkAabb.max.x-meshTreehkAabb.min.x)) + meshTreehkAabb.min.x;
-				float fy = (((pv >> 21) & 0x1FFFFF)/(float)0x1FFFFF * (meshTreehkAabb.max.y-meshTreehkAabb.min.y)) + meshTreehkAabb.min.y;
-				float fz = (((pv >> 42) & 0x3FFFFF)/(float)0x3FFFFF * (meshTreehkAabb.max.z-meshTreehkAabb.min.z)) + meshTreehkAabb.min.z;
-			
-				sharedVertices[pvi] = ConvertFromHavok.toJ3dP3f(fx, fy, fz, nifVer);	
-			}		
+				float fx = (((pv >> 0) & 0x1FFFFF) / (float)0x1FFFFF * (meshTreehkAabb.max.x - meshTreehkAabb.min.x))
+							+ meshTreehkAabb.min.x;
+				float fy = (((pv >> 21) & 0x1FFFFF) / (float)0x1FFFFF * (meshTreehkAabb.max.y - meshTreehkAabb.min.y))
+							+ meshTreehkAabb.min.y;
+				float fz = (((pv >> 42) & 0x3FFFFF) / (float)0x3FFFFF * (meshTreehkAabb.max.z - meshTreehkAabb.min.z))
+							+ meshTreehkAabb.min.z;
+
+				sharedVertices[pvi] = ConvertFromHavok.toJ3dP3f(fx, fy, fz, nifVer);
+			}
 		}
-		
-		for (int s = 0; s < meshTree.sections.length; s++) {			
+
+		for (int s = 0; s < meshTree.sections.length; s++) {
 			// the current value is the lowest byte and the previous in the next short(?) up	
 			int primitivesCount = meshTree.sections[s].primitives.data & 0xff;
 			int primitivesOffset = (meshTree.sections[s].primitives.data) >> 8 & 0xffff;
 			//int sharedCount = meshTree.sections[s].sharedVertices.data & 0xff;
 			int sharedOffset = (meshTree.sections[s].sharedVertices.data) >> 8 & 0xffff;
-						
-			
+
 			int firstPackedVertex = meshTree.sections[s].firstPackedVertex;
 			int numPackedVertices = meshTree.sections[s].numPackedVertices;
 			//int numSharedIndices = meshTree.sections[s].numSharedIndices;			
 			//hkAabb currentSectionhkAabb = meshTree.sections[currentSectionIdx].domain;	
 			float[] codecParms = meshTree.sections[s].codecParms;// parallel Algebraic Recursive Multilevel Solvers?   
-			
-			Point3f[] vertices = new Point3f[numPackedVertices + sharedVertices.length];
-			
-			for(int pvi = 0; pvi < numPackedVertices; pvi++) {
 
-				int pv = meshTree.packedVertices[firstPackedVertex + pvi];			
-			
+			Point3f[] vertices = new Point3f[numPackedVertices + sharedVertices.length];
+
+			for (int pvi = 0; pvi < numPackedVertices; pvi++) {
+
+				int pv = meshTree.packedVertices[firstPackedVertex + pvi];
+
 				//z value are what I'm calling x, so is this is in zyx format, 10, 11, 11 bit			
-				
+
 				// Normalized would look like this, but as the normalization dividor is accounted for in the param scale we don't need it
 				//float fx = (pv & 0x7FF) / 2047.0f; // 11bit
 				//float fy = ((pv >> 11) & 0x7FF) / 2047.0f; // 11bit
@@ -496,66 +519,92 @@ public class J3dBSbhkNPObject extends Group
 				float fx = (((pv >> 0) & 0x7FF) * codecParms[3]) + codecParms[0];
 				float fy = (((pv >> 11) & 0x7FF) * codecParms[4]) + codecParms[1];
 				float fz = (((pv >> 22) & 0x3FF) * codecParms[5]) + codecParms[2];
-				
-				vertices[pvi] = ConvertFromHavok.toJ3dP3f(fx, fy, fz, nifVer);		
+
+				vertices[pvi] = ConvertFromHavok.toJ3dP3f(fx, fy, fz, nifVer);
 			}
-						
+
 			//TODO: all shared are copied to the end (if any), bit poor in efficiency, shorten later
-			for(int i =0 ; i< sharedVertices.length;i++) {
-				vertices[numPackedVertices+i] = sharedVertices[i];					 
-			}		
-			
+			for (int i = 0; i < sharedVertices.length; i++) {
+				vertices[numPackedVertices + i] = sharedVertices[i];
+			}
+
 			//group.addChild(createDebugPointShape(vertices, new Color3f(0.0f,1f-((float)s/(float)meshTree.primitiveDataRuns.length), ((float)s/(float)meshTree.primitiveDataRuns.length))));
-			
+
 			// bum have to precount so we can allocate a index array
 			int pointCount = 0;
-			for (int p = primitivesOffset; p < primitivesOffset + primitivesCount; p++) {		
-				hkcdStaticMeshTreeBasePrimitive primitive = meshTree.primitives[p]; 
+			for (int p = primitivesOffset; p < primitivesOffset + primitivesCount; p++) {
+				hkcdStaticMeshTreeBasePrimitive primitive = meshTree.primitives[p];
 				int[] indices = primitive.indices;
 				//quad?
-				if(indices[2] != indices[3]) {
+				if (indices[2] != indices[3]) {
 					pointCount += 6;
 				} else {//just a tri					
 					pointCount += 3;
 				}
-			}						
-			
+			}
+
 			int[] listPoints = new int[pointCount];
 			int idx = 0;
-			for (int i = 0; i < primitivesCount; i++) {				
+			for (int i = 0; i < primitivesCount; i++) {
 				int p = primitivesOffset + i;
-				hkcdStaticMeshTreeBasePrimitive primitive = meshTree.primitives[p]; 
-				
-				int[] indices = primitive.indices;	
+				hkcdStaticMeshTreeBasePrimitive primitive = meshTree.primitives[p];
 
-								 				
+				int[] indices = primitive.indices;
+
 				try {
-					
-					int[] sharedVerticesIndex = meshTree.sharedVerticesIndex;	
-					if(sharedVerticesIndex != null) {
+
+					int[] sharedVerticesIndex = meshTree.sharedVerticesIndex;
+					if (sharedVerticesIndex != null) {
 						// if any of the indices go beyond numPackedVertices then the distance beyond
 						// is used as an index into the sharedVerticesIndex, starting at the <sharedOffset> for this section
 						// each section has numSharedIndices of the sharedVerticesIndex as it's own
 						// the index found is then used as an index into the shared vertex area of the vertices, which for now is at the end starting at 
 						// numPackedVertices, but when a single packed and shared vertex array is used will be at the end of all packed vertices
-															 				
+
 						//quad?
-						if(indices[2] != indices[3]) {
-							listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]-numPackedVertices)+sharedOffset]+numPackedVertices;
-							listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : sharedVerticesIndex[(indices[1]-numPackedVertices)+sharedOffset]+numPackedVertices;
-							listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]-numPackedVertices)+sharedOffset]+numPackedVertices;
-							listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]-numPackedVertices)+sharedOffset]+numPackedVertices;
-							listPoints[idx++] = indices[3] < numPackedVertices ? indices[3] : sharedVerticesIndex[(indices[3]-numPackedVertices)+sharedOffset]+numPackedVertices;
-							listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]-numPackedVertices)+sharedOffset]+numPackedVertices;
+						if (indices[2] != indices[3]) {
+							listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]
+																													- numPackedVertices)
+																													+ sharedOffset]
+																								+ numPackedVertices;
+							listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : sharedVerticesIndex[(indices[1]
+																													- numPackedVertices)
+																													+ sharedOffset]
+																								+ numPackedVertices;
+							listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]
+																													- numPackedVertices)
+																													+ sharedOffset]
+																								+ numPackedVertices;
+							listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]
+																													- numPackedVertices)
+																													+ sharedOffset]
+																								+ numPackedVertices;
+							listPoints[idx++] = indices[3] < numPackedVertices ? indices[3] : sharedVerticesIndex[(indices[3]
+																													- numPackedVertices)
+																													+ sharedOffset]
+																								+ numPackedVertices;
+							listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]
+																													- numPackedVertices)
+																													+ sharedOffset]
+																								+ numPackedVertices;
 						} else {//just a tri					
-							listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]-numPackedVertices)+sharedOffset]+numPackedVertices;
-							listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : sharedVerticesIndex[(indices[1]-numPackedVertices)+sharedOffset]+numPackedVertices;
-							listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]-numPackedVertices)+sharedOffset]+numPackedVertices;
+							listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]
+																													- numPackedVertices)
+																													+ sharedOffset]
+																								+ numPackedVertices;
+							listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : sharedVerticesIndex[(indices[1]
+																													- numPackedVertices)
+																													+ sharedOffset]
+																								+ numPackedVertices;
+							listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]
+																													- numPackedVertices)
+																													+ sharedOffset]
+																								+ numPackedVertices;
 						}
 					} else {
 						//quad?
 						//FIXME: what does an over sized index but no shared vertexs mean?
-						if(indices[2] != indices[3]) {
+						if (indices[2] != indices[3]) {
 							listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : 0;
 							listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : 0;
 							listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : 0;
@@ -567,14 +616,13 @@ public class J3dBSbhkNPObject extends Group
 							listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : 0;
 							listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : 0;
 						}
-					}				
-					
-				} catch(ArrayIndexOutOfBoundsException e) {
+					}
+
+				} catch (ArrayIndexOutOfBoundsException e) {
 					System.out.println("J3dBSbhkNPObject ArrayIndexOutOfBoundsException " + e.getMessage());
 				}
-			}	
-					
-					
+			}
+
 			GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
 			gi.setCoordinates(vertices);
 			gi.setCoordinateIndices(listPoints);
@@ -582,56 +630,56 @@ public class J3dBSbhkNPObject extends Group
 
 			Shape3D shape = new Shape3D();
 			shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
-			shape.setAppearance(PhysAppearance.makeAppearance(new Color3f(0.75f,1f-((float)s/(float)meshTree.primitiveDataRuns.length), ((float)s/(float)meshTree.primitiveDataRuns.length))));
+			shape.setAppearance(PhysAppearance
+					.makeAppearance(new Color3f(0.75f, 1f - ((float)s / (float)meshTree.primitiveDataRuns.length),
+							((float)s / (float)meshTree.primitiveDataRuns.length))));
 			group.addChild(shape);
-		}			
-			
+		}
+
 		return group;
 	}
-	
-	
+
 	public static Shape3D createDebugPointShape(Tuple3f[] vertices, Color3f color) {
 		///////////////////////////////////////////////////////////////Lovely little point drawer thing!
 		int gaVertexCount = vertices.length * 6;// 4 points a crossed pair of lines
 		IndexedLineArray ga = new IndexedLineArray(gaVertexCount,
-		GeometryArray.BY_REFERENCE | GeometryArray.COORDINATES  
-		| GeometryArray.BY_REFERENCE_INDICES | GeometryArray.USE_COORD_INDEX_ONLY,
-		gaVertexCount);
-		
+				GeometryArray.BY_REFERENCE	| GeometryArray.COORDINATES | GeometryArray.BY_REFERENCE_INDICES
+																	| GeometryArray.USE_COORD_INDEX_ONLY,
+				gaVertexCount);
+
 		int[] gaCoordIndices = new int[gaVertexCount];
 		//fixed for all time, recall these are points
 		for (int i = 0; i < gaVertexCount; i++) {
-		gaCoordIndices[i] = i;
+			gaCoordIndices[i] = i;
 		}
-		
+
 		float[] gaCoords = new float[gaVertexCount * 3];
-		for (int i = 0; i < gaVertexCount/6; i++) {
-			if(vertices[i]!=null) {
-				gaCoords[i*3*6+0] = vertices[i].x;
-				gaCoords[i*3*6+1] = vertices[i].y-0.01f;
-				gaCoords[i*3*6+2] = vertices[i].z;
-				gaCoords[i*3*6+3] = vertices[i].x;
-				gaCoords[i*3*6+4] = vertices[i].y+0.01f;;
-				gaCoords[i*3*6+5] = vertices[i].z;
-				gaCoords[i*3*6+6] = vertices[i].x-0.01f;
-				gaCoords[i*3*6+7] = vertices[i].y;
-				gaCoords[i*3*6+8] = vertices[i].z;
-				gaCoords[i*3*6+9] = vertices[i].x+0.01f;
-				gaCoords[i*3*6+10] = vertices[i].y;
-				gaCoords[i*3*6+11] = vertices[i].z;
-				gaCoords[i*3*6+12] = vertices[i].x;
-				gaCoords[i*3*6+13] = vertices[i].y;
-				gaCoords[i*3*6+14] = vertices[i].z-0.01f;
-				gaCoords[i*3*6+15] = vertices[i].x;
-				gaCoords[i*3*6+16] = vertices[i].y;
-				gaCoords[i*3*6+17] = vertices[i].z+0.01f;
+		for (int i = 0; i < gaVertexCount / 6; i++) {
+			if (vertices[i] != null) {
+				gaCoords[i * 3 * 6 + 0] = vertices[i].x;
+				gaCoords[i * 3 * 6 + 1] = vertices[i].y - 0.01f;
+				gaCoords[i * 3 * 6 + 2] = vertices[i].z;
+				gaCoords[i * 3 * 6 + 3] = vertices[i].x;
+				gaCoords[i * 3 * 6 + 4] = vertices[i].y + 0.01f;
+				gaCoords[i * 3 * 6 + 5] = vertices[i].z;
+				gaCoords[i * 3 * 6 + 6] = vertices[i].x - 0.01f;
+				gaCoords[i * 3 * 6 + 7] = vertices[i].y;
+				gaCoords[i * 3 * 6 + 8] = vertices[i].z;
+				gaCoords[i * 3 * 6 + 9] = vertices[i].x + 0.01f;
+				gaCoords[i * 3 * 6 + 10] = vertices[i].y;
+				gaCoords[i * 3 * 6 + 11] = vertices[i].z;
+				gaCoords[i * 3 * 6 + 12] = vertices[i].x;
+				gaCoords[i * 3 * 6 + 13] = vertices[i].y;
+				gaCoords[i * 3 * 6 + 14] = vertices[i].z - 0.01f;
+				gaCoords[i * 3 * 6 + 15] = vertices[i].x;
+				gaCoords[i * 3 * 6 + 16] = vertices[i].y;
+				gaCoords[i * 3 * 6 + 17] = vertices[i].z + 0.01f;
 			}
 		}
-		
+
 		ga.setCoordRefFloat(gaCoords);
 		ga.setCoordIndicesRef(gaCoordIndices);
-		
-		
+
 		Shape3D shape = new Shape3D();
 		shape.setGeometry(ga);
 		shape.setAppearance(new SimpleShaderAppearance(color));
