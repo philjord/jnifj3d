@@ -686,6 +686,7 @@ public class NiGeometryAppearanceShader {
 
 		}
 
+		
 		// BSESP/BSLSP do not always need an NiAlphaProperty, and appear to override it at times
 		boolean translucent = (bslsp != null) && (bslsp.Alpha < 1.0f || SkyrimShaderPropertyFlags1
 				.isBitSet(bslsp.ShaderFlags1, SkyrimShaderPropertyFlags1.SLSF1_Refraction));
@@ -762,8 +763,9 @@ public class NiGeometryAppearanceShader {
 						|| SkyrimShaderPropertyFlags1.isBitSet(bsesp.ShaderFlags1,
 								SkyrimShaderPropertyFlags1.SLSF1_Dynamic_Decal));
 		if (isDecal) {
-			pa.setPolygonOffset(0.02f);
-			pa.setPolygonOffsetFactor(0.04f);
+			// notice -ve important!
+			pa.setPolygonOffset(-0.1f);
+			pa.setPolygonOffsetFactor(-0.05f);
 		}
 
 		TextureAttributes textureAttributes = null;
@@ -1094,8 +1096,8 @@ public class NiGeometryAppearanceShader {
 			glProperty(m.bAlphaBlend != 0, m.iAlphaSrc, m.iAlphaDst, m.bAlphaTest != 0, NiAlphaProperty.GL_GREATER,
 					m.iAlphaTestRef);
 			if (m.bDecal != 0) {
-				pa.setPolygonOffset(0.02f);
-				pa.setPolygonOffsetFactor(0.04f);
+				pa.setPolygonOffset(-0.1f);
+				pa.setPolygonOffsetFactor(-0.05f);
 			}
 		} else {
 			glProperty(false, 0, 0, false, 0, 0);
@@ -1125,6 +1127,19 @@ public class NiGeometryAppearanceShader {
 		if (alphaTestEnabled) {
 			ra.setAlphaTestFunction(NifOpenGLToJava3D.convertAlphaTestMode(alphaTestMode));
 			ra.setAlphaTestValue((threshold) / 255f);// threshold range of 255 to 0 confirmed empirically
+			
+			// notice the transparency in Java3D is confused, if we have alpha testing we need ot set blended but we might 
+			// not blend at all, just test and discard for punch throuhg
+			// possibly screen door is for this, but it sates some odd percentage weird system
+			
+			// some notes from, see the alhpa test in the shaders for the other half
+			//Auto opening node: ArchiveFile:Skyrim - Meshes.bsa/meshes/architecture/windhelm/whpalace1.nif
+			// there is a texture 
+			//ArchiveFile:Skyrim - Textures.bsa/textures/architecture/windhelm/whruinstonedark.dds
+			// this texture has various alphas around 200+ ish
+			// it is on a flat wall with 3 vertexs with alpha = 1 and one of alpha =0.1 in the vertex colors
+			// as the texture is applied the alpha of the vertexs multiplied by the alpha of the texture is compared agsint the threshold (156f/255f  inn this case)
+			// and that is used for the discard test!
 		}
 	}
 
@@ -2028,8 +2043,8 @@ public class NiGeometryAppearanceShader {
 			if ( (mat.flags & CE2Material.Flag_IsDecal)!=0 ) {
 				//fn.glEnable( GL_POLYGON_OFFSET_FILL );
 				//fn.glPolygonOffset( -1.0f, -1.0f );
-				pa.setPolygonOffset(0.02f);
-				pa.setPolygonOffsetFactor(0.04f);
+				pa.setPolygonOffset(-0.1f);
+				pa.setPolygonOffsetFactor(-0.05f);
 			}
 		}		 
 
