@@ -143,6 +143,8 @@ public class J3dBSbhkNPObject extends Group {
 			}
 		} else {
 			System.err.println("HKXContents contents is empty? in " + niToJ3dData.nifVer.fileName);
+			// example
+			//HKXContents contents is empty? in FO4 Meshes\SetDressing\Building\ToiletBroken03.nif
 		}
 	}
 

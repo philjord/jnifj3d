@@ -233,5 +233,4 @@ public class J3dControllerLink extends Group implements SequenceAlphaListener
 			nodeTarget.sequenceLooped(inner);
 		}
 	}
-
 }

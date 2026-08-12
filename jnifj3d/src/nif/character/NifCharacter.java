@@ -1,6 +1,9 @@
 package nif.character;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -28,10 +31,16 @@ import nif.j3d.J3dNiNode;
 import nif.j3d.J3dNiSkinInstance;
 import nif.j3d.NiToJ3dData;
 import nif.j3d.animation.J3dNiControllerSequence;
+
 import nif.j3d.animation.J3dNiControllerSequence.SequenceListener;
 import nif.j3d.animation.SequenceAlpha;
+import nif.j3d.animation.SequenceAlpha.SequenceAlphaListener;
+import nif.j3d.animation.SequenceAlpha.SequenceInterface;
 import nif.niobject.NiExtraData;
 import nif.niobject.NiStringExtraData;
+import nif.niobject.hkx.reader.HKXContents;
+import nif.niobject.hkx.reader.HKXReader;
+import nif.niobject.hkx.reader.InvalidPositionException;
 import tools3d.audio.SimpleSounds;
 import tools3d.utils.Utils3D;
 import tools3d.utils.scenegraph.Fadable;
@@ -39,16 +48,13 @@ import tools3d.utils.scenegraph.VaryingLODBehaviour;
 import utils.source.MediaSources;
 
 /**
- * //https://www.mail-archive.com/java3d-interest@java.sun.com/msg23102.html
- * >There are a few latency issues in the Java 3D 1.3 architecture that could
->affect what you're doing:
->
->1) Updates to geometry and texture data have a 1-frame latency.
->2) Updates to transforms and scene graph structure have a 2-frame latency.
->3) Methods such as getImagePlateToVworld() in Canvas3D query the internal
->   representation of the Java 3D scene graph, which has the 2-frame latency
->   previously mentioned, so you can't use those methods directly to
->   synchronize view dependent scene graph updates.*/
+ * //https://www.mail-archive.com/java3d-interest@java.sun.com/msg23102.html >There are a few latency issues in the Java
+ * 3D 1.3 architecture that could >affect what you're doing: > >1) Updates to geometry and texture data have a 1-frame
+ * latency. >2) Updates to transforms and scene graph structure have a 2-frame latency. >3) Methods such as
+ * getImagePlateToVworld() in Canvas3D query the internal > representation of the Java 3D scene graph, which has the
+ * 2-frame latency > previously mentioned, so you can't use those methods directly to > synchronize view dependent scene
+ * graph updates.
+ */
 
 /**
  * Because of the above limitations all parts of the scenegraph below character must not use transformgroup but rework
@@ -63,48 +69,48 @@ import utils.source.MediaSources;
 // will give you view info that is up-to-date with respect to the current
 // state of the scene graph.
 
-public class NifCharacter extends BranchGroup implements Fadable
-{
-	public static boolean BULK_BUFFER_UPDATES = true;
+public class NifCharacter extends BranchGroup implements Fadable {
+	public static boolean						BULK_BUFFER_UPDATES		= true;
 
-	protected MediaSources mediaSources;
+	protected MediaSources						mediaSources;
 
-	protected ArrayList<J3dNiSkinInstance> allSkins = new ArrayList<J3dNiSkinInstance>();
+	protected ArrayList<J3dNiSkinInstance>		allSkins				= new ArrayList<J3dNiSkinInstance>();
 
-	protected ArrayList<NifJ3dVisRoot> allOtherModels = new ArrayList<NifJ3dVisRoot>();
+	protected ArrayList<NifJ3dVisRoot>			allOtherModels			= new ArrayList<NifJ3dVisRoot>();
 
-	protected String currentAnimation = "";
+	protected String							currentAnimation		= "";
 
-	protected String nextAnimation = "";
+	protected String							nextAnimation			= "";
 
-	protected boolean returnToIdleWhenDone = true; // if false this means just loop current
+	protected boolean							returnToIdleWhenDone	= true;									// if false this means just loop current
 
-	protected List<String> idleAnimations;
+	protected List<String>						idleAnimations;
 
-	protected Group root = new Group();
+	protected Group								root					= new Group();
 
 	//private KfJ3dRoot currentkfJ3dRoot;
 
-	protected BlendedSkeletons blendedSkeletons;
+	protected BlendedSkeletons					blendedSkeletons;
 
-	protected BranchGroup currentKfBg;
+	protected BranchGroup						currentKfBg;
 
-	private NifCharUpdateBehavior updateBehavior;
+	private NifCharUpdateBehavior				updateBehavior;
 
-	protected ArrayList<CharacterAttachment> attachments = new ArrayList<CharacterAttachment>();
+	protected ArrayList<CharacterAttachment>	attachments				= new ArrayList<CharacterAttachment>();
 
-	protected J3dNiControllerSequence currentControllerSequence;
+	protected SequenceInterface					currentControllerSequence;
+	
+	private HKXContents hkxSkeletonContents = null;
 
 	//For use by Tes3 constructor
-	protected NifCharacter(String skeletonNifFilename, MediaSources mediaSources)
-	{
+	protected NifCharacter(String skeletonNifFilename, MediaSources mediaSources) {
 		this.mediaSources = mediaSources;
 
 		this.setCapability(Group.ALLOW_CHILDREN_WRITE);
 		this.setCapability(Group.ALLOW_CHILDREN_EXTEND);
 
 		// note node must be in scene graph
-		updateBehavior = new NifCharUpdateBehavior(this, new float[] { 60f, 120f, 180f });
+		updateBehavior = new NifCharUpdateBehavior(this, new float[] {60f, 120f, 180f});
 		addChild(updateBehavior);
 		updateBehavior.setEnable(true);
 
@@ -112,75 +118,75 @@ public class NifCharacter extends BranchGroup implements Fadable
 
 		addChild(root);
 
-		if (NifJ3dSkeletonRoot.showBoneMarkers || J3dNiSkinInstance.showSkinBoneMarkers)
-		{
+		if (NifJ3dSkeletonRoot.showBoneMarkers || J3dNiSkinInstance.showSkinBoneMarkers) {
 			root.addChild(blendedSkeletons);
 		}
 	}
 
-	public NifCharacter(String skeletonNifFilename, List<String> skinNifModelFilenames, MediaSources mediaSources)
-	{
+	public NifCharacter(String skeletonNifFilename, List<String> skinNifModelFilenames, MediaSources mediaSources) {
 		this(skeletonNifFilename, mediaSources);
+		
+		
+		// if a hkx version of the skeleton existing we will need it later to run hkx animations
+		ByteBuffer bb = mediaSources.getMeshSource().getByteBuffer(skeletonNifFilename.replace(".nif", ".hkx"));
+		if (bb != null) {
+			bb.order(ByteOrder.LITTLE_ENDIAN);
+			HKXReader reader = new HKXReader(bb);
 
-	
+			try {
+				hkxSkeletonContents = reader.read();
+			} catch (IOException | InvalidPositionException e) {
+				e.printStackTrace();
+			}
+		}
+		
 
-		for (String skinNifModelFilename : skinNifModelFilenames)
-		{
-			if (skinNifModelFilename != null && skinNifModelFilename.length() > 0)
-			{
+		for (String skinNifModelFilename : skinNifModelFilenames) {
+			if (skinNifModelFilename != null && skinNifModelFilename.length() > 0) {
 				NifJ3dVisRoot model = NifToJ3d.loadShapes(skinNifModelFilename, mediaSources.getMeshSource(),
 						mediaSources.getTextureSource());
 
-				if (model != null)
-				{
+				if (model != null) {
 					// create skins from the skeleton and skin nif
 					ArrayList<J3dNiSkinInstance> skins = J3dNiSkinInstance.createSkins(model.getNiToJ3dData(),
 							blendedSkeletons.getOutputSkeleton());
-					
-					
+
+					// in theory the skin should hang on the skeleton with no animaitons happenign
+					// so let's get that first, I see no skins now, just like tes3
 					//FIXME! it seems the loaded model is skinned to a 0,0,0 single point or somethign, because the test code below does attached a nif file to teh character, at the feet 
-					
+
 					//NifJ3dVisRoot model2 = NifToJ3d.loadShapes(ESConfig.TES_MESH_PATH + "actors\\character\\characterassets\\malebody.nif", 
 					//		mediaSources.getMeshSource(),	mediaSources.getTextureSource());
 					//root.addChild(model2.getVisualRoot());
 					//root.addChild(new Cube(0.1,0.1,0.1,1,1,1));
-					
-					
-					if (skins.size() > 0)
-					{
+
+					if (skins.size() > 0) {
 						// add the skins to the scene
-						for (J3dNiSkinInstance j3dNiSkinInstance : skins)
-						{
+						for (J3dNiSkinInstance j3dNiSkinInstance : skins) {
 							root.addChild(j3dNiSkinInstance);
 						}
 
 						allSkins.addAll(skins);
-					}
-					else
-					{
+					} else {
 						// add any non skin based gear from other files like hats!!
 						allOtherModels.add(model);
-						
+
 						// use an nistringextra of weapon and shield, node name of prn for extra data
-						for (NiExtraData ned : model.getVisualRoot().getExtraDataList())
-						{
-							if (ned instanceof NiStringExtraData)
-							{
-								NiStringExtraData nsed = (NiStringExtraData) ned;
-								if (nsed.name.equalsIgnoreCase("PRN") || nsed.name.indexOf("Prn") != -1)
-								{
+						for (NiExtraData ned : model.getVisualRoot().getExtraDataList()) {
+							if (ned instanceof NiStringExtraData) {
+								NiStringExtraData nsed = (NiStringExtraData)ned;
+								if (nsed.name.equalsIgnoreCase("PRN") || nsed.name.indexOf("Prn") != -1) {
 									String attachBoneName = nsed.stringData;
-									J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton().getAllBonesInSkeleton()
-											.getByName(attachBoneName);
-									if (attachnode != null)
-									{
+									J3dNiAVObject attachnode = blendedSkeletons.getOutputSkeleton()
+											.getAllBonesInSkeleton().getByName(attachBoneName);
+									if (attachnode != null) {
 
 										boolean headAttachRotNeeded = false;
 										if (attachnode.getNiAVObject().name.equals("Bip01 Head")
-												&& skeletonNifFilename.contains("characters\\_male"))
-										{
-											headAttachRotNeeded = mediaSources.getMeshSource().nifFileExists(
-													skinNifModelFilename.substring(0, skinNifModelFilename.length() - 3) + "egm");
+											&& skeletonNifFilename.contains("characters\\_male")) {
+											headAttachRotNeeded = mediaSources.getMeshSource()
+													.nifFileExists(skinNifModelFilename.substring(0,
+															skinNifModelFilename.length() - 3) + "egm");
 										}
 
 										// For Oblivion heads
@@ -191,46 +197,40 @@ public class NifCharacter extends BranchGroup implements Fadable
 										// I notice helmet.egm file next to helmet.nif?? egm starts with FREGM002
 										// F:\game media\Oblivion\meshes\armor\iron\m
 
-										CharacterAttachment ca = new CharacterAttachment((J3dNiNode) attachnode, headAttachRotNeeded,
-												model.getVisualRoot());
+										CharacterAttachment ca = new CharacterAttachment((J3dNiNode)attachnode,
+												headAttachRotNeeded, model.getVisualRoot());
 										this.addChild(ca);
 										attachments.add(ca);
 										break;
-									} else
-									{
+									} else {
 										System.out.println("Attch Bone not found " + attachBoneName);
 									}
 								}
-							} 
+							}
 						}
 					}
 
-				}
-				else
-				{
+				} else {
 					System.err.println("Bad model name in NifCharacter " + skinNifModelFilename);
 				}
 			}
 		}
 
-		
 	}
-	
+
 	//FIXME: with no folders of idles I'll need to do these by hand
-	public void setIdleAnimations(List<String> idleAnimations ) { 
+	public void setIdleAnimations(List<String> idleAnimations) {
 		this.idleAnimations = idleAnimations;
 		// set us up with the idle anim
 		updateAnimation();
 	}
-	
 
 	/**
 	 * This keep the head pointing toward the rotation and the body upright
 	 * 
 	 * @param pitch
 	 */
-	public void setHeadPitch(double pitch)
-	{
+	public void setHeadPitch(double pitch) {
 		Transform3D t = new Transform3D();
 		t.rotX(pitch);
 
@@ -246,93 +246,135 @@ public class NifCharacter extends BranchGroup implements Fadable
 	/**
 	 * Note no caching as the file load cache of niffile is the only step that can support it
 	 */
-	protected void updateAnimation()
-	{
-		if (nextAnimation.length() > 0) {		
-			if(nextAnimation.endsWith(".kf")) {
+	protected void updateAnimation() {
+		if (nextAnimation.length() > 0) {
+			if (nextAnimation.endsWith(".kf")) {
 				currentAnimation = nextAnimation;
 				nextAnimation = "";
-	
+
 				// We need the nifFile.blocks and the KfJ3dRoot
 				//KfJ3dRoot kfJ3dRoot = NifToJ3d.loadKf(currentAnimation, mediaSources.getMeshSource());
-				
-				KfJ3dRoot kfJ3dRoot = null;
+
 				NifFile nifFile = NifToJ3d.loadNiObjects(currentAnimation, mediaSources.getMeshSource());
 				if (nifFile != null) {
-					kfJ3dRoot = NifToJ3d.extractKf(nifFile);
-				
+					KfJ3dRoot kfJ3dRoot = NifToJ3d.extractKf(nifFile);
+
 					if (kfJ3dRoot != null) {
 						// just default to a 0.3 second blend?
 						Alpha defaultAlpha = new SequenceAlpha(0, 0.3f, false);
 						defaultAlpha.setStartTime(System.currentTimeMillis());
-											
-						
-						NiToJ3dData niToJ3dData = new NiToJ3dData(nifFile.blocks);
 						NifJ3dSkeletonRoot inputSkeleton = blendedSkeletons.startNewInputAnimation(defaultAlpha);
-						kfJ3dRoot.setAnimatedSkeleton(inputSkeleton.getAllBonesInSkeleton(), allOtherModels, niToJ3dData);
-		
+
+						NiToJ3dData niToJ3dData = new NiToJ3dData(nifFile.blocks);
+						kfJ3dRoot.setAnimatedSkeleton(inputSkeleton.getAllBonesInSkeleton(), allOtherModels,
+								niToJ3dData);
+
 						// now add the root to the scene so the controller sequence is live
 						BranchGroup newKfBg = new BranchGroup();
 						newKfBg.setCapability(BranchGroup.ALLOW_DETACH);
 						newKfBg.setCapability(Group.ALLOW_CHILDREN_WRITE);
-		
+
 						newKfBg.addChild(kfJ3dRoot);
 						// add it on
 						addChild(newKfBg);
 						currentControllerSequence = kfJ3dRoot.getJ3dNiControllerSequence();
-		
+
 						currentControllerSequence.addSequenceListener(new SequenceSoundListener());
 						currentControllerSequence.fireSequence(!returnToIdleWhenDone, 0);
-		
+
 						// remove the old one
 						if (currentKfBg != null) {
 							currentKfBg.detach();
 						}
-		
+
 						// assign currents
 						currentKfBg = newKfBg;
 						//currentkfJ3dRoot = kfJ3dRoot;
 					}
-				}
-				else
-				{
+				} else {
 					//FIXME: Oblivion is missing these sorts of kf files? what?
 					//Meshes\characters\_male\mt_idle_a_arms_crossedloop.kf
-					
+
 					System.out.println("kf file does not exist :) " + currentAnimation);
-					idleAnimations.remove(currentAnimation);// non need to try again, it isn't going to magically appear
+					idleAnimations.remove(currentAnimation);// no need to try again, it isn't going to magically appear
 				}
-	
-			} else if(nextAnimation.endsWith(".hkx")) {
-				
+
+			} else if (nextAnimation.endsWith(".hkx")) {
+
 				currentAnimation = nextAnimation;
 				nextAnimation = "";
-				
-	/*			ByteBuffer bb = mediaSources.getMeshSource().getByteBuffer(currentAnimation);
-				bb.order(ByteOrder.LITTLE_ENDIAN);
-				
-				HKXReader reader = new HKXReader(bb);
-				try
-				{
-					HKXContents hkxContents = reader.read();
-					
-					//FIXME:!!!!
-					//need to be able to read hkx file, which I can do somewhat with HKXReader...
-					// umm? not surelet's have a bash at it shall we
+
+				//FIXME!!!!!!!!!
+				// as a part of debugging if I see an hkx file clear the animations so it's doesn't cycle endlessly doing nothign but loading
+				idleAnimations.remove(currentAnimation);
+
+				ByteBuffer bb = mediaSources.getMeshSource().getByteBuffer(currentAnimation);
+				if (bb != null) {
+					bb.order(ByteOrder.LITTLE_ENDIAN);
+					HKXReader reader = new HKXReader(bb);
+					HKXContents hkxContents = null;
+					try {
+						hkxContents = reader.read();
+
+						if (hkxContents != null) {
+							
+							
+							//	System.out.println("hkxContents "	+ hkxContents.getContentsVersion() + " is64bit "
+							//					+ hkxContents.getHeaderData().is64bit + " " + currentAnimation);
+
+							HkJ3dRoot hkJ3dRoot = new HkJ3dRoot(hkxContents, hkxSkeletonContents);
+
+							// just default to a 0.3 second blend?
+							Alpha defaultAlpha = new SequenceAlpha(0, 0.3f, false);
+							defaultAlpha.setStartTime(System.currentTimeMillis());
+							NifJ3dSkeletonRoot inputSkeleton = blendedSkeletons.startNewInputAnimation(defaultAlpha);
+						
+							
+							//TODO: looks like the hkx animations want the skeleton.hkx file in the characters assets rather
+							// than the original nif one.
+							// or maybe it's jsut the skeletonMapper file needed
+							hkJ3dRoot.setAnimatedSkeleton(inputSkeleton.getAllBonesInSkeleton(), allOtherModels);
+
+							// now add the root to the scene so the controller sequence is live
+							BranchGroup newHkBg = new BranchGroup();
+							newHkBg.setCapability(BranchGroup.ALLOW_DETACH);
+							newHkBg.setCapability(Group.ALLOW_CHILDREN_WRITE);
+
+							newHkBg.addChild(hkJ3dRoot);
+							// add it on
+							addChild(newHkBg);
+							currentControllerSequence = hkJ3dRoot.getJ3dhkaAnimationContainer();
+
+							currentControllerSequence.addSequenceListener(new SequenceSoundListener());
+							currentControllerSequence.fireSequence(!returnToIdleWhenDone, 0);
+
+							// remove the old one
+							if (currentKfBg != null) {
+								currentKfBg.detach();
+							}
+
+							// assign currents
+							currentKfBg = newHkBg;
+							//currentkfJ3dRoot = kfJ3dRoot;
+
+						}
+					} catch (InvalidPositionException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				} else {
+					System.out.println("hx file does not exist :) " + currentAnimation);
+					idleAnimations.remove(currentAnimation);// no need to try again, it isn't going to magically appear
 				}
-				catch (InvalidPositionException e)
-				{
-					e.printStackTrace();
-				} catch (IOException e) {					
-					e.printStackTrace();
-				}
-*/
+			} else {
+				System.out.println("animation not kf nor hkx? " + currentAnimation);
+				idleAnimations.remove(currentAnimation);// no need to try again
 			}
-		}		
-		else if (returnToIdleWhenDone && // 
-				idleAnimations != null && //
-				idleAnimations.size() > 0 && //
-				(currentControllerSequence == null || //
+		} else if (returnToIdleWhenDone && // 
+					idleAnimations != null && //
+					idleAnimations.size() > 0 && //
+					(currentControllerSequence == null || //
 						(currentControllerSequence.isNotRunning()) || //
 						System.currentTimeMillis() - prevAnimTime > 10000)) {
 			// The above measures time in idle and changes from once it's been 10 seconds in case of looping idle
@@ -348,8 +390,9 @@ public class NifCharacter extends BranchGroup implements Fadable
 		}
 
 	}
-    private Random randomGenerator = new Random();
-	protected long prevAnimTime = 0;
+
+	private Random	randomGenerator	= new Random();
+	protected long	prevAnimTime	= 0;
 
 	/**
 	 * This only sets teh new animation if it is different from our current, otherwise ignore
@@ -357,11 +400,9 @@ public class NifCharacter extends BranchGroup implements Fadable
 	 * @param fileName
 	 * @param returnToIdle
 	 */
-	public void addToQueue(String fileName, boolean returnToIdle)
-	{
+	public void addToQueue(String fileName, boolean returnToIdle) {
 		//TODO: why not restart it? probably what is wanted?
-		if (!fileName.equals(currentAnimation))
-		{
+		if (!fileName.equals(currentAnimation)) {
 			this.returnToIdleWhenDone = returnToIdle;
 			nextAnimation = fileName;
 		}
@@ -375,8 +416,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 	 * @param fileName
 	 * @param returnToIdle
 	 */
-	public void startAnimation(String fileName, boolean returnToIdle)
-	{
+	public void startAnimation(String fileName, boolean returnToIdle) {
 		//TODO: why not restart it? probably what is wanted?
 
 		this.returnToIdleWhenDone = returnToIdle;
@@ -384,29 +424,24 @@ public class NifCharacter extends BranchGroup implements Fadable
 		updateAnimation();
 	}
 
-	public String getCurrentAnimation()
-	{
+	public String getCurrentAnimation() {
 		return currentAnimation;
 	}
 
-	public J3dNiControllerSequence getCurrentControllerSequence()
-	{
+	public SequenceInterface getCurrentControllerSequence() {
 		return currentControllerSequence;
 	}
 
-	public NifJ3dSkeletonRoot getOutputSkeleton()
-	{
+	public NifJ3dSkeletonRoot getOutputSkeleton() {
 		return blendedSkeletons.getOutputSkeleton();
 	}
 
-	public NifJ3dSkeletonRoot getInputSkeleton()
-	{
+	public NifJ3dSkeletonRoot getInputSkeleton() {
 		return blendedSkeletons.getInputSkeleton();
 	}
 
 	// TODO: this and the sound sequence listener below should be generic'ed
-	protected void addObjectSound(PointSound sound, String soundKey, float edge)
-	{
+	protected void addObjectSound(PointSound sound, String soundKey, float edge) {
 		// Create the media container to load the sound
 		MediaContainer soundContainer = mediaSources.getSoundSource().getMediaContainer(soundKey);
 		// Use the loaded data in the sound
@@ -422,7 +457,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 		// Set it to loop 1
 		sound.setLoop(0);// Sound.INFINITE_LOOPS);
 		// Use the edge value to set to extent of the sound
-		Point2f[] attenuation = { new Point2f(0.0f, 1.0f), new Point2f(edge, 0.1f) };
+		Point2f[] attenuation = {new Point2f(0.0f, 1.0f), new Point2f(edge, 0.1f)};
 		sound.setDistanceGain(attenuation);
 
 		sound.setEnable(true);
@@ -433,16 +468,12 @@ public class NifCharacter extends BranchGroup implements Fadable
 		this.addChild(bg);
 	}
 
-	class SequenceSoundListener implements SequenceListener
-	{
+	class SequenceSoundListener implements SequenceListener {
 
 		@Override
-		public void sequenceEventFired(String key, String[] params, float time)
-		{
-			if (key.equalsIgnoreCase("Sound"))
-			{
-				try
-				{
+		public void sequenceEventFired(String key, String[] params, float time) {
+			if (key.equalsIgnoreCase("Sound")) {
+				try {
 					// PointSound sound1 = new PointSound();
 					// TODO: stop previous sound perhaps, walk sounds? use the animation end event
 					// FIXME: fallout gets major bad wav formats
@@ -450,9 +481,7 @@ public class NifCharacter extends BranchGroup implements Fadable
 
 					//System.out.println("oh my god sound fired? take a look in NifCharacter! " + params[0]);
 
-				}
-				catch (SoundException e)
-				{
+				} catch (SoundException e) {
 					e.printStackTrace();
 				}
 			}
@@ -460,33 +489,33 @@ public class NifCharacter extends BranchGroup implements Fadable
 		}
 	}
 
-	class NifCharUpdateBehavior extends VaryingLODBehaviour
-	{
-		public NifCharUpdateBehavior(Node node, float[] dists)
-		{
+	class NifCharUpdateBehavior extends VaryingLODBehaviour {
+		public NifCharUpdateBehavior(Node node, float[] dists) {
 			super(node, dists, true, true);
 			setSchedulingBounds(Utils3D.defaultBounds);
 		}
 
 		@Override
-		public void initialize()
-		{
+		public void initialize() {
 			super.initialize();
 		}
 
 		@Override
-		public void process()
-		{
+		public void process() {
 			updateAnimation();
 			blendedSkeletons.updateOutputBones();
 
-			for (J3dNiSkinInstance j3dNiSkinInstance : allSkins)
-			{
+			for (J3dNiSkinInstance j3dNiSkinInstance : allSkins) {
+
+				//FIXME: the fustrum only doesn't work and skin maths is heavy work
+				// I need to send bone transforms onto the shader adn do skin maths in the vert shader 
+				// like nifskope does, saves this cost, and the bones keep physics on the CPU happy anyway
+				//
+
 				j3dNiSkinInstance.processSkinInstance();
 			}
 
-			for (CharacterAttachment ca : attachments)
-			{
+			for (CharacterAttachment ca : attachments) {
 				ca.process();
 			}
 
@@ -495,30 +524,24 @@ public class NifCharacter extends BranchGroup implements Fadable
 	}
 
 	@Override
-	public void fade(float percent)
-	{
-		for (J3dNiSkinInstance j3dNiSkinInstance : allSkins)
-		{
+	public void fade(float percent) {
+		for (J3dNiSkinInstance j3dNiSkinInstance : allSkins) {
 			j3dNiSkinInstance.fade(percent);
 		}
 
-		for (CharacterAttachment ca : attachments)
-		{
+		for (CharacterAttachment ca : attachments) {
 			ca.fade(percent);
 		}
 
 	}
 
 	@Override
-	public void setOutline(Color3f c)
-	{
-		for (J3dNiSkinInstance j3dNiSkinInstance : allSkins)
-		{
+	public void setOutline(Color3f c) {
+		for (J3dNiSkinInstance j3dNiSkinInstance : allSkins) {
 			j3dNiSkinInstance.setOutline(c);
 		}
 
-		for (CharacterAttachment ca : attachments)
-		{
+		for (CharacterAttachment ca : attachments) {
 			ca.setOutline(c);
 		}
 
@@ -528,40 +551,29 @@ public class NifCharacter extends BranchGroup implements Fadable
 	 * start at the Sound\\ folder for media source
 	 * @param soundFileName
 	 */
-	public void playSound(String soundFileName, int maximumAttenuationDistance, int loopCount)
-	{
+	public void playSound(String soundFileName, int maximumAttenuationDistance, int loopCount) {
 
 		//TODO: I need to detach and discard these sounds once played the loop count times
-		if (soundFileName.endsWith("mp3"))
-		{
+		if (soundFileName.endsWith("mp3")) {
 			InputStream is = mediaSources.getSoundSource().getInputStream(soundFileName);
 			BranchGroup soundBG = SimpleSounds.createPointSoundMp3(is, maximumAttenuationDistance, loopCount);
 			if (soundBG != null)
 				this.addChild(soundBG);
-		}
-		else
-		{
+		} else {
 			MediaContainer mc = mediaSources.getSoundSource().getMediaContainer(soundFileName);
 			BranchGroup soundBG = SimpleSounds.createPointSound(mc, maximumAttenuationDistance, loopCount);
 			this.addChild(soundBG);
 		}
 	}
-	
-	public void playBackgroundSound(String soundFileName, int loopCount, float gain)
-	{
-		if (soundFileName.endsWith("mp3"))
-		{
+
+	public void playBackgroundSound(String soundFileName, int loopCount, float gain) {
+		if (soundFileName.endsWith("mp3")) {
 			InputStream is = mediaSources.getSoundSource().getInputStream(soundFileName);
 			SimpleSounds.playBackgroundSoundMp3(is, loopCount, gain);
-		}
-		else
-		{
+		} else {
 			MediaContainer mc = mediaSources.getSoundSource().getMediaContainer(soundFileName);
 			SimpleSounds.playBackgroundSound(mc, loopCount, gain);
 		}
 	}
-	
-
-	
 
 }

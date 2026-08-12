@@ -2,6 +2,8 @@ package nif.j3d.animation;
 
 import org.jogamp.java3d.Alpha;
 
+import nif.j3d.animation.J3dNiControllerSequence.SequenceListener;
+
 /**
  * Basically an alpha that loops if given a loop start and end and stop when told to
  * @author philip
@@ -144,5 +146,19 @@ public class SequenceAlpha extends Alpha
 		public void sequenceFinished();
 
 		public void sequenceLooped(boolean inner);
+	
+	}
+	
+	public interface SequenceInterface {
+
+		void addSequenceListener(SequenceListener sequenceListener);
+
+		void removeSequenceListener(SequenceListener sequenceListener);
+
+		void fireSequence(boolean loop, long triggerTime);
+
+		public boolean isNotRunning();
+
+		public void publishSequenceEvents();
 	}
 }

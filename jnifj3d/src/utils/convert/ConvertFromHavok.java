@@ -15,6 +15,10 @@ import nif.compound.NifVector4;
 
 public class ConvertFromHavok {
 	public static float getHavokScale(NifVer nifVer) {
+		//hkx file have no NifVer, but they are always Skyrim+
+		if (nifVer == null)
+			return ConvertFromNif.toJ3d(69.994f);//SKYRIM_HAVOK_TO_METERS_SCALE;
+
 		//TODO: confirm the fallout/skyrim interface USER2 number (might be >26)
 		if (nifVer.LOAD_VER == NifVer.VER_20_2_0_7 && nifVer.LOAD_USER_VER >= 11 && nifVer.BS_Version >= 83) {
 			//Skrim has x10'ed on me! so converter must look up values
@@ -142,22 +146,42 @@ public class ConvertFromHavok {
 				-y * hs * scale);
 	}
 
-	// NOTE:!! no scale
+	/** NOTE:!! no scale
+	 * 
+	 * @param v
+	 * @return
+	 */
 	public static Vector3f toJ3dNoScale(NifVector3 v) {
 		return new Vector3f(v.x, v.z, -v.y);
 	}
 
-	// NOTE:!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! this uses the nif scale NOT the havok one!!!!
+	/**
+	 *  NOTE:!!!! this uses the nif scale NOT the havok one as well as the passed in scale
+	 * @param v
+	 * @param scale
+	 * @return
+	 */
 	public static Point3f toJ3dP3fNif(NifVector3 v, float scale) {
 		return ConvertFromNif.toJ3dP3fNif(v, scale);
 	}
 
-	// NOTE:!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! this uses the nif scale NOT the havok one!!!!
+	/**
+	 *  NOTE:!!!! this uses the nif scale NOT the havok one as well as the passed in scale
+	 * @param v
+	 * @param scale
+	 * @return
+	 */
 	public static Point3f toJ3dP3fNif(NifVector4 v, float scale) {
 		return ConvertFromNif.toJ3dP3fNif(v, scale);
 	}
 
-	//NOTE:!!! this is for extents must remain positive in each dimension
+	/**
+	 * NOTE:!!! this is for extents must remain positive in each dimension
+	 * @param dimensions
+	 * @param scale
+	 * @param nifVer
+	 * @return
+	 */
 	public static Vector3f toJ3dExtents(NifVector3 dimensions, float scale, NifVer nifVer) {
 		float hs = getHavokScale(nifVer);
 		return new Vector3f(dimensions.x * hs * scale, //

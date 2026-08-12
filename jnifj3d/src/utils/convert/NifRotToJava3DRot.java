@@ -101,6 +101,11 @@ public class NifRotToJava3DRot
 		return flipAxis(q);
 	}
 
+	/**
+	 * Note flips in place an return input object
+	 * @param q
+	 * @return
+	 */
 	public static Quat4f flipAxis(Quat4f q)
 	{
 		//taken from

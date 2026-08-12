@@ -8,25 +8,20 @@ import nif.compound.NifAVObject;
 import nif.niobject.NiAVObject;
 import nif.niobject.NiDefaultAVObjectPalette;
 
-public class J3dNiDefaultAVObjectPalette
-{
-	private LinkedHashMap<String, J3dNiAVObject> palette = new LinkedHashMap<String, J3dNiAVObject>();
+public class J3dNiDefaultAVObjectPalette {
+	private LinkedHashMap<String, J3dNiAVObject>	palette		= new LinkedHashMap<String, J3dNiAVObject>();
 
-	private SparseArray<J3dNiAVObject> paletteSA = new SparseArray<J3dNiAVObject>();
+	private SparseArray<J3dNiAVObject>				paletteSA	= new SparseArray<J3dNiAVObject>();
 
-	public J3dNiDefaultAVObjectPalette()
-	{
+	public J3dNiDefaultAVObjectPalette() {
 	}
 
-	public J3dNiDefaultAVObjectPalette(NiDefaultAVObjectPalette niDefaultAVObjectPalette, NiToJ3dData niToJ3dData)
-	{
-		for (int i = 0; i < niDefaultAVObjectPalette.numObjs; i++)
-		{
+	public J3dNiDefaultAVObjectPalette(NiDefaultAVObjectPalette niDefaultAVObjectPalette, NiToJ3dData niToJ3dData) {
+		for (int i = 0; i < niDefaultAVObjectPalette.numObjs; i++) {
 			NifAVObject nifAVObject = niDefaultAVObjectPalette.objs[i];
 			String name = nifAVObject.name;
-			NiAVObject niAVObject = (NiAVObject) niToJ3dData.get(nifAVObject.object);
-			if (niAVObject != null)
-			{
+			NiAVObject niAVObject = (NiAVObject)niToJ3dData.get(nifAVObject.object);
+			if (niAVObject != null) {
 				palette.put(name, niToJ3dData.get(niAVObject));
 
 				paletteSA.put(niAVObject.refId, niToJ3dData.get(niAVObject));
@@ -34,24 +29,33 @@ public class J3dNiDefaultAVObjectPalette
 		}
 	}
 
-	public void put(J3dNiAVObject v)
-	{
+	public void put(J3dNiAVObject v) {
 		palette.put(v.niAVObject.name, v);
 		paletteSA.put(v.niAVObject.refId, v);
 	}
 
-	public J3dNiAVObject get(int refId)
-	{
+	public J3dNiAVObject get(int refId) {
 		return paletteSA.get(refId);
 	}
 
-	public void putAll(J3dNiDefaultAVObjectPalette other)
-	{
+	/**
+	 * Just the in order of load bone id
+	 * @param refId
+	 * @return
+	 */
+	public J3dNiAVObject getBoneId(int boneId) {
+		return paletteSA.valueAt(boneId);
+	}
+
+	public int boneCount() {
+		return paletteSA.size();
+	}
+
+	public void putAll(J3dNiDefaultAVObjectPalette other) {
 		paletteSA.putAll(other.paletteSA);
 	}
 
-	public int[] keySet()
-	{
+	public int[] keySet() {
 		return paletteSA.keySet();
 	}
 
@@ -60,8 +64,7 @@ public class J3dNiDefaultAVObjectPalette
 	 * @param refId
 	 * @return
 	 */
-	public J3dNiAVObject getByName(String nodeName)
-	{
+	public J3dNiAVObject getByName(String nodeName) {
 		return palette.get(nodeName);
 	}
 
