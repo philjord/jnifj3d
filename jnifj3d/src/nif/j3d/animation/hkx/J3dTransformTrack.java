@@ -29,9 +29,8 @@ public class J3dTransformTrack extends Group implements SequenceAlphaListener {
 	public void setBinding(	String boneName, int numFrame, float lengthS,
 							J3dNiDefaultAVObjectPalette allBonesInSkeleton) {
 
-		//I wonder what the right id is? bones don't have a simple int, they have refId and pallette  id
-		nodeTarget = allBonesInSkeleton.getByName(boneName);// not this call as that is refid based and this is just boneid//allBonesInSkeleton.get(bone);
-
+		nodeTarget = allBonesInSkeleton.getByName(boneName);
+		
 		if (nodeTarget == null) {
 			// this is likely fine
 			//e:\game media\skyrim\meshes\actors\character\animations\female\mt_idle_a_left_long.kf
@@ -46,7 +45,7 @@ public class J3dTransformTrack extends Group implements SequenceAlphaListener {
 
 		}
 	}
-
+	
 	@Override
 	public Bounds getBounds() {
 		if (nodeTarget != null && nodeTarget.getCapability(ALLOW_BOUNDS_READ)) {
@@ -57,9 +56,10 @@ public class J3dTransformTrack extends Group implements SequenceAlphaListener {
 
 		return null;
 	}
-
+	
+	boolean outOnce = true;
 	public void process(float alphaValue) {
-		if (j3dNiInterpolator != null) {
+		if (j3dNiInterpolator != null) {			
 			j3dNiInterpolator.process(alphaValue);
 		}
 	}

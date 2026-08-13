@@ -6,7 +6,8 @@ import org.jogamp.vecmath.Quat4f;
 import org.jogamp.vecmath.Vector3d;
 import org.jogamp.vecmath.Vector3f;
 
-import nif.compound.NifQuaternion;
+import nif.compound.NifQuaternionXYZW;
+import nif.compound.NifVector3;
 import nif.j3d.animation.hkx.TTRotPosScaleInterpolator.TTKnotInterpolator;
 import nif.j3d.animation.j3dinterp.J3dNiInterpolator;
 import nif.niobject.hkx.animation.hkaSplineCompressedAnimation.SplineTrackQuaternion;
@@ -48,15 +49,17 @@ public class J3dSplineTransformInterpolator extends J3dNiInterpolator {
 		if (transformTrack.HasSplineRotation) {
 			quatRotInterpolator = new TTRotPathInterpolator(numFrame, transformTrack.SplineRotation);
 		} else {
-			defaultRot = ConvertFromNif.toJ3d(transformTrack.StaticRotation);
+			defaultRot = ConvertFromHavok.toJ3d(transformTrack.StaticRotation);
 		}
 		if (transformTrack.HasSplinePosition) {
-			positionPathInterpolator = new TTPosPathInterpolator(numFrame, transformTrack.SplinePosition);
+			positionPathInterpolator = new TTPosPathInterpolator(numFrame, transformTrack.SplinePosition,
+					ConvertFromNif.toJ3d(transformTrack.StaticPosition));
 		} else {
 			defaultTrans = ConvertFromNif.toJ3d(transformTrack.StaticPosition);
 		}
 		if (transformTrack.HasSplineScale) {
-			scalePathInterpolator = new TTScalePathInterpolator(numFrame, transformTrack.SplineScale);
+			scalePathInterpolator = new TTScalePathInterpolator(numFrame, transformTrack.SplineScale,
+					transformTrack.StaticScale);
 		} else {
 			//Notice scale is a percentage change so no Nif conversion done!
 			defaultScale = transformTrack.StaticScale.x;
@@ -71,9 +74,9 @@ public class J3dSplineTransformInterpolator extends J3dNiInterpolator {
 	}
 
 	public static class TTRotPathInterpolator extends TTKnotInterpolator {
-		private SplineTrackQuaternion	quatKeys;
-		private float					maxFrames;
-		private Quat4f					tQuat;		// for holding the computed value
+		SplineTrackQuaternion	quatKeys;
+		float					maxFrames;
+		Quat4f					tQuat	= new Quat4f();	// for holding the computed value
 
 		public TTRotPathInterpolator(float maxFrames, SplineTrackQuaternion quatKeys) {
 			this.maxFrames = maxFrames;
@@ -83,8 +86,9 @@ public class J3dSplineTransformInterpolator extends J3dNiInterpolator {
 		@Override
 		public void computeTransform(float alphaValue) {
 			float frameNo = alphaValue * maxFrames;
-			NifQuaternion nq = quatKeys.GetValue(frameNo);
-			tQuat = ConvertFromNif.toJ3d(nq);
+			NifQuaternionXYZW nq = quatKeys.GetValue(frameNo);
+			ConvertFromHavok.toJ3d(nq, tQuat);
+			tQuat.normalize();// as suggested in the havok docs
 		}
 
 		@Override
@@ -96,20 +100,28 @@ public class J3dSplineTransformInterpolator extends J3dNiInterpolator {
 
 	public static class TTPosPathInterpolator extends TTKnotInterpolator {
 		private SplineTrackVector3	splinePosition;
+		private Vector3f			staticPosition;
 		private float				maxFrames;
-		private Vector3f			pos	= new Vector3f();	// for holding the computed value
+		private NifVector3			temp	= new NifVector3(0, 0, 0);	// for holding the computed value
+		private Vector3f			pos		= new Vector3f(0, 0, 0);
 
-		public TTPosPathInterpolator(float maxFrames, SplineTrackVector3 splinePosition) {
+		public TTPosPathInterpolator(float maxFrames, SplineTrackVector3 splinePosition, Vector3f staticPosition) {
 			this.maxFrames = maxFrames;
 			this.splinePosition = splinePosition;
+			this.staticPosition = staticPosition;
 		}
 
 		@Override
 		public void computeTransform(float alphaValue) {
 			float frameNo = alphaValue * maxFrames;
-			pos.set(splinePosition.GetValueX(frameNo), splinePosition.GetValueY(frameNo),
-					splinePosition.GetValueZ(frameNo));
-			pos.scale(ConvertFromHavok.getHavokScale(null));
+
+			float x = splinePosition.GetValueX(frameNo);
+			float y = splinePosition.GetValueY(frameNo);
+			float z = splinePosition.GetValueZ(frameNo);
+			temp.set(!Float.isNaN(x) ? x : staticPosition.x, !Float.isNaN(y) ? y : staticPosition.y,
+					!Float.isNaN(z) ? z : staticPosition.z);
+
+			ConvertFromNif.toJ3d(temp, pos);
 		}
 
 		@Override
@@ -120,19 +132,26 @@ public class J3dSplineTransformInterpolator extends J3dNiInterpolator {
 
 	public static class TTScalePathInterpolator extends TTKnotInterpolator {
 		private SplineTrackVector3	splineScale;
+		private NifVector3			staticScale;
 		private float				maxFrames;
 		private Vector3d			tScale	= new Vector3d();	// for holding the computed value
 
-		public TTScalePathInterpolator(float maxFrames, SplineTrackVector3 splineScale) {
+		public TTScalePathInterpolator(float maxFrames, SplineTrackVector3 splineScale, NifVector3 staticScale) {
 			this.maxFrames = maxFrames;
 			this.splineScale = splineScale;
+			this.staticScale = staticScale;
 		}
 
 		@Override
 		public void computeTransform(float alphaValue) {
 			float frameNo = alphaValue * maxFrames;
-			tScale.set(splineScale.GetValueX(frameNo), splineScale.GetValueY(frameNo), splineScale.GetValueZ(frameNo));
-			tScale.scale(ConvertFromHavok.getHavokScale(null));
+			float x = splineScale.GetValueX(frameNo);
+			float y = splineScale.GetValueY(frameNo);
+			float z = splineScale.GetValueZ(frameNo);
+			tScale.set(!Float.isNaN(x) ? x : staticScale.x, !Float.isNaN(y) ? y : staticScale.y,
+					!Float.isNaN(z) ? z : staticScale.z);
+			//notice z/y swap but no negation, and no change of scale
+			ConvertFromNif.toJ3d(tScale);
 		}
 
 		@Override

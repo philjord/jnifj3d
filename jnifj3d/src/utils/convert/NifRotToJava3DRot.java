@@ -8,37 +8,44 @@ import org.jogamp.vecmath.Quat4f;
 
 import nif.compound.NifMatrix33;
 
-public class NifRotToJava3DRot
-{
+public class NifRotToJava3DRot {
 
 	/**
+	 * Creates a new Quat
+	 * @param mat
+	 * @return
+	 */
+	public static Quat4f makeJ3dQ4f(NifMatrix33 mat) {
+		return makeJ3dQ4f(mat, new Quat4f());
+	}
+
+	/**
+	 * places output into provided object
 	 * Taken from http://sourceforge.net/p/niftools/niflib/ci/c0a1fdd9f71995fe2284ee96cb0ee1056e1c56d1/tree/src/nif_math.cpp#l343
 	 * @param mat
 	 * @return
 	 */
-	public static Quat4f makeJ3dQ4f(NifMatrix33 mat)
-	{
+	public static Quat4f makeJ3dQ4f(NifMatrix33 mat, Quat4f out) {
 		// ConvertFromHavok NifMatrix44 FAILED badly with this call, see oblivion lowerlass clutter
 		// however testing showen below proves the sames math is not corect for 33 matrix!
 
-	/*	if (true)
-		{
-			Matrix3f m = new Matrix3f(mat.m11, mat.m13, -mat.m12, //
-					mat.m31, mat.m33, mat.m32, //
-					-mat.m21, -mat.m23, mat.m22);
+		/*	if (true)
+			{
+				Matrix3f m = new Matrix3f(mat.m11, mat.m13, -mat.m12, //
+						mat.m31, mat.m33, mat.m32, //
+						-mat.m21, -mat.m23, mat.m22);
+		
+				Matrix3f m2 = new Matrix3f(mat.m11, mat.m12, mat.m13, //
+						mat.m21, mat.m22, mat.m23, //
+						mat.m31, mat.m32, mat.m33);
+		
+				Quat4f q = new Quat4f();
+				q.set(m2);
+				NifRotToJava3DRot.flipAxis(q);
+		
+				return q;
+			}*/
 
-			Matrix3f m2 = new Matrix3f(mat.m11, mat.m12, mat.m13, //
-					mat.m21, mat.m22, mat.m23, //
-					mat.m31, mat.m32, mat.m33);
-
-			Quat4f q = new Quat4f();
-			q.set(m2);
-			NifRotToJava3DRot.flipAxis(q);
-
-			return q;
-		}*/
-
-		Quat4f quat = new Quat4f();
 		float[][] m = new float[3][3];
 
 		m[0][0] = mat.m11;
@@ -54,23 +61,19 @@ public class NifRotToJava3DRot
 		float tr, s;
 		float[] q = new float[4];
 		int i, j, k;
-		int[] nxt = new int[]
-		{ 1, 2, 0 };
+		int[] nxt = new int[] {1, 2, 0};
 
 		// compute the trace of the matrix
 		tr = m[0][0] + m[1][1] + m[2][2];
 		// check if the trace is positive or negative
-		if (tr > 0.0)
-		{
-			s = (float) Math.sqrt(tr + 1.0f);
-			quat.w = s / 2.0f;
+		if (tr > 0.0) {
+			s = (float)Math.sqrt(tr + 1.0f);
+			out.w = s / 2.0f;
 			s = 0.5f / s;
-			quat.x = (m[1][2] - m[2][1]) * s;
-			quat.y = (m[2][0] - m[0][2]) * s;
-			quat.z = (m[0][1] - m[1][0]) * s;
-		}
-		else
-		{
+			out.x = (m[1][2] - m[2][1]) * s;
+			out.y = (m[2][0] - m[0][2]) * s;
+			out.z = (m[0][1] - m[1][0]) * s;
+		} else {
 			// trace is negative
 			i = 0;
 			if (m[1][1] > m[0][0])
@@ -79,26 +82,38 @@ public class NifRotToJava3DRot
 				i = 2;
 			j = nxt[i];
 			k = nxt[j];
-			s = (float) Math.sqrt((m[i][i] - (m[j][j] + m[k][k])) + 1.0f);
+			s = (float)Math.sqrt((m[i][i] - (m[j][j] + m[k][k])) + 1.0f);
 			q[i] = s * 0.5f;
 			if (s != 0.0f)
 				s = 0.5f / s;
 			q[3] = (m[j][k] - m[k][j]) * s;
 			q[j] = (m[i][j] + m[j][i]) * s;
 			q[k] = (m[i][k] + m[k][i]) * s;
-			quat.x = q[0];
-			quat.y = q[1];
-			quat.z = q[2];
-			quat.w = q[3];
+			out.x = q[0];
+			out.y = q[1];
+			out.z = q[2];
+			out.w = q[3];
 		}
 
-		return flipAxis(quat);
+		return flipAxis(out);
 	}
-
-	public static Quat4f makeJ3dQ4f(float x, float y, float z, float w)
-	{
+	/**
+	 * Creates a new object
+	 * @param rotation
+	 * @return
+	 */
+	public static Quat4f makeJ3dQ4f(float x, float y, float z, float w) {
 		Quat4f q = new Quat4f(x, y, z, w);
 		return flipAxis(q);
+	}
+	/**
+	 * Places value into out
+	 * @param v
+	 * @return
+	 */
+	public static void makeJ3dQ4f(float x, float y, float z, float w, Quat4f out) {
+		out.set(x, y, z, w);
+		flipAxis(out);
 	}
 
 	/**
@@ -106,8 +121,7 @@ public class NifRotToJava3DRot
 	 * @param q
 	 * @return
 	 */
-	public static Quat4f flipAxis(Quat4f q)
-	{
+	public static Quat4f flipAxis(Quat4f q) {
 		//taken from
 		//http://stackoverflow.com/questions/18818102/convert-quaternion-representing-rotation-from-one-coordinate-system-to-another
 
@@ -116,15 +130,14 @@ public class NifRotToJava3DRot
 	}
 
 	@Deprecated
-	public static Quat4f makeJ3dQ4fOld(NifMatrix33 rotation)
-	{
-		return makeJ3dQ4f(rotation.m11, rotation.m12, rotation.m13, rotation.m21, rotation.m22, rotation.m23, rotation.m31, rotation.m32,
-				rotation.m33);
+	public static Quat4f makeJ3dQ4fOld(NifMatrix33 rotation) {
+		return makeJ3dQ4f(rotation.m11, rotation.m12, rotation.m13, rotation.m21, rotation.m22, rotation.m23,
+				rotation.m31, rotation.m32, rotation.m33);
 	}
 
 	@Deprecated
-	private static Quat4f makeJ3dQ4f(float m11, float m12, float m13, float m21, float m22, float m23, float m31, float m32, float m33)
-	{
+	private static Quat4f makeJ3dQ4f(	float m11, float m12, float m13, float m21, float m22, float m23, float m31,
+										float m32, float m33) {
 		m11 = truncToDP(m11, 4);
 		m12 = truncToDP(m12, 4);
 		m13 = truncToDP(m13, 4);
@@ -153,18 +166,17 @@ public class NifRotToJava3DRot
 		// axisangle will silently fail (cos the matrix is bum) and we get (silently) null rotations back.
 		// Round to 4 decimal places, as otherwise the matrix is actually not normalised (the encoded values are a bit
 		// off? weird!)
-
+	
 		// TODO: can I not check for this case before doing all the expensve parsing below?
 		// Matrix3f in = new Matrix3f(m11, m12, m13, m21, m22, m23, m31, m32, m33);
 		// if (in.determinant() != 1)
-
+	
 	 * @param in
 	 * @param scale
 	 * @return
 	 */
 	@Deprecated
-	public static float truncToDP(float in, int scale)
-	{
+	public static float truncToDP(float in, int scale) {
 		if (Float.isInfinite(in) || Float.isNaN(in))
 			return in;
 

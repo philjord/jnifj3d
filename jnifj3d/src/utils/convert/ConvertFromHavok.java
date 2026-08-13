@@ -29,15 +29,38 @@ public class ConvertFromHavok {
 		}
 	}
 
+	/**
+	 * Creates a new object!
+	 * @param rotation
+	 * @return
+	 */
 	public static Quat4f toJ3d(NifQuaternionXYZW rotation) {
 		return NifRotToJava3DRot.makeJ3dQ4f(rotation.x, rotation.y, rotation.z, rotation.w);
 	}
+	
+	/**
+	 * Places value into out
+	 * @param rotation
+	 * @return
+	 */
+	public static void toJ3d(NifQuaternionXYZW rotation, Quat4f out) {
+		NifRotToJava3DRot.makeJ3dQ4f(rotation.x, rotation.y, rotation.z, rotation.w, out);
+	}
 
-	//TODO: is this right?
+	/**
+	 * Creates a new object!
+	 * @param rotation
+	 * @return
+	 */
 	public static Quat4f toJ3d(NifQuaternion rotation) {
 		return NifRotToJava3DRot.makeJ3dQ4f(rotation.x, rotation.y, rotation.z, rotation.w);
 	}
 
+	/**
+	 * Creates a new object!
+	 * @param rotation
+	 * @return
+	 */
 	public static Matrix4f toJ3dM4(NifMatrix44 mIn, NifVer nifVer) {
 		//Future phil look!!!! empirically decided
 		// the set q and flip appears very strongly correct
@@ -72,6 +95,11 @@ public class ConvertFromHavok {
 		return m;
 	}
 
+	/**
+	 * Creates a new object!
+	 * @param rotation
+	 * @return
+	 */
 	public static Quat4f toJ3dQ4f(NifMatrix33 rotation) {
 		return NifRotToJava3DRot.makeJ3dQ4f(rotation);
 	}
@@ -83,55 +111,112 @@ public class ConvertFromHavok {
 	public static float toJ3d(float x, NifVer nifVer) {
 		return x * getHavokScale(nifVer);
 	}
-
+	
+	/**
+	 * Creates a new object!
+	 * @param rotation
+	 * @return
+	 */
 	public static Vector3f toJ3dV3f(NifMatrix44 transform, float scale, NifVer nifVer) {
 		return createScaledVector(transform.m14, transform.m24, transform.m34, scale, nifVer);
 	}
-
+	/**
+	 * Creates a new object!
+	 * @param rotation
+	 * @return
+	 */
 	public static Vector3f toJ3dV3f(NifMatrix44 transform, NifVer nifVer) {
 		return createScaledVector(transform.m14, transform.m24, transform.m34, 1.0f, nifVer);
 	}
-
+	/**
+	 * Creates a new object!
+	 * @param rotation
+	 * @return
+	 */
 	public static Vector3f toJ3d(NifVector3 v, float scale, NifVer nifVer) {
 		return createScaledVector(v.x, v.y, v.z, scale, nifVer);
 	}
-
+	/**
+	 * Creates a new object!
+	 * @param rotation
+	 * @return
+	 */
 	public static Vector3f toJ3d(NifVector3 v, NifVer nifVer) {
 		return createScaledVector(v.x, v.y, v.z, 1.0f, nifVer);
 	}
-
+	/**
+	 * Creates a new object!
+	 * @param rotation
+	 * @return
+	 */
 	public static Vector3f toJ3d(NifVector4 v, float scale, NifVer nifVer) {
 		return createScaledVector(v.x, v.y, v.z, scale, nifVer);
 	}
-
+	/**
+	 * Creates a new object!
+	 * @param rotation
+	 * @return
+	 */
 	public static Vector3f toJ3d(NifVector4 v, NifVer nifVer) {
 		return createScaledVector(v.x, v.y, v.z, 1.0f, nifVer);
 	}
-
+	/**
+	 * Creates a new object!
+	 * @param rotation
+	 * @return
+	 */
 	public static Point3f toJ3dP3f(NifVector3 v, float scale, NifVer nifVer) {
 		return createScaledPoint(v.x, v.y, v.z, scale, nifVer);
 	}
-
+	/**
+	 * Creates a new object!
+	 * @param rotation
+	 * @return
+	 */
 	public static Point3f toJ3dP3f(NifVector3 v, NifVer nifVer) {
 		return createScaledPoint(v.x, v.y, v.z, 1.0f, nifVer);
 	}
-
+	/**
+	 * Creates a new object!
+	 * @param rotation
+	 * @return
+	 */
 	public static Point3f toJ3dP3f(float x, float y, float z, float scale, NifVer nifVer) {
 		return createScaledPoint(x, y, z, scale, nifVer);
 	}
 
+	/**
+	 * Creates a new object!
+	 * @param rotation
+	 * @return
+	 */
 	public static Point3f toJ3dP3f(float x, float y, float z, NifVer nifVer) {
 		return createScaledPoint(x, y, z, 1.0f, nifVer);
 	}
 
+	/**
+	 * Creates a new object!
+	 * @param rotation
+	 * @return
+	 */
 	public static Point3f toJ3dP3f(NifVector4 v, float scale, NifVer nifVer) {
 		return createScaledPoint(v.x, v.y, v.z, scale, nifVer);
 	}
 
+	/**
+	 * Creates a new object!
+	 * @param rotation
+	 * @return
+	 */
 	public static Point3f toJ3dP3f(NifVector4 v, NifVer nifVer) {
 		return createScaledPoint(v.x, v.y, v.z, 1.0f, nifVer);
 	}
 
+	/**
+	 * Creates a new object!
+	 * @param rotation
+	 * @return
+	 */
 	private static Point3f createScaledPoint(float x, float y, float z, float scale, NifVer nifVer) {
 		float hs = getHavokScale(nifVer);
 		return new Point3f(x * hs * scale, //
@@ -139,6 +224,11 @@ public class ConvertFromHavok {
 				-y * hs * scale);
 	}
 
+	/**
+	 * Creates a new object!
+	 * @param rotation
+	 * @return
+	 */
 	private static Vector3f createScaledVector(float x, float y, float z, float scale, NifVer nifVer) {
 		float hs = getHavokScale(nifVer);
 		return new Vector3f(x * hs * scale, //
@@ -146,8 +236,10 @@ public class ConvertFromHavok {
 				-y * hs * scale);
 	}
 
-	/** NOTE:!! no scale
-	 * 
+	/** 
+	 * Creates a new object! 
+	 * NOTE:!! no scale 
+	 *
 	 * @param v
 	 * @return
 	 */
@@ -156,7 +248,8 @@ public class ConvertFromHavok {
 	}
 
 	/**
-	 *  NOTE:!!!! this uses the nif scale NOT the havok one as well as the passed in scale
+	 * Creates a new object!
+	 * NOTE:!!!! this uses the nif scale NOT the havok one as well as the passed in scale
 	 * @param v
 	 * @param scale
 	 * @return
@@ -166,7 +259,8 @@ public class ConvertFromHavok {
 	}
 
 	/**
-	 *  NOTE:!!!! this uses the nif scale NOT the havok one as well as the passed in scale
+	 * Creates a new object!
+	 * NOTE:!!!! this uses the nif scale NOT the havok one as well as the passed in scale
 	 * @param v
 	 * @param scale
 	 * @return
@@ -176,6 +270,7 @@ public class ConvertFromHavok {
 	}
 
 	/**
+	 * Creates a new object!
 	 * NOTE:!!! this is for extents must remain positive in each dimension
 	 * @param dimensions
 	 * @param scale

@@ -10,7 +10,9 @@ import nif.j3d.animation.hkx.J3dSplineTransformInterpolator.TTRotPathInterpolato
 import nif.j3d.animation.hkx.J3dSplineTransformInterpolator.TTScalePathInterpolator;
 import nif.j3d.animation.j3dinterp.interp.TransformInterpolator;
 import tools3d.utils.Utils3D;
-
+/**
+ * Based on RotPosScaleInterpolator
+ */
 public class TTRotPosScaleInterpolator extends TransformInterpolator {
 	private TTRotPathInterpolator	quatRotInterpolator;
 	private TTPosPathInterpolator	positionPathInterpolator;
@@ -38,6 +40,8 @@ public class TTRotPosScaleInterpolator extends TransformInterpolator {
 
 	}
 
+	Quat4f tmp = new Quat4f(0, 0, 0, 1);
+
 	/**
 	 * Method overrride as we have 3 elements to update 
 	 * @see nif.j3d.animation.j3dinterp.J3dNiInterpolator#process(float)
@@ -50,37 +54,35 @@ public class TTRotPosScaleInterpolator extends TransformInterpolator {
 			target.getTransform(baseTransform);
 		}
 
-		// convert to an offsetted time in seconds
-		float normAlphaValue = alphaValue * lengthS;
-		normAlphaValue += startTimeS;
-
 		// set to the base target
 		targetTransform.set(baseTransform);
 
 		if (alphaValue != prevAlphaValue) {
 			if (quatRotInterpolator != null) {
-				quatRotInterpolator.computeTransform(normAlphaValue);
+
+				quatRotInterpolator.computeTransform(alphaValue);
 				quatRotInterpolator.applyTransform(targetTransform);
 			} else if (defaultRot != null) {
 				targetTransform.setRotation(defaultRot);
 			}
 
 			if (positionPathInterpolator != null) {
-				positionPathInterpolator.computeTransform(normAlphaValue);
+				positionPathInterpolator.computeTransform(alphaValue);
 				positionPathInterpolator.applyTransform(targetTransform);
 			} else if (defaultTrans != null) {
 				targetTransform.setTranslation(defaultTrans);
 			}
 
 			if (scalePathInterpolator != null) {
-				scalePathInterpolator.computeTransform(normAlphaValue);
+				scalePathInterpolator.computeTransform(alphaValue);
 				scalePathInterpolator.applyTransform(targetTransform);
 			} else if (defaultScale != Float.MIN_VALUE) {
 				targetTransform.setScale(defaultScale);
 			}
 
 			if (!Utils3D.isAffine(targetTransform)) {
-				System.out.println("no no good");
+				System.out.println(
+						"no no good Utils3D.isAffine(targetTransform) in TTRotPosScaleInterpolator.process(float alphaValue)");
 			} else {
 				//only set on a change
 				if (!targetTransform.equals(prevTargetTransform)) {
