@@ -26,6 +26,7 @@ import nif.niobject.hkx.animation.hkaAnimationContainer;
 import nif.niobject.hkx.animation.hkaDefaultAnimatedReferenceFrame;
 import nif.niobject.hkx.animation.hkaSkeleton;
 import nif.niobject.hkx.animation.hkaSplineCompressedAnimation;
+import nif.niobject.hkx.animation.hkaSplineCompressedAnimation.AnimationTracks;
 import nif.niobject.hkx.animation.hkaSplineCompressedAnimation.TransformTrack;
 import nif.niobject.hkx.reader.HKXContents;
 import tools3d.utils.scenegraph.VaryingLODBehaviour;
@@ -73,30 +74,23 @@ public class J3dhkaAnimationContainer extends Group implements SequenceInterface
 	public J3dhkaAnimationContainer(hkaAnimationContainer hkaAnimationContainer, HKXContents hkxContents) {
 		this.hkaAnimationContainer = hkaAnimationContainer;
 		sequenceEventsbehave = new SequenceEventsBehavior(this);
-		
+
 		/*		 
-		 I see
-		Animation file: meshes/actors/character/animations/animobjectcounteridleloopright.hkx
-		decodedData 2
-		Animation file: meshes/actors/character/animations/cartprisonerdexit.hkx
-		decodedData 3
-				
-		Animation file: meshes/actors/character/animations/bed_rightexit.hkx
-		has java.nio.BufferUnderflowException
-		at nif.niobject.hkx.animation.hkaSplineCompressedAnimation$SplineTrackQuaternion.<init>(hkaSplineCompressedAnimation.java:612)
-		
-		Animation file: meshes/actors/character/animations/blacksmithanvilexit.hkx
-		java.lang.NegativeArraySizeException: -11855
-		at nif.niobject.hkx.animation.hkaSplineCompressedAnimation$SplineTrackQuaternion.<init>(hkaSplineCompressedAnimation.java:610)
-		
-		
-		FO4 has the same 3 1s plus 1 objMotion		
+		 * 1 I'm getting J3dSkin updateGeometry causing some odd color buffer buffer underflow on some models
+		 * this happens on second run of wisp and witchlight
+		 * 2 I'm not yet seeing FO76 animating
+		 * 3 I'm see skinning for FO4 is crazy madness
+		 * 4 I haven't got float tracks being returned properly yet
+		 * 5 Obviously the multi block end on end step
+		 * 
+		 * 
+		 * FO4 has the same 3 1s plus 1 objMotion		
 		
 		// so in this model 1 controllerlink has one node target - bone
-		//  one interpolator made from  1 spline (or otherwise)
-		/// and animated by a behavior in this calling process on each controller and hence interp and hence modifying the bone
+		// one interpolator made from  1 track of various spline or static values
+		// and animated by a behavior in this calling process on each controller and hence interp and hence modifying the bone
 							
-		// I have block duration, so if there is more than 1 block  each is  that long, but the last makes it up to duration
+		// I have block duration, so if there is more than 1 block each is that long, but the last makes it up to duration
 		
 		*/
 
@@ -120,28 +114,27 @@ public class J3dhkaAnimationContainer extends Group implements SequenceInterface
 				if (obj instanceof hkaSplineCompressedAnimation) {
 					spline = (hkaSplineCompressedAnimation)obj;
 
-
-
 					startTimeS = 0;// TODO: there is no start time in these one! duration = length = stoptime
 					stopTimeS = spline.duration;
 					lengthS = stopTimeS - startTimeS;
 
 					lengthMS = (long)(lengthS * 1000);
+					
+					AnimationTracks animationTracks = spline.animationTracks;
 
-					// just do the first one,  but I need to end on end them
-					if (spline.blockTransformTracks.size() != 1) {
+					// just do the first one, but I need to end on end them
+					if (animationTracks.transformBlocks.size() != 1) {
 						System.out.println(
-								"spline.blockTransformTracks.size() != 1 : " + spline.blockTransformTracks.size());
-						
-						
+								"spline.blockTransformTracks.size() != 1 : " + animationTracks.transformBlocks.size());
+
 						System.out.println("block duration = " + spline.blockDuration);
 						System.out.println("anim duration " + spline.duration);
 					}
 
-					TransformTrack[] transformTracks = spline.blockTransformTracks.get(0);
-					controlledBlocks = new J3dTransformTrack[spline.blockTransformTracks.get(0).length];
+					TransformTrack[] transformTracks = animationTracks.transformBlocks.get(0);
+					controlledBlocks = new J3dTransformTrack[animationTracks.transformBlocks.get(0).length];
 					//TODO: for my model the later blocks are run after the earlier blocks, so they are each 
-					// run when the prvious alpha is > 1 type thing
+					// run when the previous alpha is > 1 type thing
 					for (int i = 0; i < transformTracks.length; i++) {
 						J3dTransformTrack j3dTransformTrack = new J3dTransformTrack(transformTracks[i]);
 						controlledBlocks[i] = j3dTransformTrack;
@@ -236,7 +229,6 @@ public class J3dhkaAnimationContainer extends Group implements SequenceInterface
 	public void setAnimatedNodes(	J3dNiDefaultAVObjectPalette allBonesInSkeleton,
 									ArrayList<NifJ3dVisRoot> allOtherModels, HKXContents hkxSkeletonContents) {
 
-
 		if (hkxSkeletonContents != null) {
 			hkRootLevelContainer hkRootLevelContainer = (hkRootLevelContainer)hkxSkeletonContents.get(0);
 			// grab the first variant option for fun
@@ -247,9 +239,10 @@ public class J3dhkaAnimationContainer extends Group implements SequenceInterface
 				if (skelehkaAnimationContainer.skeletons != null) {
 					// 0 is the full animation skeleton, 1 looks like a simpler ragdoll version (no fingers)
 
-					hkaSkeleton skeleMapper = (hkaSkeleton)hkxSkeletonContents.get(skelehkaAnimationContainer.skeletons[0]);
+					hkaSkeleton skeleMapper = (hkaSkeleton)hkxSkeletonContents
+							.get(skelehkaAnimationContainer.skeletons[0]);
 					//System.out.println("skele " + skeleMapper.name);
-					
+
 					// transformTrackToBoneIndices in binding can be null if track to skeleton.hkx bone mapping is 1 to 1
 					if (binding.transformTrackToBoneIndices != null) {
 						for (int i = 0; i < binding.transformTrackToBoneIndices.length; i++) {
@@ -261,8 +254,12 @@ public class J3dhkaAnimationContainer extends Group implements SequenceInterface
 					} else {
 						for (int i = 0; i < controlledBlocks.length; i++) {
 							J3dTransformTrack j3dTransformTrack = controlledBlocks[i];
-							j3dTransformTrack.setBinding(skeleMapper.bones[i].name, spline.numFrames, lengthS,
-									allBonesInSkeleton);
+							if (skeleMapper.bones.length > i) {
+								j3dTransformTrack.setBinding(skeleMapper.bones[i].name, spline.numFrames, lengthS,
+										allBonesInSkeleton);
+							} else {
+								System.out.println("not enough bones for control blocks!");
+							}
 						}
 					}
 

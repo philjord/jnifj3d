@@ -8,43 +8,45 @@ import org.jogamp.vecmath.Color3f;
 
 import tools3d.utils.scenegraph.Fadable;
 
-public abstract class J3dSkin extends Group implements GeometryUpdater, Fadable
-{
+public abstract class J3dSkin extends Group implements GeometryUpdater, Fadable {
 
-	protected J3dNiNode[] skeletonBonesInSkinBoneIdOrder;//prelookups
+	protected J3dNiNode[]		skeletonBonesInSkinBoneIdOrder;		//prelookups
 
-	protected GeometryArray baseIndexedGeometryArray;
+	protected GeometryArray		baseIndexedGeometryArray;
 
-	protected GeometryArray currentIndexedGeometryArray;
+	protected GeometryArray		currentIndexedGeometryArray;
 
-	protected Transform3D skinDataTrans = new Transform3D();
+	protected Transform3D		skinDataTrans	= new Transform3D();
 
-	protected Transform3D[] skinBonesSkinOffsetInOrder;
+	protected Transform3D[]		skinBonesSkinOffsetInOrder;
 
-	protected J3dNiTriBasedGeom j3dNiTriBasedGeom;
+	protected J3dNiTriBasedGeom	j3dNiTriBasedGeom;
 
-	public J3dSkin( )
-	{		
+	public J3dSkin() {
 
 	}
 
 	@Override
-	public void fade(float percent)
-	{
+	public void fade(float percent) {
 		j3dNiTriBasedGeom.fade(percent);
 	}
 
 	@Override
-	public void setOutline(Color3f c)
-	{
+	public void setOutline(Color3f c) {
 		j3dNiTriBasedGeom.setOutline(c);
 	}
 
-	public void updateSkin()
-	{
-		currentIndexedGeometryArray.updateData(this);
+	public void updateSkin() {
+		
+		// I get these locking up exception, genreally on a second run of an animation for a model
+		//wisp is the easiest to find and reproduce, but witchlight also does it plus others
+		try {
+			currentIndexedGeometryArray.updateData(this);
+		} catch (Exception e) {
+			System.out.println("J3dSkin updateSkin exception");
+			e.printStackTrace();
+			currentIndexedGeometryArray.updateData(this);
+		}
 	}
-
-	
 
 }

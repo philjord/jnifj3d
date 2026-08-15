@@ -85,6 +85,8 @@ public class J3dSplineTransformInterpolator extends J3dNiInterpolator {
 
 		@Override
 		public void computeTransform(float alphaValue) {
+			//TODO: given that there is a +2 on the knot count I wager there is room to be below 0 or just above 1 
+			// after rounding etc, so I bet that might be part of this calc? maybe. 
 			float frameNo = alphaValue * maxFrames;
 			NifQuaternionXYZW nq = quatKeys.GetValue(frameNo);
 			ConvertFromHavok.toJ3d(nq, tQuat);

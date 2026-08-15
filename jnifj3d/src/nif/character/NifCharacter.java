@@ -30,11 +30,8 @@ import nif.j3d.J3dNiAVObject;
 import nif.j3d.J3dNiNode;
 import nif.j3d.J3dNiSkinInstance;
 import nif.j3d.NiToJ3dData;
-import nif.j3d.animation.J3dNiControllerSequence;
-
 import nif.j3d.animation.J3dNiControllerSequence.SequenceListener;
 import nif.j3d.animation.SequenceAlpha;
-import nif.j3d.animation.SequenceAlpha.SequenceAlphaListener;
 import nif.j3d.animation.SequenceAlpha.SequenceInterface;
 import nif.niobject.NiExtraData;
 import nif.niobject.NiStringExtraData;
@@ -48,20 +45,20 @@ import tools3d.utils.scenegraph.VaryingLODBehaviour;
 import utils.source.MediaSources;
 
 /**
- * //https://www.mail-archive.com/java3d-interest@java.sun.com/msg23102.html >There are a few latency issues in the Java
- * 3D 1.3 architecture that could >affect what you're doing: > >1) Updates to geometry and texture data have a 1-frame
- * latency. >2) Updates to transforms and scene graph structure have a 2-frame latency. >3) Methods such as
- * getImagePlateToVworld() in Canvas3D query the internal > representation of the Java 3D scene graph, which has the
- * 2-frame latency > previously mentioned, so you can't use those methods directly to > synchronize view dependent scene
- * graph updates.
- */
+  //https://www.mail-archive.com/java3d-interest@java.sun.com/msg23102.html 
+  >There are a few latency issues in the Java 3D 1.3 architecture that could 
+  >affect what you're doing: 
+  > 
+  >1) Updates to geometry and texture data have a 1-frame latency. 
+  >2) Updates to transforms and scene graph structure have a 2-frame latency. 
+  >3) Methods such as getImagePlateToVworld() in Canvas3D query the internal 
+  > representation of the Java 3D scene graph, which has the 2-frame latency 
+  > previously mentioned, so you can't use those methods directly to 
+  > synchronize view dependent scene graph updates.
+ 
+  Because of the above limitations all parts of the scenegraph below character must not use transformgroup but rework
+  the same change into a geometryupdate call
 
-/**
- * Because of the above limitations all parts of the scenegraph below character must not use transformgroup but rework
- * the same change into a geometryupdate call
- * 
- * @author phil
- *
  */
 
 // TODO: look into this for the fustum work
@@ -99,8 +96,8 @@ public class NifCharacter extends BranchGroup implements Fadable {
 	protected ArrayList<CharacterAttachment>	attachments				= new ArrayList<CharacterAttachment>();
 
 	protected SequenceInterface					currentControllerSequence;
-	
-	private HKXContents hkxSkeletonContents = null;
+
+	private HKXContents							hkxSkeletonContents		= null;
 
 	//For use by Tes3 constructor
 	protected NifCharacter(String skeletonNifFilename, MediaSources mediaSources) {
@@ -125,9 +122,8 @@ public class NifCharacter extends BranchGroup implements Fadable {
 
 	public NifCharacter(String skeletonNifFilename, List<String> skinNifModelFilenames, MediaSources mediaSources) {
 		this(skeletonNifFilename, mediaSources);
-		
-		
-		// if a hkx version of the skeleton existing we will need it later to run hkx animations
+
+		// if a hkx version of the skeleton exists we will need it later to run hkx animations
 		ByteBuffer bb = mediaSources.getMeshSource().getByteBuffer(skeletonNifFilename.replace(".nif", ".hkx"));
 		if (bb != null) {
 			bb.order(ByteOrder.LITTLE_ENDIAN);
@@ -139,7 +135,6 @@ public class NifCharacter extends BranchGroup implements Fadable {
 				e.printStackTrace();
 			}
 		}
-		
 
 		for (String skinNifModelFilename : skinNifModelFilenames) {
 			if (skinNifModelFilename != null && skinNifModelFilename.length() > 0) {
@@ -151,9 +146,11 @@ public class NifCharacter extends BranchGroup implements Fadable {
 					ArrayList<J3dNiSkinInstance> skins = J3dNiSkinInstance.createSkins(model.getNiToJ3dData(),
 							blendedSkeletons.getOutputSkeleton());
 
-					// in theory the skin should hang on the skeleton with no animaitons happenign
+					// FIXME! I'm trying to make FO4 have skin here now
+					// in theory the skin should hang on the skeleton with no animations happening
 					// so let's get that first, I see no skins now, just like tes3
-					//FIXME! it seems the loaded model is skinned to a 0,0,0 single point or somethign, because the test code below does attached a nif file to teh character, at the feet 
+					// it seems the loaded model is skinned to a 0,0,0 single point or something, because the test code below 
+					//does attached a nif file to the character, at the feet 
 
 					//NifJ3dVisRoot model2 = NifToJ3d.loadShapes(ESConfig.TES_MESH_PATH + "actors\\character\\characterassets\\malebody.nif", 
 					//		mediaSources.getMeshSource(),	mediaSources.getTextureSource());
@@ -304,9 +301,10 @@ public class NifCharacter extends BranchGroup implements Fadable {
 				currentAnimation = nextAnimation;
 				nextAnimation = "";
 
-				//FIXME!!!!!!!!!
-				// as a part of debugging if I see an hkx file clear the animations so it's doesn't cycle endlessly doing nothign but loading
-				idleAnimations.remove(currentAnimation);
+				//FIXME: DEBUGGER
+				boolean onlyrunitoncefordebugreasons = false;
+				if (onlyrunitoncefordebugreasons)
+					idleAnimations.remove(currentAnimation);
 
 				ByteBuffer bb = mediaSources.getMeshSource().getByteBuffer(currentAnimation);
 				if (bb != null) {
@@ -317,22 +315,13 @@ public class NifCharacter extends BranchGroup implements Fadable {
 						hkxContents = reader.read();
 
 						if (hkxContents != null) {
-							
-							
-							//	System.out.println("hkxContents "	+ hkxContents.getContentsVersion() + " is64bit "
-							//					+ hkxContents.getHeaderData().is64bit + " " + currentAnimation);
-
 							HkJ3dRoot hkJ3dRoot = new HkJ3dRoot(hkxContents, hkxSkeletonContents);
 
 							// just default to a 0.3 second blend?
 							Alpha defaultAlpha = new SequenceAlpha(0, 0.3f, false);
 							defaultAlpha.setStartTime(System.currentTimeMillis());
 							NifJ3dSkeletonRoot inputSkeleton = blendedSkeletons.startNewInputAnimation(defaultAlpha);
-						
-							
-							//TODO: looks like the hkx animations want the skeleton.hkx file in the characters assets rather
-							// than the original nif one.
-							// or maybe it's jsut the skeletonMapper file needed
+
 							hkJ3dRoot.setAnimatedSkeleton(inputSkeleton.getAllBonesInSkeleton(), allOtherModels);
 
 							// now add the root to the scene so the controller sequence is live
