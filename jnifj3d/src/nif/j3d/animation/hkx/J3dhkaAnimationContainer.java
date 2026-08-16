@@ -119,25 +119,29 @@ public class J3dhkaAnimationContainer extends Group implements SequenceInterface
 					lengthS = stopTimeS - startTimeS;
 
 					lengthMS = (long)(lengthS * 1000);
-					
+
 					AnimationTracks animationTracks = spline.animationTracks;
 
 					// just do the first one, but I need to end on end them
 					if (animationTracks.transformBlocks.size() != 1) {
-						System.out.println(
-								"spline.blockTransformTracks.size() != 1 : " + animationTracks.transformBlocks.size());
+						System.out.println("animationTracks.transformBlocks.size() != 1 : "
+											+ animationTracks.transformBlocks.size());
 
 						System.out.println("block duration = " + spline.blockDuration);
 						System.out.println("anim duration " + spline.duration);
 					}
 
-					TransformTrack[] transformTracks = animationTracks.transformBlocks.get(0);
-					controlledBlocks = new J3dTransformTrack[animationTracks.transformBlocks.get(0).length];
+					controlledBlocks = new J3dTransformTrack[spline.numberOfTransformTracks];
+
 					//TODO: for my model the later blocks are run after the earlier blocks, so they are each 
 					// run when the previous alpha is > 1 type thing
-					for (int i = 0; i < transformTracks.length; i++) {
-						J3dTransformTrack j3dTransformTrack = new J3dTransformTrack(transformTracks[i]);
-						controlledBlocks[i] = j3dTransformTrack;
+					for (int t = 0; t < spline.numberOfTransformTracks; t++) {
+						TransformTrack[] transformTracks = new TransformTrack[spline.numBlocks];
+						for (int b = 0; b < spline.numBlocks; b++) {
+							transformTracks[b] = animationTracks.transformBlocks.get(b)[t];
+						}
+						J3dTransformTrack j3dTransformTrack = new J3dTransformTrack(transformTracks);
+						controlledBlocks[t] = j3dTransformTrack;
 						addChild(j3dTransformTrack);
 					}
 
@@ -248,15 +252,15 @@ public class J3dhkaAnimationContainer extends Group implements SequenceInterface
 						for (int i = 0; i < binding.transformTrackToBoneIndices.length; i++) {
 							J3dTransformTrack j3dTransformTrack = controlledBlocks[i];
 							int bone = binding.transformTrackToBoneIndices[i];
-							j3dTransformTrack.setBinding(skeleMapper.bones[bone].name, spline.numFrames, lengthS,
-									allBonesInSkeleton);
+							j3dTransformTrack.setBinding(skeleMapper.bones[bone].name, spline.numFrames,
+									spline.maxFramesPerBlock, lengthS, allBonesInSkeleton);
 						}
 					} else {
 						for (int i = 0; i < controlledBlocks.length; i++) {
 							J3dTransformTrack j3dTransformTrack = controlledBlocks[i];
 							if (skeleMapper.bones.length > i) {
-								j3dTransformTrack.setBinding(skeleMapper.bones[i].name, spline.numFrames, lengthS,
-										allBonesInSkeleton);
+								j3dTransformTrack.setBinding(skeleMapper.bones[i].name, spline.numFrames,
+										spline.maxFramesPerBlock, lengthS, allBonesInSkeleton);
 							} else {
 								System.out.println("not enough bones for control blocks!");
 							}

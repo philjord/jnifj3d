@@ -19,14 +19,15 @@ public class J3dTransformTrack extends Group implements SequenceAlphaListener {
 
 	protected boolean			isAccumNodeTarget	= false;
 
-	private TransformTrack		transformTrack;
+	// equal to number of blocks
+	private TransformTrack[]		transformTracks;
 
-	public J3dTransformTrack(TransformTrack transformTrack) {
-		this.transformTrack = transformTrack;
+	public J3dTransformTrack(TransformTrack[] transformTracks) {
+		this.transformTracks = transformTracks;
 
 	}
 
-	public void setBinding(	String boneName, int numFrame, float lengthS,
+	public void setBinding(	String boneName, int numFrame,  int framesPerBlock, float lengthS,
 							J3dNiDefaultAVObjectPalette allBonesInSkeleton) {
 
 		nodeTarget = allBonesInSkeleton.getByName(boneName);
@@ -40,7 +41,7 @@ public class J3dTransformTrack extends Group implements SequenceAlphaListener {
 			if (!nodeTarget.isLive() && !nodeTarget.isCompiled())
 				nodeTarget.setCapability(ALLOW_BOUNDS_READ);
 
-			j3dNiInterpolator = new J3dSplineTransformInterpolator(transformTrack, nodeTarget, numFrame, lengthS);
+			j3dNiInterpolator = new J3dSplineTransformInterpolator(transformTracks, nodeTarget, numFrame,  framesPerBlock, lengthS);
 			addChild(j3dNiInterpolator);
 
 		}
