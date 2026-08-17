@@ -50,6 +50,9 @@ public class TTRotPosScaleInterpolator extends TransformInterpolator {
 
 		// transformTracks is block long, each needs to be end on end of the previous, note masks do NOT have to be the same
 
+		//TODO: my transition from one block to the other is appalling, needs interpolation too
+		
+		
 	}
 
 	// deburners

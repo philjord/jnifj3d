@@ -23,6 +23,8 @@ import nif.niobject.hkx.animation.hkRootLevelContainer;
 import nif.niobject.hkx.animation.hkRootLevelContainer.hkRootLevelContainerNamedVariant;
 import nif.niobject.hkx.animation.hkaAnimationBinding;
 import nif.niobject.hkx.animation.hkaAnimationContainer;
+import nif.niobject.hkx.animation.hkaAnnotationTrack;
+import nif.niobject.hkx.animation.hkaAnnotationTrackAnnotation;
 import nif.niobject.hkx.animation.hkaDefaultAnimatedReferenceFrame;
 import nif.niobject.hkx.animation.hkaSkeleton;
 import nif.niobject.hkx.animation.hkaSplineCompressedAnimation;
@@ -62,8 +64,6 @@ public class J3dhkaAnimationContainer extends Group implements SequenceInterface
 
 	protected float						lengthS					= 0;
 
-	private hkaAnimationContainer		hkaAnimationContainer;
-
 	// notice a single spline pointer and a single binding pointer
 	// multiple animations will go wonky
 	hkaSplineCompressedAnimation		spline;
@@ -72,29 +72,24 @@ public class J3dhkaAnimationContainer extends Group implements SequenceInterface
 	protected int						cycleType				= NiControllerSequence.CYCLE_CLAMP;
 
 	public J3dhkaAnimationContainer(hkaAnimationContainer hkaAnimationContainer, HKXContents hkxContents) {
-		this.hkaAnimationContainer = hkaAnimationContainer;
 		sequenceEventsbehave = new SequenceEventsBehavior(this);
 
 		/*		 
 		 * 1 I'm getting J3dSkin updateGeometry causing some odd color buffer buffer underflow on some models
-		 * this happens on second run of wisp and witchlight
+		 * this happens on second run of wisp and witchlight,  this happens when I use a cached skin somehow, not sure
+		 * but closing the old animation window stops the issue
 		 * 2 I'm not yet seeing FO76 animating
 		 * 3 I'm see skinning for FO4 is crazy madness
-		 * 4 I haven't got float tracks being returned properly yet
-		 * 5 Obviously the multi block end on end step
 		 * 
 		 * 
 		 * FO4 has the same 3 1s plus 1 objMotion		
 		
-		// so in this model 1 controllerlink has one node target - bone
-		// one interpolator made from  1 track of various spline or static values
+		// 1 controllerlink has one node target - bone
+		// which will be here one TransformTrack (of various spline or static values) bound to a bone
 		// and animated by a behavior in this calling process on each controller and hence interp and hence modifying the bone
-							
-		// I have block duration, so if there is more than 1 block each is that long, but the last makes it up to duration
+		// I have blockDuration, so if there is more than 1 block each is that long, but the last makes it up to duration
 		
 		*/
-
-		//System.out.println("var0 is hkaAnimationContainer");
 
 		if (hkaAnimationContainer.skeletons != null) {
 			System.out.println("animation has skeletons odd. " + hkaAnimationContainer.skeletons.length);
@@ -114,7 +109,7 @@ public class J3dhkaAnimationContainer extends Group implements SequenceInterface
 				if (obj instanceof hkaSplineCompressedAnimation) {
 					spline = (hkaSplineCompressedAnimation)obj;
 
-					startTimeS = 0;// TODO: there is no start time in these one! duration = length = stoptime
+					startTimeS = 0;//there is no start time in these one! duration = length = stoptime
 					stopTimeS = spline.duration;
 					lengthS = stopTimeS - startTimeS;
 
@@ -122,19 +117,9 @@ public class J3dhkaAnimationContainer extends Group implements SequenceInterface
 
 					AnimationTracks animationTracks = spline.animationTracks;
 
-					// just do the first one, but I need to end on end them
-					if (animationTracks.transformBlocks.size() != 1) {
-						System.out.println("animationTracks.transformBlocks.size() != 1 : "
-											+ animationTracks.transformBlocks.size());
-
-						System.out.println("block duration = " + spline.blockDuration);
-						System.out.println("anim duration " + spline.duration);
-					}
-
 					controlledBlocks = new J3dTransformTrack[spline.numberOfTransformTracks];
 
-					//TODO: for my model the later blocks are run after the earlier blocks, so they are each 
-					// run when the previous alpha is > 1 type thing
+					//the later blocks are run after the earlier blocks, so transpose them from blocks-of-tracks to tracks-of-blocks
 					for (int t = 0; t < spline.numberOfTransformTracks; t++) {
 						TransformTrack[] transformTracks = new TransformTrack[spline.numBlocks];
 						for (int b = 0; b < spline.numBlocks; b++) {
@@ -145,21 +130,35 @@ public class J3dhkaAnimationContainer extends Group implements SequenceInterface
 						addChild(j3dTransformTrack);
 					}
 
-					//public hkaAnnotationTrack[]	hkaAnimation.annotationTracks;
-					//annotationTracks
-					/*
-					if (niControllerSequence.textKeys2.ref != -1) {
+					boolean b = false;
+					if (spline.annotationTracks != null && b) {
+						for (int at = 0; at < spline.annotationTracks.length; at++) {
+							// just to start with
+							hkaAnnotationTrack annotationTrack = spline.annotationTracks[at];
+							if (annotationTrack.annotations != null) {
+								System.out.println("annotation track " + at + " " + annotationTrack.trackName);
+								for (int a = 0; a < annotationTrack.annotations.length; a++) {
+									// just to start with
+									hkaAnnotationTrackAnnotation annotation = annotationTrack.annotations[a];
+									//if (annotation.text.length() > 0)
+										System.out.println(
+												"annotation " + a + " " + annotation.time + " : " + annotation.text);
+								}
+							}
+						}
+						/*if (niControllerSequence.textKeys2.ref != -1) {
 						NiTextKeyExtraData niTextKeyExtraData = (NiTextKeyExtraData)niToJ3dData.get(niControllerSequence.textKeys2);
 						j3dNiTextKeyExtraData = new J3dNiTextKeyExtraData(niTextKeyExtraData);
-					
+						
 						// just for saftey sake
 						if (j3dNiTextKeyExtraData.getStartTime() != startTimeS || j3dNiTextKeyExtraData.getEndTime() != stopTimeS) {
 							//TODO: removed during parse of FO4 lots don't agree
 							//new Throwable("niTextKeyExtraData don't agree with niControllerSequence!").printStackTrace();
 						}
-					} else {
+						} else {
 						System.out.println("What the hell??? niControllerSequence.textKeys2.ref == -1!!");
-					}*/
+						}*/
+					}
 
 					hkBaseObject objMotion = hkxContents.get(spline.extractedMotion);
 					if (objMotion != null) {
@@ -171,7 +170,7 @@ public class J3dhkaAnimationContainer extends Group implements SequenceInterface
 							System.out.println("unknown extractedMotion " + objMotion);
 						}
 					} else {
-						//do I mind no extracted motion? Skyrim has none
+						//Skyrim has none so I don't mind no extracted motion 
 						//System.out.println("null extractedMotion ");
 					}
 
@@ -183,6 +182,7 @@ public class J3dhkaAnimationContainer extends Group implements SequenceInterface
 
 		if (hkaAnimationContainer.bindings != null) {
 
+			//TODO: if this ever happens I can probably just animate multiple bones (on top of each other?)
 			if (hkaAnimationContainer.bindings.length != 1)
 				System.out
 						.println("hkaAnimationContainer.bindings.length != 1 " + hkaAnimationContainer.bindings.length);
@@ -191,7 +191,6 @@ public class J3dhkaAnimationContainer extends Group implements SequenceInterface
 				hkBaseObject obj = hkxContents.get(bindIdx);
 				if (obj instanceof hkaAnimationBinding) {
 					binding = (hkaAnimationBinding)obj;
-
 				} else {
 					System.out.println("unknown binding " + obj);
 				}
@@ -230,6 +229,13 @@ public class J3dhkaAnimationContainer extends Group implements SequenceInterface
 		setAnimatedNodes(allBonesInSkeleton, null, hkxSkeletonContents);
 	}
 
+	/**
+	 * hkxSkeletonContents needs to be teh sibling .hkx skeleton file next ot the .nif one, 
+	 * it is used to map bone numbers to names
+	 * @param allBonesInSkeleton
+	 * @param allOtherModels
+	 * @param hkxSkeletonContents
+	 */
 	public void setAnimatedNodes(	J3dNiDefaultAVObjectPalette allBonesInSkeleton,
 									ArrayList<NifJ3dVisRoot> allOtherModels, HKXContents hkxSkeletonContents) {
 
@@ -262,7 +268,7 @@ public class J3dhkaAnimationContainer extends Group implements SequenceInterface
 								j3dTransformTrack.setBinding(skeleMapper.bones[i].name, spline.numFrames,
 										spline.maxFramesPerBlock, lengthS, allBonesInSkeleton);
 							} else {
-								System.out.println("not enough bones for control blocks!");
+								System.out.println("not enough bones for control blocks! " + skeleMapper.name);
 							}
 						}
 					}
