@@ -70,12 +70,9 @@ public class J3dBSbhkNPObject extends Group {
 	private static final int		defaultFormat	= GeometryArray.COORDINATES | GeometryArray.BY_REFERENCE
 														| GeometryArray.USE_NIO_BUFFER;
 
-	public static NifVer			nifVer			= new NifVer("FO4", NifVer.VER_20_2_0_7, 12, 130);
-
 	//TODO: many more JBullet style conversions
 
 	public J3dBSbhkNPObject(BSbhkNPObject object, NiToJ3dData niToJ3dData) {
-
 		// so object can be bhkPhysicsSystem or bhkRagdollSystem or BSClothExtraData
 		HKXContents contents = object.hkxContents;
 		if (contents != null) {
@@ -109,11 +106,11 @@ public class J3dBSbhkNPObject extends Group {
 
 								TransformGroup lowerGroup = new TransformGroup(t);
 								lowerGroup.addChild(hknpConvexPolytopeShape((hknpConvexPolytopeShape)hknpShape,
-										contents, pos.lengthSquared() != 0));
+										contents, niToJ3dData.nifVer, pos.lengthSquared() != 0));
 								addChild(lowerGroup);
 
 							} else {
-								addChild(processHknpShape(hknpShape, contents));
+								addChild(processHknpShape(hknpShape, contents, niToJ3dData.nifVer));
 							}
 						}
 					}
@@ -127,7 +124,7 @@ public class J3dBSbhkNPObject extends Group {
 				//	System.out.println("content = " + shapeObj);
 					if (shapeObj instanceof hknpShape) {
 						hknpShape hknpShape = (hknpShape)shapeObj;
-						addChild(processHknpShape(hknpShape, contents));						
+						addChild(processHknpShape(hknpShape, contents, niToJ3dData.nifVer));						
 					} else {
 						System.err.println("bhkRagdollSystem object not processed " + shapeObj + " in "
 											+ niToJ3dData.nifVer.fileName);
@@ -148,30 +145,30 @@ public class J3dBSbhkNPObject extends Group {
 		}
 	}
 
-	private static Node processHknpShape(hknpShape hknpShape, HKXContents contents) {
-		return processHknpShape(hknpShape, contents, false);
+	private static Node processHknpShape(hknpShape hknpShape, HKXContents contents, NifVer nifVer) {
+		return processHknpShape(hknpShape, contents, nifVer, false);
 	}
 
-	private static Node processHknpShape(hknpShape hknpShape, HKXContents contents, boolean centerAtOrgin) {
+	private static Node processHknpShape(hknpShape hknpShape, HKXContents contents, NifVer nifVer, boolean centerAtOrgin) {
 		if (hknpShape instanceof hknpSphereShape) {
-			return hknpSphereShape((hknpSphereShape)hknpShape, contents);
+			return hknpSphereShape((hknpSphereShape)hknpShape, contents, nifVer);
 		} else if (hknpShape instanceof hknpCapsuleShape) {
-			return hknpCapsuleShape((hknpCapsuleShape)hknpShape, contents);
+			return hknpCapsuleShape((hknpCapsuleShape)hknpShape, contents, nifVer);
 		} else if (hknpShape instanceof hknpDynamicCompoundShape) {
-			return hknpCompoundShape((hknpDynamicCompoundShape)hknpShape, contents);
+			return hknpCompoundShape((hknpDynamicCompoundShape)hknpShape, contents, nifVer);
 		} else if (hknpShape instanceof hknpStaticCompoundShape) {
-			return hknpCompoundShape((hknpDynamicCompoundShape)hknpShape, contents);
+			return hknpCompoundShape((hknpDynamicCompoundShape)hknpShape, contents, nifVer);
 		} else if (hknpShape instanceof hknpScaledConvexShape) {
-			return hknpScaledConvexShape((hknpScaledConvexShape)hknpShape, contents);
+			return hknpScaledConvexShape((hknpScaledConvexShape)hknpShape, contents, nifVer);
 		} else if (hknpShape instanceof hknpConvexPolytopeShape) {
-			return hknpConvexPolytopeShape((hknpConvexPolytopeShape)hknpShape, contents, centerAtOrgin);
+			return hknpConvexPolytopeShape((hknpConvexPolytopeShape)hknpShape, contents, nifVer, centerAtOrgin);
 		} else if (hknpShape instanceof hknpCompressedMeshShape) {
 			hknpCompressedMeshShape hknpCompressedMeshShape = (hknpCompressedMeshShape)hknpShape;
 
 			if (hknpCompressedMeshShape.data > 0) {
 				hknpCompressedMeshShapeData hknpCompressedMeshShapeData = (hknpCompressedMeshShapeData)contents
 						.get(hknpCompressedMeshShape.data);
-				return hknpCompressedMeshShapeData(hknpCompressedMeshShapeData, contents);
+				return hknpCompressedMeshShapeData(hknpCompressedMeshShapeData, contents, nifVer);
 			} else {
 				//Meshes\Interiors\Utility\Doors\UtilMetalDbDoor01.nif
 				System.out.println("no shape data for hknpCompressedMeshShape ");
@@ -182,7 +179,7 @@ public class J3dBSbhkNPObject extends Group {
 		return null;
 	}
 
-	private static Node hknpScaledConvexShape(hknpScaledConvexShape data, HKXContents contents) {
+	private static Node hknpScaledConvexShape(hknpScaledConvexShape data, HKXContents contents, NifVer nifVer) {
 
 		long shapeId = data.coreShape;
 		if (shapeId > 0) {
@@ -197,7 +194,7 @@ public class J3dBSbhkNPObject extends Group {
 
 			transformGroup.setTransform(t3d);
 
-			transformGroup.addChild(processHknpShape(hknpShape, contents, pos.lengthSquared() != 0));
+			transformGroup.addChild(processHknpShape(hknpShape, contents, nifVer, pos.lengthSquared() != 0));
 			return transformGroup;
 
 		}
@@ -205,7 +202,7 @@ public class J3dBSbhkNPObject extends Group {
 
 	}
 
-	private static Node hknpCompoundShape(hknpCompoundShape data, HKXContents contents) {
+	private static Node hknpCompoundShape(hknpCompoundShape data, HKXContents contents, NifVer nifVer) {
 		Group g = new Group();
 		for (int i = 0; i < data.instances.elements.length; i++) {
 			hknpShapeInstance s = data.instances.elements[i];
@@ -223,14 +220,14 @@ public class J3dBSbhkNPObject extends Group {
 				transformGroup.setTransform(t3d);
 
 				hknpShape hknpShape = (hknpShape)contents.get(shapeId);
-				transformGroup.addChild(processHknpShape(hknpShape, contents));
+				transformGroup.addChild(processHknpShape(hknpShape, contents, nifVer));
 				g.addChild(transformGroup);
 			}
 		}
 		return g;
 	}
 
-	private static Shape3D hknpSphereShape(hknpSphereShape data, HKXContents contents) {
+	private static Shape3D hknpSphereShape(hknpSphereShape data, HKXContents contents, NifVer nifVer) {
 		//System.out.println("just out of interest vertices for sphere " +data.convexRadius+ " " + data.vertices[0]+ " " + data.vertices[1]+ " " + data.vertices[2]);
 		//just out of interest vertices for sphere 0.29049572 [NPVector4] x:2.3510652E-38 y:0.29049572 z:2.664476E24 w:0.0 [NPVector4] x:0.0 y:0.0 z:0.0 w:0.0 [NPVector4] x:1.469374E-39 y:0.0 z:0.0 w:0.0
 		// so vertices[0].y is the radius, and the others are weird numbers
@@ -251,7 +248,7 @@ public class J3dBSbhkNPObject extends Group {
 		return shape;
 	}
 
-	private static Group hknpCapsuleShape(hknpCapsuleShape data, HKXContents contents) {
+	private static Group hknpCapsuleShape(hknpCapsuleShape data, HKXContents contents, NifVer nifVer) {
 		//TODO: try JBullet CapsuleShapeX
 		Group g = new Group();
 
@@ -331,11 +328,11 @@ public class J3dBSbhkNPObject extends Group {
 
 	}
 
-	public static Node hknpConvexPolytopeShape(hknpConvexPolytopeShape data, HKXContents contents) {
-		return hknpConvexPolytopeShape(data, contents, false);
+	public static Node hknpConvexPolytopeShape(hknpConvexPolytopeShape data, HKXContents contents, NifVer nifVer) {
+		return hknpConvexPolytopeShape(data, contents, nifVer, false);
 	}
 
-	public static Node hknpConvexPolytopeShape(	hknpConvexPolytopeShape data, HKXContents contents,
+	public static Node hknpConvexPolytopeShape(	hknpConvexPolytopeShape data, HKXContents contents, NifVer nifVer,
 												boolean centerAtOrgin) {
 		Group group = new Group();
 
@@ -351,37 +348,6 @@ public class J3dBSbhkNPObject extends Group {
 		group.addChild(createDebugPointShape(vertices2, new Color3f(1.0f,0.5f,0.3f)));
 		*/
 
-		// ok vertices and planes, I'm see for a box which wants 8 vertexs I see oddly, very oddly, 
-		//vertices 3 oddly close to 0,0,0 then 4 good verts, planes, 4 that look like verts almost and 3 that are
-		// like a plane, normal and distance (e.g. 0,0,1,-0.16)		
-		// like 3 odds to start and 3 odds to finish
-		// so this 3 thingy below works
-
-		// super suspect these first 3 are a bunch of flags, notice very diff poly topes (boxes) same numbers 
-		//ftoi xyzw 0: 0, 0, 0, 0
-		//ftoi xyzw 1: 001000000000000000001000, 0, 0, 0
-		//ftoi xyzw 2: 100100000000000000001000, 1000011000000000000000110, 1001010000000000000011000, 0
-		//and 
-		//ftoi xyzw 0 0, 0, 0, 0
-		//ftoi xyzw 1 001000000000000000001000, 0, 0, 0
-		//ftoi xyzw 2 100100000000000000001000, 1000011000000000000000110, 1001010000000000000011000, 0
-
-		/*for (int i = 0; i < 3; i++) {
-			//System.out.println("ftoi "+i+" " + Float.floatToIntBits(data.vertices[i].x) );
-			System.out.println("ftoi xyzw "+i+": " + Integer.toBinaryString( Float.floatToIntBits(data.vertices[i].x))
-			+ ", "+ Integer.toBinaryString( Float.floatToIntBits(data.vertices[i].y))
-			+ ", "+ Integer.toBinaryString( Float.floatToIntBits(data.vertices[i].z))
-			+ ", "+ Integer.toBinaryString( Float.floatToIntBits(data.vertices[i].w)));
-		}*/
-
-		/*float hs = ConvertFromHavok.getHavokScale(nifVer);
-		for (int i = 0; i < data.vertices.length; i++) {			
-			 Vector4f v= new Vector4f(data.vertices[i].x * hs ,   data.vertices[i].z * hs ,  -data.vertices[i].y * hs, data.vertices[i].w );
-			System.out.println("vi " + i + "" + v);
-		}for (int i = 0; i < data.planes.length; i++) {
-			Vector4f p= new Vector4f(data.planes[i].x * hs ,   data.planes[i].z * hs ,  -data.planes[i].y * hs, data.planes[i].w );
-			System.out.println("pi " + i + "" + p);
-		} */
 
 		ObjectArrayList<Vector3f> points = new ObjectArrayList<Vector3f>();
 
@@ -464,7 +430,7 @@ public class J3dBSbhkNPObject extends Group {
 		return group;
 	}
 
-	public static Node hknpCompressedMeshShapeData(hknpCompressedMeshShapeData data, HKXContents contents) {
+	public static Node hknpCompressedMeshShapeData(hknpCompressedMeshShapeData data, HKXContents contents, NifVer nifVer) {
 		// we are in fact dealing only with the meshTree not the simdTree
 		hknpCompressedMeshShapeTree meshTree = data.meshTree;
 
@@ -479,7 +445,7 @@ public class J3dBSbhkNPObject extends Group {
 			for (int pvi = 0; pvi < meshTree.sharedVertices.length; pvi++) {
 				long pv = meshTree.sharedVertices[pvi];
 
-				//z value are what I'm calling x, so is this is in zyx format, 10, 11, 11 bit			 
+				//z value are what I'm calling x, so is this is in zyx format			 
 				//21bit x, 21 bit y, 22 bit z this time!
 				float fx = (((pv >> 0) & 0x1FFFFF) / (float)0x1FFFFF * (meshTreehkAabb.max.x - meshTreehkAabb.min.x))
 							+ meshTreehkAabb.min.x;
@@ -488,7 +454,7 @@ public class J3dBSbhkNPObject extends Group {
 				float fz = (((pv >> 42) & 0x3FFFFF) / (float)0x3FFFFF * (meshTreehkAabb.max.z - meshTreehkAabb.min.z))
 							+ meshTreehkAabb.min.z;
 
-				sharedVertices[pvi] = ConvertFromHavok.toJ3dP3f(fx, fy, fz, nifVer);
+				sharedVertices[pvi] = ConvertFromHavok.toJ3dP3f(fx, fy, fz, nifVer);				
 			}
 		}
 
