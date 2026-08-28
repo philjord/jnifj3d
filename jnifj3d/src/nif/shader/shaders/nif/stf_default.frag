@@ -1,6 +1,6 @@
 #version 130
 //#version 410 core
-#extension GL_EXT_gpu_shader4 : enable
+//#extension GL_EXT_gpu_shader4 : enable
 //NOTE changed from 120 and nothing, so GLES is gonna have trouble
 
 //End of FFP inputs
@@ -8,9 +8,9 @@
 // FROM https://github.com/fo76utils/nifskope/tree/develop/res/shaders
 
 
-#ifdef GL_ES
+ 
 precision mediump float;
-#endif
+ 
 
 
 //added cos of the version 130 gear above
@@ -280,11 +280,10 @@ in mat3 btnMatrix;
 vec3 ViewDir_norm = normalize( ViewDir );
 mat3 btnMatrix_norm = mat3( normalize( btnMatrix[0] ), normalize( btnMatrix[1] ), normalize( btnMatrix[2] ) );
 
-#ifndef M_PI
-	#define M_PI 3.1415926535897932384626433832795;
-#endif
+float M_PI=3.1415926535897932384626433832795;
 
-#define FLT_EPSILON 1.192092896e-07F; // smallest such that 1.0 + FLT_EPSILON != 1.0
+//float FLT_EPSILON = 1.192092896e-07F; // smallest such that 1.0 + FLT_EPSILON != 1.0
+float FLT_EPSILON = 0.00001192092896; // cos gles no like it
  
 float emissiveIntensity( bool useAdaptive, bool adaptiveLimits, vec4 luminanceParams )
 {

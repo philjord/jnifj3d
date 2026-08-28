@@ -151,7 +151,7 @@ public class J3dBSGeometry extends J3dNiAVObject implements Fadable
 
 			if (bsGeometry.Meshes[0].Mesh.MeshData == null) {
 				data = new BSMeshData(
-						MeshSource.meshSource.getByteBuffer("geometries\\" + bsGeometry.Meshes[0].Mesh.MeshPath));
+						MeshSource.meshSource.getByteBuffer("geometries\\" + bsGeometry.Meshes[0].Mesh.MeshPath + ".mesh"));
 				// must assign it so the shader factory can examine the contents
 				bsGeometry.Meshes[0].Mesh.MeshData = data;
 			} else {

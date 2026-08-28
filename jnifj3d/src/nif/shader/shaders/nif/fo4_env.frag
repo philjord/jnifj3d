@@ -73,7 +73,9 @@ float LightingFuncGGX_REF(float NdotL, float NdotV, float NdotH, float LdotH, fl
 {
     float alpha = roughness * roughness;
 	
-    float F, D, vis;
+    float F;
+    float D;
+    float vis;
 
     // D
     float alphaSqr = alpha * alpha;
@@ -119,7 +121,10 @@ float scale( float f, float min, float max )
 {
 	return f * ( max - min ) + min;
 }
-#define FLT_EPSILON 1.192092896e-07F // smallest such that 1.0 + FLT_EPSILON != 1.0
+
+//float FLT_EPSILON = 1.192092896e-07F; // smallest such that 1.0 + FLT_EPSILON != 1.0
+float FLT_EPSILON = 0.00001192092896; // cos gles no like it
+
 void main( void )
 {
 
