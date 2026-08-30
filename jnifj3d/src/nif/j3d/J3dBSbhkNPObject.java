@@ -72,7 +72,7 @@ public class J3dBSbhkNPObject extends Group {
 
 	//TODO: many more JBullet style conversions
 
-	public J3dBSbhkNPObject(BSbhkNPObject object, NiToJ3dData niToJ3dData) {
+	public J3dBSbhkNPObject(BSbhkNPObject object, NiToJ3dData niToJ3dData, int bodyCinfosIdx) {
 		// so object can be bhkPhysicsSystem or bhkRagdollSystem or BSClothExtraData
 		HKXContents contents = object.hkxContents;
 		if (contents != null) {
@@ -87,29 +87,12 @@ public class J3dBSbhkNPObject extends Group {
 					//physics bodies are here
 					hknpBodyCinfo[] bodyCinfos = hknpPhysicsSystemData.bodyCinfos;
 					for (int b = 0; b < bodyCinfos.length; b++) {
-						hknpBodyCinfo bodyCinfo = bodyCinfos[b];
+						if (bodyCinfosIdx == -1 || b == bodyCinfosIdx) {
+							hknpBodyCinfo bodyCinfo = bodyCinfos[b];
 
-						long shapeId = bodyCinfo.shape;
-						if (shapeId > 0) {
-							hknpShape hknpShape = (hknpShape)contents.get(shapeId);
-							if (hknpShape instanceof hknpConvexPolytopeShape) {
-								Transform3D t = new Transform3D();
-								t.setRotation(ConvertFromHavok.toJ3d(bodyCinfo.orientation));
-
-								Vector3f pos = ConvertFromHavok.toJ3d(bodyCinfo.position, niToJ3dData.nifVer);
-								// ok so the position wants to be the center of the polytopeshape, but my polytopeshape seem to be offset from 0,0,0
-								// so I tell them to cetner at 0,0,0, but NOTE! not if the pos is 0,0,0
-
-								addChild(createDebugPointShape(new Vector3f[] {pos}, new Color3f(1f, 1f, 1f)));
-
-								t.setTranslation(pos);
-
-								TransformGroup lowerGroup = new TransformGroup(t);
-								lowerGroup.addChild(hknpConvexPolytopeShape((hknpConvexPolytopeShape)hknpShape,
-										contents, niToJ3dData.nifVer, pos.lengthSquared() != 0));
-								addChild(lowerGroup);
-
-							} else {
+							long bodyCinfoShapeId = bodyCinfo.shape;
+							if (bodyCinfoShapeId > 0) {
+								hknpShape hknpShape = (hknpShape)contents.get(bodyCinfoShapeId);
 								addChild(processHknpShape(hknpShape, contents, niToJ3dData.nifVer));
 							}
 						}
@@ -117,14 +100,14 @@ public class J3dBSbhkNPObject extends Group {
 				}
 			} else if (object instanceof bhkRagdollSystem) {
 				//example meshes\actors\character\characterassets\skeleton.nif
-			//	System.err.println("bhkRagdollSystem example found in " + niToJ3dData.nifVer.fileName);
+				//	System.err.println("bhkRagdollSystem example found in " + niToJ3dData.nifVer.fileName);
 				while (iter.hasNext()) {
 					// seems to be a list of capsule shapes 
 					hkBaseObject shapeObj = iter.next();
-				//	System.out.println("content = " + shapeObj);
+					//	System.out.println("content = " + shapeObj);
 					if (shapeObj instanceof hknpShape) {
 						hknpShape hknpShape = (hknpShape)shapeObj;
-						addChild(processHknpShape(hknpShape, contents, niToJ3dData.nifVer));						
+						addChild(processHknpShape(hknpShape, contents, niToJ3dData.nifVer));
 					} else {
 						System.err.println("bhkRagdollSystem object not processed " + shapeObj + " in "
 											+ niToJ3dData.nifVer.fileName);
@@ -146,10 +129,6 @@ public class J3dBSbhkNPObject extends Group {
 	}
 
 	private static Node processHknpShape(hknpShape hknpShape, HKXContents contents, NifVer nifVer) {
-		return processHknpShape(hknpShape, contents, nifVer, false);
-	}
-
-	private static Node processHknpShape(hknpShape hknpShape, HKXContents contents, NifVer nifVer, boolean centerAtOrgin) {
 		if (hknpShape instanceof hknpSphereShape) {
 			return hknpSphereShape((hknpSphereShape)hknpShape, contents, nifVer);
 		} else if (hknpShape instanceof hknpCapsuleShape) {
@@ -161,7 +140,7 @@ public class J3dBSbhkNPObject extends Group {
 		} else if (hknpShape instanceof hknpScaledConvexShape) {
 			return hknpScaledConvexShape((hknpScaledConvexShape)hknpShape, contents, nifVer);
 		} else if (hknpShape instanceof hknpConvexPolytopeShape) {
-			return hknpConvexPolytopeShape((hknpConvexPolytopeShape)hknpShape, contents, nifVer, centerAtOrgin);
+			return hknpConvexPolytopeShape((hknpConvexPolytopeShape)hknpShape, contents, nifVer);
 		} else if (hknpShape instanceof hknpCompressedMeshShape) {
 			hknpCompressedMeshShape hknpCompressedMeshShape = (hknpCompressedMeshShape)hknpShape;
 
@@ -173,6 +152,8 @@ public class J3dBSbhkNPObject extends Group {
 				//Meshes\Interiors\Utility\Doors\UtilMetalDbDoor01.nif
 				System.out.println("no shape data for hknpCompressedMeshShape ");
 			}
+		} else if (hknpShape instanceof hknpCompoundShape) {
+			return hknpCompoundShape((hknpCompoundShape)hknpShape, contents, nifVer);
 		} else {
 			System.out.println("J3dbhkCollisionObject - unknown bhkShape " + hknpShape);
 		}
@@ -194,7 +175,7 @@ public class J3dBSbhkNPObject extends Group {
 
 			transformGroup.setTransform(t3d);
 
-			transformGroup.addChild(processHknpShape(hknpShape, contents, nifVer, pos.lengthSquared() != 0));
+			transformGroup.addChild(processHknpShape(hknpShape, contents, nifVer));
 			return transformGroup;
 
 		}
@@ -329,67 +310,25 @@ public class J3dBSbhkNPObject extends Group {
 	}
 
 	public static Node hknpConvexPolytopeShape(hknpConvexPolytopeShape data, HKXContents contents, NifVer nifVer) {
-		return hknpConvexPolytopeShape(data, contents, nifVer, false);
-	}
-
-	public static Node hknpConvexPolytopeShape(	hknpConvexPolytopeShape data, HKXContents contents, NifVer nifVer,
-												boolean centerAtOrgin) {
 		Group group = new Group();
 
-		/*Point3f[] vertices = new Point3f[data.vertices.length];
-		for (int i = 0; i < data.vertices.length; i++) {
-			vertices[i] = new Point3f(ConvertFromHavok.toJ3dP3f(data.vertices[i], nifVer));
-		}		
-		group.addChild(createDebugPointShape(vertices, new Color3f(0.0f, 0.5f, 0.3f)));
-		Point3f[] vertices2 = new Point3f[data.planes.length];
-		for (int i = 0; i < data.planes.length; i++) {
-			vertices2[i] = new Point3f(ConvertFromHavok.toJ3dP3f(data.planes[i], nifVer));
-		}	
-		group.addChild(createDebugPointShape(vertices2, new Color3f(1.0f,0.5f,0.3f)));
-		*/
-
+		// this guy is just polytopes all over the place
+		//ArchiveFile:SeventySix - Meshes.ba2/meshes/setdressing/vault/vault_oxygentank_01.nif
 
 		ObjectArrayList<Vector3f> points = new ObjectArrayList<Vector3f>();
-
-		// used if the centering is required below
-		Vector3f min = new Vector3f(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
-		Vector3f max = new Vector3f(Float.MIN_VALUE, Float.MIN_VALUE, Float.MIN_VALUE);
-		if (data.vertices.length > 3 && data.planes.length > 3) {
-			for (int i = 3; i < data.vertices.length; i++) {
-				Vector3f v = new Vector3f(ConvertFromHavok.toJ3dP3f(data.vertices[i], nifVer));
-				if (centerAtOrgin) {
-					min.x = v.x < min.x ? v.x : min.x;
-					max.x = v.x > max.x ? v.x : max.x;
-					min.y = v.y < min.y ? v.y : min.y;
-					max.y = v.y > max.y ? v.y : max.y;
-					min.z = v.z < min.z ? v.z : min.z;
-					max.z = v.z > max.z ? v.z : max.z;
-				}
-				points.add(v);
-			}
-			for (int i = 0; i < data.planes.length - 3; i++) {
-				Vector3f p = new Vector3f(ConvertFromHavok.toJ3dP3f(data.planes[i], nifVer));
-				if (centerAtOrgin) {
-					min.x = p.x < min.x ? p.x : min.x;
-					max.x = p.x > max.x ? p.x : max.x;
-					min.y = p.y < min.y ? p.y : min.y;
-					max.y = p.y > max.y ? p.y : max.y;
-					min.z = p.z < min.z ? p.z : min.z;
-					max.z = p.z > max.z ? p.z : max.z;
-				}
-				points.add(p);
-			}
-		} else {
-			System.out
-					.println("Interesting hknpConvexPolytopeShape " + data.vertices.length + " " + data.planes.length);
+		for (int i = 0; i < data.vertices.length; i++) {
+			Vector3f v = new Vector3f(ConvertFromHavok.toJ3dP3f(data.vertices[i], nifVer));
+			points.add(v);
+			//points have a w = 0.5 not sure what that means really
 		}
 
-		if (centerAtOrgin) {
-			Vector3f mod = new Vector3f(((max.x + min.x) / 2f), ((max.y + min.y) / 2f), ((max.z + min.z) / 2f));
-			for (int i = 0; i < points.size(); i++) {
-				points.get(i).sub(mod);
+		//Debug points
+		/*	Point3f[] vertices = new Point3f[data.vertices.length];
+			for (int i = 0; i < data.vertices.length; i++) {
+				vertices[i] = new Point3f(points.get(i));
 			}
-		}
+			group.addChild(createDebugPointShape(vertices, new Color3f(1.0f, 0.5f, 1.0f)));
+		*/
 
 		ConvexHullShape convexShape = new ConvexHullShape(points);
 		// create a hull approximation
@@ -430,7 +369,8 @@ public class J3dBSbhkNPObject extends Group {
 		return group;
 	}
 
-	public static Node hknpCompressedMeshShapeData(hknpCompressedMeshShapeData data, HKXContents contents, NifVer nifVer) {
+	public static Node hknpCompressedMeshShapeData(	hknpCompressedMeshShapeData data, HKXContents contents,
+													NifVer nifVer) {
 		// we are in fact dealing only with the meshTree not the simdTree
 		hknpCompressedMeshShapeTree meshTree = data.meshTree;
 
@@ -454,7 +394,7 @@ public class J3dBSbhkNPObject extends Group {
 				float fz = (((pv >> 42) & 0x3FFFFF) / (float)0x3FFFFF * (meshTreehkAabb.max.z - meshTreehkAabb.min.z))
 							+ meshTreehkAabb.min.z;
 
-				sharedVertices[pvi] = ConvertFromHavok.toJ3dP3f(fx, fy, fz, nifVer);				
+				sharedVertices[pvi] = ConvertFromHavok.toJ3dP3f(fx, fy, fz, nifVer);
 			}
 		}
 

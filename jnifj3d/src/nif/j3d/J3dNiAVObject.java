@@ -66,7 +66,9 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET implements SequenceAl
 	// except Morrowind does not ignore Bip01 node transforms
 	public static boolean ignoreTopTransformRot(NiAVObject niAVObject)
 	{
-		boolean ignoreTopTransform = (niAVObject instanceof BSFadeNode) || //fallout and upwards
+		boolean ignoreTopTransform = (niAVObject instanceof BSFadeNode) || // these are fallout 3
+				//skyrim wants false			
+				(niAVObject.nVer.BS_GTE_130()) ||	// check for fallout4+						
 				(niAVObject.nVer.LOAD_VER < NifVer.VER_10_0_1_0 && // morrowind
 						niAVObject instanceof NiNode && niAVObject.parent == null && !niAVObject.name.equals("Bip01")); // check for root
 		return ignoreTopTransform;

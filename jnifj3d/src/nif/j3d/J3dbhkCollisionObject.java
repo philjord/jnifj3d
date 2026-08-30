@@ -44,6 +44,7 @@ import nif.niobject.bhk.bhkConvexVerticesShape;
 import nif.niobject.bhk.bhkListShape;
 import nif.niobject.bhk.bhkMoppBvTreeShape;
 import nif.niobject.bhk.bhkMultiSphereShape;
+import nif.niobject.bhk.bhkNPCollisionObject;
 import nif.niobject.bhk.bhkNiTriStripsShape;
 import nif.niobject.bhk.bhkPackedNiTriStripsShape;
 import nif.niobject.bhk.bhkRigidBody;
@@ -63,28 +64,28 @@ import utils.convert.ConvertFromHavok;
  * @author philip
  *
  */
-public class J3dbhkCollisionObject extends Group
-{
-	private static final boolean COMPACT = false;
-	private static final boolean BY_REF = true;
-	private static final boolean INTERLEAVED = false;
-	private static final boolean NIO = true;
+public class J3dbhkCollisionObject extends Group {
+	private static final boolean	COMPACT			= false;
+	private static final boolean	BY_REF			= true;
+	private static final boolean	INTERLEAVED		= false;
+	private static final boolean	NIO				= true;
 
-	private static final int defaultFormat = GeometryArray.COORDINATES | GeometryArray.BY_REFERENCE | GeometryArray.USE_NIO_BUFFER;
+	private static final int		defaultFormat	= GeometryArray.COORDINATES | GeometryArray.BY_REFERENCE
+														| GeometryArray.USE_NIO_BUFFER;
 
 	//TODO: many more JBullet style conversions
 	public J3dbhkCollisionObject(bhkCollisionObject object, NiToJ3dData niToJ3dData) {
 		if (object.body.ref != -1) {
-			
+
 			NiObject body = niToJ3dData.get(object.body);
 			NiObject parent = niToJ3dData.get(object.target);
-			J3dNiAVObject j3dParent = niToJ3dData.get((NiAVObject) parent);					
-			
+			J3dNiAVObject j3dParent = niToJ3dData.get((NiAVObject)parent);
+
 			if (body instanceof bhkRigidBody) {
-				bhkRigidBody bhkRigidBody = (bhkRigidBody) body;
-				bhkShape bhkShape = (bhkShape) niToJ3dData.get(bhkRigidBody.shape);
+				bhkRigidBody bhkRigidBody = (bhkRigidBody)body;
+				bhkShape bhkShape = (bhkShape)niToJ3dData.get(bhkRigidBody.shape);
 				Group lowerGroup = null;
-				
+
 				if (bhkRigidBody instanceof bhkRigidBodyT) {
 					Transform3D t = new Transform3D();
 					t.setRotation(ConvertFromHavok.toJ3d(bhkRigidBody.rotation));
@@ -95,8 +96,8 @@ public class J3dbhkCollisionObject extends Group
 				}
 
 				// this will add the tree to the lowerGroup
-				processBhkShape(bhkShape, lowerGroup, niToJ3dData);		
-				
+				processBhkShape(bhkShape, lowerGroup, niToJ3dData);
+
 				// in one file I've found one instance with no parent
 				if (j3dParent != null) {
 					//lowerGroup.setPickable(true);
@@ -107,128 +108,88 @@ public class J3dbhkCollisionObject extends Group
 				} else {
 					System.out.println("No parent for J3dbhkCollisionObject, oh well");
 				}
-			}
-			else if (body instanceof BSbhkNPObject)
-			{
-				// FO4 has ramps which also point to the same phys data, but with a different orientation
-				// something for the AI I guess, ignore them phys data loaded properly from the main node
-				// e.g. C_Ramp01 C_Ramp02 C_Ramp01
-				String parentName = j3dParent.niAVObject.name;
-				if(parentName == null || parentName.length() < 2 || !parentName.substring(0, 2).equals("C_")) {
-					BSbhkNPObject bSbhkNPObject = (BSbhkNPObject) body;				
-					J3dBSbhkNPObject j3dBSbhkNPObject =  new J3dBSbhkNPObject(bSbhkNPObject, niToJ3dData);
-					j3dParent.addChild(j3dBSbhkNPObject);// notice this class not involved
-				}
-			} 
-			else {
+			} else if (body instanceof BSbhkNPObject) {
+				// often the physicssystem is referred to by many NiNode each attaching a single CBody
+				int bodyId = ((bhkNPCollisionObject)object).BodyID;
+				BSbhkNPObject bSbhkNPObject = (BSbhkNPObject)body;
+				J3dBSbhkNPObject j3dBSbhkNPObject = new J3dBSbhkNPObject(bSbhkNPObject, niToJ3dData, bodyId);
+				j3dParent.addChild(j3dBSbhkNPObject);// notice this class not involved
+
+			} else {
 				System.out
-				.println("J3dbhkCollisionObject - bhkCollisionObject.body is not bhkRigidBody or BSbhkNPObject " + niToJ3dData.get(object.body));
-			}						
-			
-			
+						.println("J3dbhkCollisionObject - bhkCollisionObject.body is not bhkRigidBody or BSbhkNPObject "
+									+ niToJ3dData.get(object.body));
+			}
+
 		}
 	}
 
-	private static void processBhkShape(bhkShape bhkShape, Group group, NiToJ3dData niToJ3dData)
-	{
-		if (bhkShape instanceof bhkListShape)
-		{
-			bhkListShape bhkListShape = (bhkListShape) bhkShape;
-			for (int i = 0; i < bhkListShape.numSubShapes; i++)
-			{
-				processBhkShape((bhkShape) niToJ3dData.get(bhkListShape.subShapes[i]), group, niToJ3dData);
+	private static void processBhkShape(bhkShape bhkShape, Group group, NiToJ3dData niToJ3dData) {
+		if (bhkShape instanceof bhkListShape) {
+			bhkListShape bhkListShape = (bhkListShape)bhkShape;
+			for (int i = 0; i < bhkListShape.numSubShapes; i++) {
+				processBhkShape((bhkShape)niToJ3dData.get(bhkListShape.subShapes[i]), group, niToJ3dData);
 			}
-		}
-		else if (bhkShape instanceof bhkNiTriStripsShape)
-		{
-			bhkNiTriStripsShape((bhkNiTriStripsShape) bhkShape, group, niToJ3dData);
-		}
-		else if (bhkShape instanceof bhkPackedNiTriStripsShape)
-		{
-			bhkPackedNiTriStripsShape bhkPackedNiTriStripsShape = (bhkPackedNiTriStripsShape) bhkShape;
+		} else if (bhkShape instanceof bhkNiTriStripsShape) {
+			bhkNiTriStripsShape((bhkNiTriStripsShape)bhkShape, group, niToJ3dData);
+		} else if (bhkShape instanceof bhkPackedNiTriStripsShape) {
+			bhkPackedNiTriStripsShape bhkPackedNiTriStripsShape = (bhkPackedNiTriStripsShape)bhkShape;
 
-			if (bhkPackedNiTriStripsShape.data.ref != -1)
-			{
-				hkPackedNiTriStripsData hkPackedNiTriStripsData = (hkPackedNiTriStripsData) niToJ3dData.get(bhkPackedNiTriStripsShape.data);
+			if (bhkPackedNiTriStripsShape.data.ref != -1) {
+				hkPackedNiTriStripsData hkPackedNiTriStripsData = (hkPackedNiTriStripsData)niToJ3dData
+						.get(bhkPackedNiTriStripsShape.data);
 				group.addChild(hkPackedNiTriStripsData(hkPackedNiTriStripsData, niToJ3dData.nifVer));
 			}
-		}
-		else if (bhkShape instanceof hkPackedNiTriStripsData)
-		{
-			hkPackedNiTriStripsData hkPackedNiTriStripsData = (hkPackedNiTriStripsData) bhkShape;
+		} else if (bhkShape instanceof hkPackedNiTriStripsData) {
+			hkPackedNiTriStripsData hkPackedNiTriStripsData = (hkPackedNiTriStripsData)bhkShape;
 			group.addChild(hkPackedNiTriStripsData(hkPackedNiTriStripsData, niToJ3dData.nifVer));
-		}
-		else if (bhkShape instanceof bhkBoxShape)
-		{
-			group.addChild(bhkBoxShape((bhkBoxShape) bhkShape, niToJ3dData.nifVer));
-		}
-		else if (bhkShape instanceof bhkCapsuleShape)
-		{
-			group.addChild(bhkCapsuleShape((bhkCapsuleShape) bhkShape, niToJ3dData.nifVer));
-		}
-		else if (bhkShape instanceof bhkSphereShape)
-		{
-			group.addChild(bhkSphereShape((bhkSphereShape) bhkShape, niToJ3dData.nifVer));
-		}
-		else if (bhkShape instanceof bhkConvexVerticesShape)
-		{
-			group.addChild(bhkConvexVerticesShape((bhkConvexVerticesShape) bhkShape, niToJ3dData.nifVer));
-		}
-		else if (bhkShape instanceof bhkMultiSphereShape)
-		{
-			group.addChild(bhkMultiSphereShape((bhkMultiSphereShape) bhkShape, niToJ3dData.nifVer));
-		}
-		else if (bhkShape instanceof bhkMoppBvTreeShape)
-		{
-			bhkMoppBvTreeShape((bhkMoppBvTreeShape) bhkShape, group, niToJ3dData);
-		}
-		else if (bhkShape instanceof bhkTransformShape)
-		{
-			bhkTransformShape((bhkTransformShape) bhkShape, group, niToJ3dData);
-		}
-		else if (bhkShape instanceof bhkConvexListShape)
-		{
+		} else if (bhkShape instanceof bhkBoxShape) {
+			group.addChild(bhkBoxShape((bhkBoxShape)bhkShape, niToJ3dData.nifVer));
+		} else if (bhkShape instanceof bhkCapsuleShape) {
+			group.addChild(bhkCapsuleShape((bhkCapsuleShape)bhkShape, niToJ3dData.nifVer));
+		} else if (bhkShape instanceof bhkSphereShape) {
+			group.addChild(bhkSphereShape((bhkSphereShape)bhkShape, niToJ3dData.nifVer));
+		} else if (bhkShape instanceof bhkConvexVerticesShape) {
+			group.addChild(bhkConvexVerticesShape((bhkConvexVerticesShape)bhkShape, niToJ3dData.nifVer));
+		} else if (bhkShape instanceof bhkMultiSphereShape) {
+			group.addChild(bhkMultiSphereShape((bhkMultiSphereShape)bhkShape, niToJ3dData.nifVer));
+		} else if (bhkShape instanceof bhkMoppBvTreeShape) {
+			bhkMoppBvTreeShape((bhkMoppBvTreeShape)bhkShape, group, niToJ3dData);
+		} else if (bhkShape instanceof bhkTransformShape) {
+			bhkTransformShape((bhkTransformShape)bhkShape, group, niToJ3dData);
+		} else if (bhkShape instanceof bhkConvexListShape) {
 			//	bhkConvexListShape((bhkConvexListShape) bhkShape, group, blocks);
-			//TODO: bhkConvexListShape
-		}
-		else if (bhkShape instanceof bhkCompressedMeshShape)
-		{
-			bhkCompressedMeshShape bhkCompressedMeshShape = (bhkCompressedMeshShape) bhkShape;
+			//TODO: bhkConvexListShape Seen in Fallout3 Vault 112
+			System.out.println("J3dbhkCollisionObject - bhkConvexListShape todo in " + niToJ3dData.nifVer.fileName);
+		} else if (bhkShape instanceof bhkCompressedMeshShape) {
+			bhkCompressedMeshShape bhkCompressedMeshShape = (bhkCompressedMeshShape)bhkShape;
 
-			if (bhkCompressedMeshShape.data.ref != -1)
-			{
-				bhkCompressedMeshShapeData bhkCompressedMeshShapeData = (bhkCompressedMeshShapeData) niToJ3dData
+			if (bhkCompressedMeshShape.data.ref != -1) {
+				bhkCompressedMeshShapeData bhkCompressedMeshShapeData = (bhkCompressedMeshShapeData)niToJ3dData
 						.get(bhkCompressedMeshShape.data);
 				group.addChild(bhkCompressedMeshShape(bhkCompressedMeshShapeData, niToJ3dData.nifVer));
 			}
-		}
-		else
-		{
+		} else {
 			System.out.println("J3dbhkCollisionObject - unknown bhkShape " + bhkShape);
 		}
 
 	}
 
-	private static void bhkNiTriStripsShape(bhkNiTriStripsShape data, Group g, NiToJ3dData niToJ3dData)
-	{
-		for (int i = 0; i < data.numStripsData; i++)
-		{
-			NiTriStripsData niTriStripsData = (NiTriStripsData) niToJ3dData.get(data.stripsData[i]);
+	private static void bhkNiTriStripsShape(bhkNiTriStripsShape data, Group g, NiToJ3dData niToJ3dData) {
+		for (int i = 0; i < data.numStripsData; i++) {
+			NiTriStripsData niTriStripsData = (NiTriStripsData)niToJ3dData.get(data.stripsData[i]);
 			g.addChild(processNiTriStripsData(niTriStripsData));
 		}
 	}
 
-	private static void bhkMoppBvTreeShape(bhkMoppBvTreeShape data, Group g, NiToJ3dData niToJ3dData)
-	{
-		if (data.shape.ref != -1)
-		{
-			bhkShape bhkShape = (bhkShape) niToJ3dData.get(data.shape);
+	private static void bhkMoppBvTreeShape(bhkMoppBvTreeShape data, Group g, NiToJ3dData niToJ3dData) {
+		if (data.shape.ref != -1) {
+			bhkShape bhkShape = (bhkShape)niToJ3dData.get(data.shape);
 			processBhkShape(bhkShape, g, niToJ3dData);
 		}
 	}
 
-	private static void bhkTransformShape(bhkTransformShape data, Group g, NiToJ3dData niToJ3dData)
-	{
+	private static void bhkTransformShape(bhkTransformShape data, Group g, NiToJ3dData niToJ3dData) {
 		TransformGroup transformGroup = new TransformGroup();
 		Transform3D transform = new Transform3D();
 
@@ -237,16 +198,14 @@ public class J3dbhkCollisionObject extends Group
 
 		transformGroup.setTransform(transform);
 
-		if (data.shape.ref != -1)
-		{
-			bhkShape bhkShape = (bhkShape) niToJ3dData.get(data.shape);
+		if (data.shape.ref != -1) {
+			bhkShape bhkShape = (bhkShape)niToJ3dData.get(data.shape);
 			processBhkShape(bhkShape, transformGroup, niToJ3dData);
 		}
 		g.addChild(transformGroup);
 	}
 
-	private static Shape3D bhkSphereShape(bhkSphereShape data, NifVer nifVer)
-	{
+	private static Shape3D bhkSphereShape(bhkSphereShape data, NifVer nifVer) {
 		float radius = ConvertFromHavok.toJ3d(data.radius, nifVer);
 		SphereGenerator sg = new SphereGenerator(radius);
 		GeometryData gd = new GeometryData();
@@ -263,12 +222,10 @@ public class J3dbhkCollisionObject extends Group
 		return shape;
 	}
 
-	private static Group bhkMultiSphereShape(bhkMultiSphereShape data, NifVer nifVer)
-	{
+	private static Group bhkMultiSphereShape(bhkMultiSphereShape data, NifVer nifVer) {
 		Group g = new Group();
 
-		for (int i = 0; i < data.numSpheres; i++)
-		{
+		for (int i = 0; i < data.numSpheres; i++) {
 			NifSphereBV sphere = data.spheres[i];
 
 			float radius = ConvertFromHavok.toJ3d(sphere.radius, nifVer);
@@ -297,8 +254,7 @@ public class J3dbhkCollisionObject extends Group
 
 	}
 
-	private static Group bhkCapsuleShape(bhkCapsuleShape data, NifVer nifVer)
-	{
+	private static Group bhkCapsuleShape(bhkCapsuleShape data, NifVer nifVer) {
 		//TODO: try JBullet CapsuleShapeX
 		Group g = new Group();
 
@@ -378,8 +334,7 @@ public class J3dbhkCollisionObject extends Group
 
 	}
 
-	private static Shape3D bhkBoxShape(bhkBoxShape data, NifVer nifVer)
-	{
+	private static Shape3D bhkBoxShape(bhkBoxShape data, NifVer nifVer) {
 		float x = ConvertFromHavok.toJ3d(data.dimensions.x, nifVer);
 		float y = ConvertFromHavok.toJ3d(data.dimensions.z, nifVer);
 		float z = ConvertFromHavok.toJ3d(data.dimensions.y, nifVer);
@@ -387,48 +342,48 @@ public class J3dbhkCollisionObject extends Group
 		TriangleArray cube = new TriangleArray(36, defaultFormat);
 
 		float scaledVerts[] = new float[] {
-				// front face
-				x, -y, z, //1
-				x, y, z, //2
-				-x, y, z, //3
-				x, -y, z, //1
-				-x, y, z, //3
-				-x, -y, z, //4
-				// back face
-				-x, -y, -z, //1
-				-x, y, -z, //2
-				x, y, -z, //3
-				-x, -y, -z, //1
-				x, y, -z, //3
-				x, -y, -z, //4
-				// right face
-				x, -y, -z, //1
-				x, y, -z, //2
-				x, y, z, //3
-				x, -y, -z, //1
-				x, y, z, //3
-				x, -y, z, //4
-				// left face
-				-x, -y, z, //1
-				-x, y, z, //2
-				-x, y, -z, //3
-				-x, -y, z, //1
-				-x, y, -z, //3
-				-x, -y, -z, //4
-				// top face
-				x, y, z, //1
-				x, y, -z, //2
-				-x, y, -z, //3
-				x, y, z, //1
-				-x, y, -z, //3
-				-x, y, z, //4
-				// bottom face
-				-x, -y, z, //1
-				-x, -y, -z, //2
-				x, -y, -z, //3
-				-x, -y, z, //1
-				x, -y, -z, //3
-				x, -y, z, };//4
+			// front face
+			x, -y, z, //1
+			x, y, z, //2
+			-x, y, z, //3
+			x, -y, z, //1
+			-x, y, z, //3
+			-x, -y, z, //4
+			// back face
+			-x, -y, -z, //1
+			-x, y, -z, //2
+			x, y, -z, //3
+			-x, -y, -z, //1
+			x, y, -z, //3
+			x, -y, -z, //4
+			// right face
+			x, -y, -z, //1
+			x, y, -z, //2
+			x, y, z, //3
+			x, -y, -z, //1
+			x, y, z, //3
+			x, -y, z, //4
+			// left face
+			-x, -y, z, //1
+			-x, y, z, //2
+			-x, y, -z, //3
+			-x, -y, z, //1
+			-x, y, -z, //3
+			-x, -y, -z, //4
+			// top face
+			x, y, z, //1
+			x, y, -z, //2
+			-x, y, -z, //3
+			x, y, z, //1
+			-x, y, -z, //3
+			-x, y, z, //4
+			// bottom face
+			-x, -y, z, //1
+			-x, -y, -z, //2
+			x, -y, -z, //3
+			-x, -y, z, //1
+			x, -y, -z, //3
+			x, -y, z,};//4
 
 		cube.setCoordRefBuffer(new J3DBuffer(Utils3D.makeFloatBuffer(scaledVerts)));
 
@@ -440,12 +395,10 @@ public class J3dbhkCollisionObject extends Group
 		return shape;
 	}
 
-	public static Shape3D bhkConvexVerticesShape(bhkConvexVerticesShape data, NifVer nifVer)
-	{
+	public static Shape3D bhkConvexVerticesShape(bhkConvexVerticesShape data, NifVer nifVer) {
 		ObjectArrayList<Vector3f> points = new ObjectArrayList<Vector3f>();
 
-		for (int i = 0; i < data.numVertices; i++)
-		{
+		for (int i = 0; i < data.numVertices; i++) {
 			points.add(new Vector3f(ConvertFromHavok.toJ3dP3f(data.vertices[i], nifVer)));
 		}
 
@@ -455,21 +408,18 @@ public class J3dbhkCollisionObject extends Group
 		float margin = convexShape.getMargin();
 		hull.buildHull(margin);
 
-		if (hull.numTriangles() > 0)
-		{
+		if (hull.numTriangles() > 0) {
 
 			IntArrayList idx = hull.getIndexPointer();
 			ObjectArrayList<Vector3f> vtx = hull.getVertexPointer();
 
 			int[] coordIndices = new int[hull.numIndices()];
-			for (int i = 0; i < hull.numIndices(); i++)
-			{
+			for (int i = 0; i < hull.numIndices(); i++) {
 				coordIndices[i] = idx.get(i);
 			}
 
 			Point3f[] coords = new Point3f[hull.numVertices()];
-			for (int i = 0; i < hull.numVertices(); i++)
-			{
+			for (int i = 0; i < hull.numVertices(); i++) {
 				coords[i] = new Point3f(vtx.get(i));
 			}
 
@@ -491,14 +441,12 @@ public class J3dbhkCollisionObject extends Group
 		return null;
 	}
 
-	public static Shape3D hkPackedNiTriStripsData(hkPackedNiTriStripsData data, NifVer nifVer)
-	{
+	public static Shape3D hkPackedNiTriStripsData(hkPackedNiTriStripsData data, NifVer nifVer) {
 		int[] coordIndices = new int[data.numTriangles * 3];
 
 		//Vector3f[] normals = new Vector3f[data.numTriangles];
 		//int[] normIndices = new int[data.numTriangles * 3];
-		for (int i = 0; i < data.numTriangles; i++)
-		{
+		for (int i = 0; i < data.numTriangles; i++) {
 			coordIndices[i * 3 + 0] = data.triangles[i].triangle.v1;
 			coordIndices[i * 3 + 1] = data.triangles[i].triangle.v2;
 			coordIndices[i * 3 + 2] = data.triangles[i].triangle.v3;
@@ -511,8 +459,7 @@ public class J3dbhkCollisionObject extends Group
 				}*/
 		}
 		Point3f[] coords = new Point3f[data.numVertices];
-		for (int i = 0; i < data.numVertices; i++)
-		{
+		for (int i = 0; i < data.numVertices; i++) {
 			coords[i] = ConvertFromHavok.toJ3dP3f(data.vertices[i], nifVer);
 		}
 
@@ -535,12 +482,10 @@ public class J3dbhkCollisionObject extends Group
 		return shape;
 	}
 
-	public static Shape3D processNiTriStripsData(NiTriStripsData data)
-	{
+	public static Shape3D processNiTriStripsData(NiTriStripsData data) {
 		GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_STRIP_ARRAY);
 
-		if (data.hasVertices)
-		{
+		if (data.hasVertices) {
 			//OPTOMIZATION
 			/*
 			Point3f[] vertices = new Point3f[data.numVertices];
@@ -555,22 +500,18 @@ public class J3dbhkCollisionObject extends Group
 		int numStrips = data.numStrips;
 		int[] stripLengths = data.stripLengths;
 
-		if (data.hasPoints)
-		{
+		if (data.hasPoints) {
 			// get full length
 			int length = 0;
-			for (int i = 0; i < numStrips; i++)
-			{
+			for (int i = 0; i < numStrips; i++) {
 				length += data.points[i].length;
 			}
 
 			gi.setStripCounts(stripLengths);
 			int[] points = new int[length];
 			int idx = 0;
-			for (int i = 0; i < numStrips; i++)
-			{
-				for (int j = 0; j < stripLengths[i]; j++)
-				{
+			for (int i = 0; i < numStrips; i++) {
+				for (int j = 0; j < stripLengths[i]; j++) {
 					points[idx] = data.points[i][j];
 					idx++;
 				}
@@ -590,23 +531,20 @@ public class J3dbhkCollisionObject extends Group
 
 	public static float CMD_VERT_SCALE = 1f / 1000f;
 
-	public static Group bhkCompressedMeshShape(bhkCompressedMeshShapeData data, NifVer nifVer)
-	{
+	public static Group bhkCompressedMeshShape(bhkCompressedMeshShapeData data, NifVer nifVer) {
 
 		//the masks are just low 17 bits for tri and highest bit for winding
-		if (data.BitsPerIndex != 17 || data.BitsPerWindingIndex != 18)
-		{
+		if (data.BitsPerIndex != 17 || data.BitsPerWindingIndex != 18) {
 			System.out.println("unexpected bhkCompressedMeshShapeData.BitsPerIndex " + data.BitsPerIndex);
-			System.out.println("unexpected bhkCompressedMeshShapeData.BitesPerWindingIndex " + data.BitsPerWindingIndex);
+			System.out
+					.println("unexpected bhkCompressedMeshShapeData.BitesPerWindingIndex " + data.BitsPerWindingIndex);
 		}
 
 		Group group = new Group();
 
-		if (data.NumBigTris > 0)
-		{
+		if (data.NumBigTris > 0) {
 			Point3f[] vertices = new Point3f[data.BigVerts.length];
-			for (int i = 0; i < data.BigVerts.length; i++)
-			{
+			for (int i = 0; i < data.BigVerts.length; i++) {
 				vertices[i] = ConvertFromHavok.toJ3dP3f(//
 						(data.BigVerts[i].x), //
 						(data.BigVerts[i].y), //
@@ -614,8 +552,7 @@ public class J3dbhkCollisionObject extends Group
 			}
 
 			int[] listPoints = new int[data.BigTris.length * 3];
-			for (int i = 0; i < data.BigTris.length; i++)
-			{
+			for (int i = 0; i < data.BigTris.length; i++) {
 				listPoints[(i * 3) + 0] = data.BigTris[i].Triangle1;
 				listPoints[(i * 3) + 1] = data.BigTris[i].Triangle2;
 				listPoints[(i * 3) + 2] = data.BigTris[i].Triangle3;
@@ -632,13 +569,11 @@ public class J3dbhkCollisionObject extends Group
 			group.addChild(shape);
 		}
 
-		for (int c = 0; c < data.NumChunks; c++)
-		{
+		for (int c = 0; c < data.NumChunks; c++) {
 			NifbhkCMSDChunk chunk = data.Chunks[c];
 
 			Point3f[] vertices = new Point3f[chunk.Vertices.length / 3];
-			for (int i = 0; i < chunk.Vertices.length / 3; i++)
-			{
+			for (int i = 0; i < chunk.Vertices.length / 3; i++) {
 				vertices[i] = ConvertFromHavok.toJ3dP3f(//
 						((chunk.Vertices[(i * 3) + 0]) * CMD_VERT_SCALE) + chunk.translation.x, //
 						((chunk.Vertices[(i * 3) + 1]) * CMD_VERT_SCALE) + chunk.translation.y, //
@@ -650,8 +585,7 @@ public class J3dbhkCollisionObject extends Group
 
 			// copy and get full length
 			int stripsLensIdxCount = 0;
-			for (int i = 0; i < numStrips; i++)
-			{
+			for (int i = 0; i < numStrips; i++) {
 				stripLengths[i] = chunk.Strips[i];
 				stripsLensIdxCount += chunk.Strips[i];
 			}
@@ -659,10 +593,8 @@ public class J3dbhkCollisionObject extends Group
 			//NOTE one indices list hold both strip and list data
 			int[] stripPoints = new int[stripsLensIdxCount];
 			int idx = 0;
-			for (int i = 0; i < numStrips; i++)
-			{
-				for (int j = 0; j < stripLengths[i]; j++)
-				{
+			for (int i = 0; i < numStrips; i++) {
+				for (int j = 0; j < stripLengths[i]; j++) {
 					stripPoints[idx] = chunk.Indices[idx];
 					idx++;
 				}
@@ -672,8 +604,7 @@ public class J3dbhkCollisionObject extends Group
 			int triListIndicesLength = chunk.NumIndices - stripsLensIdxCount;
 			int[] listPoints = new int[triListIndicesLength];
 			idx = 0;
-			for (int i = stripsLensIdxCount; i < chunk.NumIndices; i++)
-			{
+			for (int i = stripsLensIdxCount; i < chunk.NumIndices; i++) {
 				listPoints[idx] = chunk.Indices[i];
 				idx++;
 			}
@@ -689,8 +620,7 @@ public class J3dbhkCollisionObject extends Group
 			group.addChild(tg);
 
 			// do the strips first 
-			if (stripLengths.length > 0)
-			{
+			if (stripLengths.length > 0) {
 				GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_STRIP_ARRAY);
 				gi.setCoordinates(vertices);
 				gi.setStripCounts(stripLengths);
@@ -705,8 +635,7 @@ public class J3dbhkCollisionObject extends Group
 			}
 
 			//now the tri list			
-			if (triListIndicesLength > 0)
-			{
+			if (triListIndicesLength > 0) {
 				GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
 				gi.setCoordinates(vertices);
 				gi.setCoordinateIndices(listPoints);
@@ -724,111 +653,4 @@ public class J3dbhkCollisionObject extends Group
 		return group;
 	}
 
-	/**
-	 * Not used! replaced by bullet version above
-	 * @param data
-	 * @return
-	 */
-	@Deprecated
-	public static Shape3D bhkConvexVerticesShapePreBullet(bhkConvexVerticesShape data, NifVer nifVer)
-	{
-		// It appears that a convex shape has no triangles to it. It is simply
-		// a pile of points on an exterior. so a box is simply 8 points with no triangles defined
-
-		// HOWEVER the havok also contains normals pointing to each face normals
-
-		// so let's find all vertices that lie on the plane of each face, then build tris out of all of them
-		// noting that a face might have more than 3 vertices in the plane,
-		// just like a box, 8 points and 6 faces (each face is 2 tris or a quad)
-		// Any point P = (x,y,z) lies on the plane if it satisfes the following
-		// A x + B y + C z + D = 0
-		// where ABCD are the equation of the plane
-
-		//TODO: ShapeHull from jbullet does this same job (but compexly)
-
-		// Radius REMoved!! note the radius number below, this is because of the "faces on a sphere" 
-		//business this is all about, see jbullet
-
-		//File: C:\game media\skyrim\meshes\landscape\rocks\rockpilem01tundra.nif	
-
-		Vector<Integer> faceIdxs = new Vector<Integer>();
-		for (int i = 0; i < data.numNormals; i++)
-		{
-			float A = data.normals[i].x;
-			float B = data.normals[i].y;
-			float C = data.normals[i].z;
-			float D = data.normals[i].w;
-
-			int coplanarCount = 0;
-			int[] coplanar = new int[4];
-
-			for (int j = 0; j < data.numVertices; j++)
-			{
-				float x = data.vertices[j].x;
-				float y = data.vertices[j].y;
-				float z = data.vertices[j].z;
-
-				// check for bloody close to co planar due to rounding in the maths function
-				if (Math.abs((A * x + B * y + C * z + D) - data.radius) < 0.001)
-				{
-					coplanar[coplanarCount] = j;
-					coplanarCount++;
-					// we'll only work with tris or quads
-					if (coplanarCount == 4)
-					{
-						break;
-					}
-				}
-
-			}
-
-			// now lets add the face idx in
-			if (coplanarCount > 2)
-			{
-				faceIdxs.add(new Integer(coplanar[0]));
-				faceIdxs.add(new Integer(coplanar[1]));
-				faceIdxs.add(new Integer(coplanar[2]));
-				if (coplanarCount > 3)
-				{
-					faceIdxs.add(new Integer(coplanar[1]));
-					faceIdxs.add(new Integer(coplanar[2]));
-					faceIdxs.add(new Integer(coplanar[3]));
-				}
-			}
-
-		}
-
-		//did we find any faces(bug in radius size in source data!)
-		if (faceIdxs.size() > 0)
-		{
-			int[] coordIndices = new int[faceIdxs.size()];
-			for (int i = 0; i < faceIdxs.size(); i++)
-			{
-				coordIndices[i] = faceIdxs.elementAt(i).intValue();
-			}
-
-			Point3f[] coords = new Point3f[data.numVertices];
-			for (int i = 0; i < data.numVertices; i++)
-			{
-				coords[i] = ConvertFromHavok.toJ3dP3f(data.vertices[i], nifVer);
-			}
-
-			GeometryInfo gi = new GeometryInfo(GeometryInfo.TRIANGLE_ARRAY);
-
-			gi.setCoordinates(coords);
-			gi.setCoordinateIndices(coordIndices);
-			gi.setUseCoordIndexOnly(true);
-
-			// Put geometry into Shape3d
-			Shape3D shape = new Shape3D();
-			shape.setGeometry(gi.getIndexedGeometryArray(COMPACT, BY_REF, INTERLEAVED, true, NIO));
-
-			shape.setAppearance(PhysAppearance.makeAppearance());
-			return shape;
-		}
-		else
-		{
-			return null;
-		}
-	}
 }
