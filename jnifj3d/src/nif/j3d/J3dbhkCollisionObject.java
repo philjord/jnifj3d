@@ -126,15 +126,13 @@ public class J3dbhkCollisionObject extends Group {
 
 	private static void processBhkShape(bhkShape bhkShape, Group group, NiToJ3dData niToJ3dData) {
 		if (bhkShape instanceof bhkListShape) {
-			bhkListShape bhkListShape = (bhkListShape)bhkShape;
-			for (int i = 0; i < bhkListShape.numSubShapes; i++) {
-				processBhkShape((bhkShape)niToJ3dData.get(bhkListShape.subShapes[i]), group, niToJ3dData);
-			}
+			bhkListShape((bhkListShape)bhkShape, group, niToJ3dData);			
+		} else if (bhkShape instanceof bhkConvexListShape) {			
+			bhkConvexListShape((bhkConvexListShape)bhkShape, group, niToJ3dData);
 		} else if (bhkShape instanceof bhkNiTriStripsShape) {
 			bhkNiTriStripsShape((bhkNiTriStripsShape)bhkShape, group, niToJ3dData);
 		} else if (bhkShape instanceof bhkPackedNiTriStripsShape) {
 			bhkPackedNiTriStripsShape bhkPackedNiTriStripsShape = (bhkPackedNiTriStripsShape)bhkShape;
-
 			if (bhkPackedNiTriStripsShape.data.ref != -1) {
 				hkPackedNiTriStripsData hkPackedNiTriStripsData = (hkPackedNiTriStripsData)niToJ3dData
 						.get(bhkPackedNiTriStripsShape.data);
@@ -157,13 +155,8 @@ public class J3dbhkCollisionObject extends Group {
 			bhkMoppBvTreeShape((bhkMoppBvTreeShape)bhkShape, group, niToJ3dData);
 		} else if (bhkShape instanceof bhkTransformShape) {
 			bhkTransformShape((bhkTransformShape)bhkShape, group, niToJ3dData);
-		} else if (bhkShape instanceof bhkConvexListShape) {
-			//	bhkConvexListShape((bhkConvexListShape) bhkShape, group, blocks);
-			//TODO: bhkConvexListShape Seen in Fallout3 Vault 112
-			System.out.println("J3dbhkCollisionObject - bhkConvexListShape todo in " + niToJ3dData.nifVer.fileName);
 		} else if (bhkShape instanceof bhkCompressedMeshShape) {
 			bhkCompressedMeshShape bhkCompressedMeshShape = (bhkCompressedMeshShape)bhkShape;
-
 			if (bhkCompressedMeshShape.data.ref != -1) {
 				bhkCompressedMeshShapeData bhkCompressedMeshShapeData = (bhkCompressedMeshShapeData)niToJ3dData
 						.get(bhkCompressedMeshShape.data);
@@ -173,6 +166,18 @@ public class J3dbhkCollisionObject extends Group {
 			System.out.println("J3dbhkCollisionObject - unknown bhkShape " + bhkShape);
 		}
 
+	}
+
+	private static void bhkListShape(bhkListShape bhkListShape, Group group, NiToJ3dData niToJ3dData) {
+		for (int i = 0; i < bhkListShape.numSubShapes; i++) {
+			processBhkShape((bhkShape)niToJ3dData.get(bhkListShape.subShapes[i]), group, niToJ3dData);
+		}		
+	}
+
+	private static void bhkConvexListShape(bhkConvexListShape bhkConvexListShape, Group group, NiToJ3dData niToJ3dData) {
+		for (int i = 0; i < bhkConvexListShape.numSubShapes; i++) {
+			processBhkShape((bhkShape)niToJ3dData.get(bhkConvexListShape.subShapes[i]), group, niToJ3dData);
+		}				
 	}
 
 	private static void bhkNiTriStripsShape(bhkNiTriStripsShape data, Group g, NiToJ3dData niToJ3dData) {
