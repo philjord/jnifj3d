@@ -61,7 +61,7 @@ public class NifToJ3d
 
 	//private static RequestStats requestStats = new RequestStats(loadedFiles);
 		
-	private static HashSet<String> allNifNames = new HashSet<String> ();
+	//private static HashSet<String> allNifNames = new HashSet<String> ();
 	/**
 	 * This is a caching system and should generally be the ONLY class to call getNifFile on a MeshSource or else trouble
 	 * NOTE you should hang on to a pointer to this NifFile is possible to reduce reloads from the archive file
@@ -124,7 +124,7 @@ public class NifToJ3d
 			}
 		}	
 		
-		allNifNames.add(nifFilename);
+		//allNifNames.add(nifFilename);
 		return nifFile;
 	}
 
