@@ -12,6 +12,8 @@ import nif.niobject.controller.NiControllerManager;
 public class J3dNiControllerManager extends J3dNiTimeController
 {
 	private J3dNiControllerSequence[] sequences;
+	
+	public int nextAnimIdx = 0; // to allow animation to be played in order on request, just a funsie
 
 	public J3dNiControllerManager(NiControllerManager controllerManager, NiToJ3dData niToJ3dData)
 	{
