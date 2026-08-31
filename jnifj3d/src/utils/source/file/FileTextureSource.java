@@ -6,8 +6,8 @@ import java.util.List;
 
 import org.jogamp.java3d.Texture;
 import org.jogamp.java3d.TextureUnitState;
-import org.jogamp.java3d.compressedtexture.CompressedTextureLoader;
 
+import texture.CompressedTextureLoaderExt;
 import utils.source.TextureSource;
 
 public class FileTextureSource implements TextureSource
@@ -56,7 +56,7 @@ public class FileTextureSource implements TextureSource
 
 				Texture tex = null;
 				//check cache hit
-				tex = CompressedTextureLoader.checkCachedTexture(texName);
+				tex = CompressedTextureLoaderExt.checkCachedTexture(texName);
 				if (tex != null)
 					return true;
 
@@ -100,7 +100,7 @@ public class FileTextureSource implements TextureSource
 
 			Texture tex = null;
 			//check cache hit
-			tex = CompressedTextureLoader.checkCachedTexture(texName);
+			tex = CompressedTextureLoaderExt.checkCachedTexture(texName);
 			if (tex != null)
 				return tex;
 
@@ -108,15 +108,15 @@ public class FileTextureSource implements TextureSource
 
 			if (texName.endsWith(".dds"))
 			{
-				tex = CompressedTextureLoader.DDS.getTexture(new File(parts[0] + parts[1]));
+				tex = CompressedTextureLoaderExt.DDS.getTexture(new File(parts[0] + parts[1]));
 			}
 			else if (texName.endsWith(".astc") || texName.endsWith(".atc"))
 			{
-				tex = CompressedTextureLoader.ASTC.getTexture(new File(parts[0] + parts[1]));
+				tex = CompressedTextureLoaderExt.ASTC.getTexture(new File(parts[0] + parts[1]));
 			}
 			else if (texName.endsWith(".ktx") )
 			{
-				tex = CompressedTextureLoader.KTX.getTexture(new File(parts[0] + parts[1]));
+				tex = CompressedTextureLoaderExt.KTX.getTexture(new File(parts[0] + parts[1]));
 			}
 			else
 
@@ -179,7 +179,7 @@ public class FileTextureSource implements TextureSource
 
 			TextureUnitState tex = null;
 			//check cache hit
-			tex = CompressedTextureLoader.checkCachedTextureUnitState(texName);
+			tex = CompressedTextureLoaderExt.checkCachedTextureUnitState(texName);
 			if (tex != null)
 				return tex;
 
@@ -187,15 +187,15 @@ public class FileTextureSource implements TextureSource
 
 			if (texName.endsWith(".dds"))
 			{
-				tex = CompressedTextureLoader.DDS.getTextureUnitState(new File(parts[0] + parts[1]));
+				tex = CompressedTextureLoaderExt.DDS.getTextureUnitState(new File(parts[0] + parts[1]));
 			}
 			else if (texName.endsWith(".astc") || texName.endsWith(".atc"))
 			{
-				tex = CompressedTextureLoader.ASTC.getTextureUnitState(new File(parts[0] + parts[1]));
+				tex = CompressedTextureLoaderExt.ASTC.getTextureUnitState(new File(parts[0] + parts[1]));
 			}
 			else if (texName.endsWith(".ktx") )
 			{
-				tex = CompressedTextureLoader.KTX.getTextureUnitState(new File(parts[0] + parts[1]));
+				tex = CompressedTextureLoaderExt.KTX.getTextureUnitState(new File(parts[0] + parts[1]));
 			}
 			else
 
