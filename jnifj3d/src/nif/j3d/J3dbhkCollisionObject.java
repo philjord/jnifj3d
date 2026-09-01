@@ -163,7 +163,7 @@ public class J3dbhkCollisionObject extends Group {
 				group.addChild(bhkCompressedMeshShape(bhkCompressedMeshShapeData, niToJ3dData.nifVer));
 			}
 		} else {
-			System.out.println("J3dbhkCollisionObject - unknown bhkShape " + bhkShape);
+			System.out.println("J3dbhkCollisionObject.processBhkShape - unknown bhkShape " + bhkShape);
 		}
 
 	}

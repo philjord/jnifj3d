@@ -225,7 +225,12 @@ void main( void )
 		//vec4 env = texture2D( EnvironmentMap, offset );		
 		//cube.rgb *= mix( s, env.r, float(hasEnvMask) );							
     
-		albedo += cube.rgb;
+    	//FIXME:
+    	// my dds cube appear to be black, and etc appear to just have one channel.
+    	//Cube CubeMap texunit 3 file=FO4:Shared\Cubemaps\MetalBrushed02Cube_e.dds dds v ktx
+    	float lum = (cube.r+cube.g+cube.b) / 24.0;// /3.0 is too bright! g must be too high
+		albedo += vec3(lum,lum,lum);//cube.rgb;
+		//albedo += cube.rgb;
 	}
 
 
