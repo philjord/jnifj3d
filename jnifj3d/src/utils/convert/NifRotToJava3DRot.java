@@ -12,6 +12,7 @@ public class NifRotToJava3DRot {
 
 	/**
 	 * Creates a new Quat
+
 	 * @param mat
 	 * @return
 	 */

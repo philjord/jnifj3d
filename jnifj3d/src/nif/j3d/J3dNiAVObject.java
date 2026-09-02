@@ -67,8 +67,8 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET implements SequenceAl
 	public static boolean ignoreTopTransformRot(NiAVObject niAVObject)
 	{
 		boolean ignoreTopTransform = (niAVObject instanceof BSFadeNode) || // these are fallout 3
-				//skyrim wants false			
-				(niAVObject.nVer.BS_GTE_130()) ||	// check for fallout4+						
+				//skyrim wants false	
+				(niAVObject instanceof NiNode && niAVObject.parent == null && niAVObject.nVer.BS_GTE_130()) ||	// check for fallout4+	  					
 				(niAVObject.nVer.LOAD_VER < NifVer.VER_10_0_1_0 && // morrowind
 						niAVObject instanceof NiNode && niAVObject.parent == null && !niAVObject.name.equals("Bip01")); // check for root
 		return ignoreTopTransform;
@@ -82,7 +82,7 @@ public abstract class J3dNiAVObject extends J3dNiObjectNET implements SequenceAl
 		return ignoreTopTransform;
 	}
 
-	//for Tes3 kf files they are subs of NiObjectNET but I can't risk altering everything in the univers
+	//for Tes3 kf files they are subs of NiObjectNET but I can't risk altering everything in the universe
 	public J3dNiAVObject(NiSequenceStreamHelper niSequenceStreamHelper, NiToJ3dData niToJ3dData)
 	{
 		super(niSequenceStreamHelper, niToJ3dData);

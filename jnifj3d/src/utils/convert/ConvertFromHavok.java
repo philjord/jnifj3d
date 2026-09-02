@@ -1,9 +1,12 @@
 package utils.convert;
 
+import org.jogamp.java3d.Transform3D;
+import org.jogamp.vecmath.Matrix3f;
 import org.jogamp.vecmath.Matrix4f;
 import org.jogamp.vecmath.Point3f;
 import org.jogamp.vecmath.Quat4f;
 import org.jogamp.vecmath.Vector3f;
+import org.jogamp.vecmath.AxisAngle4f;
 
 import nif.NifVer;
 import nif.compound.NifMatrix33;
@@ -37,7 +40,7 @@ public class ConvertFromHavok {
 	public static Quat4f toJ3d(NifQuaternionXYZW rotation) {
 		return NifRotToJava3DRot.makeJ3dQ4f(rotation.x, rotation.y, rotation.z, rotation.w);
 	}
-	
+
 	/**
 	 * Places value into out
 	 * @param rotation
@@ -62,39 +65,61 @@ public class ConvertFromHavok {
 	 * @return
 	 */
 	public static Matrix4f toJ3dM4(NifMatrix44 mIn, NifVer nifVer) {
-		//Future phil look!!!! empirically decided
-		// the set q and flip appears very strongly correct
-		/*		Matrix4f m4 = new Matrix4f(mIn.m11, mIn.m12, mIn.m13, //
-						0, //
-						mIn.m21, mIn.m22, mIn.m23, //
-						0, //
-						mIn.m31, mIn.m32, mIn.m33, //
-						0,//
-						mIn.m41, mIn.m42, mIn.m43, mIn.m44);
-		
-				q.set(m4);
-				NifRotToJava3DRot.flipAxis(q);
-		
-				Matrix4f mo = new Matrix4f();
-				mo.set(q);*/
+		//Future phil look!!!! there was an old comment about pay attention, I've done more more work now
+		// this matrix flipper is very much correct now, but if you need to investigate in the future 
+		// break it into parts and work without scale or trans which are both good for sure
+		//MAJOR!!! note if you want to negate twice you CANNOT USE -- that's a pre-decrement operator!
 
-		// In flipping I see empirically
-		// 00->00 -01->02  02->01  03->03(t)
-		// -?  10->20  11->22 -12->21  13->13(t)
-		// 20->10  21->12? 22->11  23->23(t)?0
-		// 30-32 all 0 33,0.94->33,1
+		/*
+		//just the raw rotation in nif axis
+		Matrix3f nifRotScale = new Matrix3f(mIn.m11, mIn.m12, mIn.m13,//
+				mIn.m21, mIn.m22, mIn.m23,//
+				mIn.m31, mIn.m32, mIn.m33 );
+		// rotation nif axis mapped to j3d
+		// so swap cols 2-3 and row 2-3 do negates of "2"; notice m22 is -*-=+
+		nifRotScale = new Matrix3f(mIn.m11, mIn.m13, -mIn.m12,//
+				mIn.m31, mIn.m33, -mIn.m32,//
+				-mIn.m21, -mIn.m23, mIn.m22 );
+		// the translation known good
+		float hs2 = getHavokScale(nifVer);
+		Vector3f trans = new Vector3f(mIn.m14 * hs2, mIn.m34 * hs2, -mIn.m24 * hs2);
+		// the scale taken out
+		float s = nifRotScale.getScale();//we assume no non uniform skew
+		// the scale set to 1
+		nifRotScale.setScale(1.0f); // take the scale out		
+				
+		// put the 3 parts together
+		Matrix4f m2 = new Matrix4f(nifRotScale,trans,s);
+		*/
 
 		float hs = getHavokScale(nifVer);
-		Matrix4f m = new Matrix4f(mIn.m11, mIn.m13, -mIn.m12, //
-				mIn.m14 * hs, //x
-				mIn.m31, mIn.m33, mIn.m32, //
-				mIn.m34 * hs, //z
-				-mIn.m21, -mIn.m23, mIn.m22, //
-				-mIn.m24 * hs, //-y
+
+		Matrix4f m = new Matrix4f(//
+				mIn.m11, mIn.m13, -mIn.m12, mIn.m14 * hs, //x
+				mIn.m31, mIn.m33, -mIn.m32, mIn.m34 * hs, //z
+				-mIn.m21, -mIn.m23, mIn.m22, -mIn.m24 * hs, //-y
 				0, 0, 0, 1);
+
 		return m;
 	}
+	
+	/**
+	 * Creates a new object!
+	 * FIXME: this should be better than the Quat4f below, but it doesn't product as correct results
+	 * It may be related to the warning inside NifRotToJava3DRot?
+	 * @param rotation
+	 * @return
+	 */
+	public static Matrix3f toJ3dM3(NifMatrix33 mIn) {
+		//see toJ3dM4
+		Matrix3f m = new Matrix3f(//
+				mIn.m11, mIn.m13, -mIn.m12, //x
+				mIn.m31, mIn.m33, -mIn.m32, //z
+				-mIn.m21, -mIn.m23, mIn.m22 //-y
+				);
 
+		return m;
+	}
 	/**
 	 * Creates a new object!
 	 * @param rotation
@@ -111,23 +136,7 @@ public class ConvertFromHavok {
 	public static float toJ3d(float x, NifVer nifVer) {
 		return x * getHavokScale(nifVer);
 	}
-	
-	/**
-	 * Creates a new object!
-	 * @param rotation
-	 * @return
-	 */
-	public static Vector3f toJ3dV3f(NifMatrix44 transform, float scale, NifVer nifVer) {
-		return createScaledVector(transform.m14, transform.m24, transform.m34, scale, nifVer);
-	}
-	/**
-	 * Creates a new object!
-	 * @param rotation
-	 * @return
-	 */
-	public static Vector3f toJ3dV3f(NifMatrix44 transform, NifVer nifVer) {
-		return createScaledVector(transform.m14, transform.m24, transform.m34, 1.0f, nifVer);
-	}
+
 	/**
 	 * Creates a new object!
 	 * @param rotation
@@ -136,6 +145,7 @@ public class ConvertFromHavok {
 	public static Vector3f toJ3d(NifVector3 v, float scale, NifVer nifVer) {
 		return createScaledVector(v.x, v.y, v.z, scale, nifVer);
 	}
+
 	/**
 	 * Creates a new object!
 	 * @param rotation
@@ -144,6 +154,7 @@ public class ConvertFromHavok {
 	public static Vector3f toJ3d(NifVector3 v, NifVer nifVer) {
 		return createScaledVector(v.x, v.y, v.z, 1.0f, nifVer);
 	}
+
 	/**
 	 * Creates a new object!
 	 * @param rotation
@@ -152,6 +163,7 @@ public class ConvertFromHavok {
 	public static Vector3f toJ3d(NifVector4 v, float scale, NifVer nifVer) {
 		return createScaledVector(v.x, v.y, v.z, scale, nifVer);
 	}
+
 	/**
 	 * Creates a new object!
 	 * @param rotation
@@ -160,14 +172,7 @@ public class ConvertFromHavok {
 	public static Vector3f toJ3d(NifVector4 v, NifVer nifVer) {
 		return createScaledVector(v.x, v.y, v.z, 1.0f, nifVer);
 	}
-	/**
-	 * Creates a new object!
-	 * @param rotation
-	 * @return
-	 */
-	public static Point3f toJ3dP3f(NifVector3 v, float scale, NifVer nifVer) {
-		return createScaledPoint(v.x, v.y, v.z, scale, nifVer);
-	}
+
 	/**
 	 * Creates a new object!
 	 * @param rotation
@@ -176,6 +181,7 @@ public class ConvertFromHavok {
 	public static Point3f toJ3dP3f(NifVector3 v, NifVer nifVer) {
 		return createScaledPoint(v.x, v.y, v.z, 1.0f, nifVer);
 	}
+
 	/**
 	 * Creates a new object!
 	 * @param rotation

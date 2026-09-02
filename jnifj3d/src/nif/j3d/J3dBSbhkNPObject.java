@@ -137,14 +137,13 @@ public class J3dBSbhkNPObject extends Group {
 		} else if (hknpShape instanceof hknpDynamicCompoundShape) {
 			return hknpCompoundShape((hknpDynamicCompoundShape)hknpShape, contents, nifVer);
 		} else if (hknpShape instanceof hknpStaticCompoundShape) {
-			return hknpCompoundShape((hknpDynamicCompoundShape)hknpShape, contents, nifVer);
+			return hknpCompoundShape((hknpStaticCompoundShape)hknpShape, contents, nifVer);
 		} else if (hknpShape instanceof hknpScaledConvexShape) {
 			return hknpScaledConvexShape((hknpScaledConvexShape)hknpShape, contents, nifVer);
-		}  else if (hknpShape instanceof hknpConvexPolytopeShape) {//BEFORE hknpConvexShape
+		} else if (hknpShape instanceof hknpConvexPolytopeShape) {//BEFORE hknpConvexShape
 			return hknpConvexPolytopeShape((hknpConvexPolytopeShape)hknpShape, contents, nifVer);
 		} else if (hknpShape instanceof hknpCompressedMeshShape) {
 			hknpCompressedMeshShape hknpCompressedMeshShape = (hknpCompressedMeshShape)hknpShape;
-
 			if (hknpCompressedMeshShape.data > 0) {
 				hknpCompressedMeshShapeData hknpCompressedMeshShapeData = (hknpCompressedMeshShapeData)contents
 						.get(hknpCompressedMeshShape.data);
@@ -162,9 +161,7 @@ public class J3dBSbhkNPObject extends Group {
 		}
 		return null;
 	}
-	
-	
-	
+
 	private static Node hknpScaledConvexShape(hknpScaledConvexShape data, HKXContents contents, NifVer nifVer) {
 
 		long shapeId = data.coreShape;
@@ -200,8 +197,13 @@ public class J3dBSbhkNPObject extends Group {
 				Matrix4f m = ConvertFromHavok.toJ3dM4(s.transform, nifVer);
 				t3d.set(m);
 
-				//Note no ConvertFromHavok as these are just straight multipliers 
-				t3d.setScale(new Vector3d(s.scale.x, s.scale.z, s.scale.y));
+				if (s.scale.x != 1.0 || s.scale.z != 1.0 || s.scale.y != 1.0) {
+					//Note no ConvertFromHavok as these are just straight multipliers 
+					//using t3d.setScale(vec3) appears to be taking the rotation out!!
+					Transform3D t3d2 = new Transform3D();
+					t3d2.setScale(new Vector3d(s.scale.x, s.scale.z, s.scale.y));
+					t3d.mul(t3d2);
+				}
 
 				transformGroup.setTransform(t3d);
 
@@ -313,7 +315,7 @@ public class J3dBSbhkNPObject extends Group {
 		return g;
 
 	}
-	
+
 	/**
 	 * Same as hknpConvexPolytopeShape but there are no faces or indices or planes
 	 * @param data
@@ -331,7 +333,6 @@ public class J3dBSbhkNPObject extends Group {
 			//points have a w = 0.5 not sure what that means really
 		}
 
-		
 		ConvexHullShape convexShape = new ConvexHullShape(points);
 		// create a hull approximation
 		ShapeHull hull = new ShapeHull(convexShape);
@@ -370,7 +371,7 @@ public class J3dBSbhkNPObject extends Group {
 
 		return group;
 	}
-	
+
 	public static Node hknpConvexPolytopeShape(hknpConvexPolytopeShape data, HKXContents contents, NifVer nifVer) {
 		Group group = new Group();
 
@@ -590,7 +591,7 @@ public class J3dBSbhkNPObject extends Group {
 
 				} catch (ArrayIndexOutOfBoundsException e) {
 					System.err.println("hknpCompressedMeshShapeData ArrayIndexOutOfBoundsException " + e.getMessage());
-					System.err.println("In file " +nifVer.fileName);
+					System.err.println("In file " + nifVer.fileName);
 				}
 			}
 

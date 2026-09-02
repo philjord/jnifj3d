@@ -1,7 +1,5 @@
 package nif.j3d;
 
-import java.util.Vector;
-
 import org.jogamp.java3d.GeometryArray;
 import org.jogamp.java3d.Group;
 import org.jogamp.java3d.J3DBuffer;
@@ -114,7 +112,6 @@ public class J3dbhkCollisionObject extends Group {
 				BSbhkNPObject bSbhkNPObject = (BSbhkNPObject)body;
 				J3dBSbhkNPObject j3dBSbhkNPObject = new J3dBSbhkNPObject(bSbhkNPObject, niToJ3dData, bodyId);
 				j3dParent.addChild(j3dBSbhkNPObject);// notice this class not involved
-
 			} else {
 				System.out
 						.println("J3dbhkCollisionObject - bhkCollisionObject.body is not bhkRigidBody or BSbhkNPObject "
