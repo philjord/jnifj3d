@@ -495,6 +495,7 @@ public class J3dBSbhkNPObject extends Group {
 			}
 
 			//TODO: all shared are copied to the end (if any), bit poor in efficiency, shorten later
+			// notes it possible to have 0 packed verts and only shared
 			for (int i = 0; i < sharedVertices.length; i++) {
 				vertices[numPackedVertices + i] = sharedVertices[i];
 			}
@@ -534,47 +535,63 @@ public class J3dBSbhkNPObject extends Group {
 
 						//quad?
 						if (indices[2] != indices[3]) {
-							listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]
-																													- numPackedVertices)
-																													+ sharedOffset]
-																								+ numPackedVertices;
-							listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : sharedVerticesIndex[(indices[1]
-																													- numPackedVertices)
-																													+ sharedOffset]
-																								+ numPackedVertices;
-							listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]
-																													- numPackedVertices)
-																													+ sharedOffset]
-																								+ numPackedVertices;
-							listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]
-																													- numPackedVertices)
-																													+ sharedOffset]
-																								+ numPackedVertices;
-							listPoints[idx++] = indices[3] < numPackedVertices ? indices[3] : sharedVerticesIndex[(indices[3]
-																													- numPackedVertices)
-																													+ sharedOffset]
-																								+ numPackedVertices;
-							listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]
-																													- numPackedVertices)
-																													+ sharedOffset]
-																								+ numPackedVertices;
-						} else {//just a tri					
-							listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : sharedVerticesIndex[(indices[0]
-																													- numPackedVertices)
-																													+ sharedOffset]
-																								+ numPackedVertices;
-							listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : sharedVerticesIndex[(indices[1]
-																													- numPackedVertices)
-																													+ sharedOffset]
-																								+ numPackedVertices;
-							listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : sharedVerticesIndex[(indices[2]
-																													- numPackedVertices)
-																													+ sharedOffset]
-																								+ numPackedVertices;
+
+							// if we go past teh end look into the shared vertex index, but make sure we don't go off the end of that!
+							int idx0 = indices[0] < numPackedVertices ? indices[0] : //								
+									((indices[0] - numPackedVertices) + sharedOffset) < sharedVerticesIndex.length ? //
+											(sharedVerticesIndex[(indices[0] - numPackedVertices) + sharedOffset]
+												+ numPackedVertices) : 0;
+							int idx1 = indices[1] < numPackedVertices ? indices[1] : //
+									((indices[1] - numPackedVertices) + sharedOffset) < sharedVerticesIndex.length ? //
+											sharedVerticesIndex[(indices[1] - numPackedVertices)
+																+ sharedOffset] + numPackedVertices : 0;
+							int idx2 = indices[2] < numPackedVertices ? indices[2] : //
+									((indices[2] - numPackedVertices) + sharedOffset) < sharedVerticesIndex.length ? //
+											sharedVerticesIndex[(indices[2] - numPackedVertices)
+																+ sharedOffset] + numPackedVertices : 0;
+							int idx3 = indices[3] < numPackedVertices ? indices[3] : //
+									((indices[3] - numPackedVertices) + sharedOffset) < sharedVerticesIndex.length ? //
+											sharedVerticesIndex[(indices[3] - numPackedVertices)
+																+ sharedOffset] + numPackedVertices : 0;
+							// don't go off the end, probably degenerate tris
+							idx0 = idx0 < numPackedVertices + sharedVertices.length ? idx0 : 0;
+							idx1 = idx1 < numPackedVertices + sharedVertices.length ? idx1 : 0;
+							idx2 = idx2 < numPackedVertices + sharedVertices.length ? idx2 : 0;
+							idx3 = idx3 < numPackedVertices + sharedVertices.length ? idx3 : 0;
+
+							listPoints[idx++] = idx0;
+							listPoints[idx++] = idx1;
+							listPoints[idx++] = idx2;
+							listPoints[idx++] = idx2;
+							listPoints[idx++] = idx3;
+							listPoints[idx++] = idx0;
+						} else {
+							//just a tri					
+
+							int idx0 = indices[0] < numPackedVertices ? indices[0] : //								
+									((indices[0] - numPackedVertices) + sharedOffset) < sharedVerticesIndex.length ? //
+											(sharedVerticesIndex[(indices[0] - numPackedVertices) + sharedOffset]
+												+ numPackedVertices) : 0;
+							int idx1 = indices[1] < numPackedVertices ? indices[1] : //
+									((indices[1] - numPackedVertices) + sharedOffset) < sharedVerticesIndex.length ? //
+											sharedVerticesIndex[(indices[1] - numPackedVertices)
+																+ sharedOffset] + numPackedVertices : 0;
+							int idx2 = indices[2] < numPackedVertices ? indices[2] : //
+									((indices[2] - numPackedVertices) + sharedOffset) < sharedVerticesIndex.length ? //
+											sharedVerticesIndex[(indices[2] - numPackedVertices)
+																+ sharedOffset] + numPackedVertices : 0;
+							// don't go off the end, probably degenerate tris
+							idx0 = idx0 < numPackedVertices + sharedVertices.length ? idx0 : 0;
+							idx1 = idx1 < numPackedVertices + sharedVertices.length ? idx1 : 0;
+							idx2 = idx2 < numPackedVertices + sharedVertices.length ? idx2 : 0;
+
+							listPoints[idx++] = idx0;
+							listPoints[idx++] = idx1;
+							listPoints[idx++] = idx2;
+
 						}
 					} else {
-						//quad?
-						//FIXME: what does an over sized index but no shared vertexs mean?
+						//quad?						
 						if (indices[2] != indices[3]) {
 							listPoints[idx++] = indices[0] < numPackedVertices ? indices[0] : 0;
 							listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : 0;
@@ -587,10 +604,16 @@ public class J3dBSbhkNPObject extends Group {
 							listPoints[idx++] = indices[1] < numPackedVertices ? indices[1] : 0;
 							listPoints[idx++] = indices[2] < numPackedVertices ? indices[2] : 0;
 						}
+						//FIXME: what does an over sized index but no shared vertexs mean?
+						// It definitely doesn't mean use the modulus
+						//FO76 Meshes\Interiors\Industrial\FreeRooms\IndFreeRoomCorInDbDoorL01.nif
+						// has no shared, and 99 primitives, but just one is indexes out of range prim i=95
+						// and it's degenerate as well
 					}
 
 				} catch (ArrayIndexOutOfBoundsException e) {
-					System.err.println("hknpCompressedMeshShapeData ArrayIndexOutOfBoundsException " + e.getMessage());
+					System.err.println("J3dBSbhkNPObject.hknpCompressedMeshShapeData() ArrayIndexOutOfBoundsException "
+										+ e.getMessage());
 					System.err.println("In file " + nifVer.fileName);
 				}
 			}
