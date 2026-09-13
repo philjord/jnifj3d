@@ -1,12 +1,10 @@
 package utils.convert;
 
-import org.jogamp.java3d.Transform3D;
 import org.jogamp.vecmath.Matrix3f;
 import org.jogamp.vecmath.Matrix4f;
 import org.jogamp.vecmath.Point3f;
 import org.jogamp.vecmath.Quat4f;
 import org.jogamp.vecmath.Vector3f;
-import org.jogamp.vecmath.AxisAngle4f;
 
 import nif.NifVer;
 import nif.compound.NifMatrix33;

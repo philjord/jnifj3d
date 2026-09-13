@@ -123,16 +123,19 @@ public class NifCharacter extends BranchGroup implements Fadable {
 	public NifCharacter(String skeletonNifFilename, List<String> skinNifModelFilenames, MediaSources mediaSources) {
 		this(skeletonNifFilename, mediaSources);
 
-		// if a hkx version of the skeleton exists we will need it later to run hkx animations
-		ByteBuffer bb = mediaSources.getMeshSource().getByteBuffer(skeletonNifFilename.replace(".nif", ".hkx"));
-		if (bb != null) {
-			bb.order(ByteOrder.LITTLE_ENDIAN);
-			HKXReader reader = new HKXReader(bb);
+		// if a hkx version of the skeleton exists we will need it later to run hkx animations'
+		String hkxName = skeletonNifFilename.substring(0, skeletonNifFilename.length() - 4) + ".hkx";
+		if (mediaSources.getMeshSource().nifFileExists(hkxName)) {
+			ByteBuffer bb = mediaSources.getMeshSource().getByteBuffer(hkxName);
+			if (bb != null) {
+				bb.order(ByteOrder.LITTLE_ENDIAN);
+				HKXReader reader = new HKXReader(bb);
 
-			try {
-				hkxSkeletonContents = reader.read();
-			} catch (IOException | InvalidPositionException e) {
-				e.printStackTrace();
+				try {
+					hkxSkeletonContents = reader.read();
+				} catch (IOException | InvalidPositionException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 
