@@ -1424,6 +1424,9 @@ public class NiGeometryAppearanceShader {
 			} else if (bslsp.TextureSet != null && bslsp.TextureSet.ref != -1) {
 				BSShaderTextureSet texSet = (BSShaderTextureSet)niToJ3dData.get(bslsp.TextureSet);
 				return texSet.textures[textureSlot];
+			} else if (bslsp.TextureArrays != null && bslsp.TextureArrays.length > textureSlot) {
+				// these can be up to 175 "wide" I'm gonna use the first one for fun
+				return bslsp.TextureArrays[textureSlot].TextureArray[0];
 			}
 
 		}
