@@ -4,9 +4,9 @@ attribute vec4 glVertex;
 attribute vec4 glColor;
 attribute vec2 glMultiTexCoord0; 
 
-attribute vec4 alphas04;
-attribute vec4 alphas58;
-attribute vec4 alphas912;
+attribute vec4 alphas03;
+attribute vec4 alphas47;
+attribute vec4 alphas811;
 
 
 //uniform mat4 glProjectionMatrix;
@@ -72,9 +72,9 @@ void main( void )
 	D = glLightSource[0].diffuse * glFrontMaterial.diffuse;
 	 
 	
-	layerAlpha4 = alphas04;
-	layerAlpha8 = alphas58;
-	layerAlpha12 = alphas912; 	
+	layerAlpha4 = alphas03;
+	layerAlpha8 = alphas47;
+	layerAlpha12 = alphas811; 	
 	
 	vec3 v = vec3(glModelViewMatrix * glVertex);
 	ViewVec = -v.xyz;// do not normalize also used for view dist
