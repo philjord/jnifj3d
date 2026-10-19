@@ -18,7 +18,7 @@ varying vec4 D;
 //uniform highp int layerCount;
 
 varying vec2 glTexCoord0;
-
+	
 varying vec3 ViewVec;
 
 varying vec4 layerAlpha4;
@@ -32,7 +32,9 @@ void main( void )
 	albedo = mix(albedo, texture2D(layerMap1, glTexCoord0.st).rgb, layerAlpha4.y);
 	albedo = mix(albedo, texture2D(layerMap2, glTexCoord0.st).rgb, layerAlpha4.z);
 	albedo = mix(albedo, texture2D(layerMap3, glTexCoord0.st).rgb, layerAlpha4.w);
-	albedo = mix(albedo, texture2D(layerMap4, glTexCoord0.st).rgb, layerAlpha8.x);
+	
+	//FIXME: this guy always seems to be black,  
+	//albedo = mix(albedo, texture2D(layerMap4, glTexCoord0.st).rgb, layerAlpha8.x);
 	
 	albedo = albedo * C.rgb;
 	
@@ -43,23 +45,4 @@ void main( void )
 	color.a = 1.0;
 	 	
 	gl_FragColor = color;	
-	
-	
-	
-	
-	
-	
-	 
-				
-	
-				//gl_FragColor = vec4(layerAlpha4.x,layerAlpha4.x,layerAlpha4.x,1);	
-				//gl_FragColor = 	texture2D( layerMap2, glTexCoord0.st );
-				
-	/*			albedo = texture2D( baseMap, glTexCoord0.st ).rgb;
-				albedo = mix(albedo, texture2D( layerMap0, glTexCoord0.st ).rgb, layerAlpha4.x);
-				albedo = mix(albedo, texture2D( layerMap1, glTexCoord0.st ).rgb, layerAlpha4.y);
-				albedo = mix(albedo, texture2D( layerMap2, glTexCoord0.st ).rgb, layerAlpha4.z);
-				albedo = mix(albedo, texture2D( layerMap3, glTexCoord0.st ).rgb, layerAlpha4.w);
-				albedo = mix(albedo, texture2D( layerMap4, glTexCoord0.st ).rgb, layerAlpha8.x);							
-				gl_FragColor = 	vec4(albedo,1);*/
 }

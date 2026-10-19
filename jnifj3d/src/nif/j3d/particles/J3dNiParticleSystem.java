@@ -638,10 +638,13 @@ public class J3dNiParticleSystem extends J3dNiGeometry implements GeometryUpdate
 
 					app.setTextureUnitState(tus);
 
-					mat.setDiffuseColor(bsesp.BaseColor.r, bsesp.BaseColor.g, bsesp.BaseColor.b);
-					if (DEBUG_DATA)
-						System.out.println(
-								"J3dNiParticleSystem " + niParticleSystem.name + " color = " + bsesp.BaseColor);
+					//bsesp can be not loaded in some case deferring to the material instead
+					if (bsesp.BaseColor != null) {
+						mat.setDiffuseColor(bsesp.BaseColor.r, bsesp.BaseColor.g, bsesp.BaseColor.b);
+						if (DEBUG_DATA)
+							System.out.println(
+									"J3dNiParticleSystem " + niParticleSystem.name + " color = " + bsesp.BaseColor);
+					}
 
 				} else if (prop instanceof NiVertexColorProperty) {
 					NiVertexColorProperty nvcp = (NiVertexColorProperty)prop;
