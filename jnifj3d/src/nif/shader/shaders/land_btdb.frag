@@ -22,7 +22,7 @@ varying vec2 glTexCoord0;
 varying vec3 ViewVec;
 
 varying vec4 layerAlpha4;
-varying vec4 layerAlpha8;
+varying float layerAlpha5;
 
 void main( void )
 {
@@ -33,8 +33,10 @@ void main( void )
 	albedo = mix(albedo, texture2D(layerMap2, glTexCoord0.st).rgb, layerAlpha4.z);
 	albedo = mix(albedo, texture2D(layerMap3, glTexCoord0.st).rgb, layerAlpha4.w);
 	
-	//FIXME: this guy always seems to be black,  
-	//albedo = mix(albedo, texture2D(layerMap4, glTexCoord0.st).rgb, layerAlpha8.x);
+	//FIXME: this guy used to always be black
+	// now I've fixed the black issue, it never seems to have a texture attached
+	// is it just wildly underused? 
+	//albedo = mix(albedo, texture2D(layerMap4, glTexCoord0.st).rgb, layerAlpha5);
 	
 	albedo = albedo * C.rgb;
 	

@@ -15,6 +15,13 @@ import nif.compound.NifVector3;
 import nif.compound.NifVector4;
 
 public class ConvertFromHavok {
+	/**
+	 * null NifVer = SKYRIM_HAVOK_TO_METERS_SCALE
+	 * hkx file have no NifVer, but they are always Skyrim+
+	 * 
+	 * Only returns ConvertFromNif.toJ3d(69.994f); for Skyrim+
+	 * or ConvertFromNif.toJ3d(6.9994f); for pre skyrim
+	 */
 	public static float getHavokScale(NifVer nifVer) {
 		//hkx file have no NifVer, but they are always Skyrim+
 		if (nifVer == null)
